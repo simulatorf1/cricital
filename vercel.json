@@ -1,1 +1,8 @@
-
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "buildCommand": null,
+  "outputDirectory": "public",
+  "devCommand": "npx serve public"
+}
