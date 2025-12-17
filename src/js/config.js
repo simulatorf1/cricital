@@ -3,8 +3,8 @@
 // ============================================
 
 // Obtener las variables de entorno de Vercel
-const SUPABASE_URL = 'https://tu-proyecto-supabase.supabase.co'; // CAMBIAR POR TU URL
-const SUPABASE_ANON_KEY = 'tu-anon-key-aqui'; // CAMBIAR POR TU ANON KEY
+const SUPABASE_URL = 'https://xbnbbmhcveyzrvvmdktg.supabase.co'; // CAMBIAR POR TU URL
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg'; // CAMBIAR POR TU ANON KEY
 
 // Crear cliente Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
