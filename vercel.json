@@ -10,24 +10,10 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/src/js/(.*)\\.js",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000"
-        }
-      ]
+      "destination": "/public/index.html"
     }
   ],
   "cleanUrls": false,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "outputDirectory": "public"
 }
