@@ -1345,7 +1345,7 @@ class F1Manager {
     
     async loadProximoGP() {
         try {
-            const { data: gp } = await supabase
+            const { data: gp, error } = await window.supabase
                 .from('calendario_gp')
                 .select('*')
                 .eq('cerrado_apuestas', false)
