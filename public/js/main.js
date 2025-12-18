@@ -622,7 +622,52 @@ class F1Manager {
         
         this.init();
     }
-    
+
+
+        async saltarTutorial() {
+        console.log('⏭️ Saltando tutorial...');
+        
+        // Verificar si ya tiene escudería
+        await this.loadUserData();
+        
+        if (!this.escuderia) {
+            // Si no tiene escudería, crear una automáticamente
+            console.log('🏗️ Creando escudería automática para salto...');
+            try {
+                const { data: escuderia, error } = await supabase
+                    .from('escuderias')
+                    .insert([
+                        {
+                            user_id: this.user.id,
+                            nombre: 'Escudería Rápida',
+                            dinero: 5000000,
+                            puntos: 0,
+                            ranking: null,
+                            color_principal: '#e10600',
+                            color_secundario: '#ffffff',
+                            nivel_ingenieria: 1,
+                            creada_en: new Date().toISOString()
+                        }
+                    ])
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                this.escuderia = escuderia;
+                
+                // Crear stats del coche
+                await supabase
+                    .from('coches_stats')
+                    .insert([{ escuderia_id: escuderia.id }]);
+                    
+            } catch (error) {
+                console.error('❌ Error creando escudería automática:', error);
+            }
+        }
+        
+        // Cargar dashboard directamente
+        await this.loadDashboard();
+    }
     async init() {
         console.log('🔧 F1Manager inicializando...');
         
@@ -880,8 +925,11 @@ class F1Manager {
                         width: 100%;
                     ">
                         CREAR MI ESCUDERÍA
-                    </button>
-                    <button onclick="location.reload()" style="margin-top: 10px; padding: 10px; background: #666; color: white; border: none; border-radius: 5px; width: 100%;">
+                    // En la función que genera el HTML del tutorial (showTutorialScreen o similar),
+                    // añade esto dentro del contenedor del formulario:
+
+                    <button onclick="window.f1Manager.saltarTutorial()" 
+                        style="margin-top: 10px; padding: 10px; background: #666; color: white; border: none; border-radius: 5px; width: 100%; cursor: pointer;">
                         ⏭️ Saltar Tutorial e Ir al Juego
                     </button>
                 </div>
