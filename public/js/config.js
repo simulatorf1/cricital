@@ -35,8 +35,8 @@ const CAR_AREAS = [
     { id: 'electronica', name: 'Electrónica', icon: 'fas fa-microchip', color: '#43AA8B' }
 ];
 
-// Función para inicializar Supabase
-async function initSupabase() {
+// Inicializar Supabase inmediatamente
+function initSupabase() {
     try {
         // Si ya está inicializado, devolverlo
         if (window.supabase && window.supabase.auth) {
@@ -44,10 +44,8 @@ async function initSupabase() {
             return window.supabase;
         }
         
-        // Importar la biblioteca de Supabase dinámicamente
-        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.7');
-        
-        // Crear el cliente
+        // Crear el cliente usando el CDN ya cargado
+        const { createClient } = supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         // Asignar a window
@@ -62,21 +60,11 @@ async function initSupabase() {
     }
 }
 
-// Inicializar Supabase inmediatamente
-initSupabase().then(client => {
-    if (client) {
-        console.log('✅ Supabase listo para usar');
-        
-        // Verificar que funciona
-        client.auth.getSession().then(({ data }) => {
-            console.log('🔐 Sesión verificada:', data.session ? 'ACTIVA' : 'INACTIVA');
-        });
-    }
-});
+// Inicializar inmediatamente
+const supabaseClient = initSupabase();
 
 // Exportar configuraciones
 window.CONFIG = CONFIG;
 window.CAR_AREAS = CAR_AREAS;
-// NO exportar window.supabase aquí - ya se hace en initSupabase()
 
 console.log('🎯 Configuración lista para usar');
