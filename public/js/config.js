@@ -1,14 +1,10 @@
 // ========================
-// CONFIG.JS - VERSIÓN CORREGIDA DEFINITIVA
+// CONFIG.JS - VERSIÓN DEFINITIVA (FUNCIONA)
 // ========================
 console.log('✅ F1 Manager - Configuración cargada');
 
-// URL y clave de tu proyecto Supabase
-const SUPABASE_URL = 'https://xbnbbmhcveyzrvvmdktg.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg';
-
 // Configuración del juego
-const CONFIG = {
+window.CONFIG = {
     VERSION: '1.0.0',
     DEBUG: true,
     FABRICATION_TIME: 4 * 60 * 60 * 1000, // 4 horas en milisegundos
@@ -21,7 +17,7 @@ const CONFIG = {
 };
 
 // Áreas del coche
-const CAR_AREAS = [
+window.CAR_AREAS = [
     { id: 'suelo', name: 'Suelo y Difusor', icon: 'fas fa-car-side', color: '#FF6B6B' },
     { id: 'motor', name: 'Motor', icon: 'fas fa-cog', color: '#4ECDC4' },
     { id: 'aleron_delantero', name: 'Alerón Delantero', icon: 'fas fa-plane', color: '#FFD166' },
@@ -35,36 +31,10 @@ const CAR_AREAS = [
     { id: 'electronica', name: 'Electrónica', icon: 'fas fa-microchip', color: '#43AA8B' }
 ];
 
-// Inicializar Supabase inmediatamente
-function initSupabase() {
-    try {
-        // Si ya está inicializado, devolverlo
-        if (window.supabase && window.supabase.auth) {
-            console.log('✅ Supabase ya está inicializado');
-            return window.supabase;
-        }
-        
-        // Crear el cliente usando el CDN ya cargado
-        const { createClient } = window.supabase;
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        // Asignar a window
-        window.supabase = supabaseClient;
-        
-        console.log('🚀 Supabase inicializado correctamente:', SUPABASE_URL);
-        return supabaseClient;
-        
-    } catch (error) {
-        console.error('❌ Error inicializando Supabase:', error);
-        return null;
-    }
-}
-
-// Inicializar pero NO crear una variable constante
-initSupabase();
-
-// Exportar configuraciones
-window.CONFIG = CONFIG;
-window.CAR_AREAS = CAR_AREAS;
+// Variables de Supabase
+window.SUPABASE_URL = 'https://xbnbbmhcveyzrvvmdktg.supabase.co';
+window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg';
 
 console.log('🎯 Configuración lista para usar');
+
+// NO intentar inicializar Supabase aquí - main.js lo hará
