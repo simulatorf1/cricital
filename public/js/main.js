@@ -9,7 +9,7 @@ console.log('🏎️ F1 Manager - Sistema principal cargado');
 console.log('🔧 Inicializando sistema seguro...');
 
 // Variable global para Supabase
-let supabase = window.supabase || null;  // ← SOLO SI NO EXISTE
+let supabase = window.supabase || null;
 
 // Función para inicializar Supabase de forma SEGURA
 async function initSupabase() {
@@ -567,105 +567,11 @@ class F1Manager {
         this.escuderia = null;
         this.pilotos = [];
         this.carStats = null;
+        this.proximoGP = null;
         
         this.init();
     }
-
-        async loadCarStatus() {
-        if (!this.escuderia) return;
-        
-        try {
-            const { data: stats } = await supabase
-                .from('coches_stats')
-                .select('*')
-                .eq('escuderia_id', this.escuderia.id)
-                .single();
-            
-            if (stats) {
-                this.carStats = stats;
-                this.updateCarAreasUI();
-            }
-        } catch (error) {
-            console.error('Error cargando stats:', error);
-        }
-    }
     
-    async loadPilotos() {
-        if (!this.escuderia) return;
-        
-        try {
-            const { data: pilotos } = await supabase
-                .from('pilotos_contratados')
-                .select('*')
-                .eq('escuderia_id', this.escuderia.id)
-                .eq('activo', true);
-            
-            if (pilotos && pilotos.length > 0) {
-                this.pilotos = pilotos;
-                this.updatePilotosUI();
-            }
-        } catch (error) {
-            console.error('Error cargando pilotos:', error);
-        }
-    }
-    
-    async loadProximoGP() {
-        try {
-            const { data: gp } = await supabase
-                .from('calendario_gp')
-                .select('*')
-                .eq('cerrado_apuestas', false)
-                .gt('fecha_inicio', new Date().toISOString())
-                .order('fecha_inicio', { ascending: true })
-                .limit(1)
-                .single();
-            
-            if (gp) {
-                this.proximoGP = gp;
-                this.updateCountdown();
-            }
-        } catch (error) {
-            console.error('Error cargando GP:', error);
-        }
-    }
-    
-    updateCarAreasUI() {
-        const container = document.getElementById('areas-coche');
-        if (!container || !this.carStats) return;
-        
-        container.innerHTML = window.CAR_AREAS.map(area => {
-            const nivel = this.carStats[`${area.id}_nivel`] || 0;
-            const progreso = this.carStats[`${area.id}_progreso`] || 0;
-            const porcentaje = (progreso / CONFIG.PIECES_PER_LEVEL) * 100;
-            
-            return `
-                <div class="area-item" style="border-left-color: ${area.color}">
-                    <span class="area-nombre">${area.name}</span>
-                    <div class="area-nivel">
-                        <span>Nivel</span>
-                        <span class="nivel-valor">${nivel}</span>
-                    </div>
-                    <div class="area-progreso">
-                        Progreso: <span class="progreso-valor">${progreso}/20</span>
-                    </div>
-                    <div class="progress-bar-small">
-                        <div class="progress-fill-small" style="width: ${porcentaje}%"></div>
-                    </div>
-                    <button class="btn-fabricar" data-area="${area.id}">
-                        <i class="fas fa-hammer"></i> Fabricar (€${CONFIG.PIECE_COST.toLocaleString()})
-                    </button>
-                </div>
-            `;
-        }).join('');
-        
-        // Configurar eventos de botones de fabricación
-        document.querySelectorAll('.btn-fabricar').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const areaId = e.target.closest('.btn-fabricar').dataset.area;
-                this.iniciarFabricacion(areaId);
-            });
-        });
-    }
     async init() {
         console.log('🔧 Inicializando juego...');
         
@@ -763,8 +669,6 @@ class F1Manager {
                                 <i class="fas fa-flag-checkered"></i>
                                 CREAR MI ESCUDERÍA
                             </button>
-                            
-
                         </div>
                     </div>
                     
@@ -892,7 +796,6 @@ class F1Manager {
         
         // Configurar eventos
         document.getElementById('btn-crear-escuderia').addEventListener('click', () => this.crearEscuderiaDesdeTutorial());
-
     }
     
     async crearEscuderiaDesdeTutorial() {
@@ -1044,48 +947,6 @@ class F1Manager {
             
             alert(mensaje);
         }
-    }
-    
-    async saltarTutorial() {
-        console.log('⏭️ Saltando tutorial...');
-        
-        // Verificar si ya tiene escudería
-        await this.loadUserData();
-        
-        if (!this.escuderia) {
-            // Crear escudería automáticamente
-            try {
-                const { data: escuderia, error } = await supabase
-                    .from('escuderias')
-                    .insert([
-                        {
-                            user_id: this.user.id,
-                            nombre: 'Mi Escudería Rápida',
-                            dinero: 5000000,
-                            puntos: 0,
-                            ranking: null,
-                            color_principal: '#e10600',
-                            color_secundario: '#ffffff',
-                            nivel_ingenieria: 1,
-                            creada_en: new Date().toISOString()
-                        }
-                    ])
-                    .select()
-                    .single();
-                
-                if (!error) {
-                    this.escuderia = escuderia;
-                    await supabase
-                        .from('coches_stats')
-                        .insert([{ escuderia_id: escuderia.id }]);
-                }
-            } catch (error) {
-                console.error('Error creando escudería automática:', error);
-            }
-        }
-        
-        // Cargar dashboard
-        await this.cargarDashboardCompleto();
     }
     
     async cargarDashboardCompleto() {
@@ -1440,34 +1301,308 @@ class F1Manager {
         console.log('✅ Dashboard cargado correctamente con CSS');
     }
     
-    generarAreasCoche() {
-        const areas = [
-            { nombre: 'Motor', nivel: this.carStats?.motor_nivel || 0, color: '#4ECDC4' },
-            { nombre: 'Frenos', nivel: this.carStats?.frenos_nivel || 0, color: '#FF6B6B' },
-            { nombre: 'Aerodinámica', nivel: this.carStats?.aleron_delantero_nivel || 0, color: '#FFD166' },
-            { nombre: 'Suspensión', nivel: this.carStats?.suspension_nivel || 0, color: '#06D6A0' },
-            { nombre: 'Caja Cambios', nivel: this.carStats?.caja_cambios_nivel || 0, color: '#118AB2' }
-        ];
+    // ========================
+    // MÉTODOS AUXILIARES
+    // ========================
+    
+    async loadCarStatus() {
+        if (!this.escuderia) return;
         
-        return areas.map(area => `
-            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border-left: 4px solid ${area.color};">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="margin: 0; color: ${area.color};">${area.nombre}</h3>
-                    <span style="background: ${area.color}; color: black; padding: 2px 8px; border-radius: 10px; font-weight: bold;">Nivel ${area.nivel}</span>
-                </div>
-                <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
-                    <div style="height: 100%; width: ${(area.nivel / 10) * 100}%; background: ${area.color}; border-radius: 4px;"></div>
-                </div>
-                <button style="width: 100%; margin-top: 10px; padding: 8px; background: rgba(255,255,255,0.1); color: white; border: 1px solid ${area.color}; border-radius: 5px; cursor: pointer;">
-                    <i class="fas fa-hammer"></i> Mejorar (€10,000)
-                </button>
-            </div>
-        `).join('');
+        try {
+            const { data: stats } = await supabase
+                .from('coches_stats')
+                .select('*')
+                .eq('escuderia_id', this.escuderia.id)
+                .single();
+            
+            if (stats) {
+                this.carStats = stats;
+                this.updateCarAreasUI();
+            }
+        } catch (error) {
+            console.error('Error cargando stats:', error);
+        }
     }
     
-    // Métodos de navegación (placeholders)
+    async loadPilotos() {
+        if (!this.escuderia) return;
+        
+        try {
+            const { data: pilotos } = await supabase
+                .from('pilotos_contratados')
+                .select('*')
+                .eq('escuderia_id', this.escuderia.id)
+                .eq('activo', true);
+            
+            if (pilotos && pilotos.length > 0) {
+                this.pilotos = pilotos;
+                this.updatePilotosUI();
+            }
+        } catch (error) {
+            console.error('Error cargando pilotos:', error);
+        }
+    }
+    
+    async loadProximoGP() {
+        try {
+            const { data: gp } = await supabase
+                .from('calendario_gp')
+                .select('*')
+                .eq('cerrado_apuestas', false)
+                .gt('fecha_inicio', new Date().toISOString())
+                .order('fecha_inicio', { ascending: true })
+                .limit(1)
+                .single();
+            
+            if (gp) {
+                this.proximoGP = gp;
+                this.updateCountdown();
+            }
+        } catch (error) {
+            console.error('Error cargando GP:', error);
+        }
+    }
+    
+    updateCarAreasUI() {
+        const container = document.getElementById('areas-coche');
+        if (!container || !this.carStats) return;
+        
+        container.innerHTML = window.CAR_AREAS.map(area => {
+            const nivel = this.carStats[`${area.id}_nivel`] || 0;
+            const progreso = this.carStats[`${area.id}_progreso`] || 0;
+            const porcentaje = (progreso / CONFIG.PIECES_PER_LEVEL) * 100;
+            
+            return `
+                <div class="area-item" style="border-left-color: ${area.color}">
+                    <span class="area-nombre">${area.name}</span>
+                    <div class="area-nivel">
+                        <span>Nivel</span>
+                        <span class="nivel-valor">${nivel}</span>
+                    </div>
+                    <div class="area-progreso">
+                        Progreso: <span class="progreso-valor">${progreso}/20</span>
+                    </div>
+                    <div class="progress-bar-small">
+                        <div class="progress-fill-small" style="width: ${porcentaje}%"></div>
+                    </div>
+                    <button class="btn-fabricar" data-area="${area.id}">
+                        <i class="fas fa-hammer"></i> Fabricar (€${CONFIG.PIECES_PER_LEVEL.toLocaleString()})
+                    </button>
+                </div>
+            `;
+        }).join('');
+        
+        // Configurar eventos de botones de fabricación
+        document.querySelectorAll('.btn-fabricar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const areaId = e.target.closest('.btn-fabricar').dataset.area;
+                this.iniciarFabricacion(areaId);
+            });
+        });
+    }
+    
+    // ========================
+    // FUNCIONALIDADES PRINCIPALES
+    // ========================
+    
+    iniciarFabricacion(areaId) {
+        console.log('🛠️ Iniciando fabricación para:', areaId);
+        
+        if (!window.fabricacionManager) {
+            console.error('❌ fabricacionManager no está inicializado');
+            return;
+        }
+        
+        window.fabricacionManager.startFabrication(areaId);
+    }
+    
+    showNotification(mensaje, tipo = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${tipo}`;
+        notification.innerHTML = `
+            <i class="fas fa-${tipo === 'success' ? 'check-circle' : 
+                             tipo === 'error' ? 'exclamation-circle' : 
+                             'info-circle'}"></i>
+            <span>${mensaje}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
+    
+    async updateEscuderiaMoney() {
+        if (!this.escuderia) return;
+        
+        try {
+            const { error } = await supabase
+                .from('escuderias')
+                .update({ dinero: this.escuderia.dinero })
+                .eq('id', this.escuderia.id);
+            
+            if (!error) {
+                const moneyValue = document.getElementById('money-value');
+                if (moneyValue) {
+                    moneyValue.textContent = `€${this.escuderia.dinero.toLocaleString()}`;
+                }
+            }
+        } catch (error) {
+            console.error('Error actualizando dinero:', error);
+        }
+    }
+    
+    async cargarDatosDashboard() {
+        console.log('📊 Cargando datos del dashboard...');
+        
+        // Actualizar producción en tiempo real
+        this.updateProductionMonitor();
+        
+        // Configurar eventos de botones
+        this.setupDashboardEvents();
+        
+        // Iniciar temporizadores
+        this.startTimers();
+    }
+    
+    updateProductionMonitor() {
+        if (!window.fabricacionManager) return;
+        
+        const status = window.fabricacionManager.getProductionStatus();
+        const container = document.getElementById('produccion-actual');
+        
+        if (!container) return;
+        
+        if (status.active) {
+            const area = CAR_AREAS.find(a => a.id === status.piece.toLowerCase().replace(' ', '_'));
+            const areaName = area ? area.name : status.piece;
+            
+            container.innerHTML = `
+                <div class="pieza-header">
+                    <h3 id="pieza-nombre">${areaName} Nivel ${status.level}</h3>
+                    <span class="pieza-tag">${status.ready ? 'LISTA' : 'FABRICANDO'}</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="production-progress" style="width: ${status.progress}%"></div>
+                    </div>
+                    <div class="progress-time">
+                        <i class="far fa-clock"></i>
+                        <span id="time-left">${status.ready ? '¡Lista para recoger!' : `Tiempo restante: ${this.formatTime(status.remaining)}`}</span>
+                    </div>
+                </div>
+                <div class="pieza-stats">
+                    <div class="stat-mini">
+                        <span>Costo</span>
+                        <strong>€10,000</strong>
+                    </div>
+                    <div class="stat-mini">
+                        <span>Puntos</span>
+                        <strong>+10</strong>
+                    </div>
+                </div>
+                <div class="produccion-actions">
+                    <button class="btn-secondary" id="btn-cancelar">Cancelar</button>
+                    <button class="btn-primary" id="btn-recoger-pieza" ${!status.ready ? 'disabled' : ''}>
+                        ${status.ready ? 'Recoger Pieza' : 'En fabricación...'}
+                    </button>
+                </div>
+            `;
+            
+            // Configurar eventos
+            document.getElementById('btn-recoger-pieza')?.addEventListener('click', () => {
+                window.fabricacionManager.collectPiece();
+            });
+            
+            document.getElementById('btn-cancelar')?.addEventListener('click', () => {
+                window.fabricacionManager.cancelProduction();
+            });
+        }
+    }
+    
+    setupDashboardEvents() {
+        // Botón de iniciar fabricación
+        document.getElementById('iniciar-fabricacion-btn')?.addEventListener('click', () => {
+            this.irAlTaller();
+        });
+        
+        // Botón de contratar pilotos
+        document.getElementById('contratar-pilotos-btn')?.addEventListener('click', () => {
+            this.mostrarContratarPilotos();
+        });
+        
+        document.getElementById('contratar-primer-piloto')?.addEventListener('click', () => {
+            this.mostrarContratarPilotos();
+        });
+        
+        // Botón de apuestas
+        document.getElementById('btn-apostar')?.addEventListener('click', () => {
+            this.mostrarApuestas();
+        });
+    }
+    
+    formatTime(milliseconds) {
+        const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+        const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+        return `${hours}h ${minutes}m ${seconds}s`;
+    }
+    
+    startTimers() {
+        // Timer de producción
+        setInterval(() => {
+            this.updateProductionMonitor();
+        }, 1000);
+        
+        // Timer de countdown
+        setInterval(() => {
+            this.updateCountdown();
+        }, 1000);
+    }
+    
+    mostrarContratarPilotos() {
+        this.showNotification('🏎️ Sistema de pilotos en desarrollo', 'info');
+        // Aquí implementarías la lógica para contratar pilotos
+    }
+    
+    mostrarApuestas() {
+        this.showNotification('💰 Sistema de apuestas en desarrollo', 'info');
+        // Aquí implementarías la lógica para apostar
+    }
+    
+    updateCountdown() {
+        if (!this.proximoGP) return;
+        
+        const now = new Date();
+        const gpDate = new Date(this.proximoGP.fecha_inicio);
+        const timeDiff = gpDate - now;
+        
+        if (timeDiff > 0) {
+            const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+            
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
+            const gpNombreEl = document.getElementById('gp-nombre');
+            const gpFechaEl = document.getElementById('gp-fecha');
+            const gpCircuitoEl = document.getElementById('gp-circuito');
+            
+            if (hoursEl) hoursEl.textContent = hours.toString().padStart(2, '0');
+            if (minutesEl) minutesEl.textContent = minutes.toString().padStart(2, '0');
+            if (secondsEl) secondsEl.textContent = seconds.toString().padStart(2, '0');
+            if (gpNombreEl) gpNombreEl.textContent = this.proximoGP.nombre;
+            if (gpFechaEl) gpFechaEl.textContent = new Date(this.proximoGP.fecha_inicio).toLocaleDateString('es-ES');
+            if (gpCircuitoEl) gpCircuitoEl.textContent = this.proximoGP.circuito || 'Circuito por confirmar';
+        }
+    }
+    
     irAlTaller() {
-        alert('🏭 Taller - Próximamente');
+        if (window.tabManager) {
+            window.tabManager.switchTab('taller');
+        }
     }
     
     irAlMercado() {
