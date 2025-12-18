@@ -754,32 +754,47 @@ class F1Manager {
                 email,
                 password,
                 options: {
-                    data: { username }
+                    data: { username },
+                    emailRedirectTo: window.location.origin // Esto ayuda con la confirmación
                 }
             });
             
             if (authError) throw authError;
             
-            // 2. Crear perfil en la tabla users
-            const { error: profileError } = await supabase
-                .from('users')
-                .insert([
-                    {
-                        id: authData.user.id,
-                        username: username,
-                        email: email,
-                        created_at: new Date().toISOString()
+            // 2. IMPORTANTE: NO crear perfil manualmente aquí
+            // El trigger 'on_auth_user_created' en Supabase ya lo hace automáticamente
+            // Si intentamos crear el perfil aquí, da error 409 porque ya existe
+            
+            console.log('✅ Registro exitoso. Trigger creará perfil automáticamente.');
+            
+            // 3. Mostrar mensaje apropiado
+            if (authData.user && authData.user.identities && authData.user.identities.length > 0) {
+                // Usuario creado, necesita confirmar email
+                this.showNotification('✅ ¡Cuenta creada! Por favor, revisa tu correo para confirmarla.', 'success');
+                
+                // Redirigir a pantalla de login después de 3 segundos
+                setTimeout(() => {
+                    if (document.querySelector('.auth-modal')) {
+                        document.querySelector('.auth-modal').remove();
                     }
-                ]);
-            
-            if (profileError) throw profileError;
-            
-            this.user = authData.user;
-            this.showNotification('✅ ¡Cuenta creada! Inicia el tutorial.', 'success');
-            this.startTutorial();
+                    this.showAuthModal(); // O mostrarPantallaLogin() si usas la nueva función
+                }, 3000);
+            } else {
+                // Usuario ya existía o no necesita confirmación
+                this.user = authData.user;
+                this.showNotification('✅ ¡Bienvenido de nuevo!', 'success');
+                this.startTutorial();
+            }
             
         } catch (error) {
-            this.showNotification(`❌ Error: ${error.message}`, 'error');
+            console.error('Error en registro:', error);
+            
+            // Mostrar mensaje de error más amigable
+            if (error.message.includes('already registered') || error.code === '23505') {
+                this.showNotification('❌ Este email ya está registrado. ¿Has olvidado tu contraseña?', 'error');
+            } else {
+                this.showNotification(`❌ Error: ${error.message}`, 'error');
+            }
         }
     }
     
