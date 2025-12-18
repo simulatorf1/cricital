@@ -808,10 +808,66 @@ class F1Manager {
             return;
         }
         
-        console.log('🏗️ Creando escudería:', nombre);
+        console.log('🏗️ Creando escudería para usuario:', this.user.id);
         
         try {
-            // 1. Crear escudería
+            // 1. PRIMERO: Asegurar que el usuario existe en public.users
+            console.log('👤 Verificando usuario en public.users...');
+            
+            const { data: existingUser, error: userError } = await supabase
+                .from('users')
+                .select('id')
+                .eq('id', this.user.id)
+                .maybeSingle();
+            
+            if (userError && userError.code !== 'PGRST116') {
+                console.error('❌ Error verificando usuario:', userError);
+            }
+            
+            // Si no existe, crearlo
+            if (!existingUser) {
+                console.log('➕ Creando usuario en public.users...');
+                
+                const { error: createUserError } = await supabase
+                    .from('users')
+                    .insert([
+                        {
+                            id: this.user.id,
+                            username: this.user.user_metadata?.username || nombre,
+                            email: this.user.email,
+                            created_at: new Date().toISOString()
+                        }
+                    ]);
+                
+                if (createUserError) {
+                    console.warn('⚠️ Error creando usuario (puede ser duplicado):', createUserError.message);
+                    // Continuar de todas formas
+                } else {
+                    console.log('✅ Usuario creado en public.users');
+                }
+            } else {
+                console.log('✅ Usuario ya existe en public.users');
+            }
+            
+            // 2. ESPERAR 1 segundo para asegurar
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 3. VERIFICAR si YA existe escudería (por si acaso)
+            const { data: existingEscuderia, error: escError } = await supabase
+                .from('escuderias')
+                .select('id')
+                .eq('user_id', this.user.id)
+                .maybeSingle();
+            
+            if (existingEscuderia) {
+                console.log('✅ Escudería ya existe, cargando datos...');
+                this.escuderia = existingEscuderia;
+                await this.cargarDashboardCompleto();
+                return;
+            }
+            
+            // 4. CREAR ESCUDERÍA
+            console.log('🏎️ Creando nueva escudería...');
             const { data: escuderia, error } = await supabase
                 .from('escuderias')
                 .insert([
@@ -830,30 +886,56 @@ class F1Manager {
                 .select()
                 .single();
             
-            if (error) throw error;
+            if (error) {
+                // Si es error de duplicado (ya existe)
+                if (error.code === '23505' || error.message.includes('duplicate')) {
+                    console.log('🔄 Escudería ya existe, buscando...');
+                    const { data: foundEscuderia } = await supabase
+                        .from('escuderias')
+                        .select('*')
+                        .eq('user_id', this.user.id)
+                        .single();
+                    
+                    this.escuderia = foundEscuderia;
+                } else {
+                    throw error;
+                }
+            } else {
+                this.escuderia = escuderia;
+                console.log('✅ Escudería creada:', escuderia.nombre);
+            }
             
-            this.escuderia = escuderia;
-            console.log('✅ Escudería creada:', escuderia.nombre);
-            
-            // 2. Crear stats del coche
+            // 5. CREAR STATS DEL COCHE (si no existen)
+            console.log('🔧 Creando stats del coche...');
             await supabase
                 .from('coches_stats')
-                .insert([{ escuderia_id: escuderia.id }]);
+                .insert([{ escuderia_id: this.escuderia.id }])
+                .catch(err => {
+                    console.log('📝 Stats ya existían o error menor:', err.message);
+                });
             
-            // 3. Cargar dashboard COMPLETO
+            // 6. CARGAR DASHBOARD
+            console.log('🎉 Todo listo, cargando dashboard...');
             await this.cargarDashboardCompleto();
             
         } catch (error) {
-            console.error('❌ Error creando escudería:', error);
+            console.error('❌ Error en crearEscuderiaDesdeTutorial:', error);
             
-            if (error.code === '23505') {
-                // Escudería ya existe
-                alert('✅ Ya tienes una escudería. Cargando juego...');
+            let mensaje = 'Error: ' + (error.message || 'Desconocido');
+            
+            if (error.code === '23503') {
+                mensaje = '❌ ERROR CRÍTICO: El usuario no existe en la base de datos.\n\n' +
+                         'Ejecuta esto en Supabase SQL Editor:\n\n' +
+                         'INSERT INTO public.users (id, username, email, created_at)\n' +
+                         `VALUES ('${this.user.id}', '${this.user.user_metadata?.username || 'Usuario'}', '${this.user.email}', NOW());`;
+            } else if (error.code === '23505') {
+                mensaje = '✅ Ya tienes una escudería. Cargando juego...';
                 await this.loadUserData();
                 await this.cargarDashboardCompleto();
-            } else {
-                alert('❌ Error: ' + (error.message || 'No se pudo crear la escudería'));
+                return;
             }
+            
+            alert(mensaje);
         }
     }
     
