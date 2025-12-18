@@ -15,32 +15,35 @@ var supabase = null;
 async function initSupabase() {
     console.log('🔄 Inicializando Supabase...');
     
-    // Si ya está inicializado, devolverlo
-    if (window.supabaseClient && window.supabaseClient.auth) {
-        console.log('✅ Supabase ya está inicializado (desde index.html)');
-        supabase = window.supabaseClient;
-        return supabase;
+    // Verificar si Supabase CDN cargó
+    if (typeof supabase === 'undefined') {
+        console.error('❌ Error: Supabase CDN no se cargó');
+        return null;
     }
     
-    // Si existe en window.supabase, usarlo
-    if (window.supabase && window.supabase.createClient) {
-        console.log('🔧 Creando cliente desde CDN...');
-        try {
-            const supabaseClient = window.supabase.createClient(
-                'https://xbnbbmhcveyzrvvmdktg.supabase.co',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg'
-            );
-            window.supabaseClient = supabaseClient;
-            supabase = supabaseClient;
-            console.log('🚀 Supabase inicializado');
-            return supabase;
-        } catch (error) {
-            console.error('❌ Error creando cliente:', error);
+    try {
+        // Usar las variables de window que config.js configuró
+        const supabaseUrl = window.SUPABASE_URL;
+        const supabaseKey = window.SUPABASE_ANON_KEY;
+        
+        if (!supabaseUrl || !supabaseKey) {
+            throw new Error('Faltan URL o API Key en window');
         }
+        
+        // Inicializar cliente
+        const { createClient } = supabase;
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+        
+        // Asignar a window para uso global
+        window.supabase = supabaseClient;
+        
+        console.log('✅ Supabase inicializado:', supabaseUrl);
+        return supabaseClient;
+        
+    } catch (error) {
+        console.error('❌ Error en initSupabase:', error.message);
+        return null;
     }
-    
-    console.error('❌ No se pudo cargar Supabase');
-    return null;
 }
     
 
