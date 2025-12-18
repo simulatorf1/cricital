@@ -816,6 +816,9 @@ class F1Manager {
                     ">
                         CREAR MI ESCUDERÍA
                     </button>
+                    <button onclick="location.reload()" style="margin-top: 10px; padding: 10px; background: #666; color: white; border: none; border-radius: 5px; width: 100%;">
+                        ⏭️ Saltar Tutorial e Ir al Juego
+                    </button>
                 </div>
             </div>
         `;
