@@ -905,16 +905,27 @@ class F1Manager {
                 console.log('✅ Escudería creada:', escuderia.nombre);
             }
             
-            // 5. CREAR STATS DEL COCHE (si no existen)
+            // 5. CREAR STATS DEL COCHE (si no existen) - CORREGIDO
             console.log('🔧 Creando stats del coche...');
-            await supabase
-                .from('coches_stats')
-                .insert([{ escuderia_id: this.escuderia.id }])
-                .catch(err => {
-                    console.log('📝 Stats ya existían o error menor:', err.message);
-                });
+            try {
+                const { error: statsError } = await supabase
+                    .from('coches_stats')
+                    .insert([{ escuderia_id: this.escuderia.id }]);
+                
+                if (statsError) {
+                    console.log('📝 Stats ya existían o error menor:', statsError.message);
+                }
+            } catch (statsErr) {
+                console.log('📝 Error creando stats (normal si ya existen):', statsErr.message);
+            }
             
-            // 6. CARGAR DASHBOARD
+            // 6. VERIFICAR que this.escuderia está definido
+            if (!this.escuderia || !this.escuderia.id) {
+                console.error('❌ ERROR CRÍTICO: this.escuderia es undefined');
+                throw new Error('La escudería no se creó correctamente');
+            }
+            
+            // 7. CARGAR DASHBOARD
             console.log('🎉 Todo listo, cargando dashboard...');
             await this.cargarDashboardCompleto();
             
@@ -924,14 +935,15 @@ class F1Manager {
             let mensaje = 'Error: ' + (error.message || 'Desconocido');
             
             if (error.code === '23503') {
-                mensaje = '❌ ERROR CRÍTICO: El usuario no existe en la base de datos.\n\n' +
-                         'Ejecuta esto en Supabase SQL Editor:\n\n' +
-                         'INSERT INTO public.users (id, username, email, created_at)\n' +
-                         `VALUES ('${this.user.id}', '${this.user.user_metadata?.username || 'Usuario'}', '${this.user.email}', NOW());`;
+                mensaje = '❌ ERROR: El usuario no existe en la base de datos.';
             } else if (error.code === '23505') {
                 mensaje = '✅ Ya tienes una escudería. Cargando juego...';
-                await this.loadUserData();
-                await this.cargarDashboardCompleto();
+                // Forzar recarga
+                setTimeout(() => location.reload(), 1000);
+                return;
+            } else if (error.message.includes('undefined')) {
+                mensaje = '⚠️ Error técnico. Por favor, recarga la página y prueba de nuevo.';
+                setTimeout(() => location.reload(), 2000);
                 return;
             }
             
