@@ -1,14 +1,11 @@
 // ========================
-// CONFIG.JS - VERSIÓN CORREGIDA
+// CONFIG.JS - VERSIÓN CORREGIDA DEFINITIVA
 // ========================
 console.log('✅ F1 Manager - Configuración cargada');
 
 // URL y clave de tu proyecto Supabase
 const SUPABASE_URL = 'https://xbnbbmhcveyzrvvmdktg.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg';
-
-// Variable global para la instancia de Supabase (se inicializará después)
-let supabase = null;
 
 // Configuración del juego
 const CONFIG = {
@@ -41,18 +38,24 @@ const CAR_AREAS = [
 // Función para inicializar Supabase
 async function initSupabase() {
     try {
+        // Si ya está inicializado, devolverlo
+        if (window.supabase && window.supabase.auth) {
+            console.log('✅ Supabase ya está inicializado');
+            return window.supabase;
+        }
+        
         // Importar la biblioteca de Supabase dinámicamente
         const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.7');
         
         // Crear el cliente
-        // Si ya existe, no volver a declarar
-        if (!window.supabase) {
-            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            window.supabase = supabase;
-        }
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Asignar a window
+        window.supabase = supabaseClient;
         
         console.log('🚀 Supabase inicializado correctamente:', SUPABASE_URL);
-        return supabase;
+        return supabaseClient;
+        
     } catch (error) {
         console.error('❌ Error inicializando Supabase:', error);
         return null;
@@ -62,15 +65,18 @@ async function initSupabase() {
 // Inicializar Supabase inmediatamente
 initSupabase().then(client => {
     if (client) {
-        window.supabase = client;
         console.log('✅ Supabase listo para usar');
+        
+        // Verificar que funciona
+        client.auth.getSession().then(({ data }) => {
+            console.log('🔐 Sesión verificada:', data.session ? 'ACTIVA' : 'INACTIVA');
+        });
     }
 });
 
 // Exportar configuraciones
 window.CONFIG = CONFIG;
 window.CAR_AREAS = CAR_AREAS;
-window.supabase = supabase;  // ← ESTA LÍNEA ES CRÍTICA
+// NO exportar window.supabase aquí - ya se hace en initSupabase()
 
-console.log('✅ Supabase asignado a window.supabase');
 console.log('🎯 Configuración lista para usar');
