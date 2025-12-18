@@ -669,10 +669,7 @@ class F1Manager {
                                 CREAR MI ESCUDERÍA
                             </button>
                             
-                            <button class="btn-saltar-tutorial" id="btn-saltar-tutorial">
-                                <i class="fas fa-forward"></i>
-                                SALTAR TUTORIAL E IR AL JUEGO
-                            </button>
+
                         </div>
                     </div>
                     
@@ -800,7 +797,7 @@ class F1Manager {
         
         // Configurar eventos
         document.getElementById('btn-crear-escuderia').addEventListener('click', () => this.crearEscuderiaDesdeTutorial());
-        document.getElementById('btn-saltar-tutorial').addEventListener('click', () => this.saltarTutorial());
+
     }
     
     async crearEscuderiaDesdeTutorial() {
