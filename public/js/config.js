@@ -45,7 +45,11 @@ async function initSupabase() {
         const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.7');
         
         // Crear el cliente
-        supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Si ya existe, no volver a declarar
+        if (!window.supabase) {
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            window.supabase = supabase;
+        }
         
         console.log('🚀 Supabase inicializado correctamente:', SUPABASE_URL);
         return supabase;
