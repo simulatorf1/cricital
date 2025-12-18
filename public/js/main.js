@@ -16,32 +16,31 @@ async function initSupabase() {
     console.log('🔄 Inicializando Supabase...');
     
     // Si ya está inicializado, devolverlo
-    if (window.supabase && window.supabase.auth) {
-        console.log('✅ Supabase ya está inicializado');
-        supabase = window.supabase;
+    if (window.supabaseClient && window.supabaseClient.auth) {
+        console.log('✅ Supabase ya está inicializado (desde index.html)');
+        supabase = window.supabaseClient;
         return supabase;
     }
     
-    // Si no está en window, cargarlo desde config.js
-    if (!window.supabase) {
-        console.log('⚠️ window.supabase no existe, esperando configuración...');
-        
-        // Esperar a que config.js cargue
-        for (let i = 0; i < 30; i++) {
-            if (window.supabase && window.supabase.auth) {
-                console.log(`✅ Supabase cargado después de ${i * 100}ms`);
-                supabase = window.supabase;
-                return supabase;
-            }
-            await new Promise(resolve => setTimeout(resolve, 100));
+    // Si existe en window.supabase, usarlo
+    if (window.supabase && window.supabase.createClient) {
+        console.log('🔧 Creando cliente desde CDN...');
+        try {
+            const supabaseClient = window.supabase.createClient(
+                'https://xbnbbmhcveyzrvvmdktg.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg'
+            );
+            window.supabaseClient = supabaseClient;
+            supabase = supabaseClient;
+            console.log('🚀 Supabase inicializado');
+            return supabase;
+        } catch (error) {
+            console.error('❌ Error creando cliente:', error);
         }
-        
-        console.error('❌ Supabase no se cargó en 3 segundos');
-        return null;
     }
     
-    supabase = window.supabase;
-    return supabase;
+    console.error('❌ No se pudo cargar Supabase');
+    return null;
 }
     
 
