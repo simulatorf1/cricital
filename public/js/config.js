@@ -45,7 +45,7 @@ function initSupabase() {
         }
         
         // Crear el cliente usando el CDN ya cargado
-        const { createClient } = supabase;
+        const { createClient } = window.supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         // Asignar a window
@@ -60,8 +60,8 @@ function initSupabase() {
     }
 }
 
-// Inicializar inmediatamente
-const supabaseClient = initSupabase();
+// Inicializar pero NO crear una variable constante
+initSupabase();
 
 // Exportar configuraciones
 window.CONFIG = CONFIG;
