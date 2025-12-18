@@ -572,7 +572,7 @@ class F1Manager {
     async esperarSupabase() {
         console.log('⏳ Esperando Supabase...');
         let intentos = 0;
-        while (intentos < 50) { // 5 segundos máximo
+        while (intentos < 50) {
             if (window.supabase && window.supabase.auth) {
                 console.log('✅ Supabase listo después de ' + (intentos * 100) + 'ms');
                 return window.supabase;
@@ -581,11 +581,8 @@ class F1Manager {
             intentos++;
         }
         console.error('❌ Supabase nunca se inicializó');
-        return null;  // ← ESTA LÍNEA FALTA EN TU CÓDIGO
+        return null;
     }
-     console.error('❌ Supabase nunca se inicializó');
-     return null;
-} 
     async init() {
         console.log('🔧 Inicializando juego...');
         
