@@ -3,6 +3,29 @@
 // ========================
 console.log('🔧 Sistema de fabricación cargado');
 
+// Asegurar que CONFIG existe
+if (!window.CONFIG) {
+    console.error('❌ ERROR: CONFIG no está definido');
+    window.CONFIG = {
+        FABRICATION_TIME: 4 * 60 * 60 * 1000,
+        PIECE_COST: 10000,
+        MAX_LEVEL: 10,
+        PIECES_PER_LEVEL: 20,
+        POINTS_PER_PIECE: 10
+    };
+}
+
+// Asegurar que CAR_AREAS existe
+if (!window.CAR_AREAS) {
+    console.error('❌ ERROR: CAR_AREAS no está definido');
+    window.CAR_AREAS = [
+        { id: 'motor', name: 'Motor' },
+        { id: 'frenos', name: 'Frenos' }
+    ];
+}
+
+// El resto del código de fabricacion.js sigue igual...
+
 class FabricacionManager {
     constructor() {
         this.currentProduction = null;
