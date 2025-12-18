@@ -955,14 +955,12 @@ class F1Manager {
             return;
         }
         
-        // Cargar datos adicionales
-        await this.loadCarStatus();
-        await this.loadPilotos();
-        await this.loadProximoGP();
-        
+        // 1. PRIMERO crear el HTML (sin datos)
         // Crear el HTML del dashboard con las clases CSS correctas
         document.body.innerHTML = `
             <div id="app">
+                <!-- TODO tu HTML completo AQUÍ (todo lo que tenías después) -->
+                
                 <!-- Loading Screen -->
                 <div id="loading-screen">
                     <div class="loading-content">
@@ -977,283 +975,9 @@ class F1Manager {
                     </div>
                 </div>
                 
-                <!-- Header -->
-                <header class="dashboard-header">
-                    <div class="header-top">
-                        <div class="logo-section">
-                            <div class="logo">
-                                <i class="fas fa-flag-checkered"></i>
-                                <span id="escuderia-nombre">${this.escuderia.nombre}</span>
-                            </div>
-                            <span class="team-tag">#F1MANAGER</span>
-                        </div>
-                        
-                        <div class="stats-header">
-                            <div class="stat-card money">
-                                <i class="fas fa-coins"></i>
-                                <div>
-                                    <span class="stat-label">FONDOS</span>
-                                    <span class="stat-value" id="money-value">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
-                                </div>
-                            </div>
-                            <div class="stat-card points">
-                                <i class="fas fa-trophy"></i>
-                                <div>
-                                    <span class="stat-label">PUNTOS</span>
-                                    <span class="stat-value" id="points-value">${this.escuderia.puntos || 0}</span>
-                                </div>
-                            </div>
-                            <div class="stat-card ranking">
-                                <i class="fas fa-medal"></i>
-                                <div>
-                                    <span class="stat-label">RANKING</span>
-                                    <span class="stat-value" id="ranking-value">#${this.escuderia.ranking || '-'}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="user-menu">
-                            <button class="user-btn" id="user-menu-btn">
-                                <i class="fas fa-user"></i>
-                                <span>${this.user.email?.split('@')[0] || 'Usuario'}</span>
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                            <div class="user-dropdown" id="user-dropdown">
-                                <a href="#" id="refresh-btn"><i class="fas fa-sync-alt"></i> Actualizar</a>
-                                <a href="#" id="settings-btn"><i class="fas fa-cog"></i> Configuración</a>
-                                <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Tabs Navigation -->
-                    <nav class="tabs-navigation">
-                        <button class="tab-btn active" data-tab="principal">
-                            <i class="fas fa-home"></i> Principal
-                        </button>
-                        <button class="tab-btn" data-tab="taller">
-                            <i class="fas fa-tools"></i> Taller
-                        </button>
-                        <button class="tab-btn" data-tab="almacen">
-                            <i class="fas fa-warehouse"></i> Almacén
-                        </button>
-                        <button class="tab-btn" data-tab="mercado">
-                            <i class="fas fa-shopping-cart"></i> Mercado
-                        </button>
-                        <button class="tab-btn" data-tab="presupuesto">
-                            <i class="fas fa-chart-pie"></i> Presupuesto
-                        </button>
-                        <button class="tab-btn" data-tab="clasificacion">
-                            <i class="fas fa-medal"></i> Clasificación
-                        </button>
-                    </nav>
-                </header>
-                
-                <!-- Main Content -->
-                <main class="dashboard-content">
-                    <!-- Tab Principal -->
-                    <div id="tab-principal" class="tab-content active">
-                        <!-- Panel de Pilotos -->
-                        <section class="panel-pilotos">
-                            <div class="section-header">
-                                <h2><i class="fas fa-user"></i> TUS PILOTOS</h2>
-                                <button class="btn-primary" id="contratar-pilotos-btn">
-                                    <i class="fas fa-plus"></i> Contratar Pilotos
-                                </button>
-                            </div>
-                            <div id="pilotos-container" class="pilotos-container">
-                                <!-- Los pilotos se cargarán dinámicamente -->
-                                <div class="empty-state">
-                                    <i class="fas fa-user-slash"></i>
-                                    <p>No tienes pilotos contratados</p>
-                                    <button class="btn-primary" id="contratar-primer-piloto">
-                                        <i class="fas fa-user-plus"></i> Contratar mi primer piloto
-                                    </button>
-                                </div>
-                            </div>
-                        </section>
-                        
-                        <!-- Two Columns Layout -->
-                        <div class="two-columns">
-                            <!-- Columna 1: Countdown y GP -->
-                            <div class="countdown-section">
-                                <div class="section-header">
-                                    <h2><i class="fas fa-clock"></i> PRÓXIMA CARRERA</h2>
-                                    <span class="tag upcoming">EN VIVO</span>
-                                </div>
-                                <div id="countdown-container">
-                                    <div class="countdown-timer">
-                                        <div class="time-block">
-                                            <span class="time-number" id="hours">00</span>
-                                            <span class="time-label">Horas</span>
-                                        </div>
-                                        <div class="time-separator">:</div>
-                                        <div class="time-block">
-                                            <span class="time-number" id="minutes">00</span>
-                                            <span class="time-label">Minutos</span>
-                                        </div>
-                                        <div class="time-separator">:</div>
-                                        <div class="time-block">
-                                            <span class="time-number" id="seconds">00</span>
-                                            <span class="time-label">Segundos</span>
-                                        </div>
-                                    </div>
-                                    <div class="proximo-gp">
-                                        <h3 id="gp-nombre">Cargando próximo GP...</h3>
-                                        <div class="gp-info">
-                                            <div class="gp-date">
-                                                <i class="far fa-calendar"></i>
-                                                <span id="gp-fecha">Fecha por confirmar</span>
-                                            </div>
-                                            <div class="gp-circuit">
-                                                <i class="fas fa-map-marker-alt"></i>
-                                                <span id="gp-circuito">Circuito por confirmar</span>
-                                            </div>
-                                        </div>
-                                        <button class="btn-primary" id="btn-apostar">
-                                            <i class="fas fa-coins"></i> HACER APUESTA
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Columna 2: Monitor de Fábrica -->
-                            <div class="monitor-fabrica">
-                                <div class="section-header">
-                                    <h2><i class="fas fa-industry"></i> PRODUCCIÓN</h2>
-                                    <div id="alerta-almacen" class="alerta-almacen" style="display: none;">
-                                        <i class="fas fa-bell"></i>
-                                        <span>¡Piezas nuevas en almacén!</span>
-                                    </div>
-                                </div>
-                                <div id="produccion-actual" class="produccion-actual">
-                                    <div class="empty-state">
-                                        <i class="fas fa-industry"></i>
-                                        <p>No hay producción en curso</p>
-                                        <button class="btn-primary" id="iniciar-fabricacion-btn">
-                                            <i class="fas fa-hammer"></i> Iniciar primera fabricación
-                                        </button>
-                                    </div>
-                                    <!-- Cuando haya producción, se mostrará esto:
-                                    <div class="pieza-header">
-                                        <h3 id="pieza-nombre">Motor Nivel 1</h3>
-                                        <span class="pieza-tag">FABRICANDO</span>
-                                    </div>
-                                    <div class="progress-container">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" id="production-progress"></div>
-                                        </div>
-                                        <div class="progress-time">
-                                            <i class="far fa-clock"></i>
-                                            <span id="time-left">Tiempo restante: 3h 59m</span>
-                                        </div>
-                                    </div>
-                                    <div class="pieza-stats">
-                                        <div class="stat-mini">
-                                            <span>Costo</span>
-                                            <strong>€10,000</strong>
-                                        </div>
-                                        <div class="stat-mini">
-                                            <span>Puntos</span>
-                                            <strong>+10</strong>
-                                        </div>
-                                    </div>
-                                    <div class="produccion-actions">
-                                        <button class="btn-secondary" id="btn-cancelar">Cancelar</button>
-                                        <button class="btn-primary" id="btn-recoger-pieza">Recoger Pieza</button>
-                                    </div>
-                                    -->
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Análisis de Rendimiento -->
-                        <section class="analisis-rendimiento">
-                            <div class="section-header">
-                                <h2><i class="fas fa-tachometer-alt"></i> ESTADO DEL COCHE</h2>
-                                <div class="performance-summary">
-                                    <div class="perf-best">
-                                        <i class="fas fa-caret-up"></i>
-                                        <span id="best-area">Mejor: Motor</span>
-                                    </div>
-                                    <div class="perf-worst">
-                                        <i class="fas fa-caret-down"></i>
-                                        <span id="worst-area">Peor: Frenos</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="areas-coche" class="areas-coche">
-                                <!-- Las áreas se cargarán dinámicamente -->
-                            </div>
-                        </section>
-                        
-                        <!-- Estadísticas y Calendario -->
-                        <section class="panel-estadisticas">
-                            <div class="section-header">
-                                <h2><i class="fas fa-chart-bar"></i> ESTADÍSTICAS Y CALENDARIO</h2>
-                            </div>
-                            <div class="stats-calendar-grid">
-                                <div class="mini-calendar">
-                                    <h3><i class="far fa-calendar"></i> Próximas Carreras</h3>
-                                    <div id="calendario-lista" class="calendar-list">
-                                        <div class="calendar-item">
-                                            <h4>Gran Premio de España</h4>
-                                            <div class="calendar-date">
-                                                <i class="far fa-clock"></i>
-                                                <span>21-23 Junio 2024</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="quick-stats">
-                                    <h3><i class="fas fa-chart-line"></i> Tus Estadísticas</h3>
-                                    <div class="stats-grid">
-                                        <div class="stat-item">
-                                            <i class="fas fa-check-circle"></i>
-                                            <div>
-                                                <span class="stat-title">Mejor acierto</span>
-                                                <span class="stat-number" id="mejor-acierto">0 pts</span>
-                                            </div>
-                                        </div>
-                                        <div class="stat-item">
-                                            <i class="fas fa-history"></i>
-                                            <div>
-                                                <span class="stat-title">Piezas fabricadas</span>
-                                                <span class="stat-number" id="piezas-fabricadas">0</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    </div>
-                    
-                    <!-- Otras pestañas (se cargan dinámicamente) -->
-                    <div id="tab-taller" class="tab-content"></div>
-                    <div id="tab-almacen" class="tab-content"></div>
-                    <div id="tab-mercado" class="tab-content"></div>
-                    <div id="tab-presupuesto" class="tab-content"></div>
-                    <div id="tab-clasificacion" class="tab-content"></div>
-                </main>
-                
-                <!-- Footer -->
-                <footer class="dashboard-footer">
-                    <div class="footer-content">
-                        <div class="footer-logo">
-                            <i class="fas fa-flag-checkered"></i>
-                            <span>F1 Manager E-Strategy</span>
-                        </div>
-                        <div class="footer-links">
-                            <a href="#"><i class="fas fa-question-circle"></i> Ayuda</a>
-                            <a href="#"><i class="fas fa-book"></i> Reglas</a>
-                            <a href="#"><i class="fas fa-users"></i> Comunidad</a>
-                        </div>
-                        <div class="footer-status">
-                            <i class="fas fa-circle" style="color: #00a35c;"></i>
-                            <span>Conectado</span>
-                        </div>
-                    </div>
-                </footer>
+                <!-- Sigue con TODO tu HTML aquí -->
+                <!-- NO copies la segunda document.body.innerHTML -->
+                <!-- Solo deja UN document.body.innerHTML -->
             </div>
             
             <!-- Scripts -->
@@ -1288,12 +1012,17 @@ class F1Manager {
             </script>
         `;
         
-        // Inicializar sistema de pestañas
+        // 2. LUEGO inicializar pestañas
         if (window.tabManager) {
             window.tabManager.setup();
         }
         
-        // Cargar datos dinámicos
+        // 3. FINALMENTE cargar datos (DESPUÉS de que exista window.supabase)
+        await this.loadCarStatus();
+        await this.loadPilotos();
+        await this.loadProximoGP();
+        
+        // 4. Configurar eventos
         await this.cargarDatosDashboard();
         
         console.log('✅ Dashboard cargado correctamente con CSS');
