@@ -66,6 +66,7 @@ initSupabase().then(client => {
 // Exportar configuraciones
 window.CONFIG = CONFIG;
 window.CAR_AREAS = CAR_AREAS;
-window.initSupabase = initSupabase; // Exportar la función para que otros scripts la usen
+window.supabase = supabase;  // ← ESTA LÍNEA ES CRÍTICA
 
 console.log('✅ Supabase asignado a window.supabase');
+console.log('🎯 Configuración lista para usar');
