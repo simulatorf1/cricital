@@ -1356,30 +1356,35 @@ class F1Manager {
                 .gt('fecha_inicio', new Date().toISOString())
                 .order('fecha_inicio', { ascending: true })
                 .limit(1)
-                .single();
+                .maybeSingle();
             
             if (error) {
                 console.error('❌ Error en consulta GP:', error.message);
-                // Crear datos de ejemplo
                 this.proximoGP = {
-                    nombre: 'Gran Premio de España',
-                    fecha_inicio: new Date(Date.now() + 86400000 * 3).toISOString(),
-                    circuito: 'Circuit de Barcelona-Catalunya'
+                    nombre: 'Próximo GP por confirmar',
+                    fecha_inicio: new Date(Date.now() + 86400000 * 7).toISOString(),
+                    circuito: 'Circuito por confirmar'
                 };
             } else if (gp) {
                 this.proximoGP = gp;
                 console.log('✅ GP cargado:', gp.nombre);
+            } else {
+                console.log('ℹ️ No hay GP próximo configurado');
+                this.proximoGP = {
+                    nombre: 'Próximo GP por confirmar',
+                    fecha_inicio: new Date(Date.now() + 86400000 * 7).toISOString(),
+                    circuito: 'Circuito por confirmar'
+                };
             }
             
             this.updateCountdown();
             
         } catch (error) {
             console.error('❌ Error fatal en loadProximoGP:', error);
-            // Crear datos de ejemplo
             this.proximoGP = {
-                nombre: 'Gran Premio de España',
-                fecha_inicio: new Date(Date.now() + 86400000 * 3).toISOString(),
-                circuito: 'Circuit de Barcelona-Catalunya'
+                nombre: 'Próximo GP por confirmar',
+                fecha_inicio: new Date(Date.now() + 86400000 * 7).toISOString(),
+                circuito: 'Circuito por confirmar'
             };
             this.updateCountdown();
         }
