@@ -1,7 +1,541 @@
 // ========================
-// MAIN.JS - SISTEMA COMPLETO (VERSIÓN SPA)
+// MAIN.JS - FLUJO SIMPLE
 // ========================
 console.log('🏎️ F1 Manager - Sistema principal cargado');
+
+// Esperar a que se cargue Supabase
+setTimeout(async () => {
+    if (!window.supabase) {
+        console.error('❌ Supabase no está disponible');
+        mostrarError('Error de conexión con la base de datos');
+        return;
+    }
+    
+    console.log('✅ Supabase cargado correctamente');
+    await iniciarAplicacion();
+}, 100);
+
+async function iniciarAplicacion() {
+    // 1. Verificar si ya está logueado
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+        // Si YA tiene sesión, cargar el juego directamente
+        console.log('✅ Usuario ya autenticado:', session.user.email);
+        window.f1Manager = new F1Manager();
+    } else {
+        // Si NO tiene sesión, mostrar pantalla de login
+        console.log('👤 No hay sesión, mostrar login');
+        mostrarPantallaLogin();
+    }
+}
+
+function mostrarPantallaLogin() {
+    document.body.innerHTML = `
+        <style>
+            .login-screen {
+                min-height: 100vh;
+                background: linear-gradient(135deg, #15151e 0%, #1a1a2e 100%);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            
+            .login-container {
+                background: rgba(42, 42, 56, 0.9);
+                border-radius: 15px;
+                padding: 40px;
+                width: 100%;
+                max-width: 400px;
+                border: 2px solid #e10600;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            }
+            
+            .login-header {
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            
+            .login-header h1 {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 2rem;
+                background: linear-gradient(90deg, #e10600, #00d2be);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 10px;
+            }
+            
+            .login-header p {
+                color: #888;
+                font-size: 0.9rem;
+            }
+            
+            .login-form {
+                margin-bottom: 25px;
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+            }
+            
+            .form-group label {
+                display: block;
+                color: #aaa;
+                margin-bottom: 5px;
+                font-size: 0.9rem;
+            }
+            
+            .form-group input {
+                width: 100%;
+                padding: 12px;
+                background: rgba(255,255,255,0.1);
+                border: 1px solid rgba(255,255,255,0.2);
+                border-radius: 5px;
+                color: white;
+                font-size: 1rem;
+                transition: border 0.3s;
+            }
+            
+            .form-group input:focus {
+                outline: none;
+                border-color: #00d2be;
+            }
+            
+            .login-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                margin-top: 30px;
+            }
+            
+            .btn-login, .btn-register {
+                padding: 15px;
+                border: none;
+                border-radius: 5px;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
+            
+            .btn-login {
+                background: linear-gradient(135deg, #e10600, #ff4444);
+                color: white;
+            }
+            
+            .btn-register {
+                background: transparent;
+                border: 2px solid #00d2be;
+                color: #00d2be;
+            }
+            
+            .btn-login:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(225, 6, 0, 0.4);
+            }
+            
+            .btn-register:hover {
+                background: rgba(0, 210, 190, 0.1);
+            }
+            
+            .login-footer {
+                text-align: center;
+                margin-top: 25px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                color: #666;
+                font-size: 0.9rem;
+            }
+            
+            .error-message {
+                background: rgba(255, 56, 96, 0.2);
+                color: #ff3860;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 15px;
+                display: none;
+                border: 1px solid #ff3860;
+            }
+            
+            .error-message.show {
+                display: block;
+            }
+        </style>
+        
+        <div class="login-screen">
+            <div class="login-container">
+                <div class="login-header">
+                    <h1>F1 MANAGER E-STRATEGY</h1>
+                    <p>Gestiona tu escudería de Fórmula 1</p>
+                </div>
+                
+                <div id="login-error" class="error-message"></div>
+                
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Correo electrónico</label>
+                        <input type="email" id="login-email" placeholder="tu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" placeholder="••••••••">
+                    </div>
+                </div>
+                
+                <div class="login-buttons">
+                    <button class="btn-login" id="btn-login">
+                        <i class="fas fa-sign-in-alt"></i>
+                        INICIAR SESIÓN
+                    </button>
+                    <button class="btn-register" id="btn-register">
+                        <i class="fas fa-user-plus"></i>
+                        CREAR CUENTA NUEVA
+                    </button>
+                </div>
+                
+                <div class="login-footer">
+                    <p>Un juego de gestión 100% online</p>
+                    <p>v${CONFIG.VERSION}</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Configurar eventos
+    document.getElementById('btn-login').addEventListener('click', manejarLogin);
+    document.getElementById('btn-register').addEventListener('click', mostrarRegistro);
+    
+    // Permitir Enter para login
+    document.getElementById('login-password').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') manejarLogin();
+    });
+}
+
+function mostrarRegistro() {
+    document.body.innerHTML = `
+        <style>
+            .register-screen {
+                min-height: 100vh;
+                background: linear-gradient(135deg, #15151e 0%, #1a1a2e 100%);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            
+            .register-container {
+                background: rgba(42, 42, 56, 0.9);
+                border-radius: 15px;
+                padding: 40px;
+                width: 100%;
+                max-width: 400px;
+                border: 2px solid #00d2be;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            }
+            
+            .register-header {
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            
+            .register-header h1 {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 2rem;
+                background: linear-gradient(90deg, #00d2be, #e10600);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 10px;
+            }
+            
+            .register-header p {
+                color: #888;
+                font-size: 0.9rem;
+            }
+            
+            .back-button {
+                background: transparent;
+                border: none;
+                color: #aaa;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                cursor: pointer;
+                margin-bottom: 20px;
+                transition: color 0.3s;
+            }
+            
+            .back-button:hover {
+                color: #00d2be;
+            }
+            
+            .register-form {
+                margin-bottom: 25px;
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+            }
+            
+            .form-group label {
+                display: block;
+                color: #aaa;
+                margin-bottom: 5px;
+                font-size: 0.9rem;
+            }
+            
+            .form-group input {
+                width: 100%;
+                padding: 12px;
+                background: rgba(255,255,255,0.1);
+                border: 1px solid rgba(255,255,255,0.2);
+                border-radius: 5px;
+                color: white;
+                font-size: 1rem;
+                transition: border 0.3s;
+            }
+            
+            .form-group input:focus {
+                outline: none;
+                border-color: #e10600;
+            }
+            
+            .register-button {
+                width: 100%;
+                padding: 15px;
+                background: linear-gradient(135deg, #00d2be, #00a35c);
+                border: none;
+                border-radius: 5px;
+                color: white;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 10px;
+            }
+            
+            .register-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 210, 190, 0.4);
+            }
+            
+            .register-footer {
+                text-align: center;
+                margin-top: 25px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                color: #666;
+                font-size: 0.9rem;
+            }
+            
+            .error-message {
+                background: rgba(255, 56, 96, 0.2);
+                color: #ff3860;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 15px;
+                display: none;
+                border: 1px solid #ff3860;
+            }
+            
+            .error-message.show {
+                display: block;
+            }
+        </style>
+        
+        <div class="register-screen">
+            <div class="register-container">
+                <button class="back-button" id="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver al login
+                </button>
+                
+                <div class="register-header">
+                    <h1>CREAR CUENTA</h1>
+                    <p>Comienza tu aventura en la F1</p>
+                </div>
+                
+                <div id="register-error" class="error-message"></div>
+                
+                <div class="register-form">
+                    <div class="form-group">
+                        <label for="register-username">Nombre de usuario</label>
+                        <input type="text" id="register-username" placeholder="Ej: RedBullManager" maxlength="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Correo electrónico</label>
+                        <input type="email" id="register-email" placeholder="tu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Contraseña</label>
+                        <input type="password" id="register-password" placeholder="•••••••• (mínimo 6 caracteres)">
+                    </div>
+                </div>
+                
+                <button class="register-button" id="btn-register-submit">
+                    <i class="fas fa-check-circle"></i>
+                    CREAR MI ESCUDERÍA
+                </button>
+                
+                <div class="register-footer">
+                    <p>Recibirás 5,000,000€ para empezar</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Configurar eventos
+    document.getElementById('btn-back').addEventListener('click', mostrarPantallaLogin);
+    document.getElementById('btn-register-submit').addEventListener('click', manejarRegistro);
+}
+
+async function manejarLogin() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const errorDiv = document.getElementById('login-error');
+    
+    if (!email || !password) {
+        mostrarError('Por favor, completa todos los campos', errorDiv);
+        return;
+    }
+    
+    mostrarCargando('Iniciando sesión...');
+    
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+        
+        if (error) throw error;
+        
+        console.log('✅ Login exitoso:', data.user.email);
+        // Recargar para que inicie el juego
+        location.reload();
+        
+    } catch (error) {
+        console.error('❌ Error en login:', error);
+        mostrarError('Usuario o contraseña incorrectos', errorDiv);
+        ocultarCargando();
+    }
+}
+
+async function manejarRegistro() {
+    const username = document.getElementById('register-username').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const errorDiv = document.getElementById('register-error');
+    
+    if (!username || !email || !password) {
+        mostrarError('Por favor, completa todos los campos', errorDiv);
+        return;
+    }
+    
+    if (password.length < 6) {
+        mostrarError('La contraseña debe tener al menos 6 caracteres', errorDiv);
+        return;
+    }
+    
+    mostrarCargando('Creando tu escudería...');
+    
+    try {
+        // 1. Registrar usuario en Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: { username }
+            }
+        });
+        
+        if (authError) throw authError;
+        
+        // 2. Crear perfil en tabla users
+        const { error: profileError } = await supabase
+            .from('users')
+            .insert([
+                {
+                    id: authData.user.id,
+                    username: username,
+                    email: email,
+                    created_at: new Date().toISOString()
+                }
+            ]);
+        
+        if (profileError) throw profileError;
+        
+        // 3. Crear escudería automáticamente
+        const { data: escuderia, error: escuderiaError } = await supabase
+            .from('escuderias')
+            .insert([
+                {
+                    user_id: authData.user.id,
+                    nombre: username,
+                    dinero: CONFIG.INITIAL_MONEY,
+                    puntos: 0,
+                    ranking: null,
+                    color_principal: '#e10600',
+                    color_secundario: '#ffffff',
+                    nivel_ingenieria: 1,
+                    creada_en: new Date().toISOString()
+                }
+            ])
+            .select()
+            .single();
+        
+        if (escuderiaError) throw escuderiaError;
+        
+        // 4. Crear stats del coche
+        await supabase
+            .from('coches_stats')
+            .insert([{ escuderia_id: escuderia.id }]);
+        
+        console.log('✅ Registro exitoso:', email);
+        mostrarExito('¡Cuenta creada! Redirigiendo...');
+        
+        // Esperar y recargar
+        setTimeout(() => location.reload(), 1500);
+        
+    } catch (error) {
+        console.error('❌ Error en registro:', error);
+        mostrarError(error.message || 'Error creando la cuenta', errorDiv);
+        ocultarCargando();
+    }
+}
+
+function mostrarError(mensaje, elemento) {
+    if (elemento) {
+        elemento.textContent = mensaje;
+        elemento.classList.add('show');
+    }
+}
+
+function mostrarCargando(mensaje) {
+    // Implementar si quieres un spinner
+}
+
+function ocultarCargando() {
+    // Implementar si quieres un spinner
+}
+
+function mostrarExito(mensaje) {
+    // Puedes añadir un toast de éxito
+    alert(mensaje);
+}
+
+// Tu clase F1Manager existente continúa aquí...
+// NO MODIFIQUE NADA DESPUÉS DE ESTA LÍNEA
+// ================================================
 
 class F1Manager {
     constructor() {
