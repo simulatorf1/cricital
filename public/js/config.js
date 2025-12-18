@@ -1,20 +1,20 @@
 // ========================
-// CONFIG.JS CORREGIDO
+// CONFIG.JS - VERSIÓN CORREGIDA
 // ========================
 console.log('✅ F1 Manager - Configuración cargada');
 
-// Crear cliente de Supabase correctamente
+// URL y clave de tu proyecto Supabase
 const SUPABASE_URL = 'https://xbnbbmhcveyzrvvmdktg.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg';
 
-// IMPORTANTE: Usar window.supabase.createClient en lugar de import
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+// Variable global para la instancia de Supabase (se inicializará después)
+let supabase = null;
 
 // Configuración del juego
 const CONFIG = {
     VERSION: '1.0.0',
     DEBUG: true,
-    FABRICATION_TIME: 4 * 60 * 60 * 1000,
+    FABRICATION_TIME: 4 * 60 * 60 * 1000, // 4 horas en milisegundos
     INITIAL_MONEY: 5000000,
     PIECE_COST: 10000,
     PILOT_SALARY_BASE: 500000,
@@ -38,10 +38,34 @@ const CAR_AREAS = [
     { id: 'electronica', name: 'Electrónica', icon: 'fas fa-microchip', color: '#43AA8B' }
 ];
 
-// Exportar al scope global
-window.CONFIG = CONFIG;
-window.supabase = supabase;
-window.CAR_AREAS = CAR_AREAS;
+// Función para inicializar Supabase
+async function initSupabase() {
+    try {
+        // Importar la biblioteca de Supabase dinámicamente
+        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.7');
+        
+        // Crear el cliente
+        supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        console.log('🚀 Supabase inicializado correctamente:', SUPABASE_URL);
+        return supabase;
+    } catch (error) {
+        console.error('❌ Error inicializando Supabase:', error);
+        return null;
+    }
+}
 
-console.log('🚀 Sistema configurado para:', SUPABASE_URL);
-if (!supabase) console.error('❌ ERROR: Supabase no se pudo inicializar');
+// Inicializar Supabase inmediatamente
+initSupabase().then(client => {
+    if (client) {
+        window.supabase = client;
+        console.log('✅ Supabase listo para usar');
+    }
+});
+
+// Exportar configuraciones
+window.CONFIG = CONFIG;
+window.CAR_AREAS = CAR_AREAS;
+window.initSupabase = initSupabase; // Exportar la función para que otros scripts la usen
+
+console.log('🎯 Configuración exportada correctamente');
