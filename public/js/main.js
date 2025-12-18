@@ -4,16 +4,30 @@
 console.log('🏎️ F1 Manager - Sistema principal cargado');
 
 // Esperar a que se cargue Supabase
-setTimeout(async () => {
-    if (!window.supabase) {
-        console.error('❌ Supabase no está disponible');
+// Esperar a que se cargue y se inicialice Supabase
+async function waitForSupabase(maxAttempts = 10) {
+    for (let i = 0; i < maxAttempts; i++) {
+        if (window.supabase) {
+            console.log('✅ Supabase disponible después de', i * 100, 'ms');
+            return window.supabase;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    console.error('❌ Supabase no se cargó después de', maxAttempts * 100, 'ms');
+    return null;
+}
+
+// Iniciar la aplicación cuando Supabase esté listo
+waitForSupabase().then(async (supabaseClient) => {
+    if (!supabaseClient) {
+        console.error('❌ No se pudo cargar Supabase');
         mostrarError('Error de conexión con la base de datos');
         return;
     }
     
-    console.log('✅ Supabase cargado correctamente');
+    console.log('🚀 Iniciando aplicación F1 Manager');
     await iniciarAplicacion();
-}, 100);
+});
 
 async function iniciarAplicacion() {
     // 1. Verificar si ya está logueado
