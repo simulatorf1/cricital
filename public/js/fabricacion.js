@@ -1,11 +1,9 @@
-// ========================
-// SISTEMA DE FABRICACIÓN COMPLETO
-// ========================
+// SISTEMA DE FABRICACIÓN
 console.log('🔧 Sistema de fabricación cargado');
 
-// Asegurar que CONFIG existe
+// Asegurar que CONFIG existe (usa window.CONFIG)
 if (!window.CONFIG) {
-    console.error('❌ ERROR: CONFIG no está definido');
+    console.warn('⚠️ window.CONFIG no definido, usando valores por defecto');
     window.CONFIG = {
         FABRICATION_TIME: 4 * 60 * 60 * 1000,
         PIECE_COST: 10000,
@@ -15,9 +13,9 @@ if (!window.CONFIG) {
     };
 }
 
-// Asegurar que CAR_AREAS existe
+// Asegurar que CAR_AREAS existe (usa window.CAR_AREAS)
 if (!window.CAR_AREAS) {
-    console.error('❌ ERROR: CAR_AREAS no está definido');
+    console.warn('⚠️ window.CAR_AREAS no definido, usando valores básicos');
     window.CAR_AREAS = [
         { id: 'motor', name: 'Motor' },
         { id: 'frenos', name: 'Frenos' }
