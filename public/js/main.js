@@ -48,7 +48,8 @@ async function iniciarAplicacion() {
     console.log('🚀 Iniciando aplicación F1 Manager...');
     
     // Inicializar Supabase
-    const supabase = initSupabase();
+    window.supabase = initSupabase();
+    const supabase = window.supabase;
     
     if (!supabase) {
         mostrarErrorCritico('No se pudo conectar con la base de datos');
@@ -476,6 +477,11 @@ function mostrarPantallaRegistro() {
 }
 
 async function manejarLogin() {
+    const supabase = window.supabase;
+    if (!supabase) {
+        mostrarErrorCritico('No se pudo conectar a la base de datos');
+        return;
+    }
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     const errorDiv = document.getElementById('login-error');
@@ -506,6 +512,11 @@ async function manejarLogin() {
 }
 
 async function manejarRegistro() {
+    const supabase = window.supabase;
+    if (!supabase) {
+        mostrarErrorCritico('No se pudo conectar a la base de datos');
+        return;
+    }
     const username = document.getElementById('register-username').value;
     const email = document.getElementById('register-email').value;
     const password = document.getElementById('register-password').value;
