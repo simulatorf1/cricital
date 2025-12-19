@@ -1032,6 +1032,20 @@ class F1Manager {
     }
     
     async mostrarFormularioEscuderia() {
+        // Primero verificar si ya tiene escudería
+        const { data: existing, error: checkError } = await supabase
+            .from('escuderias')
+            .select('id')
+            .eq('user_id', this.user.id)
+            .maybeSingle();
+    
+        if (existing) {
+            alert('Ya tienes una escudería creada. Usaremos esa.');
+            this.escuderia = existing;
+            this.tutorialStep++;
+            this.mostrarTutorialStep();
+            return;
+        }
         // Usamos el formulario simple que ya tenías
         const nombreEscuderia = prompt('🏎️ Ingresa el nombre de tu escudería:\n(Ej: McLaren Racing, Ferrari, Mercedes)');
         
@@ -1437,8 +1451,7 @@ class F1Manager {
                         escuderia_id: this.escuderia.id,
                         piloto_id: pilotoId,
                         activo: true,
-                        salario_actual: 500000, // Salario base
-                        carreras_restantes: 10,
+                        salario_base: 500000, // Salario base
                         fecha_contrato: new Date().toISOString()
                     }
                 ]);
@@ -1744,7 +1757,9 @@ class F1Manager {
                 .from('escuderias')
                 .select('*')
                 .eq('user_id', this.user.id)
-                .maybeSingle();
+                .order('created_at', { ascending: false })  // Toma la más reciente
+                .limit(1)
+                .single();  // <- single() porque ahora siempre hay máximo 1
             
             if (error) {
                 console.error('Error cargando escudería:', error);
