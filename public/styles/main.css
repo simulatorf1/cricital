@@ -1545,3 +1545,55 @@ body {
     50% { box-shadow: 0 0 50px rgba(0, 210, 190, 0.8); }
     100% { box-shadow: 0 0 30px rgba(0, 210, 190, 0.5); }
 }
+/* ARREGLAR DISEÑO AMONTONADO */
+.dashboard-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+
+@media (min-width: 1024px) {
+    .dashboard-content {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .two-columns {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    .panel-pilotos, .analisis-rendimiento, .panel-estadisticas {
+        grid-column: 1 / -1;
+    }
+}
+
+/* HACER PESTAÑAS MÁS RESPONSIVAS */
+.tabs-navigation {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 10px 0;
+}
+
+.tab-btn {
+    flex-shrink: 0;
+    padding: 10px 15px;
+    font-size: 0.9rem;
+}
+
+/* ARREGLAR TUTORIAL SUPERPUESTO */
+#tutorial-flotante {
+    max-width: 90vw;
+}
+
+@media (max-width: 768px) {
+    #tutorial-flotante {
+        top: 20px !important;
+        right: 20px !important;
+        left: 20px !important;
+        width: auto !important;
+    }
+}
