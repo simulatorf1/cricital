@@ -1413,9 +1413,9 @@ class F1Manager {
             if (this.tutorialData.pilotosContratados.length === 2) {
                 const totalSueldo = this.tutorialData.pilotosContratados.reduce((total, id) => {
                     const piloto = pilotos.find(p => p.id === id);
-                    return total + (parseFloat(piloto?.salario_base) || 500000);
+                    return total + (piloto?.sueldo_base || 500000);
                 }, 0);
-                confirmBtn.innerHTML = `CONFIRMAR SELECCIÓN (€${(totalSueldo || 0).toLocaleString()}/mes)`;
+                confirmBtn.innerHTML = `CONFIRMAR SELECCIÓN (€${totalSueldo.toLocaleString()}/mes)`;
             }
         }
     }
@@ -1448,11 +1448,11 @@ class F1Manager {
                         {
                             escuderia_id: this.escuderia.id,
                             piloto_id: piloto.id,
-                            nombre: piloto.nombre,
-                            salario: parseFloat(piloto.salario_base),
+                            nombre: piloto.nombre,                    // ← COLUMNA EXISTENTE
+                            salario: parseFloat(piloto.salario_base), // ← 'salario' (NO 'salario_actual')
                             carreras_restantes: 10,
                             activo: true,
-                            contratado_en: new Date().toISOString()
+                            contratado_en: new Date().toISOString()   // ← 'contratado_en' (NO 'fecha_contrato')
                         }
                     ]);
                 
