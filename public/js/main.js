@@ -987,159 +987,39 @@ class F1Manager {
     ejecutarAccionTutorial(accion) {
         console.log('🎯 Acción tutorial:', accion);
         
-        // PASO 1: Crear escudería (ya funciona)
-        if (accion === 'crearEscuderia') {
-            this.mostrarFormularioEscuderia();
-            return;
-        }
-        
-        // PASO 7: Completar tutorial (ya funciona)
-        if (accion === 'completarTutorial') {
-            this.finalizarTutorial();
-            return;
-        }
-        
-        // PASOS 2-6: Cargar dashboard PRIMERO, luego tutorial superpuesto
-        if (!document.querySelector('.dashboard-header')) {
-            // Si NO hay dashboard, cargarlo primero
-            this.cargarDashboardCompleto().then(() => {
-                setTimeout(() => {
-                    this.mostrarPasoSuperpuesto();
-                }, 1000);
-            });
-        } else {
-            // Si YA hay dashboard, mostrar paso superpuesto
-            this.mostrarPasoSuperpuesto();
+        switch(accion) {
+            case 'crearEscuderia':
+                this.mostrarFormularioEscuderia();
+                break;
+                
+            case 'mostrarPestanas':
+                this.tutorialStep++;
+                this.mostrarDashboardConTutorial();
+                break;
+                
+            case 'mostrarTab':
+                this.tutorialStep++;
+                this.mostrarTutorialStep();
+                break;
+                
+            case 'contratarPilotos':
+                this.mostrarSelectorPilotos();
+                break;
+                
+            case 'fabricarPieza':
+                this.mostrarFabricacionTutorial();
+                break;
+                
+            case 'apostar':
+                this.mostrarApuestasTutorial();
+                break;
+                
+            case 'completarTutorial':
+                this.finalizarTutorial();
+                break;
         }
     }
-        mostrarPasoSuperpuesto() {
-        // Mapa de pasos a elementos REALES del dashboard
-        const pasos = [
-            { // PASO 2: Dashboard (índice 0)
-                titulo: "📊 TU DASHBOARD",
-                instruccion: "Esta es tu pantalla principal con toda la información.",
-                elemento: '.dashboard-header',
-                accion: 'mostrarPestanas'
-            },
-            { // PASO 3: Pestañas (índice 1)
-                titulo: "🔍 PESTAÑAS",
-                instruccion: "Navega por el juego con estas 6 pestañas.",
-                elemento: '.tabs-navigation',
-                accion: 'contratarPilotos'
-            },
-            { // PASO 4: Contratar pilotos (índice 2)
-                titulo: "👥 CONTRATA 2 PILOTOS",
-                instruccion: "Haz clic en 'Contratar Pilotos' para seleccionar.",
-                elemento: '#contratar-pilotos-btn',
-                accion: 'fabricarPieza'
-            },
-            { // PASO 5: Fabricación (índice 3)
-                titulo: "🏭 FABRICA PIEZAS",
-                instruccion: "Mejora tu coche fabricando piezas en el Taller.",
-                elemento: '#iniciar-fabricacion-btn',
-                accion: 'apostar'
-            },
-            { // PASO 6: Apuestas (índice 4)
-                titulo: "💰 APUESTAS",
-                instruccion: "Haz clic aquí para predecir el Top 10.",
-                elemento: '#btn-apostar',
-                accion: 'completarTutorial'
-            }
-        ];
-        
-        // this.tutorialStep = 2 (dashboard), 3 (pestañas), 4 (pilotos), 5 (fabricación), 6 (apuestas)
-        const pasoIndex = this.tutorialStep - 2; // Paso 2 → índice 0, Paso 3 → índice 1, etc.
-        
-        if (pasoIndex < 0 || pasoIndex >= pasos.length) {
-            console.log('❌ No hay paso superpuesto para tutorialStep:', this.tutorialStep);
-            return;
-        }
-        
-        const paso = pasos[pasoIndex];
-        
-        // 1. RESALTAR el elemento REAL del dashboard
-        const elementoReal = document.querySelector(paso.elemento);
-        if (elementoReal) {
-            elementoReal.style.boxShadow = '0 0 0 4px #00d2be, 0 0 20px rgba(0, 210, 190, 0.8)';
-            elementoReal.style.position = 'relative';
-            elementoReal.style.zIndex = '9997';
-            elementoReal.style.borderRadius = '5px';
-            elementoReal.style.transition = 'box-shadow 0.3s';
-        } else {
-            console.warn('⚠️ No se encontró el elemento:', paso.elemento);
-        }
-        
-        // 2. Crear ventana flotante PEQUEÑA (NO pantalla completa)
-        const ventana = document.createElement('div');
-        ventana.id = 'tutorial-flotante-' + Date.now();
-        ventana.style.cssText = `
-            position: fixed;
-            top: 50px;
-            right: 50px;
-            width: 320px;
-            background: rgba(42, 42, 56, 0.97);
-            border-radius: 10px;
-            padding: 20px;
-            border: 2px solid #00d2be;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 9999;
-            font-family: 'Roboto', sans-serif;
-        `;
-        
-        ventana.innerHTML = `
-            <h3 style="color: #00d2be; margin: 0 0 10px 0; font-size: 1.3rem; font-family: 'Orbitron', sans-serif;">
-                ${paso.titulo}
-            </h3>
-            <p style="color: #ddd; margin: 0 0 20px 0; font-size: 14px; line-height: 1.5;">
-                ${paso.instruccion}
-            </p>
-            <div style="text-align: right; display: flex; justify-content: space-between; align-items: center;">
-                <div style="color: #888; font-size: 0.9rem;">
-                    Paso ${this.tutorialStep} de 7
-                </div>
-                <button id="tutorial-siguiente-btn" style="
-                    padding: 8px 20px;
-                    background: #00d2be;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-weight: bold;
-                ">
-                    Siguiente →
-                </button>
-            </div>
-        `;
-        
-        document.body.appendChild(ventana);
-        
-        // 3. Configurar evento del botón "Siguiente"
-        document.getElementById('tutorial-siguiente-btn').addEventListener('click', () => {
-            // Limpiar resaltado del elemento
-            if (elementoReal) {
-                elementoReal.style.boxShadow = '';
-                elementoReal.style.zIndex = '';
-            }
-            
-            // Quitar ventana flotante
-            ventana.remove();
-            
-            // Avanzar al siguiente paso del tutorial
-            this.tutorialStep++;
-            
-            // Ejecutar la acción correspondiente al siguiente paso
-            if (paso.accion === 'contratarPilotos') {
-                // Para el paso de pilotos, mostrar selector superpuesto
-                setTimeout(() => this.mostrarSelectorPilotos(), 300);
-            } else if (paso.accion === 'completarTutorial') {
-                // Último paso: finalizar tutorial
-                setTimeout(() => this.finalizarTutorial(), 300);
-            } else {
-                // Para otros pasos, mostrar siguiente paso superpuesto
-                setTimeout(() => this.mostrarPasoSuperpuesto(), 300);
-            }
-        });
-    }
+    
     async mostrarFormularioEscuderia() {
         // Usamos el formulario simple que ya tenías
         const nombreEscuderia = prompt('🏎️ Ingresa el nombre de tu escudería:\n(Ej: McLaren Racing, Ferrari, Mercedes)');
@@ -1275,90 +1155,201 @@ class F1Manager {
     }
     
     async mostrarSelectorPilotos() {
-        console.log('👥 Mostrando selector de pilotos (superpuesto)');
-        
-        // 1. Crear overlay para pilotos (NO reemplazar todo el body)
-        const overlay = document.createElement('div');
-        overlay.id = 'pilotos-overlay';
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        `;
-        
-        // 2. Añadir botón para cerrar (opcional)
-        const closeBtn = document.createElement('button');
-        closeBtn.innerHTML = '×';
-        closeBtn.style.cssText = `
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #e10600;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            z-index: 10001;
-        `;
-        closeBtn.addEventListener('click', () => {
-            overlay.remove();
-        });
-        overlay.appendChild(closeBtn);
-        
-        // 3. Crear contenedor para el contenido de pilotos
-        const contenedor = document.createElement('div');
-        contenedor.id = 'pilotos-contenedor';
-        contenedor.style.cssText = `
-            width: 100%;
-            max-width: 900px;
-            max-height: 80vh;
-            overflow-y: auto;
-            background: rgba(42, 42, 56, 0.95);
-            border-radius: 15px;
-            padding: 30px;
-            border: 3px solid #00d2be;
-        `;
-        
-        // 4. AQUÍ VA TODO TU CÓDIGO HTML ACTUAL de pilotos
-        // [NO LO BORRES, SÓLO MUÉVELO DENTRO DE ESTA VARIABLE]
-        
-        // POR EJEMPLO, si tu código actual empieza con:
-        // let contenido = `<div class="pilotos-grid">...
-        // Cambia ese inicio por:
-        contenedor.innerHTML = `<div class="pilotos-grid">...
-        
-        // [MANTÉN TODO EL RESTO DE TU CÓDIGO IGUAL, 
-        //  pero asegúrate de que los eventos usen 'contenedor' en lugar de 'document']
-        
-        // 5. Añadir contenedor al overlay
-        overlay.appendChild(contenedor);
-        
-        // 6. Añadir overlay al body (NO reemplaza todo)
-        document.body.appendChild(overlay);
-        
-        // 7. TU RESTO DE CÓDIGO DE CARGA DE PILOTOS Y EVENTOS
-        // [SE MANTIENE EXACTAMENTE IGUAL]
-        
+        // Cargar pilotos disponibles desde la base de datos
         try {
             const { data: pilotos, error } = await supabase
-                .from('pilotos_catalogo')
+                .from('pilotos_catalogo')  // ← NOMBRE CORRECTO
                 .select('id, nombre, nacionalidad, experiencia, habilidad, salario_base')
-                .eq('disponible', true)
-                .order('habilidad', { ascending: false })
+                .eq('disponible', true)    // ← Solo pilotos disponibles
+                .order('habilidad', { ascending: false })  // ← Mejores primero
                 .limit(10);
             
-            // [EL RESTO DE TU CÓDIGO ACTUAL...]
+            if (error) throw error;
+            
+            // Actualizar el contenido del tutorial
+            document.querySelector('.tutorial-content').innerHTML = `
+                <div class="pilotos-tutorial">
+                    <h3>🏎️ SELECCIONA 2 PILOTOS</h3>
+                    <p class="warning">⚠️ Debes seleccionar exactamente 2 pilotos para continuar</p>
+                    
+                    <div class="pilotos-grid">
+                        ${pilotos.map(piloto => `
+                            <div class="piloto-card ${this.tutorialData.pilotosContratados.includes(piloto.id) ? 'selected' : ''}" 
+                                 data-piloto-id="${piloto.id}">
+                                <div class="piloto-header">
+                                    <h4>${piloto.nombre}</h4>
+                                    <span class="piloto-nacionalidad">${piloto.nacionalidad || 'Internacional'}</span>
+                                </div>
+                                <div class="piloto-stats">
+                                    <div class="stat">
+                                        <i class="fas fa-brain"></i>
+                                        <span>Experiencia: ${piloto.experiencia || 5}/10</span>
+                                    </div>
+                                    <div class="stat">
+                                        <i class="fas fa-bolt"></i>
+                                        <span>Habilidad: ${piloto.habilidad || 5}/10</span>
+                                    </div>
+                                    <div class="stat">
+                                        <i class="fas fa-coins"></i>
+                                        <span>Sueldo: €${(parseFloat(piloto.salario_base) || 500000).toLocaleString()}/mes</span>
+                                    </div>
+                                </div>
+                                <button class="btn-seleccionar" data-piloto-id="${piloto.id}">
+                                    ${this.tutorialData.pilotosContratados.includes(piloto.id) ? '✓ Seleccionado' : 'Seleccionar'}
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="pilotos-selected">
+                        <h4>Pilotos seleccionados: <span id="contador-pilotos">${this.tutorialData.pilotosContratados.length}</span>/2</h4>
+                        <div id="selected-pilotos-list">
+                            ${this.tutorialData.pilotosContratados.map(pilotoId => {
+                                const piloto = pilotos.find(p => p.id === pilotoId);
+                                return piloto ? `<div class="selected-piloto">✓ ${piloto.nombre}</div>` : '';
+                            }).join('')}
+                        </div>
+                        <button class="btn-confirmar" id="btn-confirmar-pilotos" 
+                                ${this.tutorialData.pilotosContratados.length !== 2 ? 'disabled' : ''}>
+                            CONFIRMAR SELECCIÓN (€${((pilotos.find(p => this.tutorialData.pilotosContratados.includes(p.id))?.sueldo_base || 0) * 2).toLocaleString()}/mes)
+                        </button>
+                    </div>
+                </div>
+                
+                <style>
+                    .pilotos-tutorial {
+                        max-width: 800px;
+                        margin: 0 auto;
+                    }
+                    
+                    .pilotos-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                        gap: 20px;
+                        margin: 20px 0;
+                        max-height: 400px;
+                        overflow-y: auto;
+                        padding: 10px;
+                    }
+                    
+                    .piloto-card {
+                        background: rgba(255, 255, 255, 0.05);
+                        border-radius: 10px;
+                        padding: 20px;
+                        border: 2px solid transparent;
+                        transition: all 0.3s;
+                    }
+                    
+                    .piloto-card.selected {
+                        border-color: #00d2be;
+                        background: rgba(0, 210, 190, 0.1);
+                    }
+                    
+                    .piloto-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 15px;
+                    }
+                    
+                    .piloto-header h4 {
+                        color: white;
+                        margin: 0;
+                        font-size: 1.1rem;
+                    }
+                    
+                    .piloto-nacionalidad {
+                        background: rgba(255, 255, 255, 0.1);
+                        padding: 3px 10px;
+                        border-radius: 15px;
+                        font-size: 0.8rem;
+                    }
+                    
+                    .piloto-stats {
+                        margin: 15px 0;
+                    }
+                    
+                    .piloto-stats .stat {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        margin-bottom: 8px;
+                        color: #ccc;
+                        font-size: 0.9rem;
+                    }
+                    
+                    .btn-seleccionar {
+                        width: 100%;
+                        padding: 10px;
+                        background: rgba(0, 210, 190, 0.2);
+                        border: 1px solid #00d2be;
+                        color: #00d2be;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        font-weight: bold;
+                    }
+                    
+                    .btn-seleccionar:hover {
+                        background: rgba(0, 210, 190, 0.4);
+                    }
+                    
+                    .pilotos-selected {
+                        margin-top: 30px;
+                        padding: 20px;
+                        background: rgba(0, 0, 0, 0.3);
+                        border-radius: 10px;
+                        border: 2px dashed #00d2be;
+                    }
+                    
+                    .selected-piloto {
+                        background: rgba(0, 210, 190, 0.2);
+                        padding: 10px;
+                        margin: 5px 0;
+                        border-radius: 5px;
+                        color: #00d2be;
+                    }
+                    
+                    .btn-confirmar {
+                        margin-top: 20px;
+                        padding: 15px 30px;
+                        background: #00d2be;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        width: 100%;
+                        font-size: 1.1rem;
+                    }
+                    
+                    .btn-confirmar:disabled {
+                        background: #666;
+                        cursor: not-allowed;
+                    }
+                </style>
+            `;
+            
+            // Eventos de selección
+            document.querySelectorAll('.btn-seleccionar').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const pilotoId = e.target.dataset.pilotoId;
+                    this.seleccionarPilotoTutorial(pilotoId, pilotos);
+                });
+            });
+            
+            document.getElementById('btn-confirmar-pilotos').addEventListener('click', async () => {
+                await this.confirmarPilotosTutorial();
+            });
+            
+        } catch (error) {
+            console.error('Error cargando pilotos:', error);
+            document.querySelector('.tutorial-content').innerHTML = `
+                <p class="error">❌ Error cargando pilotos. Recarga la página.</p>
+                <button onclick="location.reload()">Recargar</button>
+            `;
+        }
+    }
     
     seleccionarPilotoTutorial(pilotoId, pilotos) {
         const index = this.tutorialData.pilotosContratados.indexOf(pilotoId);
