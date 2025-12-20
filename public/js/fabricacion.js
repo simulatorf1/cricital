@@ -299,7 +299,7 @@ console.log('🔧 Sistema de fabricación cargado - ESPERANDO CONFIG');
                 window.f1Manager?.showNotification('❌ No hay pieza para recoger', 'error');
                 return false;
             }
-            
+
             // Verificar si realmente está completada
             const now = new Date();
             const endTime = new Date(this.currentProduction.fin_fabricacion);
@@ -318,7 +318,7 @@ console.log('🔧 Sistema de fabricación cargado - ESPERANDO CONFIG');
                 
                 if (updateError) throw updateError;
                 
-                // 2. Crear pieza en almacén
+                // 2. IMPORTANTE: Crear pieza en almacén CON TODOS LOS CAMPOS NECESARIOS
                 const { error: piezaError } = await supabase
                     .from('piezas_almacen')
                     .insert([
@@ -327,8 +327,11 @@ console.log('🔧 Sistema de fabricación cargado - ESPERANDO CONFIG');
                             area: this.currentProduction.area,
                             nivel: this.currentProduction.nivel,
                             estado: 'disponible',
-                            puntos_base: window.CONFIG.POINTS_PER_PIECE,
-                            fabricada_en: new Date().toISOString()
+                            puntos_base: window.CONFIG.POINTS_PER_PIECE || 10,
+                            fabricada_en: new Date().toISOString(),
+                            // Estos campos son OPCIONALES pero tu tabla los tiene:
+                            equipada_en: null,  // No equipada aún
+                            // Si tu tabla requiere id, se genera automático (UUID)
                         }
                     ]);
                 
@@ -337,14 +340,14 @@ console.log('🔧 Sistema de fabricación cargado - ESPERANDO CONFIG');
                 // 3. Actualizar progreso del área del coche
                 await this.updateCarProgress(this.currentProduction.area);
                 
-                // 4. Dar recompensa (dinero por vender la pieza)
+                // 4. Dar recompensa (dinero por completar)
                 const reward = 15000; // €15,000 por pieza fabricada
                 window.f1Manager.escuderia.dinero += reward;
                 await window.f1Manager.updateEscuderiaMoney();
                 
                 // 5. Limpiar producción actual
-                const pieceName = window.CAR_AREAS.find(a => a.id === this.currentProduction.area)?.name || 
-                                 this.currentProduction.area;
+                const areaObj = window.CAR_AREAS.find(a => a.id === this.currentProduction.area);
+                const pieceName = areaObj ? areaObj.name : this.currentProduction.area;
                 this.currentProduction = null;
                 
                 // 6. Actualizar UI
@@ -352,12 +355,13 @@ console.log('🔧 Sistema de fabricación cargado - ESPERANDO CONFIG');
                 
                 // 7. Mostrar notificación de éxito
                 window.f1Manager?.showNotification(
-                    `🎁 ¡Pieza recogida! +${window.CONFIG.POINTS_PER_PIECE} puntos y €${reward.toLocaleString()}`,
+                    `🎁 ¡Pieza recogida! +${window.CONFIG.POINTS_PER_PIECE || 10} puntos base y €${reward.toLocaleString()}`,
                     'success'
                 );
                 
-                // 8. Actualizar almacén si está visible
+                // 8. ACTUALIZAR ALMACÉN en tiempo real (si está visible)
                 if (window.tabManager?.currentTab === 'almacen') {
+                    // Esta función la crearemos en el paso 3
                     window.tabManager.loadAlmacenPiezas();
                 }
                 
