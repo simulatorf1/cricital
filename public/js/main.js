@@ -600,25 +600,28 @@ class F1Manager {
     async init() {
         console.log('🔧 Inicializando juego...');
         
-        // 1. VERIFICAR si el usuario ya completó el tutorial
-        const tutorialCompletado = localStorage.getItem('tutorial_completado');
-        
-        if (!tutorialCompletado) {
-            // 2. Si NO completó el tutorial, forzarlo
-            console.log('📚 Mostrando tutorial obligatorio');
-            this.mostrarTutorialInicial();
-            return; // NO cargar el dashboard normal
-        }
-        
-        // 3. Si YA completó el tutorial, cargar datos normales
+        // 1. PRIMERO cargar la escudería del usuario (si existe)
         await this.loadUserData();
         
+        // 2. SOLO si NO tiene escudería, mostrar tutorial obligatorio
         if (!this.escuderia) {
+            console.log('📚 Mostrando tutorial obligatorio (sin escudería)');
             this.mostrarTutorialInicial();
             return;
         }
         
-        // 4. Cargar dashboard completo
+        // 3. Verificar si ya completó tutorial (solo para nuevos)
+        const tutorialCompletado = localStorage.getItem('tutorial_completado');
+        
+        if (!tutorialCompletado) {
+            // Usuario tiene escudería pero no completó tutorial
+            // Podrías mostrar un tutorial RESUMIDO o saltarlo
+            console.log('✅ Usuario con escudería, tutorial opcional');
+            // Aquí decides: mostrar tutorial resumido o marcar como completado
+            localStorage.setItem('tutorial_completado', 'true');
+        }
+        
+        // 4. Cargar dashboard normal
         console.log('📊 Usuario con escudería, cargando dashboard');
         await this.cargarDashboardCompleto();
     }
@@ -1771,16 +1774,16 @@ class F1Manager {
         console.log('📥 Cargando datos del usuario...');
         
         try {
-            // Buscar escudería del usuario
+            // Buscar escudería del usuario en Supabase
             const { data: escuderias, error } = await supabase
                 .from('escuderias')
                 .select('*')
                 .eq('user_id', this.user.id)
-                .order('created_at', { ascending: false })  // Toma la más reciente
+                .order('creada_en', { ascending: false })
                 .limit(1)
-                .single();  // <- single() porque ahora siempre hay máximo 1
+                .single();
             
-            if (error) {
+            if (error && error.code !== 'PGRST116') {
                 console.error('Error cargando escudería:', error);
                 return;
             }
