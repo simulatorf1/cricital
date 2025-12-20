@@ -1444,40 +1444,45 @@ class F1Manager {
         }
         
         try {
-            // PRIMERO: Cargar los pilotos seleccionados para obtener sus salarios
+            // 1. Obtener los pilotos seleccionados CON SUS DATOS REALES
             const { data: pilotosCatalogo, error: catalogoError } = await supabase
                 .from('pilotos_catalogo')
-                .select('id, salario_base')
+                .select('id, nombre, salario_base')
                 .in('id', this.tutorialData.pilotosContratados);
             
             if (catalogoError) throw catalogoError;
             
-            // Crear un mapa de salarios por piloto
-            const salariosMap = {};
-            pilotosCatalogo.forEach(piloto => {
-                salariosMap[piloto.id] = piloto.salario_base;
-            });
-            
-            // SEGUNDO: Contratar pilotos usando el salario correcto
-            for (const pilotoId of this.tutorialData.pilotosContratados) {
-                await supabase.from('pilotos_contratados').insert([
-                    {
+            // 2. Contratar CADA piloto en la tabla pilotos_contratados
+            for (const piloto of pilotosCatalogo) {
+                const { error: contratoError } = await supabase
+                    .from('pilotos_contratados')
+                    .insert([{
                         escuderia_id: this.escuderia.id,
-                        piloto_id: pilotoId,
+                        piloto_id: piloto.id,
+                        nombre: piloto.nombre,
+                        salario: piloto.salario_base || 500000,
+                        carreras_restantes: 12, // 1 temporada
                         activo: true,
-                        salario: salariosMap[pilotoId] || 500000, // ← "salario" en lugar de "salario_base"
-                        fecha_contrato: new Date().toISOString()
-                    }
-                ]);
+                        salario_actual: piloto.salario_base || 500000
+                    }]);
+                
+                if (contratoError) throw contratoError;
             }
             
-            // Avanzar tutorial
+            // 3. Descontar el dinero de los salarios
+            const totalSalarios = pilotosCatalogo.reduce((sum, p) => sum + (p.salario_base || 500000), 0);
+            this.escuderia.dinero -= totalSalarios;
+            await this.updateEscuderiaMoney();
+            
+            // 4. Avanzar tutorial
             this.tutorialStep++;
             this.mostrarTutorialStep();
             
+            alert(`✅ Pilotos contratados: ${pilotosCatalogo.map(p => p.nombre).join(' y ')}\n💰 Coste mensual: €${totalSalarios.toLocaleString()}`);
+            
         } catch (error) {
             console.error('Error contratando pilotos:', error);
-            alert('Error contratando pilotos. Intenta de nuevo.');
+            alert('❌ Error contratando pilotos. Verifica la consola.');
         }
     }
     
