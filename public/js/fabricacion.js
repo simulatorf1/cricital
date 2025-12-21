@@ -14,11 +14,30 @@ class FabricacionManager {
     
     // Método para inicializar manualmente
     async inicializar(escuderiaId) {
-        console.log('🔧 Inicializando fabricación para escudería:', escuderiaId);
+        console.log('🔧 [DEBUG] Inicializando fabricación para escudería:', escuderiaId);
+        console.log('🔧 [DEBUG] window.supabase disponible:', !!window.supabase);
+        
+        if (!escuderiaId) {
+            console.error('❌ [DEBUG] No se recibió escuderiaId');
+            return false;
+        }
+        
+        if (!window.supabase) {
+            console.error('❌ [DEBUG] Supabase no disponible');
+            return false;
+        }
+        
         this.escuderiaId = escuderiaId;
-        await this.checkCurrentProduction();
-        this.setupGlobalEvents();
-        return true;
+        
+        try {
+            await this.checkCurrentProduction();
+            this.setupGlobalEvents();
+            console.log('✅ [DEBUG] Fabricación inicializada correctamente');
+            return true;
+        } catch (error) {
+            console.error('❌ [DEBUG] Error inicializando fabricación:', error);
+            return false;
+        }
     }
     
     setupGlobalEvents() {
