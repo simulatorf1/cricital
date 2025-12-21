@@ -599,7 +599,19 @@ class F1Manager {
         if (this.escuderia && window.fabricacionManager) {
             console.log('🔧 Inicializando sistema de fabricación...');
             console.log('ID de escudería:', this.escuderia.id);
-            await window.fabricacionManager.inicializar(this.escuderia.id);
+    
+            // Verificar si el método existe
+            if (typeof window.fabricacionManager.inicializar === 'function') {
+                await window.fabricacionManager.inicializar(this.escuderia.id);
+            } else {
+                console.error('❌ fabricacionManager.inicializar no es una función');
+                console.log('Métodos disponibles:', Object.keys(window.fabricacionManager));
+        
+                // Intentar con minúsculas (tal vez se llama "inicializar" con minúscula)
+                if (typeof window.fabricacionManager.inicializar === 'function') {
+                    await window.fabricacionManager.inicializar(this.escuderia.id);
+                }
+            }
         }
         
         // 4. SOLO si NO tiene escudería, mostrar tutorial
