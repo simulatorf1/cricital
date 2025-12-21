@@ -1,496 +1,488 @@
 // ========================
-// SISTEMA DE FABRICACIÓN COMPLETO
+// SISTEMA DE FABRICACIÓN CORREGIDO
 // ========================
-console.log('🔧 [DEBUG] fabricacion.js CARGADO - Comprobando...');
+console.log('🔧 Sistema de fabricación cargado');
 
-// ESPERAR ACTIVAMENTE a que Supabase y CONFIG carguen
-(async function() {
-    // 1. Esperar Supabase PRIMERO
-    let esperaSupabase = 0;
-    while (!window.supabase && esperaSupabase < 30) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        esperaSupabase++;
-        if (esperaSupabase % 10 === 0) console.log('⏳ Esperando Supabase...', esperaSupabase/10 + 's');
+class FabricacionManager {
+    constructor() {
+        this.currentProduction = null;
+        this.productionTimer = null;
+        this.productionUpdateInterval = null;
+        this.escuderiaId = null;
+        console.log('🏭 FabricacionManager creado (modo pasivo)');
     }
     
-    if (!window.supabase) {
-        console.error('❌ ERROR: Supabase nunca se inicializó');
-        return;
+    // Método para inicializar manualmente
+    async inicializar(escuderiaId) {
+        console.log('🔧 Inicializando fabricación para escudería:', escuderiaId);
+        this.escuderiaId = escuderiaId;
+        await this.checkCurrentProduction();
+        this.setupGlobalEvents();
+        return true;
     }
     
-    console.log('✅ Supabase listo');
-    
-    // 2. Luego esperar CONFIG (SOLO UNA VEZ)
-    let esperaConfig = 0;
-    while (!window.CONFIG && esperaConfig < 50) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        esperaConfig++;
-        if (esperaConfig % 10 === 0) console.log('⏳ Esperando CONFIG...', esperaConfig/10 + 's');
-    }
-    
-    if (!window.CONFIG) {
-        console.error('❌ CONFIG no cargó, usando valores por defecto');
-        window.CONFIG = {
-            FABRICATION_TIME: 4 * 60 * 60 * 1000,
-            PIECE_COST: 10000,
-            MAX_LEVEL: 10,
-            PIECES_PER_LEVEL: 20,
-            POINTS_PER_PIECE: 10
-        };
-    }
-    
-    if (!window.CAR_AREAS) {
-        console.warn('⚠️ CAR_AREAS no definido, creando básico');
-        window.CAR_AREAS = [
-            { id: 'motor', name: 'Motor' },
-            { id: 'frenos', name: 'Frenos' }
-        ];
-    }
-    
-    console.log('✅ Todo listo, iniciando sistema de fabricación...');
-    
-    // ========================
-    // CLASE FabricacionManager
-    // ========================
-    class FabricacionManager {
-        constructor() {
-            this.currentProduction = null;
-            this.productionTimer = null;
-            this.productionUpdateInterval = null;
-            this.init();
-        }
-        
-        init() {
-            console.log('🏭 Inicializando sistema de fabricación...');
-            this.checkCurrentProduction();
-            this.setupGlobalEvents();
-        }
-        
-        setupGlobalEvents() {
-            document.addEventListener('click', (e) => {
-                if (e.target.id === 'btn-recoger-pieza' || e.target.closest('#btn-recoger-pieza')) {
-                    this.collectPiece();
-                }
-            });
-        }
-        
-        async checkCurrentProduction() {
-            try {
-                if (!window.f1Manager?.escuderia?.id) {
-                    console.log('⏳ Esperando escudería...');
-                    return;
-                }
-                
-                const { data: production, error } = await supabase
-                    .from('fabricacion_actual')
-                    .select('*')
-                    .eq('escuderia_id', window.f1Manager.escuderia.id)
-                    .eq('completada', false)
-                    .single();
-                
-                if (error && error.code !== 'PGRST116') throw error;
-                
-                if (production) {
-                    this.currentProduction = production;
-                    console.log('📦 Producción en curso:', production);
-                    this.startProductionTimer();
-                    this.updateProductionUI();
-                }
-                
-            } catch (error) {
-                console.error('❌ Error:', error);
+    setupGlobalEvents() {
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'btn-recoger-pieza' || e.target.closest('#btn-recoger-pieza')) {
+                this.collectPiece();
             }
-        }
-        
-        async startFabrication(areaId, nivel = 1) {
-            console.log(`🏭 Iniciando fabricación: ${areaId} Nivel ${nivel}`);
-            
-            if (!window.f1Manager?.escuderia) {
-                window.f1Manager?.showNotification('❌ No tienes escudería', 'error');
-                return false;
+        });
+    }
+    
+    async checkCurrentProduction() {
+        try {
+            if (!this.escuderiaId) {
+                console.log('⏳ Esperando escudería ID...');
+                return;
             }
             
-            if (this.currentProduction) {
-                window.f1Manager?.showNotification('❌ Ya hay fabricación en curso', 'error');
-                return false;
-            }
+            const { data: production, error } = await supabase
+                .from('fabricacion_actual')
+                .select('*')
+                .eq('escuderia_id', this.escuderiaId)
+                .eq('completada', false)
+                .single();
             
-            if (window.f1Manager.escuderia.dinero < window.CONFIG.PIECE_COST) {
-                window.f1Manager?.showNotification('❌ Fondos insuficientes', 'error');
-                return false;
-            }
+            if (error && error.code !== 'PGRST116') throw error;
             
-            const areaName = window.CAR_AREAS.find(a => a.id === areaId)?.name || areaId;
-            
-            try {
-                const inicio = new Date();
-                const fin = new Date(inicio.getTime() + window.CONFIG.FABRICATION_TIME);
-                
-                const { data: production, error } = await supabase
-                    .from('fabricacion_actual')
-                    .insert([
-                        {
-                            escuderia_id: window.f1Manager.escuderia.id,
-                            area: areaId,
-                            nivel: nivel,
-                            inicio_fabricacion: inicio.toISOString(),
-                            fin_fabricacion: fin.toISOString(),
-                            completada: false,
-                            costo: window.CONFIG.PIECE_COST
-                        }
-                    ])
-                    .select()
-                    .single();
-                
-                if (error) throw error;
-                
-                window.f1Manager.escuderia.dinero -= window.CONFIG.PIECE_COST;
-                await window.f1Manager.updateEscuderiaMoney();
-                
+            if (production) {
                 this.currentProduction = production;
+                console.log('📦 Producción en curso:', production);
                 this.startProductionTimer();
                 this.updateProductionUI();
-                
-                window.f1Manager?.showNotification(
-                    `🏭 ${areaName} Nivel ${nivel} iniciada (4h)`,
-                    'success'
-                );
-                
-                return true;
-                
-            } catch (error) {
-                console.error('❌ Error:', error);
-                window.f1Manager?.showNotification('❌ Error al iniciar', 'error');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error:', error);
+        }
+    }
+    
+    async startFabrication(areaId, nivel = 1) {
+        console.log(`🏭 Iniciando fabricación: ${areaId} Nivel ${nivel}`);
+        
+        if (!this.escuderiaId) {
+            this.showNotificationGlobal('❌ No tienes escudería', 'error');
+            return false;
+        }
+        
+        if (this.currentProduction) {
+            this.showNotificationGlobal('❌ Ya hay fabricación en curso', 'error');
+            return false;
+        }
+        
+        // Obtener datos de f1Manager si existe
+        const f1Manager = window.f1Manager;
+        if (f1Manager && f1Manager.escuderia) {
+            if (f1Manager.escuderia.dinero < window.CONFIG.PIECE_COST) {
+                this.showNotificationGlobal('❌ Fondos insuficientes', 'error');
                 return false;
             }
         }
         
-        startProductionTimer() {
-            if (!this.currentProduction) return;
-            
-            if (this.productionUpdateInterval) {
-                clearInterval(this.productionUpdateInterval);
-            }
-            
-            this.updateProductionProgress();
-            this.productionUpdateInterval = setInterval(() => {
-                this.updateProductionProgress();
-            }, 1000);
-        }
+        const areaName = window.CAR_AREAS?.find(a => a.id === areaId)?.name || areaId;
         
-        updateProductionProgress() {
-            if (!this.currentProduction) return;
+        try {
+            const inicio = new Date();
+            const fin = new Date(inicio.getTime() + window.CONFIG.FABRICATION_TIME);
             
-            const now = new Date();
-            const endTime = new Date(this.currentProduction.fin_fabricacion);
-            const startTime = new Date(this.currentProduction.inicio_fabricacion);
+            const { data: production, error } = await supabase
+                .from('fabricacion_actual')
+                .insert([
+                    {
+                        escuderia_id: this.escuderiaId,
+                        area: areaId,
+                        nivel: nivel,
+                        inicio_fabricacion: inicio.toISOString(),
+                        fin_fabricacion: fin.toISOString(),
+                        completada: false,
+                        costo: window.CONFIG.PIECE_COST
+                    }
+                ])
+                .select()
+                .single();
             
-            const elapsed = now - startTime;
-            const remaining = endTime - now;
-            const totalTime = window.CONFIG.FABRICATION_TIME;
-            const progress = Math.min(100, (elapsed / totalTime) * 100);
+            if (error) throw error;
             
-            this.updateProductionUI(progress, remaining);
-            
-            if (remaining <= 0) {
-                this.completeProduction();
-            }
-        }
-        
-        updateProductionUI(progress = 0, remaining = 0) {
-            const progressBar = document.getElementById('production-progress');
-            const timeLeft = document.getElementById('time-left');
-            const collectBtn = document.getElementById('btn-recoger-pieza');
-            const statusEl = document.getElementById('factory-status');
-            
-            if (progressBar) progressBar.style.width = `${progress}%`;
-            
-            if (timeLeft) {
-                if (remaining <= 0) {
-                    timeLeft.textContent = '¡Listo para recoger!';
-                    if (collectBtn) collectBtn.disabled = false;
-                } else {
-                    const hours = Math.floor(remaining / (1000 * 60 * 60));
-                    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-                    timeLeft.textContent = `${hours}h ${minutes}m ${seconds}s`;
-                    if (collectBtn) collectBtn.disabled = true;
+            // Actualizar dinero si f1Manager existe
+            if (f1Manager && f1Manager.escuderia) {
+                f1Manager.escuderia.dinero -= window.CONFIG.PIECE_COST;
+                if (f1Manager.updateEscuderiaMoney) {
+                    await f1Manager.updateEscuderiaMoney();
                 }
             }
             
-            if (statusEl && this.currentProduction) {
-                const area = window.CAR_AREAS.find(a => a.id === this.currentProduction.area);
-                const areaName = area ? area.name : this.currentProduction.area;
-                statusEl.innerHTML = `<p><i class="fas fa-industry"></i> ${areaName} Nivel ${this.currentProduction.nivel}</p>`;
-            }
-        }
-        
-        async completeProduction() {
-            if (!this.currentProduction) return;
+            this.currentProduction = production;
+            this.startProductionTimer();
+            this.updateProductionUI();
             
-            console.log('🎉 Producción completada');
-            
-            if (this.productionUpdateInterval) {
-                clearInterval(this.productionUpdateInterval);
-                this.productionUpdateInterval = null;
-            }
-            
-            this.updateProductionUI(100, 0);
-            
-            const area = window.CAR_AREAS.find(a => a.id === this.currentProduction.area);
-            const areaName = area ? area.name : this.currentProduction.area;
-            
-            window.f1Manager?.showNotification(
-                `✅ ${areaName} lista para recoger!`,
+            this.showNotificationGlobal(
+                `🏭 ${areaName} Nivel ${nivel} iniciada (4h)`,
                 'success'
             );
+            
+            return true;
+            
+        } catch (error) {
+            console.error('❌ Error:', error);
+            this.showNotificationGlobal('❌ Error al iniciar', 'error');
+            return false;
+        }
+    }
+    
+    startProductionTimer() {
+        if (!this.currentProduction) return;
+        
+        if (this.productionUpdateInterval) {
+            clearInterval(this.productionUpdateInterval);
         }
         
-        async collectPiece() {
-            if (!this.currentProduction) {
-                window.f1Manager?.showNotification('❌ No hay pieza para recoger', 'error');
-                return false;
+        this.updateProductionProgress();
+        this.productionUpdateInterval = setInterval(() => {
+            this.updateProductionProgress();
+        }, 1000);
+    }
+    
+    updateProductionProgress() {
+        if (!this.currentProduction) return;
+        
+        const now = new Date();
+        const endTime = new Date(this.currentProduction.fin_fabricacion);
+        const startTime = new Date(this.currentProduction.inicio_fabricacion);
+        
+        const elapsed = now - startTime;
+        const remaining = endTime - now;
+        const totalTime = window.CONFIG.FABRICATION_TIME;
+        const progress = Math.min(100, (elapsed / totalTime) * 100);
+        
+        this.updateProductionUI(progress, remaining);
+        
+        if (remaining <= 0) {
+            this.completeProduction();
+        }
+    }
+    
+    updateProductionUI(progress = 0, remaining = 0) {
+        const progressBar = document.getElementById('production-progress');
+        const timeLeft = document.getElementById('time-left');
+        const collectBtn = document.getElementById('btn-recoger-pieza');
+        const statusEl = document.getElementById('factory-status');
+        
+        if (progressBar) progressBar.style.width = `${progress}%`;
+        
+        if (timeLeft) {
+            if (remaining <= 0) {
+                timeLeft.textContent = '¡Listo para recoger!';
+                if (collectBtn) collectBtn.disabled = false;
+            } else {
+                const hours = Math.floor(remaining / (1000 * 60 * 60));
+                const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+                timeLeft.textContent = `${hours}h ${minutes}m ${seconds}s`;
+                if (collectBtn) collectBtn.disabled = true;
             }
+        }
+        
+        if (statusEl && this.currentProduction) {
+            const area = window.CAR_AREAS?.find(a => a.id === this.currentProduction.area);
+            const areaName = area ? area.name : this.currentProduction.area;
+            statusEl.innerHTML = `<p><i class="fas fa-industry"></i> ${areaName} Nivel ${this.currentProduction.nivel}</p>`;
+        }
+    }
+    
+    async completeProduction() {
+        if (!this.currentProduction) return;
+        
+        console.log('🎉 Producción completada');
+        
+        if (this.productionUpdateInterval) {
+            clearInterval(this.productionUpdateInterval);
+            this.productionUpdateInterval = null;
+        }
+        
+        this.updateProductionUI(100, 0);
+        
+        const area = window.CAR_AREAS?.find(a => a.id === this.currentProduction.area);
+        const areaName = area ? area.name : this.currentProduction.area;
+        
+        this.showNotificationGlobal(
+            `✅ ${areaName} lista para recoger!`,
+            'success'
+        );
+    }
+    
+    async collectPiece() {
+        if (!this.currentProduction) {
+            this.showNotificationGlobal('❌ No hay pieza para recoger', 'error');
+            return false;
+        }
 
-            const now = new Date();
-            const endTime = new Date(this.currentProduction.fin_fabricacion);
+        const now = new Date();
+        const endTime = new Date(this.currentProduction.fin_fabricacion);
+        
+        if (now < endTime) {
+            this.showNotificationGlobal('❌ La pieza aún no está lista', 'error');
+            return false;
+        }
+        
+        try {
+            const { error: updateError } = await supabase
+                .from('fabricacion_actual')
+                .update({ completada: true })
+                .eq('id', this.currentProduction.id);
             
-            if (now < endTime) {
-                window.f1Manager?.showNotification('❌ La pieza aún no está lista', 'error');
-                return false;
+            if (updateError) throw updateError;
+            
+            const { error: piezaError } = await supabase
+                .from('piezas_almacen')
+                .insert([
+                    {
+                        escuderia_id: this.escuderiaId,
+                        area: this.currentProduction.area,
+                        nivel: this.currentProduction.nivel,
+                        estado: 'disponible',
+                        puntos_base: window.CONFIG.POINTS_PER_PIECE || 10,
+                        fabricada_en: new Date().toISOString(),
+                        equipada_en: null
+                    }
+                ]);
+            
+            if (piezaError) throw piezaError;
+            
+            await this.updateCarProgress(this.currentProduction.area);
+            
+            const reward = 15000;
+            const f1Manager = window.f1Manager;
+            if (f1Manager && f1Manager.escuderia) {
+                f1Manager.escuderia.dinero += reward;
+                if (f1Manager.updateEscuderiaMoney) {
+                    await f1Manager.updateEscuderiaMoney();
+                }
             }
             
-            try {
-                const { error: updateError } = await supabase
-                    .from('fabricacion_actual')
-                    .update({ completada: true })
-                    .eq('id', this.currentProduction.id);
+            const areaObj = window.CAR_AREAS?.find(a => a.id === this.currentProduction.area);
+            this.currentProduction = null;
+            
+            this.updateProductionUI(0, 0);
+            
+            this.showNotificationGlobal(
+                `🎁 ¡Pieza recogida! +10 puntos y €${reward.toLocaleString()}`,
+                'success'
+            );
+            
+            if (window.tabManager?.currentTab === 'almacen') {
+                window.tabManager.loadAlmacenPiezas();
+            }
+            
+            return true;
+            
+        } catch (error) {
+            console.error('❌ Error:', error);
+            this.showNotificationGlobal('❌ Error al recoger', 'error');
+            return false;
+        }
+    }
+    
+    async updateCarProgress(areaId) {
+        try {
+            const { data: carStats, error: fetchError } = await supabase
+                .from('coches_stats')
+                .select('*')
+                .eq('escuderia_id', this.escuderiaId)
+                .single();
+            
+            if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+            
+            let currentStats = carStats || this.createEmptyCarStats();
+            const currentProgress = currentStats[`${areaId}_progreso`] || 0;
+            const currentLevel = currentStats[`${areaId}_nivel`] || 0;
+            
+            let newProgress = currentProgress + 1;
+            let newLevel = currentLevel;
+            
+            if (newProgress >= window.CONFIG.PIECES_PER_LEVEL) {
+                newProgress = 0;
+                newLevel = currentLevel + 1;
                 
-                if (updateError) throw updateError;
+                if (newLevel > window.CONFIG.MAX_LEVEL) {
+                    newLevel = window.CONFIG.MAX_LEVEL;
+                }
                 
-                const { error: piezaError } = await supabase
-                    .from('piezas_almacen')
-                    .insert([
-                        {
-                            escuderia_id: window.f1Manager.escuderia.id,
-                            area: this.currentProduction.area,
-                            nivel: this.currentProduction.nivel,
-                            estado: 'disponible',
-                            puntos_base: window.CONFIG.POINTS_PER_PIECE || 10,
-                            fabricada_en: new Date().toISOString(),
-                            equipada_en: null
-                        }
-                    ]);
-                
-                if (piezaError) throw piezaError;
-                
-                await this.updateCarProgress(this.currentProduction.area);
-                
-                const reward = 15000;
-                window.f1Manager.escuderia.dinero += reward;
-                await window.f1Manager.updateEscuderiaMoney();
-                
-                const areaObj = window.CAR_AREAS.find(a => a.id === this.currentProduction.area);
-                this.currentProduction = null;
-                
-                this.updateProductionUI(0, 0);
-                
-                window.f1Manager?.showNotification(
-                    `🎁 ¡Pieza recogida! +10 puntos y €${reward.toLocaleString()}`,
+                const areaName = window.CAR_AREAS?.find(a => a.id === areaId)?.name || areaId;
+                this.showNotificationGlobal(
+                    `🚀 ¡${areaName} ha subido al Nivel ${newLevel}!`,
                     'success'
                 );
-                
-                if (window.tabManager?.currentTab === 'almacen') {
-                    window.tabManager.loadAlmacenPiezas();
-                }
-                
-                return true;
-                
-            } catch (error) {
-                console.error('❌ Error:', error);
-                window.f1Manager?.showNotification('❌ Error al recoger', 'error');
-                return false;
             }
-        }
-        
-        async updateCarProgress(areaId) {
-            try {
-                const { data: carStats, error: fetchError } = await supabase
-                    .from('coches_stats')
-                    .select('*')
-                    .eq('escuderia_id', window.f1Manager.escuderia.id)
-                    .single();
-                
-                if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
-                
-                let currentStats = carStats || this.createEmptyCarStats();
-                const currentProgress = currentStats[`${areaId}_progreso`] || 0;
-                const currentLevel = currentStats[`${areaId}_nivel`] || 0;
-                
-                let newProgress = currentProgress + 1;
-                let newLevel = currentLevel;
-                
-                if (newProgress >= window.CONFIG.PIECES_PER_LEVEL) {
-                    newProgress = 0;
-                    newLevel = currentLevel + 1;
-                    
-                    if (newLevel > window.CONFIG.MAX_LEVEL) {
-                        newLevel = window.CONFIG.MAX_LEVEL;
-                    }
-                    
-                    const areaName = window.CAR_AREAS.find(a => a.id === areaId)?.name || areaId;
-                    window.f1Manager?.showNotification(
-                        `🚀 ¡${areaName} ha subido al Nivel ${newLevel}!`,
-                        'success'
-                    );
-                }
-                
-                const updates = {
-                    [`${areaId}_progreso`]: newProgress,
-                    [`${areaId}_nivel`]: newLevel,
-                    actualizado_en: new Date().toISOString()
-                };
-                
-                let error;
-                
-                if (carStats) {
-                    const { error: updateError } = await supabase
-                        .from('coches_stats')
-                        .update(updates)
-                        .eq('id', carStats.id);
-                    error = updateError;
-                } else {
-                    updates.escuderia_id = window.f1Manager.escuderia.id;
-                    const { error: insertError } = await supabase
-                        .from('coches_stats')
-                        .insert([updates]);
-                    error = insertError;
-                }
-                
-                if (error) throw error;
-                
-                if (window.f1Manager) {
-                    await window.f1Manager.loadCarStatus();
-                }
-                
-            } catch (error) {
-                console.error('❌ Error:', error);
-            }
-        }
-        
-        createEmptyCarStats() {
-            const stats = {
-                escuderia_id: window.f1Manager?.escuderia?.id
+            
+            const updates = {
+                [`${areaId}_progreso`]: newProgress,
+                [`${areaId}_nivel`]: newLevel,
+                actualizado_en: new Date().toISOString()
             };
             
+            let error;
+            
+            if (carStats) {
+                const { error: updateError } = await supabase
+                    .from('coches_stats')
+                    .update(updates)
+                    .eq('id', carStats.id);
+                error = updateError;
+            } else {
+                updates.escuderia_id = this.escuderiaId;
+                const { error: insertError } = await supabase
+                    .from('coches_stats')
+                    .insert([updates]);
+                error = insertError;
+            }
+            
+            if (error) throw error;
+            
+            const f1Manager = window.f1Manager;
+            if (f1Manager && f1Manager.loadCarStatus) {
+                await f1Manager.loadCarStatus();
+            }
+            
+        } catch (error) {
+            console.error('❌ Error:', error);
+        }
+    }
+    
+    createEmptyCarStats() {
+        const stats = {
+            escuderia_id: this.escuderiaId
+        };
+        
+        if (window.CAR_AREAS) {
             window.CAR_AREAS.forEach(area => {
                 stats[`${area.id}_nivel`] = 0;
                 stats[`${area.id}_progreso`] = 0;
             });
-            
-            return stats;
         }
         
-        async getCarStats() {
-            try {
-                const { data: carStats, error } = await supabase
-                    .from('coches_stats')
-                    .select('*')
-                    .eq('escuderia_id', window.f1Manager?.escuderia?.id)
-                    .single();
-                
-                if (error && error.code !== 'PGRST116') throw error;
-                
-                return carStats || this.createEmptyCarStats();
-                
-            } catch (error) {
-                console.error('❌ Error:', error);
-                return this.createEmptyCarStats();
-            }
-        }
-        
-        async cancelProduction() {
-            if (!this.currentProduction) {
-                return { success: false, message: 'No hay producción' };
-            }
+        return stats;
+    }
+    
+    async getCarStats() {
+        try {
+            const { data: carStats, error } = await supabase
+                .from('coches_stats')
+                .select('*')
+                .eq('escuderia_id', this.escuderiaId)
+                .single();
             
-            if (confirm('¿Cancelar fabricación? Se pierde 50% del costo.')) {
-                try {
-                    const refund = Math.floor(this.currentProduction.costo * 0.5);
-                    window.f1Manager.escuderia.dinero += refund;
-                    await window.f1Manager.updateEscuderiaMoney();
-                    
-                    const { error } = await supabase
-                        .from('fabricacion_actual')
-                        .update({ completada: true, cancelada: true })
-                        .eq('id', this.currentProduction.id);
-                    
-                    if (error) throw error;
-                    
-                    if (this.productionUpdateInterval) {
-                        clearInterval(this.productionUpdateInterval);
-                        this.productionUpdateInterval = null;
-                    }
-                    
-                    this.currentProduction = null;
-                    this.updateProductionUI(0, 0);
-                    
-                    window.f1Manager?.showNotification(
-                        `🔄 Cancelada. Reembolso: €${refund.toLocaleString()}`,
-                        'info'
-                    );
-                    
-                    return { success: true, refund: refund };
-                    
-                } catch (error) {
-                    console.error('❌ Error:', error);
-                    return { success: false, message: error.message };
-                }
-            }
+            if (error && error.code !== 'PGRST116') throw error;
             
-            return { success: false, message: 'Cancelado' };
-        }
-        
-        getProductionStatus() {
-            if (!this.currentProduction) {
-                return { active: false, message: 'No hay producción' };
-            }
+            return carStats || this.createEmptyCarStats();
             
-            const now = new Date();
-            const endTime = new Date(this.currentProduction.fin_fabricacion);
-            const startTime = new Date(this.currentProduction.inicio_fabricacion);
-            
-            const elapsed = now - startTime;
-            const remaining = endTime - now;
-            const totalTime = window.CONFIG.FABRICATION_TIME;
-            const progress = Math.min(100, (elapsed / totalTime) * 100);
-            
-            const area = window.CAR_AREAS.find(a => a.id === this.currentProduction.area);
-            
-            return {
-                active: true,
-                piece: area ? area.name : this.currentProduction.area,
-                level: this.currentProduction.nivel,
-                progress: progress,
-                remaining: remaining,
-                ready: remaining <= 0,
-                startTime: startTime,
-                endTime: endTime
-            };
+        } catch (error) {
+            console.error('❌ Error:', error);
+            return this.createEmptyCarStats();
         }
     }
     
-    // Inicializar cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', () => {
-        window.fabricacionManager = new FabricacionManager();
-        
-        if (window.f1Manager) {
-            window.f1Manager.iniciarFabricacion = (areaId) => {
-                window.fabricacionManager.startFabrication(areaId);
-            };
+    async cancelProduction() {
+        if (!this.currentProduction) {
+            return { success: false, message: 'No hay producción' };
         }
-    });
+        
+        if (confirm('¿Cancelar fabricación? Se pierde 50% del costo.')) {
+            try {
+                const refund = Math.floor(this.currentProduction.costo * 0.5);
+                const f1Manager = window.f1Manager;
+                if (f1Manager && f1Manager.escuderia) {
+                    f1Manager.escuderia.dinero += refund;
+                    if (f1Manager.updateEscuderiaMoney) {
+                        await f1Manager.updateEscuderiaMoney();
+                    }
+                }
+                
+                const { error } = await supabase
+                    .from('fabricacion_actual')
+                    .update({ completada: true, cancelada: true })
+                    .eq('id', this.currentProduction.id);
+                
+                if (error) throw error;
+                
+                if (this.productionUpdateInterval) {
+                    clearInterval(this.productionUpdateInterval);
+                    this.productionUpdateInterval = null;
+                }
+                
+                this.currentProduction = null;
+                this.updateProductionUI(0, 0);
+                
+                this.showNotificationGlobal(
+                    `🔄 Cancelada. Reembolso: €${refund.toLocaleString()}`,
+                    'info'
+                );
+                
+                return { success: true, refund: refund };
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                return { success: false, message: error.message };
+            }
+        }
+        
+        return { success: false, message: 'Cancelado' };
+    }
     
-    console.log('✅ Sistema de fabricación listo');
+    getProductionStatus() {
+        if (!this.currentProduction) {
+            return { active: false, message: 'No hay producción' };
+        }
+        
+        const now = new Date();
+        const endTime = new Date(this.currentProduction.fin_fabricacion);
+        const startTime = new Date(this.currentProduction.inicio_fabricacion);
+        
+        const elapsed = now - startTime;
+        const remaining = endTime - now;
+        const totalTime = window.CONFIG.FABRICATION_TIME;
+        const progress = Math.min(100, (elapsed / totalTime) * 100);
+        
+        const area = window.CAR_AREAS?.find(a => a.id === this.currentProduction.area);
+        
+        return {
+            active: true,
+            piece: area ? area.name : this.currentProduction.area,
+            level: this.currentProduction.nivel,
+            progress: progress,
+            remaining: remaining,
+            ready: remaining <= 0,
+            startTime: startTime,
+            endTime: endTime
+        };
+    }
     
-})();
+    // Método auxiliar para notificaciones
+    showNotificationGlobal(message, type = 'info') {
+        // Usar f1Manager si existe
+        const f1Manager = window.f1Manager;
+        if (f1Manager && f1Manager.showNotification) {
+            f1Manager.showNotification(message, type);
+            return;
+        }
+        
+        // Si no existe, crear notificación básica
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+}
+
+// Crear instancia global pero NO autoiniciar
+document.addEventListener('DOMContentLoaded', () => {
+    window.fabricacionManager = new FabricacionManager();
+    console.log('✅ FabricacionManager listo (modo pasivo - esperando inicialización)');
+});
