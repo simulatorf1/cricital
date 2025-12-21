@@ -1,4 +1,4 @@
-// ========================
+async init() {// ========================
 // F1 MANAGER - MAIN.JS COMPLETO (CON TUTORIAL)
 // ========================
 console.log('🏎️ F1 Manager - Sistema principal cargado');
@@ -2302,22 +2302,18 @@ class F1Manager {
     }
     
     iniciarFabricacion(areaId) {
-        console.log('🛠️ Iniciando fabricación para:', areaId);
-        
-        const intentarIniciar = (intentos = 0) => {
-            if (window.fabricacionManager) {
-                window.fabricacionManager.startFabrication(areaId);
-            } else if (intentos < 5) {
-                // Esperar 500ms e intentar de nuevo
-                console.log(`⏳ Esperando fabricacionManager... intento ${intentos + 1}`);
-                setTimeout(() => intentarIniciar(intentos + 1), 500);
-            } else {
-                console.error('❌ fabricacionManager nunca se inicializó');
-                this.showNotification('Error: Sistema de fabricación no disponible', 'error');
-            }
-        };
-        
-        intentarIniciar();
+        if (!window.fabricacionManager) {
+            console.error('❌ fabricacionManager no disponible');
+            this.showNotification('Sistema de fabricación no disponible', 'error');
+            return false;
+        }
+    
+        if (!this.escuderia) {
+            this.showNotification('❌ No tienes escudería', 'error');
+            return false;
+        }
+    
+        return window.fabricacionManager.startFabrication(areaId);
     }
     
     showNotification(mensaje, tipo = 'success') {
