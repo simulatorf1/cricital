@@ -6,71 +6,82 @@ console.log('🔧 Sistema de fabricación cargado');
 
 class FabricacionManager {
     constructor() {
-        this.currentProduction = null;
+        this.currentProduction = null; // Para compatibilidad
+        this.produccionesEnCurso = []; // ← NUEVO: Lista de todas las fabricaciones
         this.productionTimer = null;
         this.productionUpdateInterval = null;
         this.escuderiaId = null;
-        console.log('🏭 FabricacionManager creado (modo pasivo)');
     }
-    
-    // Método para inicializar manualmente
-    async inicializar(escuderiaId) {
-        console.log('🔧 Inicializando fabricacionManager para escudería:', escuderiaId);
-        this.escuderiaId = escuderiaId;
-        
+
+    // NUEVO método para manejar múltiples fabricaciones
+    async cargarTodasFabricaciones() {
         try {
-            // PRIMERO: Verifica que la tabla existe y tenemos acceso
-            console.log('🔍 Verificando acceso a la tabla...');
-            
             const { data, error } = await supabase
                 .from('fabricacion_actual')
-                .select('id')  // ← Solo pide el ID para una consulta mínima
-                .eq('escuderia_id', escuderiaId)
+                .select('*')
+                .eq('escuderia_id', this.escuderiaId)
                 .eq('completada', false)
-                .maybeSingle();  // ← Usa maybeSingle() en lugar de .limit(1)
+                .order('tiempo_inicio', { ascending: true });
             
-            if (error) {
-                console.error('❌ Error de acceso a fabricacion_actual:', {
-                    message: error.message,
-                    code: error.code,
-                    details: error.details
-                });
-                
-                // Si es error 406, probablemente falta columna o permisos
-                if (error.code === '406') {
-                    console.warn('⚠️ Posible falta de columna pieza_id o creada_en');
-                    // Continúa de todos modos con producción vacía
-                    this.produccionActual = null;
-                    return true;
-                }
-                return false;
-            }
+            if (error) throw error;
             
-            // Si data es null, no hay producción activa (ESTO ES NORMAL)
-            if (!data) {
-                console.log('ℹ️ No hay producción activa para esta escudería');
-                this.produccionActual = null;
-            } else {
-                console.log('✅ Producción activa encontrada:', data);
-                // Carga todos los datos de esta producción
-                const { data: fullData, error: fullError } = await supabase
-                    .from('fabricacion_actual')
-                    .select('*')
-                    .eq('id', data.id)
-                    .single();
-                    
-                if (!fullError && fullData) {
-                    this.produccionActual = fullData;
-                }
-            }
+            this.produccionesEnCurso = data || [];
+            console.log(`📊 ${this.produccionesEnCurso.length} fabricaciones en curso`);
             
-            return true;
+            // Iniciar timers para cada una
+            this.produccionesEnCurso.forEach(fab => {
+                this.iniciarTimerFabricacion(fab.id);
+            });
+            
+            return this.produccionesEnCurso;
             
         } catch (error) {
-            console.error('❌ Error en inicialización:', error);
-            // Aún así, permite continuar
-            this.produccionActual = null;
-            return true;
+            console.error('❌ Error cargando fabricaciones:', error);
+            return [];
+        }
+    }
+
+    // NUEVO método para iniciar timer individual
+    iniciarTimerFabricacion(fabricacionId) {
+        // Si ya hay un timer para esta fabricación, no crear otro
+        if (this[`timer_${fabricacionId}`]) {
+            clearInterval(this[`timer_${fabricacionId}`]);
+        }
+        
+        this[`timer_${fabricacionId}`] = setInterval(() => {
+            this.verificarFabricacion(fabricacionId);
+        }, 1000); // Verificar cada segundo
+    }
+
+    // NUEVO método para verificar una fabricación específica
+    async verificarFabricacion(fabricacionId) {
+        try {
+            const fabricacion = this.produccionesEnCurso.find(f => f.id === fabricacionId);
+            if (!fabricacion) return;
+            
+            const ahora = new Date();
+            const fin = new Date(fabricacion.tiempo_fin);
+            
+            if (ahora >= fin) {
+                // La fabricación ha terminado
+                console.log(`⏰ Fabricación ${fabricacionId} de ${fabricacion.area} terminada`);
+                
+                // Detener timer
+                clearInterval(this[`timer_${fabricacionId}`]);
+                delete this[`timer_${fabricacionId}`];
+                
+                // Mostrar notificación
+                this.showNotificationGlobal(
+                    `✅ ¡Pieza de ${fabricacion.area} lista para recoger!`,
+                    'success'
+                );
+                
+                // Actualizar UI si estamos en la pestaña taller
+                this.actualizarUI();
+            }
+            
+        } catch (error) {
+            console.error('❌ Error verificando fabricación:', error);
         }
     }
     
@@ -117,12 +128,19 @@ class FabricacionManager {
         }
         
         try {
-            // PRIMERO verifica si ya hay una fabricación en curso
+            // PRIMERO verifica si ya hay una fabricación en curso PARA ESTA MISMA ÁREA
+            const area = window.CAR_AREAS.find(a => a.id === areaId);
+            if (!area) {
+                console.error('❌ Área no encontrada:', areaId);
+                return false;
+            }
+            
             const { data: existing, error: checkError } = await supabase
                 .from('fabricacion_actual')
-                .select('id')
+                .select('id, area')
                 .eq('escuderia_id', this.escuderiaId)
                 .eq('completada', false)
+                .eq('area', area.name)  // ← SOLO verifica para esta área específica
                 .maybeSingle();
             
             if (checkError) {
@@ -131,19 +149,14 @@ class FabricacionManager {
             }
             
             if (existing) {
-                console.log('⚠️ Ya hay una fabricación en curso');
+                console.log('⚠️ Ya hay una fabricación en curso para', area.name);
+                this.showNotificationGlobal(`⚠️ Ya estás fabricando una pieza de ${area.name}`, 'warning');
                 return false;
             }
             
             // Crea NUEVA fabricación
-            const area = window.CAR_AREAS.find(a => a.id === areaId);
-            if (!area) {
-                console.error('❌ Área no encontrada:', areaId);
-                return false;
-            }
-            
             const tiempoFin = new Date();
-            tiempoFin.setSeconds(tiempoFin.getSeconds() + 30); // 30 segundos después
+            tiempoFin.setSeconds(tiempoFin.getSeconds() + 30); // 30 segundos
             
             const { data: newFabricacion, error: insertError } = await supabase
                 .from('fabricacion_actual')
@@ -166,8 +179,16 @@ class FabricacionManager {
                 return false;
             }
             
-            console.log('✅ Fabricación iniciada:', newFabricacion);
-            this.produccionActual = newFabricacion;
+            console.log('✅ Fabricación iniciada para', area.name, ':', newFabricacion);
+            
+            // Añadir a la lista de producciones en curso
+            if (!this.produccionesEnCurso) {
+                this.produccionesEnCurso = [];
+            }
+            this.produccionesEnCurso.push(newFabricacion);
+            
+            // Iniciar timer para esta fabricación específica
+            this.iniciarTimerFabricacion(newFabricacion.id);
             
             return true;
             
@@ -258,26 +279,42 @@ class FabricacionManager {
         );
     }
     
-    async collectPiece() {
-        if (!this.currentProduction) {
-            this.showNotificationGlobal('❌ No hay pieza para recoger', 'error');
-            return false;
-        }
-
-        const now = new Date();
-        const endTime = new Date(this.currentProduction.fin_fabricacion);
-        
-        if (now < endTime) {
-            this.showNotificationGlobal('❌ La pieza aún no está lista', 'error');
-            return false;
+    async collectPiece(fabricacionId = null) {
+        // Si no se especifica ID, usar la primera disponible
+        if (!fabricacionId) {
+            const fabricacionLista = this.produccionesEnCurso.find(fab => {
+                const fin = new Date(fab.tiempo_fin);
+                return new Date() >= fin;
+            });
+            
+            if (!fabricacionLista) {
+                this.showNotificationGlobal('❌ No hay piezas listas para recoger', 'error');
+                return false;
+            }
+            fabricacionId = fabricacionLista.id;
         }
         
         try {
+            // Buscar la fabricación específica
+            const fabricacion = this.produccionesEnCurso.find(f => f.id === fabricacionId);
+            if (!fabricacion) {
+                this.showNotificationGlobal('❌ Fabricación no encontrada', 'error');
+                return false;
+            }
+            
+            const now = new Date();
+            const endTime = new Date(fabricacion.tiempo_fin);
+            
+            if (now < endTime) {
+                this.showNotificationGlobal('❌ La pieza aún no está lista', 'error');
+                return false;
+            }
+            
             // 1. Marcar fabricación como completada
             const { error: updateError } = await supabase
                 .from('fabricacion_actual')
                 .update({ completada: true })
-                .eq('id', this.currentProduction.id);
+                .eq('id', fabricacion.id);
             
             if (updateError) throw updateError;
             
@@ -287,8 +324,8 @@ class FabricacionManager {
                 .insert([
                     {
                         escuderia_id: this.escuderiaId,
-                        area: this.currentProduction.area,
-                        nivel: this.currentProduction.nivel,
+                        area: fabricacion.area,
+                        nivel: fabricacion.nivel,
                         estado: 'disponible',
                         puntos_base: window.CONFIG.POINTS_PER_PIECE || 10,
                         fabricada_en: new Date().toISOString(),
@@ -299,7 +336,7 @@ class FabricacionManager {
             if (piezaError) throw piezaError;
             
             // 3. Añadir puntos base al coche
-            await this.updateCarProgress(this.currentProduction.area);
+            await this.updateCarProgress(fabricacion.area);
             
             // 4. Dar recompensa en dinero
             const reward = 15000;
@@ -311,37 +348,39 @@ class FabricacionManager {
                 }
             }
             
-            // 5. Actualizar variables internas
-            this.currentProduction = null;
+            // 5. Eliminar de la lista local
+            this.produccionesEnCurso = this.produccionesEnCurso.filter(f => f.id !== fabricacionId);
             
-            // 6. Actualizar UI
-            this.updateProductionUI(0, 0);
+            // 6. Detener timer
+            if (this[`timer_${fabricacionId}`]) {
+                clearInterval(this[`timer_${fabricacionId}`]);
+                delete this[`timer_${fabricacionId}`];
+            }
             
             // 7. Mostrar notificación
             this.showNotificationGlobal(
-                `🎁 ¡Pieza recogida! +10 puntos y €${reward.toLocaleString()}`,
+                `🎁 ¡Pieza de ${fabricacion.area} recogida! +10 puntos y €${reward.toLocaleString()}`,
                 'success'
             );
             
-            // 8. Si estamos en la pestaña almacén, recargar
-            if (window.tabManager?.currentTab === 'almacen') {
-                window.tabManager.loadAlmacenPiezas();
-            }
-            
-            // 9. ACTUALIZACIÓN NUEVA: Cargar stats del coche en main.js
+            // 8. Actualizar stats del coche en main.js
             if (window.f1Manager && window.f1Manager.loadCarStatus) {
                 await window.f1Manager.loadCarStatus();
+            }
+            
+            // 9. Si estamos en la pestaña almacén, recargar
+            if (window.tabManager?.currentTab === 'almacen') {
+                window.tabManager.loadAlmacenPiezas();
             }
             
             return true;
             
         } catch (error) {
             console.error('❌ Error:', error);
-            this.showNotificationGlobal('❌ Error al recoger', 'error');
+            this.showNotificationGlobal('❌ Error al recoger la pieza', 'error');
             return false;
         }
     }
-    
     async updateCarProgress(areaId) {
         try {
             const { data: carStats, error: fetchError } = await supabase
