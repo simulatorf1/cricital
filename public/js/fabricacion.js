@@ -18,6 +18,26 @@ console.log('🔧 Sistema de fabricación cargado - ESPERANDO CONFIG');
 
 // ESPERAR ACTIVAMENTE a que config.js cargue
 (async function() {
+        // 1. Esperar Supabase PRIMERO
+    let esperaSupabase = 0;
+    while (!window.supabase && esperaSupabase < 30) { // 3 segundos máximo
+        await new Promise(resolve => setTimeout(resolve, 100));
+        esperaSupabase++;
+        if (esperaSupabase % 10 === 0) console.log('⏳ Esperando Supabase...', esperaSupabase/10 + 's');
+    }
+    
+    if (!window.supabase) {
+        console.error('❌ ERROR: Supabase nunca se inicializó');
+        return; // NO continuar sin Supabase
+    }
+    
+    // 2. Luego esperar CONFIG
+    let esperaConfig = 0;
+    while (!window.CONFIG && esperaConfig < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        esperaConfig++;
+        if (esperaConfig % 10 === 0) console.log('⏳ Esperando CONFIG...', esperaConfig/10 + 's');
+    }
     // Esperar hasta que window.CONFIG exista
     let espera = 0;
     while (!window.CONFIG && espera < 50) { // 5 segundos máximo
