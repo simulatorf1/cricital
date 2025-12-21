@@ -603,25 +603,28 @@ class F1Manager {
         // 1. PRIMERO cargar la escudería del usuario (si existe)
         await this.loadUserData();
         
-        // 2. SOLO si NO tiene escudería, mostrar tutorial obligatorio
+        // 2. INICIALIZAR FABRICACIÓN si existe escudería
+        if (this.escuderia && window.fabricacionManager) {
+            console.log('🔧 Inicializando sistema de fabricación...');
+            await window.fabricacionManager.inicializar(this.escuderia.id);
+        }
+        
+        // 3. SOLO si NO tiene escudería, mostrar tutorial
         if (!this.escuderia) {
-            console.log('📚 Mostrando tutorial obligatorio (sin escudería)');
+            console.log('📚 Mostrando tutorial inicial (sin escudería)');
             this.mostrarTutorialInicial();
             return;
         }
         
-        // 3. Verificar si ya completó tutorial (solo para nuevos)
+        // 4. Verificar si ya completó tutorial
         const tutorialCompletado = localStorage.getItem('tutorial_completado');
         
         if (!tutorialCompletado) {
             // Usuario tiene escudería pero no completó tutorial
-            // Podrías mostrar un tutorial RESUMIDO o saltarlo
-            console.log('✅ Usuario con escudería, tutorial opcional');
-            // Aquí decides: mostrar tutorial resumido o marcar como completado
             localStorage.setItem('tutorial_completado', 'true');
         }
         
-        // 4. Cargar dashboard normal
+        // 5. Cargar dashboard normal
         console.log('📊 Usuario con escudería, cargando dashboard');
         await this.cargarDashboardCompleto();
     }
