@@ -581,10 +581,10 @@ class F1Manager {
         this.supabase = null; // Añadir referencia a supabase
     }
     
+    // En el método init() de F1Manager, después de cargar la escudería:
     async init() {
         console.log('🔧 Inicializando juego...');
         
-        // 1. Asegurar que supabase esté disponible
         this.supabase = await this.esperarSupabase();
         if (!this.supabase) {
             console.error('❌ No se pudo cargar Supabase');
@@ -592,52 +592,77 @@ class F1Manager {
             return;
         }
         
-        // 2. Cargar la escudería del usuario
-        await this.loadUserData();
+        console.log('✅ Supabase inicializado correctamente');
         
-        // 3. INICIALIZAR FABRICACIÓN si existe escudería
-        if (this.escuderia && window.fabricacionManager) {
-            console.log('🔧 Inicializando sistema de fabricación...');
-            console.log('ID de escudería:', this.escuderia.id);
+        const { data: { session } } = await this.supabase.auth.getSession();
+        
+        if (session) {
+            console.log('✅ Usuario autenticado:', session.user.email);
+            window.f1Manager = new F1Manager(session.user);
+            await window.f1Manager.init();
+        } else {
+            console.log('👤 No hay sesión, mostrar login');
+            mostrarPantallaLogin();
+        }
+    }
     
-            // Verificar si el método existe
-            if (typeof window.fabricacionManager.inicializar === 'function') {
-                await window.fabricacionManager.inicializar(this.escuderia.id);
-            } else {
-                console.error('❌ fabricacionManager.inicializar no es una función');
-                console.log('Métodos disponibles:', Object.keys(window.fabricacionManager));
+    async inicializarSistemasIntegrados() {
+        console.log('🔗 Inicializando sistemas integrados...');
         
-                // Intentar con minúsculas (tal vez se llama "inicializar" con minúscula)
-                if (typeof window.fabricacionManager.inicializar === 'function') {
-                    await window.fabricacionManager.inicializar(this.escuderia.id);
-                }
-            }
+        if (!this.escuderia) return;
+        
+        if (window.fabricacionManager && typeof window.fabricacionManager.inicializar === 'function') {
+            await window.fabricacionManager.inicializar(this.escuderia.id);
+            console.log('✅ Sistema de fabricación inicializado');
+        } else {
+            console.error('❌ fabricacionManager no disponible');
         }
         
-        // 4. SOLO si NO tiene escudería, mostrar tutorial
-        if (!this.escuderia) {
-            console.log('📚 Mostrando tutorial inicial (sin escudería)');
-            this.mostrarTutorialInicial();
-            return;
-        }
-        
-         // 4. INICIALIZAR ALMACÉN si existe escudería
-        if (this.escuderia && window.almacenManager) {
-            console.log('📦 Inicializando sistema de almacén...');
+        if (window.almacenManager && typeof window.almacenManager.inicializar === 'function') {
             await window.almacenManager.inicializar(this.escuderia.id);
+            console.log('✅ Sistema de almacén inicializado');
+        } else {
+            console.error('❌ almacenManager no disponible');
         }
         
-        // 5. Verificar si ya completó tutorial
-        const tutorialCompletado = localStorage.getItem('tutorial_completado');
-        
-        if (!tutorialCompletado) {
-            // Usuario tiene escudería pero no completó tutorial
-            localStorage.setItem('tutorial_completado', 'true');
+        if (window.IntegracionManager) {
+            window.integracionManager = new window.IntegracionManager();
+            await window.integracionManager.inicializar(this.escuderia.id);
+            console.log('✅ Sistema de integración inicializado');
+        } else {
+            console.warn('⚠️ IntegracionManager no cargado');
         }
         
-        // 6. Cargar dashboard normal
-        console.log('📊 Usuario con escudería, cargando dashboard');
-        await this.cargarDashboardCompleto();
+        this.iniciarTimersAutomaticos();
+    }
+    
+    iniciarTimersAutomaticos() {
+        if (this.timersAutomaticos) {
+            Object.values(this.timersAutomaticos).forEach(timer => {
+                clearInterval(timer);
+            });
+        }
+        
+        this.timersAutomaticos = {
+            produccion: setInterval(() => {
+                if (window.fabricacionManager && window.fabricacionManager.actualizarUIProduccion) {
+                    window.fabricacionManager.actualizarUIProduccion();
+                }
+            }, 2000),
+            
+            almacen: setInterval(() => {
+                const activo = window.tabManager && window.tabManager.currentTab === 'almacen';
+                if (activo && window.tabManager && window.tabManager.loadAlmacenPiezas) {
+                    window.tabManager.loadAlmacenPiezas();
+                }
+            }, 10000),
+            
+            dashboard: setInterval(() => {
+                this.updateProductionMonitor();
+            }, 3000)
+        };
+        
+        console.log('⏱️ Timers automáticos iniciados');
     }
     
     async esperarSupabase() {
