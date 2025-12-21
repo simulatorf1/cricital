@@ -633,19 +633,108 @@ class TabManager {
     
     async loadAlmacenPiezas() {
         const container = document.getElementById('almacen-grid');
-        if (!container) return;
+        if (!container || !window.f1Manager?.escuderia?.id) return;
         
-        // Aquí iría la carga real desde Supabase
-        // Por ahora mostramos mensaje
-        container.innerHTML = `
-            <div class="empty-almacen">
-                <i class="fas fa-box-open"></i>
-                <p>No hay piezas en el almacén</p>
-                <p class="empty-subtitle">Fabrica piezas en el taller para verlas aquí</p>
-            </div>
-        `;
+        try {
+            // 1. Cargar piezas REALES desde Supabase
+            const { data: piezas, error } = await supabase
+                .from('piezas_almacen')
+                .select('*')
+                .eq('escuderia_id', window.f1Manager.escuderia.id)
+                .order('fabricada_en', { ascending: false });
+            
+            if (error) throw error;
+            
+            // 2. Actualizar contadores
+            const totalEl = document.getElementById('total-piezas');
+            const disponiblesEl = document.getElementById('piezas-disponibles');
+            const equipadasEl = document.getElementById('piezas-equipadas');
+            
+            if (totalEl) totalEl.textContent = piezas?.length || 0;
+            if (disponiblesEl) {
+                const disponibles = piezas?.filter(p => p.estado === 'disponible').length || 0;
+                disponiblesEl.textContent = disponibles;
+            }
+            if (equipadasEl) {
+                const equipadas = piezas?.filter(p => p.estado === 'equipada').length || 0;
+                equipadasEl.textContent = equipadas;
+            }
+            
+            // 3. Mostrar piezas
+            if (!piezas || piezas.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-almacen">
+                        <i class="fas fa-box-open"></i>
+                        <p>No hay piezas en el almacén</p>
+                        <p class="empty-subtitle">Fabrica piezas en el taller para verlas aquí</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 4. Mostrar cada pieza
+            container.innerHTML = piezas.map(pieza => {
+                const area = window.CAR_AREAS?.find(a => a.id === pieza.area);
+                const areaName = area ? area.name : pieza.area;
+                const estadoClass = pieza.estado === 'equipada' ? 'equipada' : 
+                                  pieza.estado === 'vendida' ? 'vendida' : 'disponible';
+                
+                return `
+                    <div class="pieza-card ${estadoClass}" data-pieza-id="${pieza.id}">
+                        <div class="pieza-header">
+                            <h4>${areaName}</h4>
+                            <span class="pieza-nivel">Nivel ${pieza.nivel}</span>
+                        </div>
+                        <div class="pieza-info">
+                            <div class="info-item">
+                                <i class="fas fa-cube"></i>
+                                <span>${pieza.puntos_base || 10} pts base</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="far fa-calendar"></i>
+                                <span>${new Date(pieza.fabricada_en).toLocaleDateString('es')}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-${pieza.estado === 'equipada' ? 'check-circle' : 
+                                                 pieza.estado === 'vendida' ? 'euro-sign' : 'box'}"></i>
+                                <span>${pieza.estado === 'equipada' ? 'Equipada' : 
+                                       pieza.estado === 'vendida' ? 'Vendida' : 'Disponible'}</span>
+                            </div>
+                        </div>
+                        <div class="pieza-actions">
+                            ${pieza.estado === 'disponible' ? `
+                                <button class="btn-equipar" data-pieza-id="${pieza.id}">
+                                    <i class="fas fa-bolt"></i> Equipar
+                                </button>
+                                <button class="btn-vender" data-pieza-id="${pieza.id}">
+                                    <i class="fas fa-tag"></i> Vender
+                                </button>
+                            ` : pieza.estado === 'equipada' ? `
+                                <button class="btn-desequipar" data-pieza-id="${pieza.id}">
+                                    <i class="fas fa-ban"></i> Desequipar
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // 5. Configurar eventos de los botones
+            this.setupAlmacenEvents();
+            
+        } catch (error) {
+            console.error('❌ Error cargando piezas del almacén:', error);
+            container.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error cargando piezas</p>
+                    <button onclick="window.tabManager.loadAlmacenPiezas()">
+                        Reintentar
+                    </button>
+                </div>
+            `;
+        }
     }
-    
     async loadMercadoPiezas() {
         const container = document.getElementById('mercado-grid');
         if (!container) return;
