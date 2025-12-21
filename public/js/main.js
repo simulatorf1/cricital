@@ -2509,20 +2509,3 @@ class F1Manager {
     }
 }
 
-// ========================
-// 5. INICIALIZACIÓN FINAL
-// ========================
-console.log('🚀 Iniciando aplicación automáticamente...');
-
-// Iniciar inmediatamente, sin esperar eventos
-(async function() {
-    console.log('📄 Iniciando aplicación F1 Manager...');
-    
-    // Esperar 1 segundo para que todo cargue
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Iniciar aplicación
-    await iniciarAplicacion();
-    
-    console.log('🎮 Aplicación iniciada correctamente');
-})();
