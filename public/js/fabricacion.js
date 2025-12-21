@@ -46,16 +46,7 @@ console.log('🔧 Sistema de fabricación cargado - ESPERANDO CONFIG');
         if (espera % 10 === 0) console.log('⏳ Esperando CONFIG...', espera/10 + 's');
     }
     
-    if (!window.CONFIG) {
-        console.error('❌ ERROR CRÍTICO: CONFIG nunca se cargó');
-        window.CONFIG = {
-            FABRICATION_TIME: 4 * 60 * 60 * 1000,
-            PIECE_COST: 10000,
-            MAX_LEVEL: 10,
-            PIECES_PER_LEVEL: 20,
-            POINTS_PER_PIECE: 10
-        };
-    }
+
     
     if (!window.CAR_AREAS) {
         console.warn('⚠️ CAR_AREAS no definido, creando básico');
