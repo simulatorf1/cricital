@@ -2485,15 +2485,10 @@ class F1Manager {
     }
     
     updateProductionMonitor() {
-        console.log('🔄 Actualizando monitor de producción...');
-        
         if (!window.fabricacionManager) {
             console.log('❌ No hay fabricacionManager');
             return;
         }
-        
-        const status = window.fabricacionManager.getProductionStatus();
-        console.log('📊 Estado de producción:', status);
         
         const container = document.getElementById('produccion-actual');
         if (!container) {
@@ -2501,57 +2496,10 @@ class F1Manager {
             return;
         }
         
-        if (status.active) {
-            const area = window.CAR_AREAS.find(a => a.id === status.piece.toLowerCase().replace(' ', '_'));
-            const areaName = area ? area.name : status.piece;
-            
-            container.innerHTML = `
-                <div class="pieza-header">
-                    <h3 id="pieza-nombre">${areaName} Nivel ${status.level}</h3>
-                    <span class="pieza-tag">${status.ready ? 'LISTA' : 'FABRICANDO'}</span>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="production-progress" style="width: ${status.progress}%"></div>
-                    </div>
-                    <div class="progress-time">
-                        <i class="far fa-clock"></i>
-                        <span id="time-left">${status.ready ? '¡Lista para recoger!' : `Tiempo restante: ${this.formatTime(status.remaining)}`}</span>
-                    </div>
-                </div>
-                <div class="pieza-stats">
-                    <div class="stat-mini">
-                        <span>Costo</span>
-                        <strong>€${window.CONFIG.PIECE_COST.toLocaleString() || '10,000'}</strong>
-                    </div>
-                    <div class="stat-mini">
-                        <span>Puntos</span>
-                        <strong>+10</strong>
-                    </div>
-                </div>
-                <div class="produccion-actions">
-                    <button class="btn-secondary" id="btn-cancelar">Cancelar</button>
-                    <button class="btn-primary" id="btn-recoger-pieza" ${!status.ready ? 'disabled' : ''}>
-                        ${status.ready ? 'Recoger Pieza' : 'En fabricación...'}
-                    </button>
-                </div>
-            `;
-            
-            // Configurar eventos
-            document.getElementById('btn-recoger-pieza')?.addEventListener('click', () => {
-                window.fabricacionManager.collectPiece();
-                this.updateProductionMonitor(); // Actualizar después de recoger
-            });
-            
-            document.getElementById('btn-cancelar')?.addEventListener('click', () => {
-                if (confirm('¿Seguro que quieres cancelar esta fabricación?')) {
-                    window.fabricacionManager.cancelProduction();
-                    this.updateProductionMonitor(); // Actualizar después de cancelar
-                }
-            });
-            
-            console.log('✅ UI de producción actualizada');
-        } else {
+        // Obtener TODAS las fabricaciones
+        const fabricaciones = window.fabricacionManager.getProduccionesEnCurso();
+        
+        if (!fabricaciones || fabricaciones.length === 0) {
             // Mostrar estado vacío
             container.innerHTML = `
                 <div class="empty-state">
@@ -2567,7 +2515,77 @@ class F1Manager {
             document.getElementById('iniciar-fabricacion-btn')?.addEventListener('click', () => {
                 this.irAlTaller();
             });
+            
+            return;
         }
+        
+        // Mostrar LISTA de fabricaciones
+        let html = `
+            <div class="produccion-header">
+                <h3><i class="fas fa-industry"></i> Fabricaciones en curso</h3>
+                <span class="badge">${fabricaciones.length} activas</span>
+            </div>
+            <div class="fabricaciones-lista">
+        `;
+        
+        fabricaciones.forEach((fab, index) => {
+            const ahora = new Date();
+            const fin = new Date(fab.tiempo_fin);
+            const inicio = new Date(fab.tiempo_inicio);
+            
+            const tiempoTotal = fin - inicio;
+            const tiempoTranscurrido = ahora - inicio;
+            const progreso = Math.min(100, (tiempoTranscurrido / tiempoTotal) * 100);
+            const tiempoRestante = fin - ahora;
+            const lista = ahora >= fin;
+            
+            html += `
+                <div class="fabricacion-item ${lista ? 'lista' : ''}">
+                    <div class="fabricacion-info">
+                        <div class="fab-area">
+                            <i class="fas fa-cog"></i>
+                            <span>${fab.area} Nivel ${fab.nivel}</span>
+                        </div>
+                        <div class="fab-estado">
+                            <span class="estado-badge ${lista ? 'lista' : 'fabricando'}">
+                                ${lista ? '✅ LISTA' : '🔄 FABRICANDO'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="fab-progreso">
+                        <div class="progress-bar-small">
+                            <div class="progress-fill-small" style="width: ${progreso}%"></div>
+                        </div>
+                        <div class="fab-tiempo">
+                            <i class="far fa-clock"></i>
+                            <span>${lista ? '¡Lista para recoger!' : `Tiempo restante: ${this.formatTime(tiempoRestante)}`}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="fab-acciones">
+                        <button class="btn-small btn-danger" onclick="window.fabricacionManager.cancelarFabricacion('${fab.id}')">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button class="btn-small btn-success" ${!lista ? 'disabled' : ''} 
+                                onclick="window.fabricacionManager.collectPiece('${fab.id}')">
+                            <i class="fas fa-box-open"></i> Recoger
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+            </div>
+            <div class="fabricacion-footer">
+                <button class="btn-secondary" onclick="window.f1Manager.irAlTaller()">
+                    <i class="fas fa-plus"></i> Iniciar nueva fabricación
+                </button>
+            </div>
+        `;
+        
+        container.innerHTML = html;
     }
     
     setupDashboardEvents() {
