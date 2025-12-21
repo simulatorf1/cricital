@@ -1,4 +1,4 @@
-async init() {// ========================
+// ========================
 // F1 MANAGER - MAIN.JS COMPLETO (CON TUTORIAL)
 // ========================
 console.log('🏎️ F1 Manager - Sistema principal cargado');
@@ -579,7 +579,7 @@ class F1Manager {
         this.tutorialStep = 0;
         this.tutorialData = null;
         
-        this.init();
+       
     }
     
     async esperarSupabase() {
