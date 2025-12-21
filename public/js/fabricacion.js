@@ -15,29 +15,62 @@ class FabricacionManager {
     
     // Método para inicializar manualmente
     async inicializar(escuderiaId) {
-        console.log('🔧 [DEBUG] Inicializando fabricación para escudería:', escuderiaId);
-        console.log('🔧 [DEBUG] window.supabase disponible:', !!window.supabase);
-        
-        if (!escuderiaId) {
-            console.error('❌ [DEBUG] No se recibió escuderiaId');
-            return false;
-        }
-        
-        if (!window.supabase) {
-            console.error('❌ [DEBUG] Supabase no disponible');
-            return false;
-        }
-        
+        console.log('🔧 Inicializando fabricacionManager para escudería:', escuderiaId);
         this.escuderiaId = escuderiaId;
         
         try {
-            await this.checkCurrentProduction();
-            this.setupGlobalEvents();
-            console.log('✅ [DEBUG] Fabricación inicializada correctamente');
+            // PRIMERO: Verifica que la tabla existe y tenemos acceso
+            console.log('🔍 Verificando acceso a la tabla...');
+            
+            const { data, error } = await supabase
+                .from('fabricacion_actual')
+                .select('id')  // ← Solo pide el ID para una consulta mínima
+                .eq('escuderia_id', escuderiaId)
+                .eq('completada', false)
+                .maybeSingle();  // ← Usa maybeSingle() en lugar de .limit(1)
+            
+            if (error) {
+                console.error('❌ Error de acceso a fabricacion_actual:', {
+                    message: error.message,
+                    code: error.code,
+                    details: error.details
+                });
+                
+                // Si es error 406, probablemente falta columna o permisos
+                if (error.code === '406') {
+                    console.warn('⚠️ Posible falta de columna pieza_id o creada_en');
+                    // Continúa de todos modos con producción vacía
+                    this.produccionActual = null;
+                    return true;
+                }
+                return false;
+            }
+            
+            // Si data es null, no hay producción activa (ESTO ES NORMAL)
+            if (!data) {
+                console.log('ℹ️ No hay producción activa para esta escudería');
+                this.produccionActual = null;
+            } else {
+                console.log('✅ Producción activa encontrada:', data);
+                // Carga todos los datos de esta producción
+                const { data: fullData, error: fullError } = await supabase
+                    .from('fabricacion_actual')
+                    .select('*')
+                    .eq('id', data.id)
+                    .single();
+                    
+                if (!fullError && fullData) {
+                    this.produccionActual = fullData;
+                }
+            }
+            
             return true;
+            
         } catch (error) {
-            console.error('❌ [DEBUG] Error inicializando fabricación:', error);
-            return false;
+            console.error('❌ Error en inicialización:', error);
+            // Aún así, permite continuar
+            this.produccionActual = null;
+            return true;
         }
     }
     
