@@ -49,9 +49,8 @@ async function iniciarAplicacion() {
     
     // Inicializar Supabase
     window.supabase = initSupabase();
-    const supabase = window.supabase;
     
-    if (!supabase) {
+    if (!window.supabase) {
         mostrarErrorCritico('No se pudo conectar con la base de datos');
         return;
     }
@@ -59,13 +58,13 @@ async function iniciarAplicacion() {
     console.log('✅ Supabase inicializado correctamente');
     
     // Verificar sesión
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await window.supabase.auth.getSession();
     
     if (session) {
         console.log('✅ Usuario autenticado:', session.user.email);
-        // Iniciar el juego
+        // Crear instancia y llamar a init()
         window.f1Manager = new F1Manager(session.user);
-        window.f1Manager.init(); // ← ¡AÑADE ESTA LÍNEA!
+        await window.f1Manager.init(); // ← ESTO ES CORRECTO, NO LO QUITES
     } else {
         console.log('👤 No hay sesión, mostrar login');
         mostrarPantallaLogin();
@@ -579,8 +578,48 @@ class F1Manager {
         this.proximoGP = null;
         this.tutorialStep = 0;
         this.tutorialData = null;
+        this.supabase = null; // Añadir referencia a supabase
+    }
+    
+    async init() {
+        console.log('🔧 Inicializando juego...');
         
-       
+        // 1. Asegurar que supabase esté disponible
+        this.supabase = await this.esperarSupabase();
+        if (!this.supabase) {
+            console.error('❌ No se pudo cargar Supabase');
+            mostrarErrorCritico('Error de conexión con la base de datos');
+            return;
+        }
+        
+        // 2. Cargar la escudería del usuario
+        await this.loadUserData();
+        
+        // 3. INICIALIZAR FABRICACIÓN si existe escudería
+        if (this.escuderia && window.fabricacionManager) {
+            console.log('🔧 Inicializando sistema de fabricación...');
+            console.log('ID de escudería:', this.escuderia.id);
+            await window.fabricacionManager.inicializar(this.escuderia.id);
+        }
+        
+        // 4. SOLO si NO tiene escudería, mostrar tutorial
+        if (!this.escuderia) {
+            console.log('📚 Mostrando tutorial inicial (sin escudería)');
+            this.mostrarTutorialInicial();
+            return;
+        }
+        
+        // 5. Verificar si ya completó tutorial
+        const tutorialCompletado = localStorage.getItem('tutorial_completado');
+        
+        if (!tutorialCompletado) {
+            // Usuario tiene escudería pero no completó tutorial
+            localStorage.setItem('tutorial_completado', 'true');
+        }
+        
+        // 6. Cargar dashboard normal
+        console.log('📊 Usuario con escudería, cargando dashboard');
+        await this.cargarDashboardCompleto();
     }
     
     async esperarSupabase() {
@@ -598,38 +637,11 @@ class F1Manager {
         return null;
     }
     
-    async init() {
-        console.log('🔧 Inicializando juego...');
-        
-        // 1. PRIMERO cargar la escudería del usuario (si existe)
-        await this.loadUserData();
-        
-        // 2. INICIALIZAR FABRICACIÓN si existe escudería
-        if (this.escuderia && window.fabricacionManager) {
-            console.log('🔧 Inicializando sistema de fabricación...');
-            console.log('ID de escudería:', this.escuderia.id); // ← Añade esto
-            await window.fabricacionManager.inicializar(this.escuderia.id);
-        }
-        
-        // 3. SOLO si NO tiene escudería, mostrar tutorial
-        if (!this.escuderia) {
-            console.log('📚 Mostrando tutorial inicial (sin escudería)');
-            this.mostrarTutorialInicial();
-            return;
-        }
-        
-        // 4. Verificar si ya completó tutorial
-        const tutorialCompletado = localStorage.getItem('tutorial_completado');
-        
-        if (!tutorialCompletado) {
-            // Usuario tiene escudería pero no completó tutorial
-            localStorage.setItem('tutorial_completado', 'true');
-        }
-        
-        // 5. Cargar dashboard normal
-        console.log('📊 Usuario con escudería, cargando dashboard');
-        await this.cargarDashboardCompleto();
-    }
+    // ELIMINA esta segunda definición del método init() que tienes más abajo
+    // async init() {
+    //     console.log('🔧 Inicializando juego...');
+    //     ... resto del código duplicado ...
+    // }
     
     // ========================
     // SISTEMA DE TUTORIAL INTERACTIVO
