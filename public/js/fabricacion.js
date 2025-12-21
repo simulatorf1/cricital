@@ -1,6 +1,19 @@
 // ========================
 // SISTEMA DE FABRICACIÓN COMPLETO
 // ========================
+console.log('🔧 [DEBUG] fabricacion.js CARGADO - Comprobando...');
+
+// VERIFICACIÓN INMEDIATA
+setTimeout(() => {
+    console.log('🔍 Estado de window.CONFIG:', window.CONFIG);
+    console.log('🔍 Estado de window.CAR_AREAS:', window.CAR_AREAS);
+    console.log('🔍 Estado de supabase:', window.supabase ? '✅ Existe' : '❌ No existe');
+}, 1000);
+
+
+// ========================
+// SISTEMA DE FABRICACIÓN COMPLETO
+// ========================
 console.log('🔧 Sistema de fabricación cargado - ESPERANDO CONFIG');
 
 // ESPERAR ACTIVAMENTE a que config.js cargue
