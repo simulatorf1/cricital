@@ -133,5 +133,15 @@ class AlmacenManager {
 
 // Inicializar globalmente
 window.AlmacenManager = AlmacenManager;
-window.almacenManager = new AlmacenManager();
-console.log('✅ AlmacenManager creado');
+
+// NO crear instancia aquí
+console.log('✅ Clase AlmacenManager registrada');
+
+// Crear instancia cuando se solicite
+window.crearAlmacenManager = function() {
+    if (!window.almacenManager) {
+        window.almacenManager = new AlmacenManager();
+        console.log('✅ Instancia de AlmacenManager creada');
+    }
+    return window.almacenManager;
+};
