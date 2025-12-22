@@ -2648,7 +2648,7 @@ class F1Manager {
                             <i class="fas fa-times"></i> Cancelar
                         </button>
                         <button class="btn-small btn-success" ${!lista ? 'disabled' : ''} 
-                                onclick="window.fabricacionManager.collectPiece('${fab.id}')">
+                                onclick="window.fabricacionManager.recogerPieza('${fab.id}')">
                             <i class="fas fa-box-open"></i> Recoger
                         </button>
                     </div>
