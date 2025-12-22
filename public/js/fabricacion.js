@@ -122,20 +122,23 @@ class FabricacionManager {
             
             console.log(`💰 Descontados €${costoFabricacion.toLocaleString()}. Nuevo saldo: €${nuevoDinero.toLocaleString()}`);
             
-            // 4. Continuar con la fabricación (tu código actual)
+            // 4. Obtener información del área
             const area = window.CAR_AREAS.find(a => a.id === areaId);
             if (!area) {
                 console.error('❌ Área no encontrada');
-                // Reembolsar el dinero (opcional)
                 return false;
             }
 
+            // 5. CORREGIR AQUÍ: Calcular tiempos correctamente
             const tiempoInicio = new Date();
-            const tiempoFin = new Date();
-            const ahora = new Date();
-            const tiempoFin = new Date(ahora.getTime() + (120 * 1000)); // 120 segundos
+            const tiempoFin = new Date(tiempoInicio.getTime() + (120 * 1000)); // 2 minutos
             
-            // 5. Crear nueva fabricación
+            console.log('⏰ Tiempos calculados:');
+            console.log('Inicio:', tiempoInicio.toISOString());
+            console.log('Fin:', tiempoFin.toISOString());
+            console.log('Duración:', (tiempoFin - tiempoInicio) / 1000, 'segundos');
+
+            // 6. Crear nueva fabricación
             const { data: nuevaFabricacion, error: insertError } = await supabase
                 .from('fabricacion_actual')
                 .insert([{
@@ -151,20 +154,23 @@ class FabricacionManager {
                 .select()
                 .single();
 
-            if (insertError) throw insertError;
+            if (insertError) {
+                console.error('❌ Error insertando fabricación:', insertError);
+                throw insertError;
+            }
 
             console.log('✅ Fabricación creada:', nuevaFabricacion);
 
-            // 6. Añadir a lista local
+            // 7. Añadir a lista local
             this.produccionesActivas.push(nuevaFabricacion);
 
-            // 7. Iniciar timer
+            // 8. Iniciar timer
             this.iniciarTimerProduccion(nuevaFabricacion.id);
 
-            // 8. Actualizar UI
+            // 9. Actualizar UI
             this.actualizarUIProduccion();
 
-            // 9. Mostrar notificación de costo
+            // 10. Mostrar notificación
             if (window.f1Manager && window.f1Manager.showNotification) {
                 window.f1Manager.showNotification(`💰 -€${costoFabricacion.toLocaleString()} por fabricación de ${area.name}`, 'info');
             }
