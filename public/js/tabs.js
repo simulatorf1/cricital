@@ -645,8 +645,81 @@ class TabManager {
             
             if (error) throw error;
             
-            // Resto del código igual...
-            // [Mantén el código existente para mostrar las piezas]
+            // 1. Actualizar contadores si existen en la UI
+            const totalEl = document.getElementById('total-piezas');
+            const disponiblesEl = document.getElementById('piezas-disponibles');
+            const equipadasEl = document.getElementById('piezas-equipadas');
+            
+            if (totalEl) totalEl.textContent = piezas?.length || 0;
+            if (disponiblesEl) {
+                const disponibles = piezas?.filter(p => p.estado === 'disponible').length || 0;
+                disponiblesEl.textContent = disponibles;
+            }
+            if (equipadasEl) {
+                const equipadas = piezas?.filter(p => p.estado === 'equipada').length || 0;
+                equipadasEl.textContent = equipadas;
+            }
+            
+            // 2. Mostrar piezas (código para generar el HTML de cada pieza)
+            if (!piezas || piezas.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-almacen">
+                        <i class="fas fa-box-open"></i>
+                        <p>No hay piezas en el almacén</p>
+                        <p class="empty-subtitle">Fabrica piezas en el taller para verlas aquí</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 3. Generar HTML para cada pieza
+            container.innerHTML = piezas.map(pieza => {
+                // Buscar información del área en CAR_AREAS para mostrar nombre bonito
+                const areaConfig = window.CAR_AREAS?.find(a => a.id === pieza.area) || { name: pieza.area, icon: 'fas fa-cube' };
+                const areaName = areaConfig.name;
+                const areaIcon = areaConfig.icon;
+                const estadoClass = pieza.estado === 'equipada' ? 'equipada' : 
+                                  pieza.estado === 'vendida' ? 'vendida' : 'disponible';
+                
+                return `
+                    <div class="pieza-card ${estadoClass}" data-pieza-id="${pieza.id}">
+                        <div class="pieza-header">
+                            <h4><i class="${areaIcon}"></i> ${areaName}</h4>
+                            <span class="pieza-nivel">Nivel ${pieza.nivel || 1}</span>
+                        </div>
+                        <div class="pieza-info">
+                            <div class="info-item">
+                                <i class="fas fa-bolt"></i>
+                                <span>${pieza.puntos_base || 10} pts base</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="far fa-calendar"></i>
+                                <span>${new Date(pieza.fabricada_en).toLocaleDateString('es')}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-${pieza.estado === 'equipada' ? 'check-circle' : 
+                                                 pieza.estado === 'vendida' ? 'euro-sign' : 'box'}"></i>
+                                <span>${pieza.estado === 'equipada' ? 'Equipada' : 
+                                       pieza.estado === 'vendida' ? 'Vendida' : 'Disponible'}</span>
+                            </div>
+                        </div>
+                        <div class="pieza-actions">
+                            ${pieza.estado === 'disponible' ? `
+                                <button class="btn-equipar" onclick="equiparPieza('${pieza.id}')">
+                                    <i class="fas fa-bolt"></i> Equipar
+                                </button>
+                                <button class="btn-vender" onclick="venderPieza('${pieza.id}')">
+                                    <i class="fas fa-tag"></i> Vender
+                                </button>
+                            ` : pieza.estado === 'equipada' ? `
+                                <button class="btn-desequipar" onclick="desequiparPieza('${pieza.id}')">
+                                    <i class="fas fa-ban"></i> Desequipar
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
             
         } catch (error) {
             console.error('❌ Error cargando almacén:', error);
