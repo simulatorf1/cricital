@@ -2551,9 +2551,19 @@ class F1Manager {
     }
     
     updateProductionMonitor() {
+        // Verificar si fabricacionManager existe
         if (!window.fabricacionManager) {
-            console.log('❌ No hay fabricacionManager');
-            return;
+            console.log('⚠️ fabricacionManager no disponible - intentando crear');
+            
+            if (window.FabricacionManager) {
+                window.fabricacionManager = new window.FabricacionManager();
+                if (this.escuderia && this.escuderia.id) {
+                    window.fabricacionManager.inicializar(this.escuderia.id);
+                }
+            } else {
+                console.log('❌ FabricacionManager no está definido');
+                return;
+            }
         }
         
         const container = document.getElementById('produccion-actual');
@@ -2562,11 +2572,13 @@ class F1Manager {
             return;
         }
         
-        // Obtener TODAS las fabricaciones
-        const fabricaciones = window.fabricacionManager.getProduccionesEnCurso();
+        // Obtener fabricaciones
+        let fabricaciones = [];
+        if (window.fabricacionManager.getProduccionesEnCurso) {
+            fabricaciones = window.fabricacionManager.getProduccionesEnCurso();
+        }
         
         if (!fabricaciones || fabricaciones.length === 0) {
-            // Mostrar estado vacío
             container.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-industry"></i>
@@ -2577,14 +2589,16 @@ class F1Manager {
                 </div>
             `;
             
-            // Re-configurar evento del botón
-            document.getElementById('iniciar-fabricacion-btn')?.addEventListener('click', () => {
-                this.irAlTaller();
-            });
+            // Configurar evento
+            const btn = document.getElementById('iniciar-fabricacion-btn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    this.irAlTaller();
+                });
+            }
             
             return;
         }
-        
         // Mostrar LISTA de fabricaciones
         let html = `
             <div class="produccion-header">
