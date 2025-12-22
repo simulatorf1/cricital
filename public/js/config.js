@@ -38,3 +38,101 @@ window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 console.log('🎯 Configuración lista para usar');
 
 // NO intentar inicializar Supabase aquí - main.js lo hará
+
+// ========================
+// FUNCIÓN GLOBAL SEGURA PARA RECOGER PIEZAS
+// ========================
+window.recogerPiezaSeguro = async function(fabricacionId) {
+    console.log('🛡️ Recogiendo pieza (método seguro):', fabricacionId);
+    
+    try {
+        // 1. Asegurar que el manager existe
+        if (!window.fabricacionManager) {
+            console.log('⚠️ Manager no existe, creándolo...');
+            if (window.ensureFabricacionManager) {
+                window.ensureFabricacionManager();
+            } else {
+                // Creación de emergencia
+                if (window.FabricacionManager) {
+                    window.fabricacionManager = new window.FabricacionManager();
+                    if (window.f1Manager && window.f1Manager.escuderia) {
+                        window.fabricacionManager.inicializar(window.f1Manager.escuderia.id);
+                    }
+                }
+            }
+        }
+        
+        // 2. Intentar con cualquier nombre de método
+        const manager = window.fabricacionManager;
+        if (!manager) {
+            throw new Error('No se pudo crear fabricacionManager');
+        }
+        
+        // 3. Probar diferentes nombres de método
+        if (typeof manager.recogerPieza === 'function') {
+            return await manager.recogerPieza(fabricacionId);
+        } else if (typeof manager.collectPiece === 'function') {
+            return await manager.collectPiece(fabricacionId);
+        } else {
+            // Último recurso: llamar directamente a Supabase
+            console.log('🔥 Usando método de emergencia directo a Supabase');
+            return await recogerPiezaDirecta(fabricacionId);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error en recogerPiezaSeguro:', error);
+        alert('Error al recoger la pieza. Recarga la página (F5).');
+        return false;
+    }
+};
+
+// Método de emergencia: recoger pieza directamente
+async function recogerPiezaDirecta(fabricacionId) {
+    try {
+        // 1. Obtener la fabricación
+        const { data: fabricacion, error } = await supabase
+            .from('fabricacion_actual')
+            .select('*')
+            .eq('id', fabricacionId)
+            .single();
+            
+        if (error) throw error;
+        
+        // 2. Crear pieza en almacén
+        const { error: piezaError } = await supabase
+            .from('piezas_almacen')
+            .insert([{
+                escuderia_id: fabricacion.escuderia_id,
+                area: fabricacion.area,
+                nivel: fabricacion.nivel,
+                estado: 'disponible',
+                puntos_base: 10,
+                fabricada_en: new Date().toISOString()
+            }]);
+            
+        if (piezaError) throw piezaError;
+        
+        // 3. Marcar como completada
+        const { error: updateError } = await supabase
+            .from('fabricacion_actual')
+            .update({ completada: true })
+            .eq('id', fabricacionId);
+            
+        if (updateError) throw updateError;
+        
+        console.log('✅ Pieza recogida (método directo)');
+        
+        // 4. Actualizar UI si es posible
+        if (window.f1Manager && window.f1Manager.updateProductionMonitor) {
+            window.f1Manager.updateProductionMonitor();
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Error en método directo:', error);
+        return false;
+    }
+}
+
+console.log('✅ Función recogerPiezaSeguro registrada');
