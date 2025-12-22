@@ -585,6 +585,7 @@ class F1Manager {
     async init() {
         console.log('🔧 Inicializando juego...');
         
+        // Inicializar Supabase
         this.supabase = await this.esperarSupabase();
         if (!this.supabase) {
             console.error('❌ No se pudo cargar Supabase');
@@ -592,17 +593,18 @@ class F1Manager {
             return;
         }
         
-        console.log('✅ Supabase inicializado correctamente');
+        // Cargar datos del usuario
+        await this.loadUserData();
         
-        const { data: { session } } = await this.supabase.auth.getSession();
-        
-        if (session) {
-            console.log('✅ Usuario autenticado:', session.user.email);
-            window.f1Manager = new F1Manager(session.user);
-            await window.f1Manager.init();
+        // Si no tiene escudería, mostrar tutorial simple
+        if (!this.escuderia) {
+            await this.mostrarTutorialSimple();
         } else {
-            console.log('👤 No hay sesión, mostrar login');
-            mostrarPantallaLogin();
+            // Si ya tiene escudería, cargar dashboard
+            await this.cargarDashboardCompleto();
+            
+            // Inicializar sistemas
+            await this.inicializarSistemasIntegrados();
         }
     }
     
