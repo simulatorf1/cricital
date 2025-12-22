@@ -12,263 +12,153 @@
     <!-- CARGA DE SUPABASE CON GARANTÍA -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
     
-    <!-- INICIALIZACIÓN INMEDIATA -->
     <script>
-        console.log('🔧 Inicializando Supabase...');
-    
-        setTimeout(function() {
-            if (typeof supabase === 'undefined') {
-                console.error('❌ Supabase CDN no cargó');
-                alert('Error crítico: Recarga la página (F5)');
-                return;
-            }
-            
+        console.log('🔧 Inicializando F1 Manager...');
+        
+        // Función para inicializar Supabase de forma segura
+        function inicializarSupabase() {
             try {
-                window.supabase = supabase.createClient(
+                // Crear cliente Supabase
+                const supabaseClient = supabase.createClient(
                     'https://xbnbbmhcveyzrvvmdktg.supabase.co',
                     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg'
                 );
-                console.log('✅ Supabase inicializado');
-            
-                // Cargar scripts en orden
-                cargarScripts();
-            
+                
+                window.supabase = supabaseClient;
+                console.log('✅ Supabase inicializado correctamente');
+                return true;
+                
             } catch (error) {
-                console.error('❌ Error creando cliente:', error);
+                console.error('❌ Error inicializando Supabase:', error);
+                return false;
             }
-        }, 2000);
-    
-        function cargarScripts() {
+        }
+        
+        // Cargar scripts esenciales
+        function cargarScriptsEsenciales() {
             const scripts = [
                 'js/config.js',
-                'js/auth.js',      
-                'js/main.js',       
-                'js/fabricacion.js', 
-                'js/tabs.js',
-                'js/almacen.js',
-                'js/integracion.js',
-                'js/init-db.js'
+                'js/auth.js',
+                'js/main.js',
+                'js/fabricacion.js',
+                'js/tabs.js'
             ];
-        
-            // Cargar secuencialmente
-            cargarScriptSecuencial(scripts, 0);
+            
+            let cargados = 0;
+            const total = scripts.length;
+            
+            function cargarSiguiente() {
+                if (cargados >= total) {
+                    console.log('✅ Todos los scripts esenciales cargados');
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = scripts[cargados];
+                script.onload = () => {
+                    console.log(`📥 Cargado: ${scripts[cargados]}`);
+                    cargados++;
+                    cargarSiguiente();
+                };
+                script.onerror = (error) => {
+                    console.error(`❌ Error cargando ${scripts[cargados]}:`, error);
+                    cargados++;
+                    cargarSiguiente();
+                };
+                
+                document.body.appendChild(script);
+            }
+            
+            cargarSiguiente();
         }
-    
-        function cargarScriptSecuencial(scripts, index) {
-            if (index >= scripts.length) {
-                console.log('✅ Todos los scripts cargados');
-                iniciarAplicacion();
+        
+        // Inicializar cuando todo esté listo
+        async function iniciarJuego() {
+            console.log('🚀 Iniciando juego...');
+            
+            // 1. Inicializar Supabase
+            if (!inicializarSupabase()) {
+                mostrarError('No se pudo conectar con la base de datos');
                 return;
             }
-        
-            const script = document.createElement('script');
-            script.src = scripts[index];
-            script.onload = () => {
-                console.log('📥 Cargado:', scripts[index]);
-                cargarScriptSecuencial(scripts, index + 1);
-            };
-            script.onerror = () => {
-                console.error('❌ Error cargando:', scripts[index]);
-                cargarScriptSecuencial(scripts, index + 1);
-            };
-        
-            document.body.appendChild(script);
+            
+            // 2. Cargar scripts
+            cargarScriptsEsenciales();
+            
+            // 3. auth.js se encargará del login automáticamente
         }
         
-        // Función principal de inicio
-        async function iniciarAplicacion() {
-            console.log('🚀 Iniciando aplicación F1 Manager...');
-            
-            // Verificar que Supabase está cargado
-            if (!window.supabase) {
-                console.error('❌ Supabase no está disponible');
-                mostrarErrorCritico('No se pudo conectar con la base de datos');
-                return;
-            }
-            
-            console.log('✅ Supabase listo para usar');
-            
-            // Verificar sesión
-            const { data: { session } } = await window.supabase.auth.getSession();
-            
-            if (session) {
-                console.log('✅ Usuario autenticado:', session.user.email);
-                
-                // Esperar a que main.js se cargue
-                const checkF1Manager = setInterval(() => {
-                    if (window.F1Manager) {
-                        clearInterval(checkF1Manager);
-                        window.f1Manager = new F1Manager(session.user);
-                        window.f1Manager.init();
-                    }
-                }, 100);
-                
-            } else {
-                console.log('👤 No hay sesión, mostrar login');
-                // auth.js se encargará del login
-            }
-        }
-        
-        function mostrarErrorCritico(mensaje) {
+        function mostrarError(mensaje) {
             document.body.innerHTML = `
-                <div style="
-                    min-height: 100vh;
-                    background: #15151e;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    color: white;
-                    text-align: center;
-                    padding: 20px;
-                ">
-                    <div>
-                        <h1 style="color: #e10600; margin-bottom: 20px;">❌ ERROR CRÍTICO</h1>
-                        <p>${mensaje}</p>
-                        <button onclick="location.reload()" style="
-                            margin-top: 20px;
-                            padding: 10px 20px;
-                            background: #e10600;
-                            color: white;
-                            border: none;
-                            border-radius: 5px;
-                            cursor: pointer;
-                        ">
-                            Reintentar
-                        </button>
-                    </div>
+                <div class="error-screen">
+                    <h1><i class="fas fa-exclamation-triangle"></i> Error</h1>
+                    <p>${mensaje}</p>
+                    <button onclick="location.reload()">Reintentar</button>
                 </div>
+                <style>
+                    .error-screen {
+                        min-height: 100vh;
+                        background: #15151e;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: white;
+                        text-align: center;
+                        padding: 20px;
+                    }
+                    .error-screen h1 {
+                        color: #e10600;
+                        margin-bottom: 20px;
+                    }
+                    .error-screen button {
+                        margin-top: 20px;
+                        padding: 10px 30px;
+                        background: #e10600;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-weight: bold;
+                    }
+                </style>
             `;
         }
         
-        // Script de arranque rápido (OPCIONAL - descomentar para auto-login)
-        /*
-        async function quickStart() {
-            console.log('🚀 Inicio rápido del juego');
-            
-            // Verificar que Supabase está listo
-            if (!window.supabase || !window.supabase.auth) {
-                console.error('❌ Supabase no está disponible');
-                return;
-            }
-            
-            // Verificar si ya hay sesión
-            const { data: { session } } = await window.supabase.auth.getSession();
-            if (session) {
-                console.log('✅ Ya hay sesión activa');
-                return;
-            }
-            
-            try {
-                // 1. Intentar iniciar sesión con demo
-                const { data: signInData, error: signInError } = await window.supabase.auth.signInWithPassword({
-                    email: 'demo@f1manager.com',
-                    password: 'demo123'
-                });
-                
-                if (!signInError) {
-                    console.log('✅ Sesión demo iniciada');
-                    location.reload();
-                    return;
-                }
-                
-                // 2. Si no existe, crear usuario demo
-                console.log('📝 Creando usuario demo...');
-                const { data: user, error: signUpError } = await window.supabase.auth.signUp({
-                    email: 'demo@f1manager.com',
-                    password: 'demo123',
-                    options: {
-                        data: { username: 'Demo Manager' },
-                        emailRedirectTo: window.location.origin
-                    }
-                });
-                
-                if (signUpError) {
-                    console.error('❌ Error creando demo:', signUpError.message);
-                    return;
-                }
-                
-                console.log('✅ Usuario demo creado:', user);
-                alert('Usuario demo creado. Usa: demo@f1manager.com / demo123');
-                
-            } catch (error) {
-                console.error('❌ Error en quickStart:', error);
-            }
-        }
+        // Esperar a que el DOM esté listo
+        document.addEventListener('DOMContentLoaded', iniciarJuego);
         
-        // Ejecutar después de que todo esté cargado
-        window.addEventListener('DOMContentLoaded', () => {
-            // Esperar a que Supabase esté listo
-            const checkSupabase = setInterval(() => {
-                if (window.supabase && window.supabase.auth) {
-                    clearInterval(checkSupabase);
-                    // Descomentar para auto-login con demo
-                    // quickStart();
-                }
-            }, 500);
-        });
-        */
-        
-        // Debug helper
-        window.debugF1 = {
-            resetDemo: async () => {
-                localStorage.clear();
-                await window.supabase?.auth?.signOut();
-                location.reload();
-            },
-            checkTables: async () => {
-                console.log('📊 Verificando tablas...');
-                const tables = ['escuderias', 'piezas_almacen', 'fabricacion_actual', 'coches_stats'];
-                for (let table of tables) {
-                    try {
-                        const { data, error } = await window.supabase
-                            .from(table)
-                            .select('count', { count: 'exact', head: true });
-                        if (error) {
-                            console.log(`${table}: ❌ Error - ${error.message}`);
-                        } else {
-                            console.log(`${table}: ✅ ${data} registros`);
-                        }
-                    } catch (e) {
-                        console.log(`${table}: ❌ No existe`);
-                    }
-                }
-            },
-            createDemo: async () => {
-                if (!window.supabase || !window.supabase.auth) {
-                    console.error('❌ Supabase no disponible');
-                    return;
+        // Función para ayudar con debugging
+        window.ayudaF1 = {
+            verificarConexion: async () => {
+                if (!window.supabase) {
+                    console.log('❌ Supabase no está disponible');
+                    return false;
                 }
                 
                 try {
-                    // Intentar iniciar sesión
-                    const { error: signInError } = await window.supabase.auth.signInWithPassword({
-                        email: 'demo@f1manager.com',
-                        password: 'demo123'
-                    });
+                    const { data, error } = await window.supabase
+                        .from('escuderias')
+                        .select('count', { count: 'exact', head: true });
                     
-                    if (!signInError) {
-                        console.log('✅ Sesión iniciada');
-                        location.reload();
-                        return;
+                    if (error) {
+                        console.log('❌ Error de conexión:', error.message);
+                        return false;
                     }
                     
-                    // Crear usuario
-                    const { error: signUpError } = await window.supabase.auth.signUp({
-                        email: 'demo@f1manager.com',
-                        password: 'demo123',
-                        options: {
-                            data: { username: 'Demo Manager' }
-                        }
-                    });
+                    console.log('✅ Conexión exitosa a Supabase');
+                    return true;
                     
-                    if (signUpError) {
-                        console.error('❌ Error:', signUpError.message);
-                    } else {
-                        console.log('✅ Usuario creado. Usa: demo@f1manager.com / demo123');
-                    }
                 } catch (error) {
-                    console.error('❌ Error:', error);
+                    console.log('❌ Error verificando conexión:', error);
+                    return false;
                 }
+            },
+            
+            crearTablasSiFaltan: async () => {
+                console.log('🔧 Verificando tablas necesarias...');
+                // Esta función ayudaría si faltan tablas, pero necesita permisos de administrador
+                console.log('⚠️ Para crear tablas, usa el SQL en el editor de Supabase');
             }
         };
     </script>
