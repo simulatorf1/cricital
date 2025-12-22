@@ -63,33 +63,66 @@ class FabricacionManager {
             if (!produccion) return;
 
             const ahora = new Date();
-            const creadaEn = new Date(produccion.creada_en);
+            const creadaEn = new Date(produccion.creada_en || produccion.tiempo_inicio);
+            const duracionTotal = 120 * 1000;
             
-            // Calcular tiempo transcurrido desde creación
-            const tiempoTranscurrido = (ahora - creadaEn) / 1000; // en segundos
-            const duracionTotal = 120; // 2 minutos en segundos
-            
-            console.log(`⏱️ ${produccionId}:`);
-            console.log('Creada en:', creadaEn.toISOString());
-            console.log('Ahora:', ahora.toISOString());
-            console.log('Transcurrido:', tiempoTranscurrido.toFixed(1), 'segundos');
-            console.log('Faltan:', (duracionTotal - tiempoTranscurrido).toFixed(1), 'segundos');
+            const tiempoTranscurrido = ahora - creadaEn;
             
             if (tiempoTranscurrido >= duracionTotal) {
-                console.log(`✅ Producción ${produccionId} COMPLETADA`);
+                console.log(`✅ Producción ${produccionId} COMPLETADA - Eliminando de lista`);
                 
+                // 1. Detener timer
                 clearInterval(this.timers[produccionId]);
                 delete this.timers[produccionId];
-
-                setTimeout(() => this.actualizarUIProduccion(), 100);
                 
-                if (window.f1Manager && window.f1Manager.showNotification) {
-                    window.f1Manager.showNotification(`✅ Pieza de ${produccion.area} lista para recoger!`, 'success');
-                }
+                // 2. Marcar como completada en BD (IMPORTANTE)
+                const { error } = await supabase
+                    .from('fabricacion_actual')
+                    .update({ completada: true })
+                    .eq('id', produccionId);
+                
+                if (error) console.error('Error marcando como completada:', error);
+                
+                // 3. ELIMINAR de la lista local INMEDIATAMENTE
+                this.produccionesActivas = this.produccionesActivas.filter(p => p.id !== produccionId);
+                
+                // 4. Crear pieza en almacén automáticamente
+                await this.crearPiezaEnAlmacen(produccion);
+                
+                // 5. Actualizar UI solo una vez
+                setTimeout(() => this.actualizarUIProduccion(), 1000);
             }
 
         } catch (error) {
             console.error('❌ Error verificando producción:', error);
+        }
+    }
+
+    // Añade este método a la clase:
+    async crearPiezaEnAlmacen(fabricacion) {
+        try {
+            // Tu lógica de conversión de área aquí...
+            let areaId = 'motor'; // Simplificado
+            
+            const { error } = await supabase
+                .from('piezas_almacen')
+                .insert([{
+                    escuderia_id: fabricacion.escuderia_id,
+                    area: areaId,
+                    nivel: fabricacion.nivel,
+                    estado: 'disponible',
+                    puntos_base: 10,
+                    fabricada_en: new Date().toISOString()
+                }]);
+            
+            if (!error) {
+                console.log(`📦 Pieza creada en almacén automáticamente`);
+                if (window.f1Manager?.showNotification) {
+                    window.f1Manager.showNotification(`📦 Pieza de ${fabricacion.area} enviada al almacén`, 'success');
+                }
+            }
+        } catch (error) {
+            console.error('Error creando pieza:', error);
         }
     }
 
