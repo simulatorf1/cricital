@@ -640,8 +640,7 @@ class TabManager {
                 .from('piezas_almacen')
                 .select('*')
                 .eq('escuderia_id', window.f1Manager.escuderia.id)
-                // .eq('estado', 'disponible')  // ← Filtra por estado si quieres
-                .order('fabricada_en', { ascending: false });
+                .order('fabricada_en', { ascending: false }); // ← CAMBIAR A 'fabricada_en'
             
             if (error) throw error;
             
