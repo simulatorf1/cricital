@@ -39,9 +39,11 @@
             const scripts = [
                 'js/config.js',
                 'js/auth.js',
-                'js/main.js',
-                'js/fabricacion.js',
-                'js/tabs.js'
+                'js/fabricacion.js',  // PRIMERO las clases
+                'js/almacen.js',       // PRIMERO las clases  
+                'js/integracion.js',   // PRIMERO las clases
+                'js/main.js',          // LUEGO main que las usa
+                'js/tabs.js'           // FINALMENTE tabs
             ];
             
             let cargados = 0;
