@@ -21,7 +21,7 @@ class AlmacenManager {
                 .from('piezas_almacen')
                 .select('*')
                 .eq('escuderia_id', this.escuderiaId)
-                .eq('estado', 'disponible')  // ← CAMBIA 'equipada' por 'estado'
+                // .eq('estado', 'disponible')  // ← Comenta esta línea si quieres TODAS
                 .order('creada_en', { ascending: false });
 
             if (error) throw error;
