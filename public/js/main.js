@@ -2430,18 +2430,18 @@ class F1Manager {
             window.fabricacionManager.inicializar(this.escuderia.id);
         }
         
-        console.log('🔧 [DEBUG] Llamando a startFabrication...');
+        console.log('🔧 [DEBUG] Llamando a iniciarFabricacion...'); // <-- CAMBIADO
         
-        // Verificar que el método existe
-        if (!window.fabricacionManager.startFabrication) {
-            console.error('❌ [DEBUG] startFabrication no existe en fabricacionManager');
+        // Verificar que el método existe (CORREGIDO EL NOMBRE)
+        if (!window.fabricacionManager.iniciarFabricacion) { // <-- CAMBIADO
+            console.error('❌ [DEBUG] iniciarFabricacion no existe en fabricacionManager');
             console.log('Métodos disponibles:', Object.keys(window.fabricacionManager));
             this.showNotification('Error: Método de fabricación no disponible', 'error');
             return false;
         }
         
         // Ejecutar la fabricación y CAPTURAR el resultado
-        const resultado = window.fabricacionManager.startFabrication(areaId);
+        const resultado = window.fabricacionManager.iniciarFabricacion(areaId); // <-- CAMBIADO
         
         // SI fue exitoso, ACTUALIZAR LA UI
         if (resultado) {
