@@ -14,18 +14,18 @@ class AlmacenManager {
         await this.cargarPiezas();
         return true;
     }
-    
+
     async cargarPiezas() {
         try {
             const { data, error } = await supabase
-                .from('almacen_piezas')
+                .from('piezas_almacen')  // ← TABLA CORRECTA
                 .select('*')
                 .eq('escuderia_id', this.escuderiaId)
                 .eq('equipada', false)
                 .order('creada_en', { ascending: false });
-            
+
             if (error) throw error;
-            
+
             this.piezas = data || [];
             console.log(`📦 ${this.piezas.length} piezas en almacén`);
             return this.piezas;
