@@ -375,8 +375,14 @@ class FabricacionManager {
 // Inicializar globalmente
 window.FabricacionManager = FabricacionManager;
 
-// Crear instancia cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
-    window.fabricacionManager = new FabricacionManager();
-    console.log('✅ FabricacionManager inicializado');
-});
+// NO crear instancia aquí - main.js lo hará después
+console.log('✅ Clase FabricacionManager registrada');
+
+// Crear instancia cuando se solicite
+window.crearFabricacionManager = function() {
+    if (!window.fabricacionManager) {
+        window.fabricacionManager = new FabricacionManager();
+        console.log('✅ Instancia de FabricacionManager creada');
+    }
+    return window.fabricacionManager;
+};
