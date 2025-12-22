@@ -65,30 +65,33 @@ class FabricacionManager {
             const ahora = new Date();
             const fin = new Date(produccion.tiempo_fin);
             
-            // Verificar si la fecha es válida
+            // DEBUG DETALLADO
+            console.log(`🔍 VERIFICACIÓN DETALLADA ${produccionId}:`);
+            console.log('tiempo_fin (string):', produccion.tiempo_fin);
+            console.log('fin (parsed):', fin.toString());
+            console.log('fin (ISO):', fin.toISOString());
+            console.log('ahora:', ahora.toISOString());
+            console.log('fin.getTime():', fin.getTime());
+            console.log('ahora.getTime():', ahora.getTime());
+            console.log('Diferencia (ms):', fin - ahora);
+            console.log('Diferencia (seg):', (fin - ahora) / 1000);
+            
             if (isNaN(fin.getTime())) {
-                console.error(`❌ Fecha inválida para producción ${produccionId}:`, produccion.tiempo_fin);
+                console.error(`❌ Fecha inválida: ${produccion.tiempo_fin}`);
                 return;
             }
             
             const tiempoRestante = fin - ahora;
-            
-            // Solo loggear cuando falte poco tiempo o cada cierto tiempo
-            if (tiempoRestante < 30000 || Math.random() < 0.2) {  // Menos de 30 segundos o 20% chance
-                console.log(`⏱️ Verificando ${produccionId}: ${Math.floor(tiempoRestante/1000)}s restantes`);
-            }
+            console.log(`⏱️ Tiempo restante: ${tiempoRestante/1000} segundos`);
             
             if (ahora >= fin) {
-                console.log(`✅ Producción ${produccionId} COMPLETADA`);
+                console.log(`✅ Producción ${produccionId} COMPLETADA (realmente)`);
                 
-                // Detener timer
                 clearInterval(this.timers[produccionId]);
                 delete this.timers[produccionId];
 
-                // Actualizar UI solo cuando termine
                 setTimeout(() => this.actualizarUIProduccion(), 100);
                 
-                // Mostrar notificación
                 if (window.f1Manager && window.f1Manager.showNotification) {
                     window.f1Manager.showNotification(`✅ Pieza de ${produccion.area} lista para recoger!`, 'success');
                 }
@@ -148,14 +151,24 @@ class FabricacionManager {
                 return false;
             }
 
-            // 5. Calcular tiempos (2 MINUTOS para pruebas)
+            // 5. **SOLUCIÓN: Usar tiempo relativo en segundos**
+            const duracionSegundos = 120; // 2 minutos para pruebas
             const tiempoInicio = new Date();
-            const tiempoFin = new Date(tiempoInicio.getTime() + (120 * 1000)); // 2 minutos
+            const tiempoFin = new Date(tiempoInicio.getTime() + (duracionSegundos * 1000));
             
-            console.log('⏰ Tiempos configurados:');
-            console.log('Inicio:', tiempoInicio.toISOString());
-            console.log('Fin:', tiempoFin.toISOString());
-            console.log('Duración:', (tiempoFin - tiempoInicio) / 1000, 'segundos');
+            // DEBUG CRÍTICO: Verificar diferencia horaria
+            console.log('🕒 DEBUG HORAS:');
+            console.log('Hora local (navegador):', tiempoInicio.toISOString());
+            console.log('Hora fin calculada:', tiempoFin.toISOString());
+            console.log('Diferencia con ahora:', (tiempoFin - tiempoInicio) / 1000, 'segundos');
+            
+            // Obtener hora del servidor para comparar
+            const { data: serverTime, error: timeError } = await supabase
+                .rpc('get_server_time');
+            
+            if (!timeError && serverTime) {
+                console.log('🕒 Hora del servidor Supabase:', serverTime);
+            }
 
             // 6. Crear nueva fabricación en BD
             const { data: nuevaFabricacion, error: insertError } = await supabase
@@ -168,6 +181,7 @@ class FabricacionManager {
                     tiempo_fin: tiempoFin.toISOString(),
                     completada: false,
                     costo: costoFabricacion,
+                    duracion_segundos: duracionSegundos, // ← NUEVO: guardar duración
                     creada_en: new Date().toISOString()
                 }])
                 .select()
@@ -177,13 +191,18 @@ class FabricacionManager {
 
             console.log('✅ Fabricación creada en BD:', nuevaFabricacion.id);
 
-            // 7. Verificar que se guardó correctamente
-            console.log('📋 Verificación BD:', {
-                id: nuevaFabricacion.id,
-                inicio_guardado: nuevaFabricacion.tiempo_inicio,
-                fin_guardado: nuevaFabricacion.tiempo_fin,
-                diferencia_ms: new Date(nuevaFabricacion.tiempo_fin) - new Date(nuevaFabricacion.tiempo_inicio)
-            });
+            // 7. **VERIFICACIÓN CRÍTICA: Comparar horas**
+            console.log('🔍 VERIFICACIÓN CRÍTICA:');
+            console.log('Hora inicio guardada:', nuevaFabricacion.tiempo_inicio);
+            console.log('Hora fin guardada:', nuevaFabricacion.tiempo_fin);
+            
+            const inicioBD = new Date(nuevaFabricacion.tiempo_inicio);
+            const finBD = new Date(nuevaFabricacion.tiempo_fin);
+            const ahora = new Date();
+            
+            console.log('Diferencia inicioBD - ahora:', (inicioBD - ahora) / 1000, 'segundos');
+            console.log('Diferencia finBD - ahora:', (finBD - ahora) / 1000, 'segundos');
+            console.log('¿finBD > ahora?', finBD > ahora);
 
             // 8. Añadir a lista local CON LOS DATOS DE BD
             this.produccionesActivas.push(nuevaFabricacion);
@@ -191,8 +210,8 @@ class FabricacionManager {
             // 9. Iniciar timer
             this.iniciarTimerProduccion(nuevaFabricacion.id);
 
-            // 10. Actualizar UI (sin saturar)
-            setTimeout(() => this.actualizarUIProduccion(), 500);
+            // 10. Actualizar UI
+            setTimeout(() => this.actualizarUIProduccion(), 100);
 
             // 11. Mostrar notificación
             if (window.f1Manager && window.f1Manager.showNotification) {
