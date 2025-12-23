@@ -2145,17 +2145,35 @@ class F1Manager {
                 return false;
             }
             
-            // 3. Crear stats del coche
+            // 3. Crear stats del coche (SOLO si no existen ya)
             const { data: nuevaEscuderia } = await this.supabase
                 .from('escuderias')
                 .select('id')
                 .eq('user_id', this.user.id)
                 .single();
-            
+        
             if (nuevaEscuderia) {
-                await this.supabase
+                // PRIMERO verificar si ya existen stats para esta escudería
+                const { data: statsExistentes, error: statsError } = await this.supabase
                     .from('coches_stats')
-                    .insert([{ escuderia_id: nuevaEscuderia.id }]);
+                    .select('escuderia_id')
+                    .eq('escuderia_id', nuevaEscuderia.id)
+                    .maybeSingle();
+            
+                // SOLO insertar si NO existen stats
+                if (!statsExistentes && !statsError) {
+                    const { error: statsInsertError } = await this.supabase
+                        .from('coches_stats')
+                        .insert([{ escuderia_id: nuevaEscuderia.id }]);
+                
+                    if (statsInsertError) {
+                        console.error('❌ Error creando stats del coche:', statsInsertError);
+                    } else {
+                        console.log('📊 Stats del coche creados');
+                    }
+                } else {
+                    console.log('📊 Stats del coche ya existían, no se crean nuevos');
+                }
             }
             
             console.log('✅ Datos iniciales creados correctamente');
