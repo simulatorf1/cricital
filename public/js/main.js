@@ -517,8 +517,9 @@ async function manejarRegistro() {
         mostrarErrorCritico('No se pudo conectar a la base de datos');
         return;
     }
-    const username = document.getElementById('register-username').value;
-    const email = document.getElementById('register-email').value;
+    
+    const username = document.getElementById('register-username').value.trim();
+    const email = document.getElementById('register-email').value.trim();
     const password = document.getElementById('register-password').value;
     const errorDiv = document.getElementById('register-error');
     const successDiv = document.getElementById('register-success');
@@ -534,26 +535,89 @@ async function manejarRegistro() {
     }
     
     try {
-        // SOLO registrar en Auth - El trigger creará el perfil automáticamente
+        console.log('📝 Registrando usuario:', email);
+        
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
             options: {
-                data: { username },
+                data: { 
+                    username: username,
+                    team_name: `${username}'s Team`
+                },
                 emailRedirectTo: window.location.origin
             }
         });
         
-        if (authError) throw authError;
+        if (authError) {
+            console.error('❌ Error Auth:', authError);
+            throw authError;
+        }
+        
+        console.log('✅ Usuario creado en Auth:', authData.user?.id);
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const { data: escuderiaCheck, error: checkError } = await supabase
+            .from('escuderias')
+            .select('id')
+            .eq('user_id', authData.user?.id)
+            .maybeSingle();
+        
+        if (checkError) {
+            console.error('❌ Error verificando escudería:', checkError);
+        }
+        
+        if (escuderiaCheck) {
+            console.log('✅ Escudería creada automáticamente:', escuderiaCheck.id);
+        } else {
+            console.log('⚠️ Escudería no creada automáticamente, creando manualmente...');
+            
+            const { data: nuevaEscuderia, error: escError } = await supabase
+                .from('escuderias')
+                .insert([{
+                    user_id: authData.user.id,
+                    nombre: `${username}'s Team`,
+                    dinero: 5000000,
+                    puntos: 0,
+                    ranking: 999,
+                    nivel_ingenieria: 1,
+                    color_principal: '#e10600',
+                    color_secundario: '#ffffff',
+                    creada_en: new Date().toISOString()
+                }])
+                .select()
+                .single();
+            
+            if (escError) {
+                console.error('❌ Error creando escudería manual:', escError);
+            } else {
+                console.log('✅ Escudería creada manualmente:', nuevaEscuderia.id);
+                
+                await supabase
+                    .from('coches_stats')
+                    .insert([{ escuderia_id: nuevaEscuderia.id }]);
+            }
+        }
         
         mostrarMensaje('✅ ¡Cuenta creada! Revisa tu correo para confirmarla.', successDiv);
         
-        // Volver a login después de 3 segundos
         setTimeout(() => mostrarPantallaLogin(), 3000);
         
     } catch (error) {
-        console.error('Error en registro:', error);
-        mostrarMensaje(error.message || 'Error creando la cuenta', errorDiv);
+        console.error('❌ Error en registro completo:', error);
+        
+        let mensajeError = error.message || 'Error creando la cuenta';
+        
+        if (error.message.includes('already registered')) {
+            mensajeError = 'Este correo ya está registrado';
+        } else if (error.message.includes('password')) {
+            mensajeError = 'La contraseña no cumple los requisitos';
+        } else if (error.message.includes('email')) {
+            mensajeError = 'El correo electrónico no es válido';
+        }
+        
+        mostrarMensaje(mensajeError, errorDiv);
     }
 }
 
@@ -2664,8 +2728,7 @@ class F1Manager {
         console.log('⏱️ Timers iniciados');
     }
     
-    updateProductionMonitor() {
-        // Verificar si fabricacionManager existe
+    async updateProductionMonitor() {
         if (!window.fabricacionManager) {
             console.log('⚠️ fabricacionManager no disponible - intentando crear');
             
@@ -2686,7 +2749,6 @@ class F1Manager {
             return;
         }
         
-        // Obtener fabricaciones
         let fabricaciones = [];
         if (window.fabricacionManager.getProduccionesEnCurso) {
             fabricaciones = window.fabricacionManager.getProduccionesEnCurso();
@@ -2703,7 +2765,6 @@ class F1Manager {
                 </div>
             `;
             
-            // Configurar evento
             const btn = document.getElementById('iniciar-fabricacion-btn');
             if (btn) {
                 btn.addEventListener('click', () => {
@@ -2713,7 +2774,7 @@ class F1Manager {
             
             return;
         }
-        // Mostrar LISTA de fabricaciones
+        
         let html = `
             <div class="produccion-header">
                 <h3><i class="fas fa-industry"></i> Fabricaciones en curso</h3>
@@ -2724,14 +2785,14 @@ class F1Manager {
         
         fabricaciones.forEach((fab, index) => {
             const ahora = new Date();
-            const fin = new Date(fab.tiempo_fin);
-            const inicio = new Date(fab.tiempo_inicio);
+            const tiempoInicio = new Date(fab.tiempo_inicio);
+            const tiempoFin = new Date(fab.tiempo_fin);
             
-            const tiempoTotal = fin - inicio;
-            const tiempoTranscurrido = ahora - inicio;
+            const tiempoTotal = tiempoFin - tiempoInicio;
+            const tiempoTranscurrido = ahora - tiempoInicio;
             const progreso = Math.min(100, (tiempoTranscurrido / tiempoTotal) * 100);
-            const tiempoRestante = fin - ahora;
-            const lista = ahora >= fin;
+            const tiempoRestante = tiempoFin - ahora;
+            const lista = ahora >= tiempoFin;
             
             html += `
                 <div class="fabricacion-item ${lista ? 'lista' : ''}">
