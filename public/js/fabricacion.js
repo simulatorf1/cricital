@@ -64,13 +64,21 @@ class FabricacionManager {
 
             const ahora = new Date();
             const tiempoInicio = new Date(produccion.tiempo_inicio);
-            const tiempoFin = new Date(produccion.tiempo_fin);
+            const tiempoFin = new Date(new Date(produccion.tiempo_fin).getTime() + 3600000);
             
             const duracionTotal = tiempoFin - tiempoInicio;
             const tiempoTranscurrido = ahora - tiempoInicio;
+
+            console.log('🔧 Verificación ajustada:', {
+                horaFinBD: produccion.tiempo_fin,
+                horaFinAjustada: tiempoFin.toISOString(),
+                duracionTotal: duracionTotal/1000 + 's',
+                tiempoTranscurrido: tiempoTranscurrido/1000 + 's',
+                progreso: (tiempoTranscurrido/duracionTotal*100).toFixed(1) + '%'
+            });
             
             if (tiempoTranscurrido >= duracionTotal) {
-                console.log(`✅ Producción ${produccionId} COMPLETADA`);
+                console.log(`✅ Producción ${produccionId} COMPLETADA (con ajuste horario)`);
                 
                 clearInterval(this.timers[produccionId]);
                 delete this.timers[produccionId];
