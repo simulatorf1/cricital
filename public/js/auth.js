@@ -40,14 +40,31 @@ class AuthManager {
             if (authError) throw authError;
 
             if (authData.user) {
-                // 2. Esperar a que se cree el usuario en la tabla users
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
+                // 2. INSERTAR USUARIO EN LA TABLA PÚBLICA 'users' (PASO CRÍTICO)
+                const { error: userError } = await supabase
+                    .from('users')
+                    .insert([
+                        {
+                            id: authData.user.id, // Mismo ID que en auth.users
+                            username: username,
+                            email: email,
+                            created_at: new Date().toISOString(),
+                            last_login: new Date().toISOString()
+                        }
+                    ]);
+
+                if (userError) {
+                    // Si falla, podría ser porque el usuario ya existe (ej: re-registro).
+                    // En ese caso, puedes continuar o manejarlo. Para debug, lo mostramos:
+                    console.log('⚠️ Nota al insertar en users (puede ser normal si ya existe):', userError.message);
+                    // No lanzamos error aquí, continuamos.
+                }
+
                 // 3. Crear escudería para el usuario
                 const { error: escError } = await supabase
                     .from('escuderias')
                     .insert([{
-                        user_id: authData.user.id,
+                        user_id: authData.user.id, // Ahora este ID debería existir en `users`
                         nombre: teamName,
                         dinero: 5000000,
                         puntos: 0,
