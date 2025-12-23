@@ -64,13 +64,13 @@ class FabricacionManager {
 
             const ahora = new Date();
             const tiempoInicio = new Date(fab.tiempo_inicio);
-            const tiempoFin = new Date(new Date(fab.tiempo_fin).getTime() + 3600000);
-            const progreso = Math.min(100, (tiempoTranscurrido / duracionTotal) * 100);
+            const tiempoFin = new Date(new Date(produccion.tiempo_fin).getTime() + 3600000);
+        
             const duracionTotal = tiempoFin - tiempoInicio;
             const tiempoTranscurrido = ahora - tiempoInicio;
 
             console.log('🔧 Verificación ajustada:', {
-                horaFinBD: produccion.tiempo_fin,
+                horaFinBD: produccion.tiempo_fin,  // <-- CAMBIADO: 'produccion', no 'fab
                 horaFinAjustada: tiempoFin.toISOString(),
                 duracionTotal: duracionTotal/1000 + 's',
                 tiempoTranscurrido: tiempoTranscurrido/1000 + 's',
