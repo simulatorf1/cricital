@@ -2048,7 +2048,7 @@ class F1Manager {
                 .eq('user_id', this.user.id)
                 .order('creada_en', { ascending: false })
                 .limit(1)
-                .single();
+                .maybeSingle(); // <- CORRECCIÓN
             
             if (error && error.code !== 'PGRST116') {
                 console.error('Error cargando escudería:', error);
