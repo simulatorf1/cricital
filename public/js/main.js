@@ -2100,6 +2100,37 @@ class F1Manager {
             console.error('Error en loadUserData:', error);
         }
     }
+
+    async loadPilotosContratados() {
+        if (!this.escuderia || !this.escuderia.id) {
+            console.log('❌ No hay escudería para cargar pilotos');
+            return;
+        }
+
+        try {
+            console.log('👥 Cargando pilotos contratados...');
+            const { data: pilotos, error } = await this.supabase
+                .from('pilotos_contratados')
+                .select('*')
+                .eq('escuderia_id', this.escuderia.id)
+                .eq('activo', true)
+                .order('contratado_en', { ascending: false });
+
+            if (error) throw error;
+
+            this.pilotos = pilotos || [];
+            console.log(`✅ ${this.pilotos.length} piloto(s) cargado(s)`);
+            
+            // Actualizar la interfaz
+            this.updatePilotosUI();
+            
+        } catch (error) {
+            console.error('❌ Error cargando pilotos:', error);
+            this.pilotos = [];
+            this.updatePilotosUI(); // Aún así actualizar la UI para mostrar estado vacío
+        }
+    }
+    
      // AÑADE ESTE MÉTODO DENTRO DE LA CLASE F1Manager en main.js
     async crearDatosInicialesSiFaltan() {
         console.log('🔍 Verificando si faltan datos iniciales...');
@@ -2544,7 +2575,7 @@ class F1Manager {
             };
         } else {
             await this.loadCarStatus();
-            await this.loadPilotos();
+            await this.loadPilotosContratados(); // <-- AÑADE ESTA LÍNEA
             await this.loadProximoGP();
         }
         
@@ -2694,7 +2725,75 @@ class F1Manager {
     }
     
     updatePilotosUI() {
-        // Tu código actual para actualizar pilotos
+        const container = document.getElementById('pilotos-container'); // El div contenedor
+        if (!container) {
+            console.error('❌ No se encontró #pilotos-container');
+            return;
+        }
+
+        if (!this.pilotos || this.pilotos.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-user-slash"></i>
+                    <p>No tienes pilotos contratados</p>
+                    <button class="btn-primary" id="contratar-primer-piloto">
+                        <i class="fas fa-user-plus"></i> Contratar mi primer piloto
+                    </button>
+                </div>
+            `;
+            // Opcional: agregar evento al botón
+            document.getElementById('contratar-primer-piloto')?.addEventListener('click', () => {
+                // Tu lógica para abrir el selector de pilotos
+            });
+            return;
+        }
+
+        // Generar HTML para cada piloto
+        let html = '';
+        this.pilotos.forEach(piloto => {
+            // Calcula carreras restantes si no está en los datos
+            const carrerasRestantes = piloto.carreras_restantes || 'N/A';
+            const salario = piloto.salario ? '€' + parseInt(piloto.salario).toLocaleString('es-ES') : 'N/A';
+            
+            html += `
+                <div class="piloto-card">
+                    <div class="piloto-header">
+                        <div class="piloto-name">
+                            <h3>${piloto.nombre}</h3>
+                            <span class="piloto-nacionalidad">
+                                <i class="fas fa-flag"></i> ${piloto.nacionalidad || 'Internacional'}
+                            </span>
+                        </div>
+                        <div class="piloto-status">Contratado</div>
+                    </div>
+                    <div class="piloto-stats">
+                        <div class="piloto-stat">
+                            <span class="stat-label">Salario</span>
+                            <span class="stat-value">${salario}</span>
+                        </div>
+                        <div class="piloto-stat">
+                            <span class="stat-label">Carreras Restantes</span>
+                            <span class="stat-value">${carrerasRestantes}</span>
+                        </div>
+                        <div class="piloto-stat">
+                            <span class="stat-label">Contrato desde</span>
+                            <span class="stat-value">${new Date(piloto.contratado_en).toLocaleDateString('es-ES')}</span>
+                        </div>
+                    </div>
+                    <div class="piloto-contract">
+                        <div class="contract-progress">
+                            <span class="contract-label">Progreso del contrato</span>
+                            <span class="carreras-restantes">${carrerasRestantes} carreras</span>
+                        </div>
+                        <div class="progress-bar-small">
+                            <div class="progress-fill-small" style="width: ${(carrerasRestantes/12)*100}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
     }
     
     iniciarFabricacion(areaId) {
