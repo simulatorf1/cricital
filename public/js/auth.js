@@ -64,7 +64,7 @@ class AuthManager {
                 const { error: escError } = await supabase
                     .from('escuderias')
                     .insert([{
-                        user_id: authData.user.id, // Ahora este ID debería existir en `users`
+                        user_id: authData.user.id, 
                         nombre: teamName,
                         dinero: 5000000,
                         puntos: 0,
@@ -72,7 +72,7 @@ class AuthManager {
                         nivel_ingenieria: 1,
                         color_principal: '#e10600',
                         color_secundario: '#ffffff'
-                    }]);
+                    }], { returning: 'minimal' }); // <-- AÑADE ESTA OPCIÓN AQUÍ
 
                 if (escError) throw escError;
 
