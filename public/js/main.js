@@ -667,11 +667,22 @@ class F1Manager {
         // Cargar datos del usuario
         await this.loadUserData();
         
-        // Si no tiene escudería, mostrar tutorial
+        // NUEVO: Verificar y crear datos iniciales si faltan
+        if (this.user && this.user.id) {
+            console.log('🔄 Verificando datos iniciales del usuario...');
+            const datosCreados = await this.crearDatosInicialesSiFaltan();
+            
+            if (!datosCreados) {
+                this.showNotification('⚠️ Hubo un problema configurando tu equipo.', 'warning');
+            } else {
+                console.log('✅ Usuario listo para jugar');
+            }
+        }
+        
+        // El resto de tu código (cargar dashboard o tutorial)
         if (!this.escuderia) {
-            this.mostrarTutorialInicial();  // ← ESTE ES EL TUTORIAL
+            this.mostrarTutorialInicial();
         } else {
-            // Si ya tiene escudería, cargar dashboard
             await this.cargarDashboardCompleto();
             await this.inicializarSistemasIntegrados();
         }
@@ -2074,7 +2085,85 @@ class F1Manager {
             console.error('Error en loadUserData:', error);
         }
     }
-    
+     // AÑADE ESTE MÉTODO DENTRO DE LA CLASE F1Manager en main.js
+    async crearDatosInicialesSiFaltan() {
+        console.log('🔍 Verificando si faltan datos iniciales...');
+        
+        // 1. Verificar si el usuario ya está en public.users
+        const { data: usuarioPublico, error: userError } = await this.supabase
+            .from('users')
+            .select('id')
+            .eq('id', this.user.id)
+            .maybeSingle();
+        
+        // Si NO existe en public.users, lo creamos
+        if (!usuarioPublico && !userError) {
+            console.log('👤 Creando usuario en tabla pública...');
+            const { error: insertError } = await this.supabase
+                .from('users')
+                .insert([{
+                    id: this.user.id,
+                    username: this.user.user_metadata?.username || this.user.email?.split('@')[0],
+                    email: this.user.email,
+                    created_at: new Date().toISOString(),
+                    last_login: new Date().toISOString()
+                }]);
+            
+            if (insertError) {
+                console.error('❌ Error creando usuario público:', insertError);
+            }
+        }
+        
+        // 2. Verificar si ya tiene escudería
+        const { data: escuderia, error: escError } = await this.supabase
+            .from('escuderias')
+            .select('id')
+            .eq('user_id', this.user.id)
+            .maybeSingle();
+        
+        // Si NO tiene escudería, la creamos
+        if (!escuderia && !escError) {
+            console.log('🏎️ Creando escudería inicial...');
+            const nombreEscuderia = this.user.user_metadata?.team_name || `${this.user.user_metadata?.username}'s Team`;
+            
+            const { error: escInsertError } = await this.supabase
+                .from('escuderias')
+                .insert([{
+                    user_id: this.user.id,
+                    nombre: nombreEscuderia,
+                    dinero: 5000000,
+                    puntos: 0,
+                    ranking: 999,
+                    nivel_ingenieria: 1,
+                    color_principal: '#e10600',
+                    color_secundario: '#ffffff',
+                    creada_en: new Date().toISOString()
+                }], { returning: 'minimal' }); // ← ¡IMPORTANTE!
+            
+            if (escInsertError) {
+                console.error('❌ Error creando escudería:', escInsertError);
+                return false;
+            }
+            
+            // 3. Crear stats del coche
+            const { data: nuevaEscuderia } = await this.supabase
+                .from('escuderias')
+                .select('id')
+                .eq('user_id', this.user.id)
+                .single();
+            
+            if (nuevaEscuderia) {
+                await this.supabase
+                    .from('coches_stats')
+                    .insert([{ escuderia_id: nuevaEscuderia.id }]);
+            }
+            
+            console.log('✅ Datos iniciales creados correctamente');
+            return true;
+        }
+        
+        return true; // Ya tenía todos los datos
+    }   
     async cargarCarStats() {
         if (!this.escuderia) return;
         
