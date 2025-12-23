@@ -571,7 +571,9 @@ async function manejarRegistro() {
         if (escuderiaCheck) {
             console.log('✅ Escudería creada automáticamente:', escuderiaCheck.id);
         } else {
-            console.log('⚠️ Escudería no creada automáticamente, creando manualmente...');
+            console.log('⚠️ Usuario sin escudería. Mostrando tutorial...');
+            this.mostrarTutorialInicial(); // O this.mostrarFormularioEscuderiaSimple();
+            return; // Salimos de la función para no continuar cargando el dashboard
             
             const { data: nuevaEscuderia, error: escError } = await supabase
                 .from('escuderias')
