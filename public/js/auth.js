@@ -40,52 +40,7 @@ class AuthManager {
             if (authError) throw authError;
 
             if (authData.user) {
-                // 2. INSERTAR USUARIO EN LA TABLA PÚBLICA 'users' (PASO CRÍTICO)
-                const { error: userError } = await supabase
-                    .from('users')
-                    .insert([
-                        {
-                            id: authData.user.id, // Mismo ID que en auth.users
-                            username: username,
-                            email: email,
-                            created_at: new Date().toISOString(),
-                            last_login: new Date().toISOString()
-                        }
-                    ]);
 
-                if (userError) {
-                    // Si falla, podría ser porque el usuario ya existe (ej: re-registro).
-                    // En ese caso, puedes continuar o manejarlo. Para debug, lo mostramos:
-                    console.log('⚠️ Nota al insertar en users (puede ser normal si ya existe):', userError.message);
-                    // No lanzamos error aquí, continuamos.
-                }
-
-                // 3. Crear escudería para el usuario
-                const { error: escError } = await supabase
-                    .from('escuderias')
-                    .insert([{
-                        user_id: authData.user.id, 
-                        nombre: teamName,
-                        dinero: 5000000,
-                        puntos: 0,
-                        ranking: 999,
-                        nivel_ingenieria: 1,
-                        color_principal: '#e10600',
-                        color_secundario: '#ffffff'
-                    }], { returning: 'minimal' }); // <-- AÑADE ESTA OPCIÓN AQUÍ
-
-                if (escError) throw escError;
-
-                // 4. Crear stats del coche
-                const { data: escuderia } = await supabase
-                    .from('escuderias')
-                    .select('id')
-                    .eq('user_id', authData.user.id)
-                    .single();
-
-                await supabase
-                    .from('coches_stats')
-                    .insert([{ escuderia_id: escuderia.id }]);
 
                 this.showNotification('✅ ¡Registro exitoso! Revisa tu email para confirmar.', 'success');
                 return true;
