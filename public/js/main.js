@@ -596,14 +596,12 @@ class F1Manager {
         // Cargar datos del usuario
         await this.loadUserData();
         
-        // Si no tiene escudería, mostrar formulario simple
+        // Si no tiene escudería, mostrar tutorial
         if (!this.escuderia) {
-            await this.mostrarFormularioEscuderiaSimple();  // ← NUEVO MÉTODO
+            this.mostrarTutorialInicial();  // ← ESTE ES EL TUTORIAL
         } else {
             // Si ya tiene escudería, cargar dashboard
             await this.cargarDashboardCompleto();
-            
-            // Inicializar sistemas
             await this.inicializarSistemasIntegrados();
         }
     }
