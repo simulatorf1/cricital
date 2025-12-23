@@ -2573,6 +2573,13 @@ class F1Manager {
         console.log('1. window.fabricacionManager:', window.fabricacionManager);
         console.log('2. window.FabricacionManager:', window.FabricacionManager);
         console.log('3. this.escuderia:', this.escuderia);
+
+        // AÑADE ESTA VERIFICACIÓN AQUÍ:
+        if (!this.escuderia || this.escuderia.dinero < window.CONFIG.PIECE_COST) {
+            const falta = window.CONFIG.PIECE_COST - (this.escuderia?.dinero || 0);
+            this.showNotification(`❌ Fondos insuficientes. Necesitas €${falta.toLocaleString()} más`, 'error');
+            return false;
+        }
         
         // SI fabricacionManager no existe, CREARLO
         if (!window.fabricacionManager) {
