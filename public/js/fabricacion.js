@@ -322,6 +322,11 @@ class FabricacionManager {
             if (window.f1Manager && window.f1Manager.showNotification) {
                 window.f1Manager.showNotification(`✅ Pieza de ${fabricacion.area} recogida`, 'success');
             }
+
+            // 10. Actualizar almacén si está abierto
+            if (window.tabManager && window.tabManager.currentTab === 'almacen') {
+                setTimeout(() => window.tabManager.loadAlmacenPiezas(), 1000);
+            }
             
             return true;
 
