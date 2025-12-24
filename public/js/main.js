@@ -3061,11 +3061,7 @@ class F1Manager {
         
         html += `
             </div>
-            <div class="fabricacion-footer">
-                <button class="btn-secondary" onclick="window.f1Manager.irAlTaller()">
-                    <i class="fas fa-plus"></i> Iniciar nueva fabricación
-                </button>
-            </div>
+
         `;
         
         container.innerHTML = html;
