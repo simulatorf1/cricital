@@ -613,100 +613,115 @@ class TabManager {
         });
     }
     
-    async loadAlmacenPiezas() {
-        const container = document.getElementById('almacen-grid');
-        if (!container || !window.f1Manager?.escuderia?.id) return;
+        async loadAlmacenPiezas() {
+            const container = document.getElementById('almacen-grid');
+            if (!container || !window.f1Manager?.escuderia?.id) return;
 
-        try {
-            const { data: todasLasPiezas, error } = await supabase
-                .from('piezas_almacen')
-                .select('*')
-                .eq('escuderia_id', window.f1Manager.escuderia.id)
-                .order('fabricada_en', { ascending: false });
+            try {
+                const { data: todasLasPiezas, error } = await supabase
+                    .from('piezas_almacen')
+                    .select('*')
+                    .eq('escuderia_id', window.f1Manager.escuderia.id)
+                    .order('fabricada_en', { ascending: false });
 
-            if (error) throw error;
+                if (error) throw error;
 
-            // Agrupar por área
-            const piezasPorArea = {};
-            todasLasPiezas?.forEach(pieza => {
-                if (!piezasPorArea[pieza.area]) {
-                    piezasPorArea[pieza.area] = [];
-                }
-                piezasPorArea[pieza.area].push(pieza);
-            });
-
-            let html = '<div class="almacen-grid-completo">';
-            
-            // Para cada área
-            Object.entries(piezasPorArea).forEach(([areaId, piezas]) => {
-                const areaInfo = window.CAR_AREAS.find(a => a.id === areaId);
-                if (!areaInfo) return;
-
-                html += `
-                    <div class="area-almacen-seccion">
-                        <h3 class="area-titulo" style="border-left: 5px solid ${areaInfo.color}">
-                            <i class="${areaInfo.icon}"></i> ${areaInfo.name}
-                        </h3>
-                        <div class="piezas-grid-area">
-                `;
-
-                // Mostrar cada pieza de esta área
-                piezas.forEach(pieza => {
-                    const equipada = pieza.estado === 'equipada';
-                    html += `
-                        <div class="pieza-card ${equipada ? 'equipada' : 'disponible'}" 
-                             data-pieza-id="${pieza.id}"
-                             style="border-color: ${areaInfo.color}">
-                            
-                            <div class="pieza-icono" style="background: ${equipada ? areaInfo.color : 'transparent'}">
-                                <i class="${areaInfo.icon}"></i>
-                            </div>
-                            
-                            <div class="pieza-info">
-                                <div class="pieza-nivel">Nivel ${pieza.nivel}</div>
-                                <div class="pieza-puntos">${pieza.puntos_base || 10} pts</div>
-                            </div>
-                            
-                            <div class="pieza-acciones">
-                                <button class="btn-equipar-pieza" 
-                                        onclick="window.tabManager.equiparPieza('${pieza.id}')"
-                                        ${equipada ? 'disabled' : ''}>
-                                    ${equipada ? '✓ EQUIPADA' : 'EQUIPAR'}
-                                </button>
-                                <button class="btn-vender-pieza" 
-                                        onclick="window.tabManager.venderPieza('${pieza.id}')">
-                                    VENDER
-                                </button>
-                            </div>
-                        </div>
-                    `;
+                // Organizar por áreas
+                const piezasPorArea = {};
+                const areasMap = {};
+                
+                window.CAR_AREAS.forEach(area => {
+                    areasMap[area.id] = area;
+                    piezasPorArea[area.id] = [];
                 });
 
-                html += `
+                // Agrupar piezas por área
+                todasLasPiezas?.forEach(pieza => {
+                    if (piezasPorArea[pieza.area]) {
+                        piezasPorArea[pieza.area].push(pieza);
+                    }
+                });
+
+                let html = '<div class="almacen-tabla">';
+                
+                // Crear tabla por áreas
+                Object.entries(piezasPorArea).forEach(([areaId, piezas]) => {
+                    const areaInfo = areasMap[areaId];
+                    if (!areaInfo) return;
+
+                    if (piezas.length > 0) {
+                        html += `
+                            <div class="area-tabla" style="border-left: 5px solid ${areaInfo.color}">
+                                <div class="area-header">
+                                    <h3><i class="${areaInfo.icon}"></i> ${areaInfo.name}</h3>
+                                    <span class="contador-piezas">${piezas.length} pieza(s)</span>
+                                </div>
+                                <div class="piezas-tabla">
+                        `;
+
+                        // Mostrar cada pieza en filas
+                        piezas.forEach((pieza, index) => {
+                            const equipada = pieza.estado === 'equipada';
+                            const filaClase = index % 2 === 0 ? 'fila-par' : 'fila-impar';
+                            
+                            html += `
+                                <div class="pieza-fila ${filaClase} ${equipada ? 'equipada' : ''}">
+                                    <div class="celda celda-icono" style="color: ${areaInfo.color}">
+                                        <i class="${areaInfo.icon}"></i>
+                                    </div>
+                                    <div class="celda celda-nivel">Nivel ${pieza.nivel}</div>
+                                    <div class="celda celda-puntos">
+                                        <span class="badge-puntos">${pieza.puntos_base || 10} pts</span>
+                                    </div>
+                                    <div class="celda celda-estado">
+                                        <span class="estado-badge ${equipada ? 'equipada' : 'disponible'}">
+                                            ${equipada ? '✓ EQUIPADA' : 'DISPONIBLE'}
+                                        </span>
+                                    </div>
+                                    <div class="celda celda-fecha">
+                                        ${new Date(pieza.fabricada_en).toLocaleDateString('es-ES')}
+                                    </div>
+                                    <div class="celda celda-acciones">
+                                        <button class="btn-accion btn-equipar" 
+                                                onclick="window.tabManager.equiparPieza('${pieza.id}')"
+                                                ${equipada ? 'disabled' : ''}>
+                                            ${equipada ? '✓' : 'EQUIPAR'}
+                                        </button>
+                                        <button class="btn-accion btn-vender" 
+                                                onclick="window.tabManager.venderPieza('${pieza.id}')">
+                                            VENDER
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                // Si no hay piezas
+                if (todasLasPiezas?.length === 0) {
+                    html = `
+                        <div class="almacen-vacio">
+                            <i class="fas fa-box-open fa-3x"></i>
+                            <h3>No hay piezas fabricadas</h3>
+                            <p>Ve al taller para fabricar tu primera pieza</p>
                         </div>
-                    </div>
-                `;
-            });
+                    `;
+                }
 
-            // Si no hay piezas
-            if (Object.keys(piezasPorArea).length === 0) {
-                html = `
-                    <div class="almacen-vacio">
-                        <i class="fas fa-box-open fa-3x"></i>
-                        <h3>No hay piezas fabricadas</h3>
-                        <p>Ve al taller para fabricar tu primera pieza</p>
-                    </div>
-                `;
+                html += '</div>';
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error cargando almacén:', error);
+                container.innerHTML = '<div class="error">Error cargando el almacén</div>';
             }
-
-            html += '</div>';
-            container.innerHTML = html;
-
-        } catch (error) {
-            console.error('Error cargando almacén:', error);
-            container.innerHTML = '<div class="error">Error cargando el almacén</div>';
         }
-    }
     async loadMercadoPiezas() {
         const container = document.getElementById('mercado-grid');
         if (!container) return;
