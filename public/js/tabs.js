@@ -74,13 +74,11 @@ class TabManager {
         // Mostrar contenido de la pestaña seleccionada
         const tabContent = document.getElementById(`tab-${tabId}`);
         if (tabContent) {
+            // 1. Primero cargar el contenido y eventos
+            this.loadTabContent(tabId);
+            // 2. Luego marcar como activa
             tabContent.classList.add('active');
             this.currentTab = tabId;
-            
-            // Cargar contenido si no está cargado
-            if (!this.tabContents[tabId]) {
-                this.loadTabContent(tabId);
-            }
         }
     }
     
@@ -115,13 +113,21 @@ class TabManager {
     loadTabContent(tabId) {
         console.log(`🔴 [DEBUG] loadTabContent() para pestaña: ${tabId}`);
         const tabContent = document.getElementById(`tab-${tabId}`);
-        if (!tabContent) return;
+        if (!tabContent) {
+            console.error(`❌ No se encontró el contenedor tab-${tabId}`);
+            return;
+        }
         
+        // 1. Poner contenido HTML
         tabContent.innerHTML = this.tabContents[tabId];
         
-        // Configurar eventos específicos de la pestaña
+        // 2. Configurar eventos específicos de la pestaña
         console.log(`🔴 [DEBUG] Llamando a setupTabEvents(${tabId})`);
         this.setupTabEvents(tabId);
+        
+        // 3. Marcar como activo (esto lo hace switchTab, pero por si acaso)
+        tabContent.classList.add('active');
+        this.currentTab = tabId;
     }
     
     setupTabEvents(tabId) {
