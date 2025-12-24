@@ -3050,12 +3050,9 @@ class F1Manager {
                     </div>
                     
                     <div class="fab-acciones">
-                        <button class="btn-small btn-danger" onclick="window.fabricacionManager.cancelarFabricacion('${fab.id}')">
-                            <i class="fas fa-times"></i> Cancelar
-                        </button>
                         <button class="btn-small btn-success" ${!lista ? 'disabled' : ''} 
                                 onclick="window.fabricacionManager.recogerPieza('${fab.id}')">
-                            <i class="fas fa-box-open"></i> Recoger
+                            <i class="fas fa-box-open"></i> ${lista ? 'Recoger' : 'Esperar'}
                         </button>
                     </div>
                 </div>
