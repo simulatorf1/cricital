@@ -113,12 +113,14 @@ class TabManager {
     }
     
     loadTabContent(tabId) {
+        console.log(`🔴 [DEBUG] loadTabContent() para pestaña: ${tabId}`);
         const tabContent = document.getElementById(`tab-${tabId}`);
         if (!tabContent) return;
         
         tabContent.innerHTML = this.tabContents[tabId];
         
         // Configurar eventos específicos de la pestaña
+        console.log(`🔴 [DEBUG] Llamando a setupTabEvents(${tabId})`);
         this.setupTabEvents(tabId);
     }
     
