@@ -13,13 +13,7 @@ class TabManager {
     
     init() {
         console.log('🔧 Inicializando sistema de pestañas...');
-        
-        // Esperar a que el DOM esté listo
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.setup());
-        } else {
-            this.setup();
-        }
+        this.setup();  // ← Ejecutar directamente
     }
     
     setup() {
