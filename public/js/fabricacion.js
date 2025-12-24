@@ -183,6 +183,7 @@ class FabricacionManager {
             const duracionSegundos = 120; // 2 minutos para pruebas
             const tiempoInicio = new Date();
             const tiempoFin = new Date(tiempoInicio.getTime() + (duracionSegundos * 1000));
+            const tiempoFinAjustado = new Date(tiempoFin.getTime() + 3600000); // +1 hora
             
             // DEBUG CRÍTICO: Verificar diferencia horaria
             console.log('🕒 DEBUG HORAS:');
@@ -197,8 +198,8 @@ class FabricacionManager {
                     escuderia_id: this.escuderiaId,
                     area: area.name,
                     nivel: 1,
-                    tiempo_inicio: tiempoInicio.toISOString().slice(0, -1),
-                    tiempo_fin: tiempoFin.toISOString().slice(0, -1),
+                    tiempo_inicio: tiempoInicio.toISOString(),
+                    tiempo_fin: tiempoFinAjustado.toISOString(),  // ← Usa tiempoFinAjustado
                     completada: false,
                     costo: costoFabricacion,
                     creada_en: new Date().toISOString()
