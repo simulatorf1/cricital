@@ -186,16 +186,9 @@ class FabricacionManager {
             
             // DEBUG CRÍTICO: Verificar diferencia horaria
             console.log('🕒 DEBUG HORAS:');
-            console.log('Hora local (navegador):', tiempoInicio.toISO// AÑADE ESTO para verificar:
-            console.log('🔍 DIFERENCIA ZONA HORARIA:');
-            console.log('Tiempo inicio (ISO):', tiempoInicio.toISOString());
-            console.log('Tiempo inicio (local):', tiempoInicio.toString());
-            console.log('Tiempo fin (ISO):', tiempoFin.toISOString());
-            console.log('Tiempo fin (local):', tiempoFin.toString());String());
+            console.log('Hora local (navegador):', tiempoInicio.toISOString());
             console.log('Hora fin calculada:', tiempoFin.toISOString());
             console.log('Diferencia con ahora:', (tiempoFin - tiempoInicio) / 1000, 'segundos');
-
-            
 
             // 6. Crear nueva fabricación en BD
             const { data: nuevaFabricacion, error: insertError } = await supabase
@@ -475,7 +468,6 @@ class FabricacionManager {
         const ahora = new Date();
         const tiempoFin = new Date(fab.tiempo_fin);
         const tiempoRestante = Math.max(0, tiempoFin - ahora);
-        const duracionTotal = tiempoFin - tiempoInicio;  // ← ¡CALCULAR AQUÍ!
         const lista = tiempoRestante <= 0;
         const minutos = Math.floor(tiempoRestante / 60000);
         const segundos = Math.floor((tiempoRestante % 60000) / 1000);
@@ -498,54 +490,6 @@ class FabricacionManager {
                     <div class="progress-bar-small">
                         <div class="progress-fill-small" 
                              style="width: ${Math.min(100, ((fab.duracionTotal - tiempoRestante) / fab.duracionTotal) * 100)}%">
-                        </div>
-                    </div>
-                    <div class="fab-tiempo">
-                        <i class="far fa-clock"></i>
-                        <span>${lista ? '¡Lista para recoger!' : `Listo en: ${minutos}m ${segundos}s`}</span>
-                    </div>
-                </div>
-                
-                ${lista ? `
-                <div class="fab-acciones">
-                    <button class="btn-recoger-pieza" 
-                            onclick="window.fabricacionManager.recogerPieza('${fab.id}')">
-                        <i class="fas fa-box-open"></i> Recoger Pieza
-                    </button>
-                </div>
-                ` : ''}
-            </div>
-        `;   
-    // NUEVA FUNCIÓN: Generar HTML una sola vez
-    generarHTMLFabricacion(fab) {
-        const ahora = new Date();
-        const tiempoInicio = new Date(fab.tiempo_inicio);
-        const tiempoFin = new Date(fab.tiempo_fin);
-        const tiempoRestante = Math.max(0, tiempoFin - ahora);
-        const duracionTotal = tiempoFin - tiempoInicio;  // ← ¡CALCULAR AQUÍ!
-        const lista = tiempoRestante <= 0;
-        const minutos = Math.floor(tiempoRestante / 60000);
-        const segundos = Math.floor((tiempoRestante % 60000) / 1000);
-        
-        return `
-            <div class="fabricacion-item ${lista ? 'lista' : 'fabricando'}" data-fabricacion-id="${fab.id}">
-                <div class="fabricacion-info">
-                    <div class="fab-area">
-                        <i class="fas fa-cog"></i>
-                        <span>${fab.area} • Nivel ${fab.nivel}</span>
-                    </div>
-                    <div class="fab-estado">
-                        <span class="estado-badge ${lista ? 'lista' : 'fabricando'}">
-                            ${lista ? '✅ LISTA' : `⏳ ${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`}
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="fab-progreso">
-                    <div class="progress-bar-small">
-                        <div class="progress-fill-small" 
-                             style="width: ${Math.min(100, ((duracionTotal - tiempoRestante) / duracionTotal) * 100)}%">
-                             <!-- ↑↑↑↑ Usar 'duracionTotal' calculada aquí ↑↑↑↑ -->
                         </div>
                     </div>
                     <div class="fab-tiempo">
