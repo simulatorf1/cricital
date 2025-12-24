@@ -651,16 +651,19 @@ class TabManager {
         if (!container || !window.f1Manager?.escuderia?.id) return;
 
         try {
+            console.log('🔍 [ALMACÉN] Buscando piezas para escudería:', window.f1Manager.escuderia.id);
             
             const { data: piezas, error } = await supabase
                 .from('piezas_almacen')
                 .select('*')
                 .eq('escuderia_id', window.f1Manager.escuderia.id)
                 .order('fabricada_en', { ascending: false });
-            console.log('🔍 [DIAGNÓSTICO] Resultado de consulta:', { data: piezas, error, idUsado: window.f1Manager.escuderia.id });
+            
             if (error) throw error;
             
-            // 1. Actualizar contadores si existen en la UI
+            console.log(`📦 [ALMACÉN] Encontradas: ${piezas?.length || 0} piezas`);
+            
+            // 1. Actualizar contadores
             const totalEl = document.getElementById('total-piezas');
             const disponiblesEl = document.getElementById('piezas-disponibles');
             const equipadasEl = document.getElementById('piezas-equipadas');
@@ -675,66 +678,104 @@ class TabManager {
                 equipadasEl.textContent = equipadas;
             }
             
-            // 2. Mostrar piezas (código para generar el HTML de cada pieza)
-            if (!piezas || piezas.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-almacen">
-                        <i class="fas fa-box-open"></i>
-                        <p>No hay piezas en el almacén</p>
-                        <p class="empty-subtitle">Fabrica piezas en el taller para verlas aquí</p>
-                    </div>
-                `;
-                return;
+            // 2. Agrupar piezas por área
+            const piezasPorArea = {};
+            window.CAR_AREAS.forEach(area => {
+                piezasPorArea[area.id] = [];
+            });
+            
+            if (piezas) {
+                piezas.forEach(pieza => {
+                    if (piezasPorArea[pieza.area]) {
+                        piezasPorArea[pieza.area].push(pieza);
+                    }
+                });
             }
             
-            // 3. Generar HTML para cada pieza
-            container.innerHTML = piezas.map(pieza => {
-                // Buscar información del área en CAR_AREAS para mostrar nombre bonito
-                const areaConfig = window.CAR_AREAS?.find(a => a.id === pieza.area) || { name: pieza.area, icon: 'fas fa-cube' };
-                const areaName = areaConfig.name;
-                const areaIcon = areaConfig.icon;
-                const estadoClass = pieza.estado === 'equipada' ? 'equipada' : 
-                                  pieza.estado === 'vendida' ? 'vendida' : 'disponible';
+            // 3. Generar HTML con rejilla por áreas
+            let html = '<div class="almacen-rejilla">';
+            
+            window.CAR_AREAS.forEach(area => {
+                const piezasArea = piezasPorArea[area.id] || [];
+                const piezasDisponibles = piezasArea.filter(p => p.estado === 'disponible');
+                const piezasEquipadas = piezasArea.filter(p => p.estado === 'equipada');
                 
-                return `
-                    <div class="pieza-card ${estadoClass}" data-pieza-id="${pieza.id}">
-                        <div class="pieza-header">
-                            <h4><i class="${areaIcon}"></i> ${areaName}</h4>
-                            <span class="pieza-nivel">Nivel ${pieza.nivel || 1}</span>
-                        </div>
-                        <div class="pieza-info">
-                            <div class="info-item">
-                                <i class="fas fa-bolt"></i>
-                                <span>${pieza.puntos_base || 10} pts base</span>
+                html += `
+                    <div class="area-almacen" style="border-left-color: ${area.color}">
+                        <div class="area-header">
+                            <div class="area-icon" style="color: ${area.color}">
+                                <i class="${area.icon}"></i>
                             </div>
-                            <div class="info-item">
-                                <i class="far fa-calendar"></i>
-                                <span>${new Date(pieza.fabricada_en).toLocaleDateString('es')}</span>
-                            </div>
-                            <div class="info-item">
-                                <i class="fas fa-${pieza.estado === 'equipada' ? 'check-circle' : 
-                                                 pieza.estado === 'vendida' ? 'euro-sign' : 'box'}"></i>
-                                <span>${pieza.estado === 'equipada' ? 'Equipada' : 
-                                       pieza.estado === 'vendida' ? 'Vendida' : 'Disponible'}</span>
+                            <h3>${area.name}</h3>
+                            <div class="area-stats">
+                                <span class="stat-mini">${piezasDisponibles.length} disp.</span>
+                                <span class="stat-mini">${piezasEquipadas.length} equip.</span>
                             </div>
                         </div>
-                        <div class="pieza-actions">
-                            ${pieza.estado === 'disponible' ? `
-                                <button class="btn-equipar" onclick="window.tabManager.equiparPieza('${pieza.id}')">
-                                    <i class="fas fa-bolt"></i> Equipar
-                                </button>
-                                <button class="btn-vender" onclick="window.tabManager.venderPieza('${pieza.id}')">
-                                    <i class="fas fa-tag"></i> Vender
-                                </button>
-                            ` : pieza.estado === 'equipada' ? `
-                                <button class="btn-desequipar" onclick="desequiparPieza('${pieza.id}')">
-                                    <i class="fas fa-ban"></i> Desequipar
-                                </button>
-                            ` : ''}
+                        
+                        <div class="piezas-grid">
+                `;
+                
+                // Mostrar hasta 4 piezas por área (o huecos vacíos)
+                for (let i = 0; i < 4; i++) {
+                    if (i < piezasArea.length) {
+                        const pieza = piezasArea[i];
+                        const estadoClass = pieza.estado === 'equipada' ? 'equipada' : 
+                                          pieza.estado === 'vendida' ? 'vendida' : 'disponible';
+                        
+                        html += `
+                            <div class="pieza-slot ${estadoClass}" data-pieza-id="${pieza.id}">
+                                <div class="pieza-mini">
+                                    <span class="pieza-nivel">N${pieza.nivel}</span>
+                                    <span class="pieza-puntos">${pieza.puntos_base}pts</span>
+                                </div>
+                                ${pieza.estado === 'disponible' ? `
+                                    <div class="pieza-acciones-mini">
+                                        <button class="btn-equipar-mini" onclick="window.tabManager.equiparPieza('${pieza.id}')">
+                                            <i class="fas fa-bolt"></i>
+                                        </button>
+                                        <button class="btn-vender-mini" onclick="window.tabManager.venderPieza('${pieza.id}')">
+                                            <i class="fas fa-tag"></i>
+                                        </button>
+                                    </div>
+                                ` : pieza.estado === 'equipada' ? `
+                                    <div class="pieza-acciones-mini">
+                                        <button class="btn-desequipar-mini" onclick="window.tabManager.desequiparPieza('${pieza.id}')">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    } else {
+                        // Hueco vacío
+                        html += `
+                            <div class="pieza-slot vacio">
+                                <div class="pieza-mini vacio">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Vacío</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                html += `
                         </div>
+                        ${piezasDisponibles.length > 0 ? `
+                            <div class="area-acciones">
+                                <button class="btn-equipar-todas" onclick="window.tabManager.equiparTodasPiezasArea('${area.id}')">
+                                    <i class="fas fa-bolt"></i> Equipar todas
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
-            }).join('');
+            });
+            
+            html += '</div>'; // Cierra .almacen-rejilla
+            
+            container.innerHTML = html;
             
         } catch (error) {
             console.error('❌ Error cargando almacén:', error);
@@ -742,7 +783,6 @@ class TabManager {
                 <div class="error-state">
                     <i class="fas fa-exclamation-triangle"></i>
                     <p>Error cargando el almacén</p>
-                    <p class="error-detail">${error.message}</p>
                     <button onclick="window.tabManager.loadAlmacenPiezas()">
                         Reintentar
                     </button>
