@@ -882,11 +882,8 @@ class TabManager {
 // Hacer la clase disponible globalmente
 window.TabManager = TabManager;
 
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🔴 [DEBUG] DOMContentLoaded - Creando tabManager');
-    window.tabManager = new TabManager();
-    console.log('🔴 [DEBUG] tabManager creado:', window.tabManager);
-});
-
+// Inicializar INMEDIATAMENTE (no esperar DOMContentLoaded)
+console.log('🔴 [DEBUG] Creando tabManager INMEDIATAMENTE');
+window.tabManager = new TabManager();
+console.log('🔴 [DEBUG] tabManager creado:', window.tabManager);
 console.log('✅ Sistema de pestañas listo para usar');
