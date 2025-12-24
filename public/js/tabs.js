@@ -6,16 +6,16 @@ console.log('📑 Sistema de pestañas cargado');
 
 class TabManager {
     constructor() {
-        this.currentTab = 'principal';
-        this.tabContents = {};
-        this.init();
+            console.log('🔴 [DEBUG] Constructor TabManager');
+            this.currentTab = 'principal';
+            this.tabContents = {};
+            this.init();  // ← ¿ESTÁ ESTA LÍNEA?
     }
     
     init() {
         console.log('🔧 Inicializando sistema de pestañas...');
         this.setup();  // ← Ejecutar directamente
     }
-    
     setup() {
         console.log('🔴 [DEBUG] setup() INICIADO');
     
@@ -32,17 +32,9 @@ class TabManager {
         this.switchTab('principal');
     
         console.log('🔴 [DEBUG] setup() COMPLETADO');
-        // Configurar botones de pestañas
-        this.setupTabButtons();
-        
-        // Cargar contenido de pestañas
-        this.loadTabContents();
-        
-        // Mostrar pestaña principal
-        this.switchTab('principal');
-        
         console.log('✅ Sistema de pestañas listo');
     }
+
     
     setupTabButtons() {
         console.log('🔴 [DEBUG] setupTabButtons() INICIADO');
