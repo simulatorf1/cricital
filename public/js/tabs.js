@@ -651,127 +651,93 @@ class TabManager {
         if (!container || !window.f1Manager?.escuderia?.id) return;
 
         try {
-            // 1. Obtener todas las piezas del usuario
             const { data: todasLasPiezas, error } = await supabase
                 .from('piezas_almacen')
                 .select('*')
-                .eq('escuderia_id', window.f1Manager.escuderia.id);
-            
+                .eq('escuderia_id', window.f1Manager.escuderia.id)
+                .order('fabricada_en', { ascending: false });
+
             if (error) throw error;
 
-            // 2. Actualizar contadores superiores
-            const totalPiezas = todasLasPiezas?.length || 0;
-            const disponibles = todasLasPiezas?.filter(p => p.estado === 'disponible').length || 0;
-            const equipadas = todasLasPiezas?.filter(p => p.estado === 'equipada').length || 0;
-
-            document.getElementById('total-piezas').textContent = totalPiezas;
-            document.getElementById('piezas-disponibles').textContent = disponibles;
-            document.getElementById('piezas-equipadas').textContent = equipadas;
-
-            // 3. CREAR REJILLA SIMPLE Y CLARA
-            let html = '<div class="almacen-rejilla-simple">';
-
-            window.CAR_AREAS.forEach(area => {
-                // Filtrar piezas de esta área
-                const piezasArea = todasLasPiezas?.filter(p => p.area === area.id) || [];
-                const piezasDisponibles = piezasArea.filter(p => p.estado === 'disponible');
-                const piezasEquipadas = piezasArea.filter(p => p.estado === 'equipada');
-                
-                // Determinar color de fondo según estado
-                let cardClass = 'area-card';
-                let statusText = 'SIN PIEZAS';
-                let statusColor = '#666';
-                
-                if (piezasEquipadas.length > 0) {
-                    cardClass += ' equipada';
-                    statusText = `${piezasEquipadas.length} EQUIPADA(S)`;
-                    statusColor = '#4CAF50'; // Verde
-                } else if (piezasDisponibles.length > 0) {
-                    cardClass += ' disponible';
-                    statusText = `${piezasDisponibles.length} DISPONIBLE(S)`;
-                    statusColor = '#00d2be'; // Azul F1
+            // Agrupar por área
+            const piezasPorArea = {};
+            todasLasPiezas?.forEach(pieza => {
+                if (!piezasPorArea[pieza.area]) {
+                    piezasPorArea[pieza.area] = [];
                 }
+                piezasPorArea[pieza.area].push(pieza);
+            });
+
+            let html = '<div class="almacen-grid-completo">';
+            
+            // Para cada área
+            Object.entries(piezasPorArea).forEach(([areaId, piezas]) => {
+                const areaInfo = window.CAR_AREAS.find(a => a.id === areaId);
+                if (!areaInfo) return;
 
                 html += `
-                    <div class="${cardClass}" style="border-color: ${area.color}">
-                        <!-- CABECERA CON ICONO Y NOMBRE -->
-                        <div class="area-card-header">
-                            <div class="area-card-icon" style="color: ${area.color}">
-                                <i class="${area.icon} fa-2x"></i>
+                    <div class="area-almacen-seccion">
+                        <h3 class="area-titulo" style="border-left: 5px solid ${areaInfo.color}">
+                            <i class="${areaInfo.icon}"></i> ${areaInfo.name}
+                        </h3>
+                        <div class="piezas-grid-area">
+                `;
+
+                // Mostrar cada pieza de esta área
+                piezas.forEach(pieza => {
+                    const equipada = pieza.estado === 'equipada';
+                    html += `
+                        <div class="pieza-card ${equipada ? 'equipada' : 'disponible'}" 
+                             data-pieza-id="${pieza.id}"
+                             style="border-color: ${areaInfo.color}">
+                            
+                            <div class="pieza-icono" style="background: ${equipada ? areaInfo.color : 'transparent'}">
+                                <i class="${areaInfo.icon}"></i>
                             </div>
-                            <div class="area-card-info">
-                                <h3>${area.name}</h3>
-                                <div class="area-card-stats">
-                                    <span class="stat-total">${piezasArea.length} piezas</span>
-                                    <span class="stat-status" style="color: ${statusColor}">${statusText}</span>
-                                </div>
+                            
+                            <div class="pieza-info">
+                                <div class="pieza-nivel">Nivel ${pieza.nivel}</div>
+                                <div class="pieza-puntos">${pieza.puntos_base || 10} pts</div>
+                            </div>
+                            
+                            <div class="pieza-acciones">
+                                <button class="btn-equipar-pieza" 
+                                        onclick="window.tabManager.equiparPieza('${pieza.id}')"
+                                        ${equipada ? 'disabled' : ''}>
+                                    ${equipada ? '✓ EQUIPADA' : 'EQUIPAR'}
+                                </button>
+                                <button class="btn-vender-pieza" 
+                                        onclick="window.tabManager.venderPieza('${pieza.id}')">
+                                    VENDER
+                                </button>
                             </div>
                         </div>
+                    `;
+                });
 
-                        <!-- DETALLES DE PIEZAS -->
-                        <div class="area-card-details">
-                            ${piezasArea.length > 0 ? 
-                                `<div class="piezas-lista-mini">
-                                    ${piezasArea.slice(0, 3).map(pieza => `
-                                        <div class="pieza-mini-item ${pieza.estado}">
-                                            <span>N${pieza.nivel}</span>
-                                            <small>${pieza.puntos_base}pts</small>
-                                        </div>
-                                    `).join('')}
-                                    ${piezasArea.length > 3 ? `<div class="pieza-mini-item mas">+${piezasArea.length - 3}</div>` : ''}
-                                </div>`
-                                : 
-                                `<div class="sin-piezas">
-                                    <i class="fas fa-box-open"></i>
-                                    <p>No hay piezas</p>
-                                </div>`
-                            }
-                        </div>
-
-                        <!-- BOTONES DE ACCIÓN GRANDES Y CLAROS -->
-                        <div class="area-card-actions">
-                            ${piezasDisponibles.length > 0 ? `
-                                <button class="btn-accion-grande btn-equipar" 
-                                        onclick="window.tabManager.equiparTodasPiezasArea('${area.id}')">
-                                    <i class="fas fa-bolt"></i>
-                                    EQUIPAR TODAS (${piezasDisponibles.length})
-                                </button>
-                            ` : ''}
-                            
-                            ${piezasEquipadas.length > 0 ? `
-                                <button class="btn-accion-grande btn-desequipar"
-                                        onclick="window.tabManager.desequiparTodasPiezasArea('${area.id}')">
-                                    <i class="fas fa-ban"></i>
-                                    DESEQUIPAR TODAS (${piezasEquipadas.length})
-                                </button>
-                            ` : ''}
-                            
-                            ${piezasArea.length === 0 ? `
-                                <button class="btn-accion-grande btn-fabricar"
-                                        onclick="window.f1Manager?.iniciarFabricacion('${area.id}')">
-                                    <i class="fas fa-hammer"></i>
-                                    FABRICAR PRIMERA PIEZA
-                                </button>
-                            ` : ''}
+                html += `
                         </div>
                     </div>
                 `;
             });
 
+            // Si no hay piezas
+            if (Object.keys(piezasPorArea).length === 0) {
+                html = `
+                    <div class="almacen-vacio">
+                        <i class="fas fa-box-open fa-3x"></i>
+                        <h3>No hay piezas fabricadas</h3>
+                        <p>Ve al taller para fabricar tu primera pieza</p>
+                    </div>
+                `;
+            }
+
             html += '</div>';
             container.innerHTML = html;
 
         } catch (error) {
-            console.error('❌ Error cargando almacén:', error);
-            container.innerHTML = `
-                <div class="error-simple">
-                    <i class="fas fa-exclamation-triangle fa-2x"></i>
-                    <p>Error cargando el almacén</p>
-                    <button class="btn-reintentar" onclick="window.tabManager.loadAlmacenPiezas()">
-                        Reintentar
-                    </button>
-                </div>
-            `;
+            console.error('Error cargando almacén:', error);
+            container.innerHTML = '<div class="error">Error cargando el almacén</div>';
         }
     }
     async loadMercadoPiezas() {
