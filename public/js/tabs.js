@@ -808,8 +808,17 @@ class TabManager {
         console.log(`🔧 Equipando pieza: ${piezaId}`);
         
         try {
-            // 1. Marcar pieza como equipada en BD
-            const { error } = await supabase
+            // 1. Obtener datos de la pieza
+            const { data: pieza, error: fetchError } = await supabase
+                .from('piezas_almacen')
+                .select('*')
+                .eq('id', piezaId)
+                .single();
+            
+            if (fetchError) throw fetchError;
+            
+            // 2. Marcar pieza como equipada en BD
+            const { error: updateError } = await supabase
                 .from('piezas_almacen')
                 .update({ 
                     estado: 'equipada',
@@ -817,17 +826,25 @@ class TabManager {
                 })
                 .eq('id', piezaId);
             
-            if (error) throw error;
+            if (updateError) throw updateError;
             
-            // 2. Actualizar puntos del coche (añadir puntos_base)
-            // Esto lo implementaremos después
+            // 3. ACTUALIZAR PUNTOS DEL COCHE (NUEVO)
+            await this.sumarPuntosAlCoche(pieza.area, pieza.puntos_base || 10);
             
-            // 3. Actualizar UI
+            // 4. Actualizar UI
             this.loadAlmacenPiezas();
             
-            // 4. Mostrar notificación
+            // 5. Actualizar UI principal si está disponible
+            if (window.f1Manager?.loadCarStatus) {
+                setTimeout(() => {
+                    window.f1Manager.loadCarStatus();
+                    window.f1Manager.updateCarAreasUI();
+                }, 500);
+            }
+            
+            // 6. Mostrar notificación
             if (window.f1Manager?.showNotification) {
-                window.f1Manager.showNotification('✅ Pieza equipada correctamente', 'success');
+                window.f1Manager.showNotification(`✅ Pieza equipada (+${pieza.puntos_base || 10} pts)`, 'success');
             }
             
         } catch (error) {
@@ -837,7 +854,124 @@ class TabManager {
             }
         }
     }
-    
+        async sumarPuntosAlCoche(areaId, puntos) {
+        try {
+            console.log(`📊 Sumando ${puntos} pts al área ${areaId}`);
+            
+            // 1. Obtener stats actuales del coche
+            const { data: stats, error: fetchError } = await supabase
+                .from('coches_stats')
+                .select('*')
+                .eq('escuderia_id', window.f1Manager.escuderia.id)
+                .single();
+            
+            if (fetchError && fetchError.code !== 'PGRST116') {
+                // Si no hay stats, crear registro
+                const { error: createError } = await supabase
+                    .from('coches_stats')
+                    .insert([{
+                        escuderia_id: window.f1Manager.escuderia.id,
+                        [`${areaId}_progreso`]: 0,
+                        [`${areaId}_nivel`]: 0,
+                        actualizado_en: new Date().toISOString()
+                    }]);
+                
+                if (createError) throw createError;
+                return;
+            }
+            
+            if (!stats) return;
+            
+            // 2. Calcular nuevo progreso
+            const columnaProgreso = `${areaId}_progreso`;
+            const columnaNivel = `${areaId}_nivel`;
+            
+            const progresoActual = stats[columnaProgreso] || 0;
+            const nivelActual = stats[columnaNivel] || 0;
+            
+            let nuevoProgreso = progresoActual + 1; // Cada pieza suma 1 al progreso
+            let nuevoNivel = nivelActual;
+            
+            // Si alcanza 20 piezas, subir de nivel
+            if (nuevoProgreso >= 20) {
+                nuevoProgreso = 0;
+                nuevoNivel = nivelActual + 1;
+                if (nuevoNivel > 10) nuevoNivel = 10;
+                
+                console.log(`🎉 ¡NIVEL UP! ${areaId} ahora es nivel ${nuevoNivel}`);
+            }
+            
+            // 3. Actualizar en BD
+            const { error: updateError } = await supabase
+                .from('coches_stats')
+                .update({
+                    [columnaProgreso]: nuevoProgreso,
+                    [columnaNivel]: nuevoNivel,
+                    actualizado_en: new Date().toISOString()
+                })
+                .eq('id', stats.id);
+            
+            if (updateError) throw updateError;
+            
+            console.log(`✅ Progreso actualizado: ${areaId} - Progreso: ${nuevoProgreso}/20, Nivel: ${nuevoNivel}`);
+            
+        } catch (error) {
+            console.error('❌ Error sumando puntos al coche:', error);
+        }
+
+            
+    }
+        async restarPuntosDelCoche(areaId, puntos) {
+        try {
+            console.log(`📊 Restando ${puntos} pts del área ${areaId}`);
+            
+            // 1. Obtener stats actuales del coche
+            const { data: stats, error: fetchError } = await supabase
+                .from('coches_stats')
+                .select('*')
+                .eq('escuderia_id', window.f1Manager.escuderia.id)
+                .single();
+            
+            if (fetchError || !stats) {
+                console.log('⚠️ No hay stats del coche para restar puntos');
+                return;
+            }
+            
+            // 2. Calcular nuevo progreso (no puede ser negativo)
+            const columnaProgreso = `${areaId}_progreso`;
+            const columnaNivel = `${areaId}_nivel`;
+            
+            const progresoActual = stats[columnaProgreso] || 0;
+            const nivelActual = stats[columnaNivel] || 0;
+            
+            let nuevoProgreso = Math.max(0, progresoActual - 1); // Restar 1, mínimo 0
+            let nuevoNivel = nivelActual;
+            
+            // Si estaba en progreso 0 y nivel > 0, bajar de nivel
+            if (progresoActual === 0 && nivelActual > 0) {
+                nuevoNivel = nivelActual - 1;
+                nuevoProgreso = 19; // Al bajar de nivel, vuelve a 19/20
+                if (nuevoNivel < 0) nuevoNivel = 0;
+            }
+            
+            // 3. Actualizar en BD
+            const { error: updateError } = await supabase
+                .from('coches_stats')
+                .update({
+                    [columnaProgreso]: nuevoProgreso,
+                    [columnaNivel]: nuevoNivel,
+                    actualizado_en: new Date().toISOString()
+                })
+                .eq('id', stats.id);
+            
+            if (updateError) throw updateError;
+            
+            console.log(`✅ Progreso actualizado: ${areaId} - Progreso: ${nuevoProgreso}/20, Nivel: ${nuevoNivel}`);
+            
+        } catch (error) {
+            console.error('❌ Error restando puntos del coche:', error);
+        }
+    }
     venderPieza(piezaId) {
         console.log(`💰 Vendiendo pieza: ${piezaId}`);
         // Por ahora solo muestra mensaje (botón deshabilitado)
@@ -848,8 +982,17 @@ class TabManager {
         console.log(`🔧 Desequipando pieza: ${piezaId}`);
         
         try {
-            // 1. Marcar pieza como disponible en BD
-            const { error } = await supabase
+            // 1. Obtener datos de la pieza
+            const { data: pieza, error: fetchError } = await supabase
+                .from('piezas_almacen')
+                .select('*')
+                .eq('id', piezaId)
+                .single();
+            
+            if (fetchError) throw fetchError;
+            
+            // 2. Marcar pieza como disponible en BD
+            const { error: updateError } = await supabase
                 .from('piezas_almacen')
                 .update({ 
                     estado: 'disponible',
@@ -857,17 +1000,25 @@ class TabManager {
                 })
                 .eq('id', piezaId);
             
-            if (error) throw error;
+            if (updateError) throw updateError;
             
-            // 2. Quitar puntos del coche (restar puntos_base)
-            // Esto lo implementaremos después
+            // 3. RESTAR PUNTOS DEL COCHE (NUEVO)
+            await this.restarPuntosDelCoche(pieza.area, pieza.puntos_base || 10);
             
-            // 3. Actualizar UI
+            // 4. Actualizar UI
             this.loadAlmacenPiezas();
             
-            // 4. Mostrar notificación
+            // 5. Actualizar UI principal si está disponible
+            if (window.f1Manager?.loadCarStatus) {
+                setTimeout(() => {
+                    window.f1Manager.loadCarStatus();
+                    window.f1Manager.updateCarAreasUI();
+                }, 500);
+            }
+            
+            // 6. Mostrar notificación
             if (window.f1Manager?.showNotification) {
-                window.f1Manager.showNotification('✅ Pieza desequipada correctamente', 'success');
+                window.f1Manager.showNotification(`✅ Pieza desequipada (-${pieza.puntos_base || 10} pts)`, 'success');
             }
             
         } catch (error) {
