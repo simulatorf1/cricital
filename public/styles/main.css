@@ -2415,3 +2415,208 @@ body {
     border-radius: 10px;
     border: 1px solid #ff4444;
 }
+/* ===== ALMACÉN EN TABLA ===== */
+.almacen-tabla {
+    width: 100%;
+    padding: 20px 0;
+}
+
+.area-tabla {
+    background: rgba(42, 42, 56, 0.8);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.area-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.area-header h3 {
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+}
+
+.contador-piezas {
+    background: rgba(0, 210, 190, 0.2);
+    color: #00d2be;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.piezas-tabla {
+    padding: 0;
+}
+
+.pieza-fila {
+    display: grid;
+    grid-template-columns: 50px 80px 100px 120px 120px 1fr;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s ease;
+}
+
+.pieza-fila:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.pieza-fila.equipada {
+    background: rgba(0, 210, 190, 0.1);
+}
+
+.fila-par {
+    background: rgba(255,255,255,0.02);
+}
+
+.fila-impar {
+    background: rgba(255,255,255,0.01);
+}
+
+.celda {
+    padding: 0 10px;
+}
+
+.celda-icono {
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.celda-nivel {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    color: white;
+    font-size: 1.1rem;
+}
+
+.badge-puntos {
+    background: linear-gradient(135deg, #00d2be, #009688);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    display: inline-block;
+}
+
+.estado-badge {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.estado-badge.equipada {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
+
+.estado-badge.disponible {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+    border: 1px solid #ff9800;
+}
+
+.celda-fecha {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.celda-acciones {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-accion {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.9rem;
+    min-width: 80px;
+    transition: all 0.3s ease;
+}
+
+.btn-equipar {
+    background: linear-gradient(135deg, #00d2be, #009688);
+    color: white;
+}
+
+.btn-equipar:disabled {
+    background: linear-gradient(135deg, #4CAF50, #388E3C);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn-vender {
+    background: linear-gradient(135deg, #e10600, #c62828);
+    color: white;
+}
+
+.btn-accion:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+}
+
+.almacen-vacio {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.almacen-vacio i {
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+@media (max-width: 1024px) {
+    .pieza-fila {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .celda {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .celda::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #aaa;
+        font-size: 0.9rem;
+        min-width: 120px;
+    }
+    
+    .celda-icono::before { content: 'Tipo:'; }
+    .celda-nivel::before { content: 'Nivel:'; }
+    .celda-puntos::before { content: 'Puntos:'; }
+    .celda-estado::before { content: 'Estado:'; }
+    .celda-fecha::before { content: 'Fabricada:'; }
+    .celda-acciones::before { content: 'Acciones:'; }
+    
+    .celda-acciones {
+        justify-content: flex-start;
+        margin-top: 10px;
+    }
+}
