@@ -882,7 +882,6 @@ class TabManager {
         console.log(`🔧 Equipando pieza: ${piezaId}`);
         
         try {
-            // 1. Obtener datos de la pieza
             const { data: pieza, error: fetchError } = await supabase
                 .from('piezas_almacen')
                 .select('*')
@@ -891,7 +890,7 @@ class TabManager {
             
             if (fetchError) throw fetchError;
             
-            // 2. Marcar pieza como equipada en BD
+            // Actualizar pieza como equipada
             const { error: updateError } = await supabase
                 .from('piezas_almacen')
                 .update({ 
@@ -902,21 +901,21 @@ class TabManager {
             
             if (updateError) throw updateError;
             
-            // 3. ACTUALIZAR PUNTOS DEL COCHE (NUEVO)
+            // Sumar puntos al área del coche
             await this.sumarPuntosAlCoche(pieza.area, pieza.puntos_base || 10);
             
-            // 4. Actualizar UI
+            // Recargar almacén
             this.loadAlmacenPiezas();
             
-            // 5. Actualizar UI principal si está disponible
+            // Actualizar stats del coche en pantalla principal
             if (window.f1Manager?.loadCarStatus) {
                 setTimeout(() => {
                     window.f1Manager.loadCarStatus();
                     window.f1Manager.updateCarAreasUI();
+                    window.f1Manager.updateProductionMonitor();
                 }, 500);
             }
             
-            // 6. Mostrar notificación
             if (window.f1Manager?.showNotification) {
                 window.f1Manager.showNotification(`✅ Pieza equipada (+${pieza.puntos_base || 10} pts)`, 'success');
             }
