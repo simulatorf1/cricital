@@ -872,6 +872,8 @@ class TabManager {
         `;
     }
 }
+// Hacer la clase disponible globalmente
+window.TabManager = TabManager;
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
