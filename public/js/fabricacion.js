@@ -437,18 +437,30 @@ class FabricacionManager {
     // NUEVA FUNCIÓN: Solo actualiza contadores
     actualizarContadoresTiempo() {
         this.produccionesActivas.forEach(fab => {
-            const elemento = document.querySelector(`[data-fabricacion-id="${fab.id}"] .fab-tiempo`);
-            if (elemento) {
-                const ahora = new Date();
-                const tiempoFin = new Date(fab.tiempo_fin);
-                const tiempoRestante = Math.max(0, tiempoFin - ahora);
-                
-                if (tiempoRestante > 0) {
-                    const minutos = Math.floor(tiempoRestante / 60000);
-                    const segundos = Math.floor((tiempoRestante % 60000) / 1000);
-                    elemento.textContent = `Listo en: ${minutos}m ${segundos}s`;
-                } else {
-                    elemento.textContent = '¡Lista para recoger!';
+            // CAMBIO AQUÍ: Solo actualizar contadores si NO está lista para recoger
+            if (fab.estado !== 'lista_para_recoger') {
+                const elemento = document.querySelector(`[data-fabricacion-id="${fab.id}"] .fab-tiempo`);
+                if (elemento) {
+                    const ahora = new Date();
+                    const tiempoFin = new Date(fab.tiempo_fin);
+                    const tiempoRestante = Math.max(0, tiempoFin - ahora);
+                    
+                    if (tiempoRestante > 0) {
+                        const minutos = Math.floor(tiempoRestante / 60000);
+                        const segundos = Math.floor((tiempoRestante % 60000) / 1000);
+                        elemento.textContent = `Listo en: ${minutos}m ${segundos}s`;
+                    } else {
+                        // Cuando se acaba el tiempo, marcamos como lista
+                        fab.estado = 'lista_para_recoger';
+                        elemento.textContent = '¡Lista para recoger!';
+                        
+                        // Actualizar el badge también
+                        const badge = document.querySelector(`[data-fabricacion-id="${fab.id}"] .estado-badge`);
+                        if (badge) {
+                            badge.textContent = '✅ LISTA';
+                            badge.className = 'estado-badge lista';
+                        }
+                    }
                 }
             }
         });
