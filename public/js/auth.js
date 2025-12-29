@@ -77,27 +77,53 @@ class AuthManager {
 
     async loadUserData(user) {
         try {
-            // 1. Obtener datos del usuario
-            const { data: userData } = await supabase
+            // PASO 1: Verificar SI existe el usuario en la tabla 'users'
+            const { data: userData, error: fetchError } = await supabase
                 .from('users')
                 .select('*')
                 .eq('id', user.id)
-                .single();
+                .maybeSingle(); // Cambiado a maybeSingle (devuelve null si no existe)
 
-            // 2. Obtener escudería
+            let currentUserData = userData;
+
+            // PASO 2: Si NO existe (userData es null), CREARLO
+            if (!currentUserData) {
+                console.log('🆕 Usuario no existe en BD. Creando...');
+                
+                const { data: newUser, error: insertError } = await supabase
+                    .from('users')
+                    .insert([{
+                        id: user.id, // ID CRÍTICO: debe coincidir con Supabase Auth
+                        email: user.email,
+                        username: user.user_metadata?.username || user.email.split('@')[0], // Usa metadata o parte del email
+                        created_at: new Date().toISOString()
+                    }])
+                    .select()
+                    .single();
+                    
+                if (insertError) {
+                    console.error('❌ Error creando usuario:', insertError);
+                    throw insertError;
+                }
+                currentUserData = newUser;
+                console.log('✅ Usuario creado en BD:', currentUserData);
+            }
+
+            // PASO 3: Ahora sí buscar la escudería con un user_id VÁLIDO
             const { data: escuderia } = await supabase
                 .from('escuderias')
                 .select('*')
-                .eq('user_id', user.id)
-                .single();
+                .eq('user_id', user.id) // ← Ahora user.id existe en la tabla 'users'
+                .maybeSingle(); // Usar maybeSingle aquí también
 
             if (!escuderia) {
                 console.log('⚠️ Usuario sin escudería, creando...');
-                await this.createDefaultEscuderia(user.id, userData?.username || 'Nuevo Manager');
+                await this.createDefaultEscuderia(user.id, currentUserData.username);
+                // Recargar datos tras crear escudería
                 return await this.loadUserData(user);
             }
 
-            this.user = { ...user, ...userData };
+            this.user = { ...user, ...currentUserData };
             this.escuderia = escuderia;
 
             // Guardar en localStorage
@@ -119,11 +145,11 @@ class AuthManager {
             return true;
 
         } catch (error) {
-            console.error('❌ Error cargando datos usuario:', error);
+            console.error('❌ Error CATASTRÓFICO en loadUserData:', error);
+            this.showNotification('Error crítico al cargar el juego.', 'error');
             return false;
         }
     }
-
     async createDefaultEscuderia(userId, username) {
         const escuderiaNombre = `${username}'s Team`;
         
