@@ -941,647 +941,1087 @@ class F1Manager {
         this.mostrarTutorialStep();
     }
     
-    mostrarTutorialStep() {
-        const steps = [
-            // PASO 1: Bienvenida y concepto del juego
-            {
-                title: "🏆 ¡BIENVENIDO A RACE STRATEGY MANAGER!",
-                content: `
-                    <p>Te damos la bienvenida al mundo de la <strong>estrategia de motorsport internacional</strong>.</p>
-                    <p>Eres el director de una escudería virtual que compite en el ámbito estratégico global.</p>
-                    
-                    <p class="success">🎯 Tu misión principal:</p>
-                    <ul>
-                        <li><strong>Pronosticar eventos</strong> en competiciones reales de motorsport</li>
-                        <li><strong>Desarrollar 11 sistemas técnicos</strong> de tu vehículo virtual</li>
-                        <li><strong>Contratar y gestionar</strong> un equipo de estrategas analistas</li>
-                        <li><strong>Competir globalmente</strong> en precisión predictiva</li>
-                    </ul>
-                    
-                    <p class="success">💰 Tu escudería ya está creada con <strong>5,000,000€</strong> de presupuesto inicial</p>
-                `,
-                action: 'mostrarPestanas'
-            },
-            
-            // PASO 2: Sistema de pronósticos (el núcleo del juego)
-            {
-                title: "🎯 EL NÚCLEO DEL JUEGO: PRONÓSTICOS",
-                content: `
-                    <p>La esencia del juego es <strong>pronosticar eventos estadísticos</strong> que ocurren en competiciones reales de motorsport.</p>
-                    
-                    <p>📅 <strong>Cada semana, antes de un evento internacional:</strong></p>
-                    <ul>
-                        <li>Realizas pronósticos sobre métricas específicas</li>
-                        <li>Se contrastan con datos objetivos de dominio público</li>
-                        <li>Recibes puntos por cada acierto</li>
-                    </ul>
-                    
-                    <p>🔍 <strong>Ejemplos de pronósticos:</strong></p>
-                    <div class="examples-grid">
-                        <div class="example-card">¿Habrá neutralización? (Sí/No)</div>
-                        <div class="example-card">Abandonos: 0-2 / 3-5 / Más de 5</div>
-                        <div class="example-card">Diferencia 1º-2º: <1s / 1-5s / >5s</div>
-                        <div class="example-card">¿Afectará el clima? (Sí/No)</div>
+mostrarTutorialStep() {
+    const steps = [
+        // PASO 1: Bienvenida al juego online multijugador
+        {
+            title: "🏆 ¡BIENVENIDO A RACE STRATEGY MANAGER!",
+            content: `
+                <p>Eres el nuevo director de la escudería <strong class="team-name">${this.escuderia.nombre || "TU EQUIPO"}</strong>.</p>
+                
+                <p>Estás a punto de unirte a <strong class="online">una comunidad global</strong> de miles de directores de escuderías que compiten por ser los mejores estrategas del mundo.</p>
+                
+                <div class="highlight-box">
+                    <p>💰 <strong>¡Gran noticia!</strong></p>
+                    <p>Tus patrocinadores confían en tu visión y han depositado <strong class="money">5,000,000€</strong> en la cuenta del equipo para relanzar esta nueva etapa.</p>
+                </div>
+                
+                <p class="main-mission">🎯 <strong>Tu misión será:</strong></p>
+                <ul>
+                    <li>Gestionar y desarrollar tu escudería en <strong>11 áreas técnicas clave</strong></li>
+                    <li>Anticiparte a lo que ocurra en carreras reales mediante <strong>estrategas especializados</strong></li>
+                    <li>Tomar decisiones que conviertan tus aciertos en puntos y dinero</li>
+                    <li>Competir contra miles de jugadores para convertirte en <strong>el mejor estratega del mundo</strong></li>
+                </ul>
+                
+                <div class="community-stats">
+                    <div class="stat">
+                        <i class="fas fa-users"></i>
+                        <span>+10,000 jugadores activos</span>
                     </div>
-                    
-                    <p>👉 Estos datos se verifican con estadísticas públicas post-evento.</p>
-                `,
-                highlight: '.dashboard-header',
-                action: 'mostrarPestanas'
-            },
-            
-            // PASO 3: Desarrollo técnico del vehículo
-            {
-                title: "🔧 DESARROLLO TÉCNICO DEL VEHÍCULO",
-                content: `
-                    <p>Tu vehículo virtual tiene <strong>11 sistemas principales</strong> para desarrollar:</p>
-                    
-                    <div class="systems-grid">
-                        <div class="system-item">🏎️ Motor</div>
-                        <div class="system-item">📊 Chasis</div>
-                        <div class="system-item">🌀 Aerodinámica</div>
-                        <div class="system-item">⚙️ Suspensión</div>
-                        <div class="system-item">🔄 Caja de Cambios</div>
-                        <div class="system-item">🛑 Frenos</div>
-                        <div class="system-item">💡 Electrónica</div>
-                        <div class="system-item">🎮 Volante</div>
-                        <div class="system-item">🌪️ Difusor</div>
-                        <div class="system-item">🪽 Alerones</div>
-                        <div class="system-item">📦 Pontones</div>
+                    <div class="stat">
+                        <i class="fas fa-trophy"></i>
+                        <span>Competición en tiempo real</span>
                     </div>
-                    
-                    <p>📈 <strong>Sistema progresivo:</strong></p>
-                    <ul>
-                        <li>Primeras piezas: 2 minutos</li>
-                        <li>Progresión gradual hasta 4 horas</li>
-                        <li>Cada pieza otorga puntos base permanentes</li>
-                        <li>Nivel máximo: 10 por sistema</li>
-                    </ul>
-                `,
-                highlight: '.tabs-navigation',
-                action: 'mostrarTab'
-            },
-            
-            // PASO 4: Contratación de estrategas (OBLIGATORIO)
-            {
-                title: "👥 CONTRATAR ESTRATEGAS (OBLIGATORIO)",
-                content: `
-                    <p>Necesitas al menos <strong>1 estratega analista</strong> para comenzar.</p>
-                    
-                    <p>🎯 <strong>Los estrategas potencian tu precisión:</strong></p>
-                    <ul>
-                        <li><strong>Especialidad</strong>: Bonifica un tipo específico de pronóstico</li>
-                        <li><strong>Bono</strong>: Desde +5% hasta +25% en puntos por acierto</li>
-                        <li><strong>Sueldo</strong>: Coste mensual en tu presupuesto</li>
-                    </ul>
-                    
-                    <p class="warning">⚠️ SELECCIONA TU PRIMER ANALISTA:</p>
-                    
-                    <div class="analyst-options">
-                        <div class="analyst-card">
-                            <h4>🌤️ Meteorólogo Junior</h4>
-                            <p>Bono: <strong>+5% en pronósticos climáticos</strong></p>
-                            <p>Sueldo: 50,000€/mes</p>
-                        </div>
-                        
-                        <div class="analyst-card">
-                            <h4>⏱️ Analista de Ritmo</h4>
-                            <p>Bono: <strong>+5% en pronósticos de tiempos</strong></p>
-                            <p>Sueldo: 50,000€/mes</p>
-                        </div>
-                        
-                        <div class="analyst-card">
-                            <h4>🔧 Experto en Fiabilidad</h4>
-                            <p>Bono: <strong>+5% en pronósticos de abandonos</strong></p>
-                            <p>Sueldo: 50,000€/mes</p>
-                        </div>
-                    </div>
-                    
-                    <p class="warning">⚠️ Debes seleccionar 1 estratega para continuar</p>
-                `,
-                highlight: '#contratar-pilotos-btn',
-                action: 'contratarPilotos',
-                mandatory: true
-            },
-            
-            // PASO 5: Economía y ciclo semanal
-            {
-                title: "💰 ECONOMÍA Y CICLO SEMANAL",
-                content: `
-                    <p>El juego opera con una <strong>economía interna cerrada</strong> en ciclos semanales:</p>
-                    
-                    <div class="cycle-steps">
-                        <div class="cycle-step">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <strong>ANÁLISIS (Lunes-Jueves)</strong><br>
-                                • Seleccionas pronósticos para el próximo evento<br>
-                                • Asignas estrategas a cada pronóstico
-                            </div>
-                        </div>
-                        
-                        <div class="cycle-step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <strong>EJECUCIÓN (Fin de semana)</strong><br>
-                                • El evento real ocurre<br>
-                                • Tus pronósticos se contrastan con datos públicos
-                            </div>
-                        </div>
-                        
-                        <div class="cycle-step">
-                            <div class="step-number">3</div>
-                            <div class="step-content">
-                                <strong>RESULTADOS (Lunes)</strong><br>
-                                • Recibes puntos por cada acierto<br>
-                                • Puntos → Presupuesto<br>
-                                • Pagas sueldos de tu equipo
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <p>🔄 <strong>Componentes obsoletos</strong> pueden venderse en el mercado interno a precio regulado.</p>
-                `,
-                tab: 'taller',
-                action: 'fabricarPieza'
-            },
-            
-            // PASO 6: Competencia y rankings
-            {
-                title: "🏆 COMPETICIÓN Y CLASIFICACIONES",
-                content: `
-                    <p>Mides tu éxito en <strong>tres clasificaciones globales</strong>:</p>
-                    
-                    <div class="rankings-grid">
-                        <div class="ranking-card">
-                            <h4>📊 Ranking de Precisión</h4>
-                            <p>Basado en la certeza de tus pronósticos</p>
-                        </div>
-                        
-                        <div class="ranking-card">
-                            <h4>🔧 Ranking Técnico</h4>
-                            <p>Nivel de desarrollo de tu vehículo</p>
-                        </div>
-                        
-                        <div class="ranking-card">
-                            <h4>⭐ Ranking Combinado</h4>
-                            <p>La suma de ambos rankings</p>
-                        </div>
-                    </div>
-                    
-                    <p>📈 <strong>Sistema de ligas mensuales:</strong></p>
-                    <div class="leagues">
-                        <div class="league">🥉 NOVATO</div>
-                        <div class="league">🥈 EXPERTO</div>
-                        <div class="league">🥇 ÉLITE</div>
-                    </div>
-                    
-                    <p>• Los mejores 20% ascienden cada mes</p>
-                    <p>• Los peores 20% descienden</p>
-                `,
-                highlight: '#btn-apostar',
-                action: 'apostar'
-            },
-            
-            // PASO 7: Práctica inicial y comienzo
-            {
-                title: "🎯 PRIMERA PRÁCTICA",
-                content: `
-                    <p>¡Perfecto! Ahora vamos a simular tu <strong>primera semana completa</strong>:</p>
-                    
-                    <div class="practice-steps">
-                        <div class="practice-step">
-                            <strong>1. Selecciona 3 pronósticos</strong> de la lista disponible
-                        </div>
-                        <div class="practice-step">
-                            <strong>2. Asigna tu estratega</strong> a cada pronóstico
-                        </div>
-                        <div class="practice-step">
-                            <strong>3. Veremos resultados simulados</strong>
-                        </div>
-                    </div>
-                    
-                    <p class="info">📝 <strong>Ejemplo de pronósticos disponibles:</strong></p>
-                    <ul>
-                        <li>¿Ocurrirá bandera amarilla? (Sí/No)</li>
-                        <li>Número de abandonos: 0-2 / 3-5 / Más de 5</li>
-                        <li>Diferencia 1º-2º: &lt;1s / 1-5s / &gt;5s</li>
-                        <li>¿La vuelta rápida será al final? (Sí/No)</li>
-                    </ul>
-                    
-                    <p class="success">💰 Esta práctica <strong>no afecta tu presupuesto real</strong></p>
-                    <p>¡Que comience tu carrera como estratega!</p>
-                `,
-                action: 'completarTutorial'
-            }
-        ];
-        
-        const step = steps[this.tutorialStep - 1];
-        if (!step) return;
-        
-        document.body.innerHTML = `
-            <div class="tutorial-screen">
-                <div class="tutorial-container">
-                    <!-- Progreso -->
-                    <div class="tutorial-progress">
-                        ${steps.map((s, i) => `
-                            <div class="progress-step ${i + 1 === this.tutorialStep ? 'active' : ''} 
-                                 ${i + 1 < this.tutorialStep ? 'completed' : ''}">
-                                ${i + 1}
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    <!-- Contenido -->
-                    <div class="tutorial-header">
-                        <h1>${step.title}</h1>
-                    </div>
-                    
-                    <div class="tutorial-content">
-                        ${step.content}
-                    </div>
-                    
-                    <!-- Acciones -->
-                    <div class="tutorial-actions">
-                        ${this.tutorialStep > 1 ? `
-                            <button class="btn-tutorial prev" id="btn-tutorial-prev">
-                                <i class="fas fa-arrow-left"></i> Anterior
-                            </button>
-                        ` : ''}
-                        
-                        ${step.mandatory ? `
-                            <div class="mandatory-warning">
-                                <i class="fas fa-exclamation-circle"></i>
-                                Este paso es obligatorio
-                            </div>
-                        ` : ''}
-                        
-                        <button class="btn-tutorial next" id="btn-tutorial-next" 
-                                data-action="${step.action}">
-                            ${step.action === 'completarTutorial' ? '¡Comenzar Práctica!' : 'Siguiente'}
-                            ${step.action !== 'completarTutorial' ? 
-                              '<i class="fas fa-arrow-right"></i>' : ''}
-                        </button>
+                    <div class="stat">
+                        <i class="fas fa-globe"></i>
+                        <span>Ranking global permanente</span>
                     </div>
                 </div>
+                
+                <p class="next-action">👇 Haz clic en <strong>"Siguiente"</strong> para conocer tus herramientas de gestión.</p>
+            `,
+            action: 'irPaso2'
+        },
+        
+        // PASO 2: Dashboard principal - Herramientas de gestión
+        {
+            title: "📊 TUS HERRAMIENTAS DE GESTIÓN",
+            content: `
+                <p>Esta es tu <strong>pantalla principal de control</strong>. Desde aquí gestionas toda tu escudería:</p>
+                
+                <div class="dashboard-preview">
+                    <div class="dashboard-item highlighted">
+                        <div class="item-icon">💰</div>
+                        <div class="item-text">
+                            <strong>Presupuesto y Puntos</strong><br>
+                            Controla tu dinero y puntuación
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-item">
+                        <div class="item-icon">👥</div>
+                        <div class="item-text">
+                            <strong>Tu Equipo</strong><br>
+                            Gestiona estrategas y personal
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-item">
+                        <div class="item-icon">⏱️</div>
+                        <div class="item-text">
+                            <strong>Próxima Carrera</strong><br>
+                            Tiempo para enviar pronósticos
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-item">
+                        <div class="item-icon">🔧</div>
+                        <div class="item-text">
+                            <strong>Desarrollo Técnico</strong><br>
+                            Estado de tus 11 áreas
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-item">
+                        <div class="item-icon">🏭</div>
+                        <div class="item-text">
+                            <strong>Producción</strong><br>
+                            Piezas en fabricación
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="tip">💡 <strong>Consejo:</strong> Revisa esta pantalla cada vez que entres para ver el estado actual de tu equipo.</p>
+                
+                <p class="next-action">👇 Ahora vamos a conocer las <strong>áreas técnicas</strong> que puedes desarrollar.</p>
+            `,
+            action: 'irPaso3'
+        },
+        
+        // PASO 3: Las 11 áreas técnicas de desarrollo
+        {
+            title: "🔧 LAS 11 ÁREAS CLAVE DE TU ESCUDERÍA",
+            content: `
+                <p>Tu escudería tiene <strong>11 áreas principales</strong> que debes desarrollar para mejorar tu rendimiento:</p>
+                
+                <div class="areas-grid">
+                    <div class="area-card">
+                        <div class="area-icon">🏎️</div>
+                        <div class="area-name">Motor</div>
+                    </div>
+                    <div class="area-card">
+                        <div class="area-icon">📊</div>
+                        <div class="area-name">Chasis</div>
+                    </div>
+                    <div class="area-card">
+                        <div class="area-icon">🌀</div>
+                        <div class="area-name">Aerodinámica</div>
+                    </div>
+                    <div class="area-card">
+                        <div class="area-icon">⚙️</div>
+                        <div class="area-name">Suspensión</div>
+                    </div>
+                    <div class="area-card">
+                        <div class="area-icon">🔄</div>
+                        <div class="area-name">Transmisión</div>
+                    </div>
+                    <div class="area-card">
+                        <div class="area-icon">🛑</div>
+                        <div class="area-name">Frenos</div>
+                    </div>
+                    <div class="area-card">
+                        <div class="area-icon">💡</div>
+                        <div class="area-name">Electrónica</div>
+                    </div>
+                    <div class="area-card">
+                        <div class="area-icon">🎮</div>
+                        <div class="area-name">Control</div>
+                    </div>
+                    <div class="area-card">
+                        <div class="area-icon">🌪️</div>
+                        <div class="area-name">Difusor</div>
+                    </div>
+                    <div class="area-card">
+                        <div class="area-icon">🪽</div>
+                        <div class="area-name">Alerones</div>
+                    </div>
+                    <div class="area-card">
+                        <div class="area-icon">📦</div>
+                        <div class="area-name">Pontones</div>
+                    </div>
+                </div>
+                
+                <div class="level-system">
+                    <p class="system-title">📈 <strong>Sistema de Niveles:</strong></p>
+                    <ul>
+                        <li>Cada área tiene <strong>10 niveles principales</strong> (0-9)</li>
+                        <li>Cada nivel tiene <strong>20 subniveles</strong> (0.1 - 0.20)</li>
+                        <li><strong>Ejemplo:</strong> Motor nivel 2.15 significa nivel 2, subnivel 15</li>
+                        <li>Cada subnivel completado otorga <strong>puntos base permanentes</strong></li>
+                    </ul>
+                </div>
+                
+                <p class="tip">💡 <strong>Cómo mejorar:</strong> Fabricando piezas en el Taller, que luego podrás montar o vender.</p>
+                
+                <p class="next-action">👇 Ahora vas a contratar tu <strong>primer estratega</strong>.</p>
+            `,
+            action: 'irPaso4'
+        },
+        
+        // PASO 4: Contratación de estrategas
+        {
+            title: "👥 CONTRATA TU PRIMER ESTRATEGA",
+            content: `
+                <p>Los estrategas son <strong>expertos analistas</strong> que potencian tus aciertos en los pronósticos.</p>
+                
+                <p class="important">🎯 <strong>Cada estratega te da ventajas específicas:</strong></p>
+                
+                <div class="analysts-showcase">
+                    <div class="analyst-example">
+                        <div class="analyst-icon">⏱️</div>
+                        <div class="analyst-details">
+                            <strong>Especialista en Tiempos</strong><br>
+                            <em>Ventaja:</em> +15% puntos al acertar diferencias de tiempo<br>
+                            <em>Ejemplo:</em> "Diferencia 1º-2º será menor a 1 segundo"
+                        </div>
+                    </div>
+                    
+                    <div class="analyst-example">
+                        <div class="analyst-icon">🌦️</div>
+                        <div class="analyst-details">
+                            <strong>Meteorólogo de Carrera</strong><br>
+                            <em>Ventaja:</em> +20% puntos en pronósticos climáticos<br>
+                            <em>Ejemplo:</em> "Lluvia afectará el desarrollo de la carrera"
+                        </div>
+                    </div>
+                    
+                    <div class="analyst-example">
+                        <div class="analyst-icon">🔧</div>
+                        <div class="analyst-details">
+                            <strong>Experto en Fiabilidad</strong><br>
+                            <em>Ventaja:</em> +18% puntos en abandonos<br>
+                            <em>Ejemplo:</em> "Más de 5 pilotos no terminarán"
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hiring-process">
+                    <p class="process-title">📋 <strong>Proceso de contratación:</strong></p>
+                    <ol>
+                        <li><strong>Elige especialidad</strong> según tus preferencias de pronóstico</li>
+                        <li><strong>Revisa su sueldo</strong> mensual (gestionable en Presupuesto)</li>
+                        <li><strong>Asígnalo a pronósticos</strong> específicos para maximizar su bono</li>
+                        <li><strong>Más adelante</strong> podrás contratar más estrategas</li>
+                    </ol>
+                </div>
+                
+                <div class="warning-box">
+                    <p>⚠️ <strong>Este paso es obligatorio</strong></p>
+                    <p>Necesitas al menos <strong>1 estratega</strong> para comenzar a competir.</p>
+                    <p>Haz clic en "Contratar Estratega" para ver las opciones disponibles.</p>
+                </div>
+            `,
+            action: 'contratarEstratega',
+            mandatory: true
+        },
+        
+        // PASO 5: Sistema de producción y almacén
+        {
+            title: "🏭 FABRICACIÓN Y ALMACÉN",
+            content: `
+                <p>Mientras desarrollas tu estrategia, puedes <strong>mejorar las áreas técnicas</strong> de tu escudería.</p>
+                
+                <p class="important">🔧 <strong>Por qué mejorar tus áreas:</strong></p>
+                <ul>
+                    <li>Cada área mejorada da <strong>más puntos base</strong> a tu puntuación final</li>
+                    <li>Las piezas fabricadas pueden <strong>venderse en el mercado</strong> por dinero extra</li>
+                    <li>Niveles altos desbloquean <strong>pronósticos más complejos y rentables</strong></li>
+                </ul>
+                
+                <div class="manufacturing-flow">
+                    <div class="flow-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <strong>FABRICAS</strong> una pieza en el Taller<br>
+                            <small>Tiempo: 4 horas (las primeras son más rápidas)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="flow-arrow">↓</div>
+                    
+                    <div class="flow-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <strong>APARECE</strong> en tu Almacén<br>
+                            <small>Lista para montar o vender</small>
+                        </div>
+                    </div>
+                    
+                    <div class="flow-arrow">↓</div>
+                    
+                    <div class="flow-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <strong>DECIDES:</strong> ¿Montarla o venderla?<br>
+                            <small>Montar: Mejora tu área<br>Vender: Obtienes dinero inmediato</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tip-box">
+                    <p>💡 <strong>Consejo inicial:</strong></p>
+                    <p>Comienza fabricando piezas para 2-3 áreas donde quieras especializarte. Las primeras piezas se fabrican rápido y te darán una ventaja inicial.</p>
+                </div>
+                
+                <p class="next-action">👇 Ahora vamos a hacer tu <strong>primer ciclo completo</strong> (fabricación + pronóstico).</p>
+            `,
+            action: 'irPaso6'
+        },
+        
+        // PASO 6: Práctica - Primer ciclo completo
+        {
+            title: "🎯 PRIMER CICLO DE TRABAJO",
+            content: `
+                <p>Vamos a simular tu <strong>primera semana completa</strong> como director de escudería.</p>
+                
+                <div class="practice-instructions">
+                    <p class="section-title">📋 <strong>Lo que harás ahora:</strong></p>
+                    
+                    <div class="task-list">
+                        <div class="task-item">
+                            <input type="checkbox" id="task1" checked disabled>
+                            <label for="task1"><strong>1. Crear tu escudería</strong> ✓ COMPLETADO</label>
+                        </div>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" id="task2" disabled>
+                            <label for="task2"><strong>2. Contratar tu primer estratega</strong> (lo harás después)</label>
+                        </div>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" id="task3" disabled>
+                            <label for="task3"><strong>3. Fabricar tu primera pieza</strong> (simulado ahora)</label>
+                        </div>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" id="task4" disabled>
+                            <label for="task4"><strong>4. Hacer un pronóstico simple</strong> (simulado ahora)</label>
+                        </div>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" id="task5" disabled>
+                            <label for="task5"><strong>5. Ver resultados y ganancias</strong> (simulado ahora)</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="simulation-interface">
+                    <div class="sim-step active">
+                        <h4>🏭 FABRICAR PRIMERA PIEZA</h4>
+                        <select id="area-seleccion" class="sim-select">
+                            <option value="">-- Selecciona un área --</option>
+                            <option value="motor">Motor (+15 puntos base)</option>
+                            <option value="chasis">Chasis (+12 puntos base)</option>
+                            <option value="aerodinamica">Aerodinámica (+10 puntos base)</option>
+                        </select>
+                        <button class="sim-btn" onclick="simularFabricacion()">Fabricar Pieza (4h)</button>
+                    </div>
+                    
+                    <div class="sim-step">
+                        <h4>🎯 HACER PRONÓSTICO</h4>
+                        <div class="forecast-option" onclick="seleccionarPronostico(1)">
+                            <input type="radio" name="pronostico" id="p1">
+                            <label for="p1">¿Habrá bandera amarilla en carrera? (Sí/No)</label>
+                        </div>
+                        <div class="forecast-option" onclick="seleccionarPronostico(2)">
+                            <input type="radio" name="pronostico" id="p2">
+                            <label for="p2">¿Terminarán más de 20 pilotos? (Sí/No)</label>
+                        </div>
+                        <div class="forecast-option" onclick="seleccionarPronostico(3)">
+                            <input type="radio" name="pronostico" id="p3">
+                            <label for="p3">¿Diferencia 1º-2º será < 5 segundos? (Sí/No)</label>
+                        </div>
+                    </div>
+                    
+                    <div class="sim-step">
+                        <h4>💰 SIMULAR CARRERA</h4>
+                        <p class="sim-info">Al completar los pasos anteriores, podrás simular una carrera y ver cómo se convierten tus aciertos en puntos y dinero.</p>
+                        <button class="sim-btn-final" onclick="simularCarreraCompleta()">Simular Carrera Completa</button>
+                    </div>
+                </div>
+            `,
+            action: 'simularCicloCompleto'
+        },
+        
+        // PASO 7: Finalización y comienzo real
+        {
+            title: "🚀 ¡TODO LISTO PARA COMPETIR!",
+            content: `
+                <div class="completion-celebration">
+                    <div class="celebration-icon">🎉</div>
+                    <h3>¡Tutorial Completado!</h3>
+                </div>
+                
+                <p>Felicidades, director. Has completado tu <strong>formación inicial</strong> y ahora estás preparado para:</p>
+                
+                <div class="next-steps">
+                    <div class="next-step">
+                        <div class="step-icon">👥</div>
+                        <div class="step-text">
+                            <strong>Contratar tu primer estratega real</strong><br>
+                            <small>Ve a la sección "Equipo" para comenzar</small>
+                        </div>
+                    </div>
+                    
+                    <div class="next-step">
+                        <div class="step-icon">🏭</div>
+                        <div class="step-text">
+                            <strong>Fabricar tus primeras piezas reales</strong><br>
+                            <small>Visita el Taller para empezar a producir</small>
+                        </div>
+                    </div>
+                    
+                    <div class="next-step">
+                        <div class="step-icon">🎯</div>
+                        <div class="step-text">
+                            <strong>Hacer tus primeros pronósticos reales</strong><br>
+                            <small>La próxima carrera ya está disponible</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="final-budget">
+                    <p class="budget-title">💰 <strong>Tu situación actual:</strong></p>
+                    <div class="budget-details">
+                        <div class="budget-item">
+                            <span>Presupuesto:</span>
+                            <strong class="money">5,000,000€</strong>
+                        </div>
+                        <div class="budget-item">
+                            <span>Estrategas:</span>
+                            <strong class="team">0 contratados</strong>
+                        </div>
+                        <div class="budget-item">
+                            <span>Piezas fabricadas:</span>
+                            <strong class="parts">0 en almacén</strong>
+                        </div>
+                        <div class="budget-item">
+                            <span>Posición inicial:</span>
+                            <strong class="ranking">#1,245 global</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="final-message">
+                    <p>El mundo del motorsport estratégico te espera. Miles de directores ya están compitiendo.</p>
+                    <p class="challenge">¿Podrás convertir a <strong>${this.escuderia.nombre || "tu equipo"}</strong> en el mejor del mundo?</p>
+                    
+                    <p class="good-luck">¡MUCHA SUERTE EN LA PISTA! 🏁</p>
+                </div>
+            `,
+            action: 'comenzarJuegoReal'
+        }
+    ];
+    
+    const step = steps[this.tutorialStep - 1];
+    if (!step) return;
+    
+    document.body.innerHTML = `
+        <div class="tutorial-screen">
+            <div class="tutorial-container">
+                <!-- Progreso -->
+                <div class="tutorial-progress">
+                    ${steps.map((s, i) => `
+                        <div class="progress-step ${i + 1 === this.tutorialStep ? 'active' : ''} 
+                             ${i + 1 < this.tutorialStep ? 'completed' : ''}"
+                             onclick="if(${i + 1} < this.tutorialStep) { this.tutorialStep = ${i + 1}; this.mostrarTutorialStep(); }">
+                            ${i + 1}
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- Contenido -->
+                <div class="tutorial-header">
+                    <h1>${step.title}</h1>
+                </div>
+                
+                <div class="tutorial-content">
+                    ${step.content}
+                </div>
+                
+                <!-- Acciones -->
+                <div class="tutorial-actions">
+                    ${this.tutorialStep > 1 ? `
+                        <button class="btn-tutorial prev" id="btn-tutorial-prev">
+                            <i class="fas fa-arrow-left"></i> Anterior
+                        </button>
+                    ` : ''}
+                    
+                    ${step.mandatory ? `
+                        <div class="mandatory-warning" id="mandatory-warning">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>Debes completar este paso para continuar</span>
+                        </div>
+                    ` : ''}
+                    
+                    <button class="btn-tutorial next" id="btn-tutorial-next" 
+                            data-action="${step.action}"
+                            ${step.mandatory ? 'disabled' : ''}>
+                        ${step.action === 'contratarEstratega' ? 'Contratar Estratega' : 
+                          step.action === 'comenzarJuegoReal' ? '¡Empezar a Competir!' : 
+                          step.action === 'simularCicloCompleto' ? 'Comenzar Práctica' : 'Siguiente'}
+                        ${step.action !== 'contratarEstratega' && step.action !== 'comenzarJuegoReal' && step.action !== 'simularCicloCompleto' ? 
+                          '<i class="fas fa-arrow-right"></i>' : ''}
+                    </button>
+                </div>
             </div>
+        </div>
+        
+        <style>
+            .tutorial-screen {
+                min-height: 100vh;
+                background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 9999;
+                overflow-y: auto;
+                font-family: 'Roboto', sans-serif;
+            }
             
-            <style>
-                .tutorial-screen {
-                    min-height: 100vh;
-                    background: linear-gradient(135deg, #0a0a0f 0%, #15151e 100%);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    padding: 20px;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    z-index: 9999;
-                    overflow-y: auto;
-                }
-                
+            .tutorial-container {
+                background: rgba(21, 21, 30, 0.95);
+                border-radius: 20px;
+                padding: 40px;
+                width: 100%;
+                max-width: 900px;
+                border: 3px solid #00d2be;
+                box-shadow: 0 25px 60px rgba(0, 210, 190, 0.25);
+                backdrop-filter: blur(15px);
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            
+            /* Estilos generales del contenido */
+            .tutorial-content {
+                color: #f0f0f0;
+                line-height: 1.7;
+                margin: 30px 0;
+                font-size: 1.1rem;
+            }
+            
+            .tutorial-content p {
+                margin-bottom: 15px;
+            }
+            
+            .team-name {
+                color: #00d2be;
+                background: rgba(0, 210, 190, 0.1);
+                padding: 2px 8px;
+                border-radius: 4px;
+                font-family: 'Orbitron', sans-serif;
+            }
+            
+            .online {
+                color: #ffd700;
+                animation: pulse 2s infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.8; }
+            }
+            
+            .money {
+                color: #ffd700;
+                font-family: 'Orbitron', sans-serif;
+            }
+            
+            .main-mission {
+                background: rgba(225, 6, 0, 0.1);
+                border-left: 4px solid #e10600;
+                padding: 15px;
+                border-radius: 0 8px 8px 0;
+                margin: 25px 0;
+            }
+            
+            .community-stats {
+                display: flex;
+                justify-content: space-around;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                padding: 20px;
+                margin: 25px 0;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .community-stats .stat {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: #aaa;
+            }
+            
+            .community-stats i {
+                color: #00d2be;
+                font-size: 1.2rem;
+            }
+            
+            .next-action {
+                text-align: center;
+                background: rgba(0, 210, 190, 0.1);
+                padding: 15px;
+                border-radius: 10px;
+                margin-top: 30px;
+                border: 1px solid rgba(0, 210, 190, 0.3);
+            }
+            
+            /* Dashboard preview */
+            .dashboard-preview {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin: 25px 0;
+            }
+            
+            .dashboard-item {
+                background: rgba(255, 255, 255, 0.05);
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 15px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                transition: all 0.3s;
+            }
+            
+            .dashboard-item.highlighted {
+                border-color: #00d2be;
+                background: rgba(0, 210, 190, 0.1);
+                transform: scale(1.05);
+            }
+            
+            .item-icon {
+                font-size: 1.8rem;
+                width: 50px;
+                height: 50px;
+                background: rgba(0, 210, 190, 0.2);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .item-text {
+                flex: 1;
+            }
+            
+            .tip {
+                background: rgba(255, 193, 7, 0.1);
+                border-left: 4px solid #ffc107;
+                padding: 15px;
+                border-radius: 0 8px 8px 0;
+                margin: 20px 0;
+            }
+            
+            /* Areas grid */
+            .areas-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 12px;
+                margin: 25px 0;
+            }
+            
+            .area-card {
+                background: rgba(42, 42, 56, 0.8);
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 15px 10px;
+                text-align: center;
+                transition: all 0.3s;
+            }
+            
+            .area-card:hover {
+                border-color: #00d2be;
+                transform: translateY(-3px);
+            }
+            
+            .area-icon {
+                font-size: 1.8rem;
+                margin-bottom: 8px;
+            }
+            
+            .area-name {
+                font-size: 0.9rem;
+                font-weight: bold;
+                color: #ddd;
+            }
+            
+            .level-system {
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 12px;
+                padding: 20px;
+                margin: 25px 0;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .system-title {
+                color: #00d2be;
+                margin-bottom: 15px;
+                font-family: 'Orbitron', sans-serif;
+            }
+            
+            /* Analysts showcase */
+            .analysts-showcase {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                margin: 25px 0;
+            }
+            
+            .analyst-example {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 15px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                transition: all 0.3s;
+            }
+            
+            .analyst-example:hover {
+                border-color: #00d2be;
+                background: rgba(0, 210, 190, 0.05);
+            }
+            
+            .analyst-icon {
+                font-size: 2rem;
+                width: 60px;
+                height: 60px;
+                background: rgba(0, 210, 190, 0.2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            
+            .analyst-details {
+                flex: 1;
+            }
+            
+            .analyst-details strong {
+                color: #00d2be;
+                font-size: 1.1rem;
+                display: block;
+                margin-bottom: 5px;
+            }
+            
+            .analyst-details em {
+                color: #aaa;
+                font-style: normal;
+                font-size: 0.9rem;
+            }
+            
+            .hiring-process {
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 12px;
+                padding: 20px;
+                margin: 25px 0;
+            }
+            
+            .process-title {
+                color: #ffd700;
+                margin-bottom: 15px;
+                font-family: 'Orbitron', sans-serif;
+            }
+            
+            .hiring-process ol {
+                padding-left: 20px;
+                margin: 15px 0;
+            }
+            
+            .hiring-process li {
+                margin-bottom: 10px;
+            }
+            
+            .warning-box {
+                background: rgba(225, 6, 0, 0.15);
+                border: 2px solid #e10600;
+                border-radius: 12px;
+                padding: 20px;
+                margin: 25px 0;
+                text-align: center;
+            }
+            
+            .warning-box p {
+                margin: 10px 0;
+            }
+            
+            /* Manufacturing flow */
+            .manufacturing-flow {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+                margin: 30px 0;
+            }
+            
+            .flow-step {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                padding: 20px;
+                width: 100%;
+                max-width: 500px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .step-number {
+                background: linear-gradient(135deg, #00d2be, #009688);
+                color: white;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1.2rem;
+                flex-shrink: 0;
+            }
+            
+            .step-content {
+                flex: 1;
+            }
+            
+            .flow-arrow {
+                color: #00d2be;
+                font-size: 1.5rem;
+                font-weight: bold;
+            }
+            
+            .tip-box {
+                background: rgba(76, 175, 80, 0.1);
+                border: 2px solid #4CAF50;
+                border-radius: 12px;
+                padding: 20px;
+                margin: 25px 0;
+            }
+            
+            /* Simulation interface */
+            .simulation-interface {
+                background: rgba(0, 0, 0, 0.4);
+                border-radius: 15px;
+                padding: 25px;
+                margin: 25px 0;
+                border: 2px solid rgba(0, 210, 190, 0.3);
+            }
+            
+            .sim-step {
+                margin-bottom: 25px;
+                padding-bottom: 25px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .sim-step:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+                padding-bottom: 0;
+            }
+            
+            .sim-step h4 {
+                color: #00d2be;
+                margin-bottom: 15px;
+                font-family: 'Orbitron', sans-serif;
+            }
+            
+            .sim-select {
+                width: 100%;
+                padding: 12px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                color: white;
+                font-size: 1rem;
+                margin-bottom: 15px;
+            }
+            
+            .sim-btn, .sim-btn-final {
+                background: linear-gradient(135deg, #00d2be, #009688);
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                border-radius: 8px;
+                font-weight: bold;
+                cursor: pointer;
+                width: 100%;
+                font-size: 1rem;
+                transition: all 0.3s;
+            }
+            
+            .sim-btn-final {
+                background: linear-gradient(135deg, #e10600, #ff4444);
+                font-size: 1.1rem;
+                padding: 18px;
+            }
+            
+            .sim-btn:hover, .sim-btn-final:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(0, 210, 190, 0.4);
+            }
+            
+            .forecast-option {
+                background: rgba(255, 255, 255, 0.05);
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 10px;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            
+            .forecast-option:hover {
+                border-color: #00d2be;
+                background: rgba(0, 210, 190, 0.05);
+            }
+            
+            .forecast-option input[type="radio"] {
+                margin-right: 10px;
+            }
+            
+            .sim-info {
+                color: #aaa;
+                font-size: 0.95rem;
+                margin-bottom: 20px;
+            }
+            
+            /* Completion */
+            .completion-celebration {
+                text-align: center;
+                margin: 30px 0;
+            }
+            
+            .celebration-icon {
+                font-size: 4rem;
+                margin-bottom: 20px;
+                animation: bounce 1s infinite;
+            }
+            
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+            }
+            
+            .next-steps {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                margin: 30px 0;
+            }
+            
+            .next-step {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 20px;
+                transition: all 0.3s;
+            }
+            
+            .next-step:hover {
+                border-color: #00d2be;
+                transform: translateX(5px);
+            }
+            
+            .step-icon {
+                font-size: 1.8rem;
+                width: 60px;
+                height: 60px;
+                background: rgba(0, 210, 190, 0.2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            
+            .final-budget {
+                background: rgba(0, 0, 0, 0.4);
+                border-radius: 15px;
+                padding: 25px;
+                margin: 30px 0;
+                border: 2px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .budget-title {
+                color: #ffd700;
+                margin-bottom: 20px;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1.2rem;
+            }
+            
+            .budget-details {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+            
+            .budget-item {
+                background: rgba(255, 255, 255, 0.05);
+                padding: 15px;
+                border-radius: 8px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .budget-item span {
+                color: #aaa;
+            }
+            
+            .team {
+                color: #00d2be;
+            }
+            
+            .parts {
+                color: #4CAF50;
+            }
+            
+            .ranking {
+                color: #ffd700;
+            }
+            
+            .final-message {
+                text-align: center;
+                padding: 30px;
+                background: linear-gradient(135deg, rgba(225, 6, 0, 0.1), rgba(0, 210, 190, 0.1));
+                border-radius: 15px;
+                margin-top: 30px;
+            }
+            
+            .challenge {
+                font-size: 1.3rem;
+                color: #00d2be;
+                margin: 20px 0;
+                font-family: 'Orbitron', sans-serif;
+            }
+            
+            .good-luck {
+                font-size: 1.5rem;
+                color: #ffd700;
+                font-weight: bold;
+                margin-top: 20px;
+                animation: pulse 2s infinite;
+            }
+            
+            /* Responsive */
+            @media (max-width: 768px) {
                 .tutorial-container {
-                    background: rgba(42, 42, 56, 0.98);
-                    border-radius: 20px;
-                    padding: 40px;
-                    width: 100%;
-                    max-width: 800px;
-                    border: 3px solid #00d2be;
-                    box-shadow: 0 20px 50px rgba(0, 210, 190, 0.3);
-                    backdrop-filter: blur(10px);
-                }
-                
-                .tutorial-progress {
-                    display: flex;
-                    justify-content: center;
-                    gap: 15px;
-                    margin-bottom: 30px;
-                    flex-wrap: wrap;
-                }
-                
-                .progress-step {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.1);
-                    color: #888;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-weight: bold;
-                    font-family: 'Orbitron', sans-serif;
-                    transition: all 0.3s;
-                }
-                
-                .progress-step.active {
-                    background: linear-gradient(135deg, #00d2be, #009688);
-                    color: white;
-                    transform: scale(1.1);
-                    box-shadow: 0 0 15px rgba(0, 210, 190, 0.5);
-                }
-                
-                .progress-step.completed {
-                    background: linear-gradient(135deg, #4CAF50, #388E3C);
-                    color: white;
-                }
-                
-                .tutorial-header h1 {
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: clamp(1.8rem, 4vw, 2.2rem);
-                    text-align: center;
-                    background: linear-gradient(90deg, #00d2be, #e10600);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    margin-bottom: 20px;
-                    line-height: 1.3;
+                    padding: 20px;
+                    margin: 10px;
                 }
                 
                 .tutorial-content {
-                    color: #ddd;
-                    line-height: 1.8;
-                    margin: 30px 0;
-                    font-size: 1.1rem;
-                }
-                
-                .tutorial-content ul {
-                    margin: 15px 0;
-                    padding-left: 20px;
-                }
-                
-                .tutorial-content li {
-                    margin-bottom: 8px;
-                }
-                
-                .tutorial-actions {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-top: 40px;
-                    padding-top: 20px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.1);
-                    flex-wrap: wrap;
-                    gap: 15px;
-                }
-                
-                .btn-tutorial {
-                    padding: 15px 30px;
-                    border: none;
-                    border-radius: 10px;
-                    font-family: 'Orbitron', sans-serif;
                     font-size: 1rem;
-                    font-weight: bold;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    min-height: 50px;
                 }
                 
-                .btn-tutorial.prev {
-                    background: transparent;
-                    border: 2px solid #888;
-                    color: #888;
-                }
-                
-                .btn-tutorial.next {
-                    background: linear-gradient(135deg, #00d2be, #009688);
-                    color: white;
-                }
-                
-                .btn-tutorial:hover {
-                    transform: translateY(-3px);
-                    box-shadow: 0 8px 20px rgba(0, 210, 190, 0.4);
-                }
-                
-                .mandatory-warning {
-                    background: rgba(255, 87, 87, 0.2);
-                    color: #ff5757;
-                    padding: 10px 20px;
-                    border-radius: 5px;
-                    border: 1px solid #ff5757;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    flex-grow: 1;
-                    justify-content: center;
-                }
-                
-                .warning {
-                    color: #ffcc00;
-                    font-weight: bold;
-                }
-                
-                .success {
-                    color: #4CAF50;
-                    font-weight: bold;
-                    background: rgba(76, 175, 80, 0.1);
-                    padding: 10px;
-                    border-radius: 8px;
-                    border-left: 4px solid #4CAF50;
-                }
-                
-                .info {
-                    color: #2196F3;
-                    background: rgba(33, 150, 243, 0.1);
-                    padding: 10px;
-                    border-radius: 8px;
-                    border-left: 4px solid #2196F3;
-                }
-                
-                /* Estilos específicos para el contenido */
-                .examples-grid, .systems-grid, .analyst-options, 
-                .rankings-grid, .practice-steps {
-                    display: grid;
-                    gap: 10px;
-                    margin: 20px 0;
-                }
-                
-                .examples-grid {
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                }
-                
-                .example-card {
-                    background: rgba(0, 210, 190, 0.1);
-                    border: 1px solid rgba(0, 210, 190, 0.3);
-                    border-radius: 8px;
-                    padding: 10px;
-                    text-align: center;
-                    font-size: 0.9rem;
-                }
-                
-                .systems-grid {
-                    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-                }
-                
-                .system-item {
-                    background: rgba(225, 6, 0, 0.1);
-                    border: 1px solid rgba(225, 6, 0, 0.3);
-                    border-radius: 8px;
-                    padding: 8px;
-                    text-align: center;
-                    font-size: 0.9rem;
-                }
-                
-                .analyst-options {
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    margin: 20px 0;
-                }
-                
-                .analyst-card {
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 2px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 10px;
-                    padding: 15px;
-                    transition: all 0.3s;
-                }
-                
-                .analyst-card:hover {
-                    border-color: #00d2be;
-                    background: rgba(0, 210, 190, 0.1);
-                    transform: translateY(-3px);
-                }
-                
-                .analyst-card h4 {
-                    margin: 0 0 10px 0;
-                    color: #00d2be;
-                }
-                
-                .cycle-steps, .practice-steps {
-                    display: flex;
+                .community-stats {
                     flex-direction: column;
                     gap: 15px;
-                    margin: 20px 0;
                 }
                 
-                .cycle-step, .practice-step {
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 8px;
-                    padding: 15px;
+                .dashboard-preview, .areas-grid, .budget-details {
+                    grid-template-columns: 1fr;
                 }
                 
-                .step-number {
-                    background: linear-gradient(135deg, #00d2be, #009688);
-                    color: white;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-weight: bold;
-                    font-family: 'Orbitron', sans-serif;
-                    flex-shrink: 0;
+                .manufacturing-flow {
+                    gap: 5px;
                 }
                 
-                .rankings-grid {
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                .flow-step {
+                    flex-direction: column;
+                    text-align: center;
+                    gap: 10px;
                 }
                 
-                .ranking-card {
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 10px;
-                    padding: 15px;
+                .flow-arrow {
+                    transform: rotate(90deg);
+                }
+                
+                .analyst-example {
+                    flex-direction: column;
                     text-align: center;
                 }
-                
-                .ranking-card h4 {
-                    color: #e10600;
-                    margin: 0 0 10px 0;
-                }
-                
-                .leagues {
-                    display: flex;
-                    justify-content: center;
-                    gap: 20px;
-                    margin: 20px 0;
-                    flex-wrap: wrap;
-                }
-                
-                .league {
-                    background: linear-gradient(135deg, #e10600, #ff4444);
-                    color: white;
-                    padding: 10px 20px;
-                    border-radius: 20px;
-                    font-weight: bold;
-                    min-width: 100px;
-                    text-align: center;
-                }
-                
-                /* Responsive */
-                @media (max-width: 768px) {
-                    .tutorial-container {
-                        padding: 20px;
-                        margin: 10px;
-                    }
-                    
-                    .tutorial-content {
-                        font-size: 1rem;
-                    }
-                    
-                    .tutorial-actions {
-                        flex-direction: column;
-                    }
-                    
-                    .btn-tutorial {
-                        width: 100%;
-                        justify-content: center;
-                    }
-                    
-                    .mandatory-warning {
-                        order: -1;
-                        width: 100%;
-                    }
-                    
-                    .examples-grid, .systems-grid, .analyst-options,
-                    .rankings-grid {
-                        grid-template-columns: 1fr;
-                    }
-                    
-                    .leagues {
-                        flex-direction: column;
-                        align-items: center;
-                    }
-                }
-                
-                @media (max-width: 480px) {
-                    .tutorial-progress {
-                        gap: 8px;
-                    }
-                    
-                    .progress-step {
-                        width: 35px;
-                        height: 35px;
-                        font-size: 0.9rem;
-                    }
-                    
-                    .cycle-step, .practice-step {
-                        flex-direction: column;
-                        text-align: center;
-                    }
-                }
-            </style>
-        `;
-        
-        // Eventos
-        document.getElementById('btn-tutorial-next').addEventListener('click', () => {
-            this.ejecutarAccionTutorial(step.action);
+            }
+        </style>
+    `;
+    
+    // Eventos
+    document.getElementById('btn-tutorial-next').addEventListener('click', () => {
+        this.ejecutarAccionTutorial(step.action);
+    });
+    
+    if (document.getElementById('btn-tutorial-prev')) {
+        document.getElementById('btn-tutorial-prev').addEventListener('click', () => {
+            this.tutorialStep--;
+            this.mostrarTutorialStep();
         });
-        
-        if (document.getElementById('btn-tutorial-prev')) {
-            document.getElementById('btn-tutorial-prev').addEventListener('click', () => {
-                this.tutorialStep--;
-                this.mostrarTutorialStep();
-            });
-        }
     }
+}
     
     async ejecutarAccionTutorial(accion) {
         console.log('🎯 Acción tutorial:', accion);
