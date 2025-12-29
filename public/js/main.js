@@ -977,37 +977,37 @@ class F1Manager {
                         <div class="grid-btn-big" onclick="tutorialIrSeccion('principal')">
                             <div class="grid-icon">🏠</div>
                             <div class="grid-title">PRINCIPAL</div>
-                            <div class="grid-desc">Vista general del equipo</div>
+                            <div class="grid-desc">Vista general de tu equipo, puntos y estado del coche</div>
                         </div>
                         
                         <div class="grid-btn-big" onclick="tutorialIrSeccion('taller')">
                             <div class="grid-icon">🔧</div>
                             <div class="grid-title">TALLER</div>
-                            <div class="grid-desc">Fabrica piezas</div>
+                            <div class="grid-desc">Fabrica piezas que mejoran tu coche para la carrera</div>
                         </div>
                         
                         <div class="grid-btn-big" onclick="tutorialIrSeccion('equipo')">
                             <div class="grid-icon">👥</div>
                             <div class="grid-title">EQUIPO</div>
-                            <div class="grid-desc">Contrata estrategas</div>
+                            <div class="grid-desc">Contrata estrategas que aumentan tus puntos en apuestas</div>
                         </div>
                         
                         <div class="grid-btn-big" onclick="tutorialIrSeccion('almacen')">
                             <div class="grid-icon">📦</div>
                             <div class="grid-title">ALMACÉN</div>
-                            <div class="grid-desc">Gestiona inventario</div>
+                            <div class="grid-desc">Equipa o vende las piezas fabricadas para tu coche</div>
                         </div>
                         
                         <div class="grid-btn-big" onclick="tutorialIrSeccion('pronosticos')">
                             <div class="grid-icon">🎯</div>
                             <div class="grid-title">PRONÓSTICOS</div>
-                            <div class="grid-desc">Haz predicciones</div>
+                            <div class="grid-desc">Antes del viernes, apuesta sobre lo que sucederá en la carrera</div>
                         </div>
                         
                         <div class="grid-btn-big" onclick="tutorialIrSeccion('ranking')">
                             <div class="grid-icon">🏆</div>
                             <div class="grid-title">RANKING</div>
-                            <div class="grid-desc">Posición global</div>
+                            <div class="grid-desc">Consulta diferentes clasificaciones y compite globalmente</div>
                         </div>
                     </div>
                 `,
@@ -1018,84 +1018,95 @@ class F1Manager {
             {
                 title: "🔧 11 ÁREAS TÉCNICAS",
                 content: `
-                    <p>Desarrolla estas <strong>11 áreas técnicas</strong> fabricando piezas:</p>
+                    <p>Desarrolla estas <strong>11 áreas técnicas</strong> fabricando piezas. Cada nivel da más puntos:</p>
                     
                     <div class="grid-4-columns">
                         <div class="area-grid-card">
                             <div class="area-grid-icon">🏎️</div>
                             <div class="area-grid-name">MOTOR</div>
                             <div class="area-grid-desc">Potencia y eficiencia</div>
-                            <div class="area-grid-stats">4h · +15 pts</div>
+                            <div class="area-grid-stats">⭐ +15 pts/nivel</div>
+                            <div class="area-grid-sub">5 subniveles de calidad</div>
                         </div>
                         
                         <div class="area-grid-card">
                             <div class="area-grid-icon">📊</div>
                             <div class="area-grid-name">CHASIS</div>
                             <div class="area-grid-desc">Estructura principal</div>
-                            <div class="area-grid-stats">4h · +12 pts</div>
+                            <div class="area-grid-stats">⭐ +12 pts/nivel</div>
+                            <div class="area-grid-sub">5 subniveles de calidad</div>
                         </div>
                         
                         <div class="area-grid-card">
                             <div class="area-grid-icon">🌀</div>
                             <div class="area-grid-name">AERODINÁMICA</div>
-                            <div class="area-grid-desc">Flujo de aire</div>
-                            <div class="area-grid-stats">3h · +10 pts</div>
+                            <div class="area-grid-desc">Flujo de aire y downforce</div>
+                            <div class="area-grid-stats">⭐ +10 pts/nivel</div>
+                            <div class="area-grid-sub">5 subniveles de calidad</div>
                         </div>
                         
                         <div class="area-grid-card">
                             <div class="area-grid-icon">⚙️</div>
                             <div class="area-grid-name">SUSPENSIÓN</div>
                             <div class="area-grid-desc">Control y estabilidad</div>
-                            <div class="area-grid-stats">3h · +9 pts</div>
+                            <div class="area-grid-stats">⭐ +9 pts/nivel</div>
+                            <div class="area-grid-sub">5 subniveles de calidad</div>
                         </div>
                         
                         <div class="area-grid-card">
                             <div class="area-grid-icon">🔄</div>
                             <div class="area-grid-name">TRANSMISIÓN</div>
                             <div class="area-grid-desc">Cambio de marchas</div>
-                            <div class="area-grid-stats">4h · +11 pts</div>
+                            <div class="area-grid-stats">⭐ +11 pts/nivel</div>
+                            <div class="area-grid-sub">5 subniveles de calidad</div>
                         </div>
                         
                         <div class="area-grid-card">
                             <div class="area-grid-icon">🛑</div>
                             <div class="area-grid-name">FRENOS</div>
                             <div class="area-grid-desc">Poder de detención</div>
-                            <div class="area-grid-stats">3h · +8 pts</div>
+                            <div class="area-grid-stats">⭐ +8 pts/nivel</div>
+                            <div class="area-grid-sub">5 subniveles de calidad</div>
                         </div>
                         
                         <div class="area-grid-card">
                             <div class="area-grid-icon">💡</div>
                             <div class="area-grid-name">ELECTRÓNICA</div>
                             <div class="area-grid-desc">Sistemas digitales</div>
-                            <div class="area-grid-stats">5h · +14 pts</div>
+                            <div class="area-grid-stats">⭐ +14 pts/nivel</div>
+                            <div class="area-grid-sub">5 subniveles de calidad</div>
                         </div>
                         
                         <div class="area-grid-card">
                             <div class="area-grid-icon">🎮</div>
                             <div class="area-grid-name">CONTROL</div>
                             <div class="area-grid-desc">Manejo y respuesta</div>
-                            <div class="area-grid-stats">3h · +9 pts</div>
+                            <div class="area-grid-stats">⭐ +9 pts/nivel</div>
+                            <div class="area-grid-sub">5 subniveles de calidad</div>
                         </div>
                         
                         <div class="area-grid-card">
                             <div class="area-grid-icon">🌪️</div>
                             <div class="area-grid-name">DIFUSOR</div>
                             <div class="area-grid-desc">Downforce trasero</div>
-                            <div class="area-grid-stats">4h · +12 pts</div>
+                            <div class="area-grid-stats">⭐ +12 pts/nivel</div>
+                            <div class="area-grid-sub">5 subniveles de calidad</div>
                         </div>
                         
                         <div class="area-grid-card">
                             <div class="area-grid-icon">🪽</div>
                             <div class="area-grid-name">ALERONES</div>
                             <div class="area-grid-desc">Carga aerodinámica</div>
-                            <div class="area-grid-stats">4h · +13 pts</div>
+                            <div class="area-grid-stats">⭐ +13 pts/nivel</div>
+                            <div class="area-grid-sub">5 subniveles de calidad</div>
                         </div>
                         
                         <div class="area-grid-card">
                             <div class="area-grid-icon">📦</div>
                             <div class="area-grid-name">PONTONES</div>
                             <div class="area-grid-desc">Refrigeración y flujo</div>
-                            <div class="area-grid-stats">3h · +10 pts</div>
+                            <div class="area-grid-stats">⭐ +10 pts/nivel</div>
+                            <div class="area-grid-sub">5 subniveles de calidad</div>
                         </div>
                     </div>
                 `,
@@ -1121,67 +1132,40 @@ class F1Manager {
                 }
             },
             
-            // PASO 5: Fabricación en GRID
-            {
-                title: "🏭 FABRICACIÓN DE PIEZAS",
-                content: `
-                    <p>Fábrica piezas para mejorar tus áreas técnicas:</p>
-                    
-                    <div class="grid-3-columns">
-                        <div class="fabricacion-card" onclick="tutorialSeleccionarFabricacion('motor')">
-                            <div class="fab-icon">🏎️</div>
-                            <div class="fab-title">FABRICAR MOTOR</div>
-                            <div class="fab-details">
-                                <div class="fab-time">⏱️ 4 horas</div>
-                                <div class="fab-cost">💰 100,000€</div>
-                                <div class="fab-points">⭐ +15 pts</div>
-                            </div>
-                            <div class="fab-action">HACER CLIC PARA FABRICAR</div>
-                        </div>
-                        
-                        <div class="fabricacion-card" onclick="tutorialSeleccionarFabricacion('chasis')">
-                            <div class="fab-icon">📊</div>
-                            <div class="fab-title">FABRICAR CHASIS</div>
-                            <div class="fab-details">
-                                <div class="fab-time">⏱️ 4 horas</div>
-                                <div class="fab-cost">💰 90,000€</div>
-                                <div class="fab-points">⭐ +12 pts</div>
-                            </div>
-                            <div class="fab-action">HACER CLIC PARA FABRICAR</div>
-                        </div>
-                        
-                        <div class="fabricacion-card" onclick="tutorialSeleccionarFabricacion('aerodinamica')">
-                            <div class="fab-icon">🌀</div>
-                            <div class="fab-title">FABRICAR AERODINÁMICA</div>
-                            <div class="fab-details">
-                                <div class="fab-time">⏱️ 3 horas</div>
-                                <div class="fab-cost">💰 85,000€</div>
-                                <div class="fab-points">⭐ +10 pts</div>
-                            </div>
-                            <div class="fab-action">HACER CLIC PARA FABRICAR</div>
-                        </div>
-                    </div>
-                `,
-                action: 'siguientePaso'
-            },
+
             
-            // PASO 6: DÍA 1 - Contratación (Tutorial práctico)
+            // PASO 5: DÍA 1 - Contratación (Tutorial práctico)
             {
-                title: "📅 DÍA 1: CONTRATAR ESTRATEGA",
+                title: "🎮 VAMOS A SIMULAR TU PRIMERA SEMANA",
                 content: `
-                    <div class="dia-info">
-                        <div class="dia-numero">DÍA 1</div>
-                        <div class="dia-titulo">LUNES - CONTRATACIÓN</div>
+                    <div class="simulacion-intro">
+                        <div class="intro-icon">🔄</div>
+                        <h3>¡Comienza tu aventura en F1!</h3>
+                        <p>Vamos a simular una semana completa para que entiendas el funcionamiento:</p>
+                        <ul class="simulacion-pasos">
+                            <li>✅ <strong>Día 1:</strong> Contratarás tu primer estratega</li>
+                            <li>✅ <strong>Día 2:</strong> Fabricarás tu primera pieza</li>
+                            <li>✅ <strong>Día 3:</strong> Harás pronósticos para la carrera</li>
+                            <li>✅ <strong>Fin de semana:</strong> Se simulará la carrera</li>
+                            <li>✅ <strong>Lunes:</strong> Verás tus resultados y ganancias</li>
+                        </ul>
+                        <p class="simulacion-nota">En el juego real, cada paso tiene su tiempo real. ¡Esta es solo una simulación rápida!</p>
                     </div>
                     
-                    <p>Comienza la semana contratando tu primer estratega. Cada uno tiene una especialidad diferente:</p>
+                    <div class="simulacion-dia">
+                        <div class="dia-numero-simulacion">DÍA 1</div>
+                        <div class="dia-titulo-simulacion">CONTRATAR ESTRATEGA</div>
+                        <p class="dia-descripcion">Por ser tu primer día en la escudería, debes contratar a un estratega. Más adelante podrás contratar más.</p>
+                    </div>
+                    
+                    <p>Selecciona tu primer estratega. Cada uno te dará bonificaciones diferentes:</p>
                     
                     <div class="grid-3-columns">
                         <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(1)">
                             <div class="estratega-icon-tut">⏱️</div>
                             <div class="estratega-nombre-tut">ANALISTA DE TIEMPOS</div>
-                            <div class="estratega-especialidad">Diferencias de tiempo</div>
-                            <div class="estratega-bono">Bono: <span class="bono-valor">+15%</span></div>
+                            <div class="estratega-especialidad">Diferencias de tiempo entre pilotos</div>
+                            <div class="estratega-bono">Bono: <span class="bono-valor">+15% puntos</span></div>
                             <div class="estratega-sueldo">Sueldo: <span class="sueldo-valor">50,000€/mes</span></div>
                             <div class="estratega-ejemplo">Ej: "Diferencia 1º-2º < 1s"</div>
                         </div>
@@ -1189,17 +1173,17 @@ class F1Manager {
                         <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(2)">
                             <div class="estratega-icon-tut">🌧️</div>
                             <div class="estratega-nombre-tut">METEORÓLOGO</div>
-                            <div class="estratega-especialidad">Condiciones climáticas</div>
-                            <div class="estratega-bono">Bono: <span class="bono-valor">+20%</span></div>
+                            <div class="estratega-especialidad">Condiciones climáticas de carrera</div>
+                            <div class="estratega-bono">Bono: <span class="bono-valor">+20% puntos</span></div>
                             <div class="estratega-sueldo">Sueldo: <span class="sueldo-valor">60,000€/mes</span></div>
-                            <div class="estratega-ejemplo">Ej: "Lluvia afectará carrera"</div>
+                            <div class="estratega-ejemplo">Ej: "Lluvia afectará la carrera"</div>
                         </div>
                         
                         <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(3)">
                             <div class="estratega-icon-tut">🔧</div>
                             <div class="estratega-nombre-tut">EXPERTO EN FIABILIDAD</div>
-                            <div class="estratega-especialidad">Abandonos y fallos</div>
-                            <div class="estratega-bono">Bono: <span class="bono-valor">+18%</span></div>
+                            <div class="estratega-especialidad">Abandonos y fallos técnicos</div>
+                            <div class="estratega-bono">Bono: <span class="bono-valor">+18% puntos</span></div>
                             <div class="estratega-sueldo">Sueldo: <span class="sueldo-valor">55,000€/mes</span></div>
                             <div class="estratega-ejemplo">Ej: "Más de 5 abandonos"</div>
                         </div>
@@ -1214,25 +1198,23 @@ class F1Manager {
                 action: 'siguientePaso'
             },
             
-            // PASO 7: DÍA 2 - Fabricación
+            // PASO 6: DÍA 2 - Fabricación
             {
-                title: "📅 DÍA 2: FABRICAR PIEZA",
+                title: "🔧 DÍA 2: FABRICAR PIEZA",
                 content: `
-                    <div class="dia-info">
-                        <div class="dia-numero">DÍA 2</div>
-                        <div class="dia-titulo">MARTES - PRODUCCIÓN</div>
+                    <div class="simulacion-dia">
+                        <div class="dia-numero-simulacion">DÍA 2</div>
+                        <div class="dia-titulo-simulacion">PRODUCCIÓN</div>
+                        <p class="dia-descripcion">Ahora vamos a fabricar una pieza para equipar más tarde al coche. Elige una:</p>
                     </div>
-                    
-                    <p>Ahora fabrica una pieza para mejorar una de tus áreas técnicas:</p>
                     
                     <div class="grid-3-columns">
                         <div class="fabricacion-tutorial-card seleccionable" onclick="tutorialSeleccionarFabricacionPractica('motor')">
                             <div class="fab-icon-tut">🏎️</div>
                             <div class="fab-nombre-tut">PIEZA DE MOTOR</div>
                             <div class="fab-desc-tut">Aumenta potencia y eficiencia</div>
-                            <div class="fab-tiempo-tut">⏱️ Duración: 4 horas</div>
-                            <div class="fab-costo-tut">💰 Costo: 100,000€</div>
-                            <div class="fab-puntos-tut">⭐ Puntos: +15 base</div>
+                            <div class="fab-puntos-tut">⭐ +15 puntos base</div>
+                            <div class="fab-calidad-tut">Calidad: Nivel 1 (5 subniveles)</div>
                             <div class="fab-accion-tut">HACER CLIC PARA SELECCIONAR</div>
                         </div>
                         
@@ -1240,9 +1222,8 @@ class F1Manager {
                             <div class="fab-icon-tut">📊</div>
                             <div class="fab-nombre-tut">PIEZA DE CHASIS</div>
                             <div class="fab-desc-tut">Mejora estructura y rigidez</div>
-                            <div class="fab-tiempo-tut">⏱️ Duración: 4 horas</div>
-                            <div class="fab-costo-tut">💰 Costo: 90,000€</div>
-                            <div class="fab-puntos-tut">⭐ Puntos: +12 base</div>
+                            <div class="fab-puntos-tut">⭐ +12 puntos base</div>
+                            <div class="fab-calidad-tut">Calidad: Nivel 1 (5 subniveles)</div>
                             <div class="fab-accion-tut">HACER CLIC PARA SELECCIONAR</div>
                         </div>
                         
@@ -1250,9 +1231,8 @@ class F1Manager {
                             <div class="fab-icon-tut">🌀</div>
                             <div class="fab-nombre-tut">PIEZA AERODINÁMICA</div>
                             <div class="fab-desc-tut">Optimiza flujo de aire</div>
-                            <div class="fab-tiempo-tut">⏱️ Duración: 3 horas</div>
-                            <div class="fab-costo-tut">💰 Costo: 85,000€</div>
-                            <div class="fab-puntos-tut">⭐ Puntos: +10 base</div>
+                            <div class="fab-puntos-tut">⭐ +10 puntos base</div>
+                            <div class="fab-calidad-tut">Calidad: Nivel 1 (5 subniveles)</div>
                             <div class="fab-accion-tut">HACER CLIC PARA SELECCIONAR</div>
                         </div>
                     </div>
@@ -1266,49 +1246,50 @@ class F1Manager {
                 action: 'siguientePaso'
             },
             
-            // PASO 8: DÍA 3-4 - Pronósticos
+            // PASO 7: DÍA 3-4 - Pronósticos
             {
-                title: "📅 DÍAS 3-4: HACER PRONÓSTICOS",
+                title: "🎯 HACER PRONÓSTICOS",
                 content: `
-                    <div class="dia-info">
-                        <div class="dia-numero">DÍAS 3-4</div>
-                        <div class="dia-titulo">MIÉRCOLES-JUEVES - ANÁLISIS</div>
+                    <div class="simulacion-dia">
+                        <div class="dia-numero-simulacion">ANTES DEL VIERNES</div>
+                        <div class="dia-titulo-simulacion">PRONÓSTICOS DE CARRERA</div>
+                        <p class="dia-descripcion">Debes hacer tu pronóstico antes del viernes de la semana de carrera. Este es un ejemplo, en la realidad habrá más de 10 pronósticos para elegir.</p>
                     </div>
                     
-                    <p>Analiza la próxima carrera y haz tus pronósticos (hasta jueves 23:59):</p>
+                    <p>Selecciona tus predicciones para la carrera (puedes marcar una opción en cada categoría):</p>
                     
                     <div class="grid-3-columns">
-                        <div class="pronostico-tutorial-card seleccionable" onclick="tutorialSeleccionarPronosticoPractico('bandera')">
+                        <div class="pronostico-tutorial-card">
                             <div class="pronostico-icon-tut">🚩</div>
                             <div class="pronostico-nombre-tut">BANDERA AMARILLA</div>
-                            <div class="pronostico-pregunta">¿Habrá neutralización?</div>
+                            <div class="pronostico-pregunta">¿Habrá neutralización en carrera?</div>
                             <div class="pronostico-opciones">
-                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('bandera', 'si')">SÍ</div>
-                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('bandera', 'no')">NO</div>
+                                <div class="opcion-tut seleccionable-pronostico" data-tipo="bandera" data-valor="si" onclick="tutorialSeleccionarOpcionPronostico('bandera', 'si', this)">SÍ</div>
+                                <div class="opcion-tut seleccionable-pronostico" data-tipo="bandera" data-valor="no" onclick="tutorialSeleccionarOpcionPronostico('bandera', 'no', this)">NO</div>
                             </div>
                             <div class="pronostico-puntos">⭐ +150 pts base</div>
                         </div>
                         
-                        <div class="pronostico-tutorial-card seleccionable" onclick="tutorialSeleccionarPronosticoPractico('abandonos')">
+                        <div class="pronostico-tutorial-card">
                             <div class="pronostico-icon-tut">🚗</div>
                             <div class="pronostico-nombre-tut">ABANDONOS</div>
-                            <div class="pronostico-pregunta">¿Cuántos no terminarán?</div>
+                            <div class="pronostico-pregunta">¿Cuántos coches no terminarán?</div>
                             <div class="pronostico-opciones">
-                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('abandonos', '0-2')">0-2</div>
-                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('abandonos', '3-5')">3-5</div>
-                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('abandonos', 'mas5')">>5</div>
+                                <div class="opcion-tut seleccionable-pronostico" data-tipo="abandonos" data-valor="0-2" onclick="tutorialSeleccionarOpcionPronostico('abandonos', '0-2', this)">0-2</div>
+                                <div class="opcion-tut seleccionable-pronostico" data-tipo="abandonos" data-valor="3-5" onclick="tutorialSeleccionarOpcionPronostico('abandonos', '3-5', this)">3-5</div>
+                                <div class="opcion-tut seleccionable-pronostico" data-tipo="abandonos" data-valor="mas5" onclick="tutorialSeleccionarOpcionPronostico('abandonos', 'mas5', this)">>5</div>
                             </div>
                             <div class="pronostico-puntos">⭐ +180 pts base</div>
                         </div>
                         
-                        <div class="pronostico-tutorial-card seleccionable" onclick="tutorialSeleccionarPronosticoPractico('diferencia')">
+                        <div class="pronostico-tutorial-card">
                             <div class="pronostico-icon-tut">⏱️</div>
                             <div class="pronostico-nombre-tut">DIFERENCIA 1º-2º</div>
                             <div class="pronostico-pregunta">Tiempo entre primero y segundo</div>
                             <div class="pronostico-opciones">
-                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('diferencia', '<1s')"><1s</div>
-                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('diferencia', '1-5s')">1-5s</div>
-                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('diferencia', '>5s')">>5s</div>
+                                <div class="opcion-tut seleccionable-pronostico" data-tipo="diferencia" data-valor="<1s" onclick="tutorialSeleccionarOpcionPronostico('diferencia', '<1s', this)"><1s</div>
+                                <div class="opcion-tut seleccionable-pronostico" data-tipo="diferencia" data-valor="1-5s" onclick="tutorialSeleccionarOpcionPronostico('diferencia', '1-5s', this)">1-5s</div>
+                                <div class="opcion-tut seleccionable-pronostico" data-tipo="diferencia" data-valor=">5s" onclick="tutorialSeleccionarOpcionPronostico('diferencia', '>5s', this)">>5s</div>
                             </div>
                             <div class="pronostico-puntos">⭐ +200 pts base</div>
                         </div>
@@ -1548,7 +1529,12 @@ class F1Manager {
                     overflow-y: auto;
                     font-family: 'Roboto', sans-serif;
                 }
-                
+                .area-grid-sub {
+                    color: #aaa;
+                    font-size: 0.8rem;
+                    margin-top: 5px;
+                    font-style: italic;
+                }
                 .tutorial-container {
                     background: rgba(21, 21, 30, 0.98);
                     border-radius: 20px;
@@ -1826,33 +1812,46 @@ class F1Manager {
                 
                 /* Responsive */
                 @media (max-width: 1024px) {
-                    .grid-6-columns, .grid-4-columns {
+                    .grid-6-columns {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                    
+                    .grid-4-columns {
                         grid-template-columns: repeat(2, 1fr);
                     }
                     
                     .grid-3-columns {
-                        grid-template-columns: 1fr;
+                        grid-template-columns: repeat(2, 1fr);
                     }
                 }
                 
                 @media (max-width: 768px) {
-                    .tutorial-container {
-                        padding: 20px;
-                        height: 95vh;
-                        margin: 10px;
-                    }
-                    
                     .grid-6-columns, .grid-4-columns, .grid-3-columns {
                         grid-template-columns: 1fr;
                     }
                     
-                    .tutorial-progress-horizontal {
-                        flex-wrap: wrap;
-                        gap: 10px;
+                    .tutorial-container {
+                        padding: 20px;
+                        height: 95vh;
+                        margin: 10px;
+                        overflow-y: auto;
                     }
                     
-                    .progress-step-horizontal {
-                        flex: 0 0 calc(20% - 10px);
+                    .grid-btn-big {
+                        min-height: 120px;
+                        padding: 15px;
+                    }
+                    
+                    .grid-icon {
+                        font-size: 2rem;
+                    }
+                    
+                    .grid-title {
+                        font-size: 1rem;
+                    }
+                    
+                    .grid-desc {
+                        font-size: 0.8rem;
                     }
                 }
                 
@@ -2296,11 +2295,10 @@ class F1Manager {
                 break;
                 
             case 'comenzarJuegoReal':
-                // Finalizar tutorial y mostrar el juego real
+                // Finalizar tutorial y cargar dashboard
                 document.body.innerHTML = '';
-                document.body.appendChild(this.appContainer);
-                this.ocultarLoading();
-                this.inicializarJuego();
+                await this.cargarDashboardCompleto();
+                await this.inicializarSistemasIntegrados();
                 break;
                 
             case 'contratarEstratega':
@@ -3098,7 +3096,93 @@ class F1Manager {
                     border-radius: 10px;
                     border: 1px solid #00d2be;
                 }
+                .simulacion-intro {
+                    background: rgba(0, 210, 190, 0.1);
+                    border-radius: 15px;
+                    padding: 20px;
+                    margin-bottom: 25px;
+                    border: 2px solid #00d2be;
+                }
                 
+                .intro-icon {
+                    font-size: 3rem;
+                    text-align: center;
+                    margin-bottom: 15px;
+                }
+                
+                .simulacion-pasos {
+                    margin: 15px 0;
+                    padding-left: 20px;
+                }
+                
+                .simulacion-pasos li {
+                    margin: 10px 0;
+                    color: #ddd;
+                }
+                
+                .simulacion-nota {
+                    font-style: italic;
+                    color: #aaa;
+                    margin-top: 15px;
+                    font-size: 0.9rem;
+                }
+                
+                .simulacion-dia {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin-bottom: 20px;
+                    border-left: 5px solid #e10600;
+                }
+                
+                .dia-numero-simulacion {
+                    background: #e10600;
+                    color: white;
+                    display: inline-block;
+                    padding: 5px 15px;
+                    border-radius: 20px;
+                    font-weight: bold;
+                    font-family: 'Orbitron', sans-serif;
+                }
+                
+                .dia-titulo-simulacion {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.3rem;
+                    color: white;
+                    margin: 10px 0 5px 0;
+                }
+                
+                .dia-descripcion {
+                    color: #ccc;
+                    font-size: 0.95rem;
+                }
+                
+                .fab-calidad-tut {
+                    color: #aaa;
+                    font-size: 0.9rem;
+                    margin: 5px 0;
+                    font-style: italic;
+                }
+                
+                .seleccionable-pronostico {
+                    background: rgba(255, 255, 255, 0.1);
+                    padding: 8px 15px;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    font-size: 0.9rem;
+                }
+                
+                .seleccionable-pronostico:hover {
+                    background: rgba(0, 210, 190, 0.3);
+                    color: white;
+                }
+                
+                .seleccionable-pronostico.seleccionado {
+                    background: #00d2be;
+                    color: white;
+                    font-weight: bold;
+                }
                 .apuestas-ejemplo h4 {
                     color: #00d2be;
                     margin-top: 0;
@@ -4376,8 +4460,47 @@ class F1Manager {
         }
         alert("🏁 Carrera simulada. 2 de 3 pronósticos acertados.");
     };
-
-
+    window.tutorialIrSeccion = function(seccion) {
+        alert(`Esta función te llevaría a la sección: ${seccion.toUpperCase()}\n\nEn el juego real, puedes navegar entre secciones usando el menú superior.`);
+    };
+    // Función para seleccionar opciones de pronóstico
+    window.tutorialSeleccionarOpcionPronostico = function(tipo, valor, elemento) {
+        // Quitar selección de otros elementos del mismo tipo
+        const elementosMismoTipo = document.querySelectorAll(`[data-tipo="${tipo}"]`);
+        elementosMismoTipo.forEach(el => el.classList.remove('seleccionado'));
+        
+        // Marcar este como seleccionado
+        elemento.classList.add('seleccionado');
+        
+        // Guardar en tutorialData
+        if (!window.tutorialData.pronosticosSeleccionados) {
+            window.tutorialData.pronosticosSeleccionados = {};
+        }
+        window.tutorialData.pronosticosSeleccionados[tipo] = valor;
+        
+        // Mostrar botón de enviar si hay al menos una selección
+        const selecciones = Object.keys(window.tutorialData.pronosticosSeleccionados).length;
+        const accionBtn = document.getElementById('accion-pronostico-tut');
+        if (accionBtn && selecciones > 0) {
+            accionBtn.style.display = 'block';
+        }
+    };
+    
+    // Función para ejecutar pronóstico
+    window.tutorialEjecutarPronostico = function() {
+        const selecciones = window.tutorialData.pronosticosSeleccionados || {};
+        const count = Object.keys(selecciones).length;
+        
+        if (count < 3) {
+            alert(`Has seleccionado ${count} de 3 pronósticos. Puedes seleccionar uno de cada categoría.`);
+            return;
+        }
+        
+        alert("✅ Pronósticos enviados. Se verificarán con los datos reales post-carrera.");
+        
+        // En un tutorial real, aquí avanzarías automáticamente
+        // Para mantener el flujo, el usuario hará clic en SIGUIENTE
+    };
 // Iniciar aplicación
 console.log('🚀 Iniciando aplicación desde el final del archivo...');
 iniciarAplicacion();
