@@ -257,8 +257,9 @@ class AuthManager {
 
     async loadTutorialPilotos() {
         try {
-            const { data: pilotos } = await supabase
-                .from('pilotos_catalogo')
+            // 🔥 CAMBIO AQUÍ: Consultar 'ingenieros_catalogo' en lugar de 'pilotos_catalogo'
+            const { data: ingenieros } = await supabase
+                .from('ingenieros_catalogo')
                 .select('*')
                 .eq('disponible', true)
                 .limit(6);
@@ -266,37 +267,42 @@ class AuthManager {
             const container = document.getElementById('tutorial-pilotos');
             if (!container) return;
 
+            // 🔥 CAMBIO AQUÍ: Actualizar los nombres de propiedades para ingenieros
             container.innerHTML = `
                 <div class="pilotos-grid">
-                    ${pilotos?.map(piloto => `
-                        <div class="piloto-card" data-piloto-id="${piloto.id}">
+                    ${ingenieros?.map(ingeniero => `
+                        <div class="piloto-card" data-ingeniero-id="${ingeniero.id}">
                             <div class="piloto-header">
-                                <h4>${piloto.nombre}</h4>
-                                <span class="piloto-nacionalidad">${piloto.nacionalidad}</span>
+                                <h4>${ingeniero.nombre}</h4>
+                                <span class="piloto-nacionalidad">${ingeniero.nacionalidad || 'N/A'}</span>
                             </div>
                             <div class="piloto-stats">
                                 <div class="stat">
                                     <i class="fas fa-star"></i>
-                                    <span>Habilidad: ${piloto.habilidad}/100</span>
+                                    <span>Habilidad: ${ingeniero.nivel_habilidad || 0}/100</span>
                                 </div>
                                 <div class="stat">
                                     <i class="fas fa-trophy"></i>
-                                    <span>Experiencia: ${piloto.experiencia} años</span>
+                                    <span>Experiencia: ${ingeniero.experiencia || 0} años</span>
                                 </div>
                                 <div class="stat">
                                     <i class="fas fa-money-bill-wave"></i>
-                                    <span>Salario: €${piloto.salario_base?.toLocaleString()}/mes</span>
+                                    <span>Salario: €${(ingeniero.salario_base || 0)?.toLocaleString()}/mes</span>
+                                </div>
+                                <div class="stat">
+                                    <i class="fas fa-cogs"></i>
+                                    <span>Especialidad: ${ingeniero.especialidad || 'General'}</span>
                                 </div>
                             </div>
-                            <button class="btn-seleccionar" onclick="selectPiloto(${piloto.id})">
-                                <i class="fas fa-user-plus"></i> Seleccionar
+                            <button class="btn-seleccionar" onclick="selectIngeniero(${ingeniero.id})">
+                                <i class="fas fa-user-plus"></i> Seleccionar Ingeniero
                             </button>
                         </div>
-                    `).join('') || '<p>No hay pilotos disponibles</p>'}
+                    `).join('') || '<p>No hay ingenieros disponibles</p>'}
                 </div>
                 
                 <div class="pilotos-selected" id="pilotos-selected">
-                    <h4>Pilotos seleccionados (0/2)</h4>
+                    <h4>Ingenieros seleccionados (0/2)</h4>
                     <div id="selected-list"></div>
                     <button class="btn-confirmar" id="btn-confirm-pilots" disabled>
                         Confirmar selección
@@ -305,7 +311,7 @@ class AuthManager {
             `;
 
         } catch (error) {
-            console.error('Error cargando pilotos:', error);
+            console.error('Error cargando ingenieros:', error);
         }
     }
 
