@@ -963,25 +963,8 @@ class F1Manager {
                         <li>Tomar decisiones que conviertan tus aciertos en puntos y dinero</li>
                         <li>Competir contra miles de jugadores para convertirte en <strong>el mejor estratega del mundo</strong></li>
                     </ul>
-                    
-                    <div class="community-stats">
-                        <div class="stat">
-                            <i class="fas fa-users"></i>
-                            <span>+10,000 jugadores activos</span>
-                        </div>
-                        <div class="stat">
-                            <i class="fas fa-trophy"></i>
-                            <span>Competición en tiempo real</span>
-                        </div>
-                        <div class="stat">
-                            <i class="fas fa-globe"></i>
-                            <span>Ranking global permanente</span>
-                        </div>
-                    </div>
-                    
-                    <p class="next-action">👇 Haz clic en <strong>"Siguiente"</strong> para conocer tus herramientas de gestión.</p>
                 `,
-                action: 'irPaso2'
+                action: 'siguientePaso'
             },
             
             // PASO 2: Dashboard principal - Herramientas de gestión
@@ -1031,12 +1014,8 @@ class F1Manager {
                             </div>
                         </div>
                     </div>
-                    
-                    <p class="tip">💡 <strong>Consejo:</strong> Revisa esta pantalla cada vez que entres para ver el estado actual de tu equipo.</p>
-                    
-                    <p class="next-action">👇 Ahora vamos a conocer las <strong>áreas técnicas</strong> que puedes desarrollar.</p>
                 `,
-                action: 'irPaso3'
+                action: 'siguientePaso'
             },
             
             // PASO 3: Las 11 áreas técnicas de desarrollo
@@ -1101,12 +1080,8 @@ class F1Manager {
                             <li>Cada subnivel completado otorga <strong>puntos base permanentes</strong></li>
                         </ul>
                     </div>
-                    
-                    <p class="tip">💡 <strong>Cómo mejorar:</strong> Fabricando piezas en el Taller, que luego podrás montar o vender.</p>
-                    
-                    <p class="next-action">👇 Ahora vas a contratar tu <strong>primer estratega</strong>.</p>
                 `,
-                action: 'irPaso4'
+                action: 'siguientePaso'
             },
             
             // PASO 4: Contratación de estrategas
@@ -1114,8 +1089,6 @@ class F1Manager {
                 title: "👥 CONTRATA TU PRIMER ESTRATEGA",
                 content: `
                     <p>Los estrategas son <strong>expertos analistas</strong> que potencian tus aciertos en los pronósticos.</p>
-                    
-                    <p class="important">🎯 <strong>Cada estratega te da ventajas específicas:</strong></p>
                     
                     <div class="analysts-showcase">
                         <div class="analyst-example">
@@ -1155,15 +1128,8 @@ class F1Manager {
                             <li><strong>Más adelante</strong> podrás contratar más estrategas</li>
                         </ol>
                     </div>
-                    
-                    <div class="warning-box">
-                        <p>⚠️ <strong>Este paso es obligatorio</strong></p>
-                        <p>Necesitas al menos <strong>1 estratega</strong> para comenzar a competir.</p>
-                        <p>Haz clic en "Contratar Estratega" para ver las opciones disponibles.</p>
-                    </div>
                 `,
-                action: 'contratarEstratega',
-                mandatory: true
+                action: 'siguientePaso'
             },
             
             // PASO 5: Sistema de producción y almacén
@@ -1208,15 +1174,8 @@ class F1Manager {
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="tip-box">
-                        <p>💡 <strong>Consejo inicial:</strong></p>
-                        <p>Comienza fabricando piezas para 2-3 áreas donde quieras especializarte. Las primeras piezas se fabrican rápido y te darán una ventaja inicial.</p>
-                    </div>
-                    
-                    <p class="next-action">👇 Ahora vamos a hacer tu <strong>primer ciclo completo</strong> (fabricación + pronóstico).</p>
                 `,
-                action: 'irPaso6'
+                action: 'siguientePaso'
             },
             
             // PASO 6: Práctica - Primer ciclo completo
@@ -1236,62 +1195,27 @@ class F1Manager {
                             
                             <div class="task-item">
                                 <input type="checkbox" id="task2" disabled>
-                                <label for="task2"><strong>2. Contratar tu primer estratega</strong> (lo harás después)</label>
+                                <label for="task2"><strong>2. Contratar tu primer estratega</strong> (próximamente)</label>
                             </div>
                             
                             <div class="task-item">
                                 <input type="checkbox" id="task3" disabled>
-                                <label for="task3"><strong>3. Fabricar tu primera pieza</strong> (simulado ahora)</label>
+                                <label for="task3"><strong>3. Fabricar tu primera pieza</strong> (próximamente)</label>
                             </div>
                             
                             <div class="task-item">
                                 <input type="checkbox" id="task4" disabled>
-                                <label for="task4"><strong>4. Hacer un pronóstico simple</strong> (simulado ahora)</label>
+                                <label for="task4"><strong>4. Hacer un pronóstico simple</strong> (próximamente)</label>
                             </div>
                             
                             <div class="task-item">
                                 <input type="checkbox" id="task5" disabled>
-                                <label for="task5"><strong>5. Ver resultados y ganancias</strong> (simulado ahora)</label>
+                                <label for="task5"><strong>5. Ver resultados y ganancias</strong> (próximamente)</label>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="simulation-interface">
-                        <div class="sim-step active">
-                            <h4>🏭 FABRICAR PRIMERA PIEZA</h4>
-                            <select id="area-seleccion" class="sim-select">
-                                <option value="">-- Selecciona un área --</option>
-                                <option value="motor">Motor (+15 puntos base)</option>
-                                <option value="chasis">Chasis (+12 puntos base)</option>
-                                <option value="aerodinamica">Aerodinámica (+10 puntos base)</option>
-                            </select>
-                            <button class="sim-btn" onclick="simularFabricacion()">Fabricar Pieza (4h)</button>
-                        </div>
-                        
-                        <div class="sim-step">
-                            <h4>🎯 HACER PRONÓSTICO</h4>
-                            <div class="forecast-option" onclick="seleccionarPronostico(1)">
-                                <input type="radio" name="pronostico" id="p1">
-                                <label for="p1">¿Habrá bandera amarilla en carrera? (Sí/No)</label>
-                            </div>
-                            <div class="forecast-option" onclick="seleccionarPronostico(2)">
-                                <input type="radio" name="pronostico" id="p2">
-                                <label for="p2">¿Terminarán más de 20 pilotos? (Sí/No)</label>
-                            </div>
-                            <div class="forecast-option" onclick="seleccionarPronostico(3)">
-                                <input type="radio" name="pronostico" id="p3">
-                                <label for="p3">¿Diferencia 1º-2º será < 5 segundos? (Sí/No)</label>
-                            </div>
-                        </div>
-                        
-                        <div class="sim-step">
-                            <h4>💰 SIMULAR CARRERA</h4>
-                            <p class="sim-info">Al completar los pasos anteriores, podrás simular una carrera y ver cómo se convierten tus aciertos en puntos y dinero.</p>
-                            <button class="sim-btn-final" onclick="simularCarreraCompleta()">Simular Carrera Completa</button>
                         </div>
                     </div>
                 `,
-                action: 'simularCicloCompleto'
+                action: 'siguientePaso'
             },
             
             // PASO 7: Finalización y comienzo real
@@ -1303,55 +1227,7 @@ class F1Manager {
                         <h3>¡Tutorial Completado!</h3>
                     </div>
                     
-                    <p>Felicidades, director. Has completado tu <strong>formación inicial</strong> y ahora estás preparado para:</p>
-                    
-                    <div class="next-steps">
-                        <div class="next-step">
-                            <div class="step-icon">👥</div>
-                            <div class="step-text">
-                                <strong>Contratar tu primer estratega real</strong><br>
-                                <small>Ve a la sección "Equipo" para comenzar</small>
-                            </div>
-                        </div>
-                        
-                        <div class="next-step">
-                            <div class="step-icon">🏭</div>
-                            <div class="step-text">
-                                <strong>Fabricar tus primeras piezas reales</strong><br>
-                                <small>Visita el Taller para empezar a producir</small>
-                            </div>
-                        </div>
-                        
-                        <div class="next-step">
-                            <div class="step-icon">🎯</div>
-                            <div class="step-text">
-                                <strong>Hacer tus primeros pronósticos reales</strong><br>
-                                <small>La próxima carrera ya está disponible</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="final-budget">
-                        <p class="budget-title">💰 <strong>Tu situación actual:</strong></p>
-                        <div class="budget-details">
-                            <div class="budget-item">
-                                <span>Presupuesto:</span>
-                                <strong class="money">5,000,000€</strong>
-                            </div>
-                            <div class="budget-item">
-                                <span>Estrategas:</span>
-                                <strong class="team">0 contratados</strong>
-                            </div>
-                            <div class="budget-item">
-                                <span>Piezas fabricadas:</span>
-                                <strong class="parts">0 en almacén</strong>
-                            </div>
-                            <div class="budget-item">
-                                <span>Posición inicial:</span>
-                                <strong class="ranking">#1,245 global</strong>
-                            </div>
-                        </div>
-                    </div>
+                    <p>Felicidades, director. Has completado tu <strong>formación inicial</strong> y ahora estás preparado para competir.</p>
                     
                     <div class="final-message">
                         <p>El mundo del motorsport estratégico te espera. Miles de directores ya están compitiendo.</p>
@@ -1370,13 +1246,13 @@ class F1Manager {
         document.body.innerHTML = `
             <div class="tutorial-screen">
                 <div class="tutorial-container">
-                    <!-- Progreso -->
-                    <div class="tutorial-progress">
+                    <!-- Progreso HORIZONTAL -->
+                    <div class="tutorial-progress-horizontal">
                         ${steps.map((s, i) => `
-                            <div class="progress-step ${i + 1 === this.tutorialStep ? 'active' : ''} 
-                                 ${i + 1 < this.tutorialStep ? 'completed' : ''}"
-                                 onclick="if(${i + 1} < this.tutorialStep) { this.tutorialStep = ${i + 1}; this.mostrarTutorialStep(); }">
-                                ${i + 1}
+                            <div class="progress-step-horizontal ${i + 1 === this.tutorialStep ? 'active' : ''} 
+                                 ${i + 1 < this.tutorialStep ? 'completed' : ''}">
+                                <div class="step-number-horizontal">${i + 1}</div>
+                                <div class="step-line-horizontal"></div>
                             </div>
                         `).join('')}
                     </div>
@@ -1390,29 +1266,18 @@ class F1Manager {
                         ${step.content}
                     </div>
                     
-                    <!-- Acciones -->
-                    <div class="tutorial-actions">
+                    <!-- Botón grande y llamativo -->
+                    <div class="tutorial-actions-bottom">
                         ${this.tutorialStep > 1 ? `
-                            <button class="btn-tutorial prev" id="btn-tutorial-prev">
+                            <button class="btn-tutorial-prev" id="btn-tutorial-prev">
                                 <i class="fas fa-arrow-left"></i> Anterior
                             </button>
-                        ` : ''}
+                        ` : '<div class="spacer"></div>'}
                         
-                        ${step.mandatory ? `
-                            <div class="mandatory-warning" id="mandatory-warning">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span>Debes completar este paso para continuar</span>
-                            </div>
-                        ` : ''}
-                        
-                        <button class="btn-tutorial next" id="btn-tutorial-next" 
-                                data-action="${step.action}"
-                                ${step.mandatory ? 'disabled' : ''}>
-                            ${step.action === 'contratarEstratega' ? 'Contratar Estratega' : 
-                              step.action === 'comenzarJuegoReal' ? '¡Empezar a Competir!' : 
-                              step.action === 'simularCicloCompleto' ? 'Comenzar Práctica' : 'Siguiente'}
-                            ${step.action !== 'contratarEstratega' && step.action !== 'comenzarJuegoReal' && step.action !== 'simularCicloCompleto' ? 
-                              '<i class="fas fa-arrow-right"></i>' : ''}
+                        <button class="btn-tutorial-next-large" id="btn-tutorial-next-large" 
+                                data-action="${step.action}">
+                            ${step.action === 'comenzarJuegoReal' ? '¡EMPEZAR A COMPETIR!' : 'SIGUIENTE'}
+                            <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
                 </div>
@@ -1437,30 +1302,190 @@ class F1Manager {
                 }
                 
                 .tutorial-container {
-                    background: rgba(21, 21, 30, 0.95);
+                    background: rgba(21, 21, 30, 0.98);
                     border-radius: 20px;
                     padding: 40px;
                     width: 100%;
                     max-width: 900px;
                     border: 3px solid #00d2be;
-                    box-shadow: 0 25px 60px rgba(0, 210, 190, 0.25);
-                    backdrop-filter: blur(15px);
-                    max-height: 90vh;
-                    overflow-y: auto;
+                    box-shadow: 0 25px 60px rgba(0, 210, 190, 0.3);
+                    display: flex;
+                    flex-direction: column;
+                    height: 85vh;
+                    max-height: 800px;
                 }
                 
-                /* Estilos generales del contenido */
+                /* Progreso HORIZONTAL mejorado */
+                .tutorial-progress-horizontal {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 40px;
+                    position: relative;
+                    width: 100%;
+                }
+                
+                .progress-step-horizontal {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    position: relative;
+                    flex: 1;
+                    z-index: 1;
+                }
+                
+                .step-number-horizontal {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.1);
+                    color: #888;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: bold;
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.1rem;
+                    transition: all 0.3s;
+                    z-index: 2;
+                    border: 2px solid transparent;
+                }
+                
+                .progress-step-horizontal.active .step-number-horizontal {
+                    background: linear-gradient(135deg, #00d2be, #009688);
+                    color: white;
+                    transform: scale(1.2);
+                    box-shadow: 0 0 20px rgba(0, 210, 190, 0.7);
+                    border: 2px solid white;
+                }
+                
+                .progress-step-horizontal.completed .step-number-horizontal {
+                    background: linear-gradient(135deg, #4CAF50, #388E3C);
+                    color: white;
+                }
+                
+                .step-line-horizontal {
+                    position: absolute;
+                    top: 20px;
+                    left: 50%;
+                    right: -50%;
+                    height: 4px;
+                    background: rgba(255, 255, 255, 0.1);
+                    z-index: 1;
+                }
+                
+                .progress-step-horizontal:last-child .step-line-horizontal {
+                    display: none;
+                }
+                
+                .progress-step-horizontal.completed .step-line-horizontal {
+                    background: linear-gradient(90deg, #4CAF50, #388E3C);
+                }
+                
+                /* Contenido */
+                .tutorial-header h1 {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: clamp(1.8rem, 4vw, 2.3rem);
+                    text-align: center;
+                    background: linear-gradient(90deg, #00d2be, #e10600);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    margin-bottom: 30px;
+                    line-height: 1.3;
+                }
+                
                 .tutorial-content {
                     color: #f0f0f0;
                     line-height: 1.7;
-                    margin: 30px 0;
+                    margin-bottom: 30px;
                     font-size: 1.1rem;
+                    flex: 1;
+                    overflow-y: auto;
+                    padding-right: 10px;
                 }
                 
-                .tutorial-content p {
-                    margin-bottom: 15px;
+                .tutorial-content::-webkit-scrollbar {
+                    width: 8px;
                 }
                 
+                .tutorial-content::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 4px;
+                }
+                
+                .tutorial-content::-webkit-scrollbar-thumb {
+                    background: #00d2be;
+                    border-radius: 4px;
+                }
+                
+                /* Botones en la parte inferior */
+                .tutorial-actions-bottom {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding-top: 30px;
+                    border-top: 2px solid rgba(255, 255, 255, 0.1);
+                    margin-top: 20px;
+                }
+                
+                .btn-tutorial-prev {
+                    background: transparent;
+                    border: 2px solid #888;
+                    color: #888;
+                    padding: 15px 30px;
+                    border-radius: 10px;
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    min-height: 60px;
+                }
+                
+                .btn-tutorial-prev:hover {
+                    border-color: #00d2be;
+                    color: #00d2be;
+                    transform: translateY(-3px);
+                }
+                
+                .btn-tutorial-next-large {
+                    background: linear-gradient(135deg, #00d2be, #009688);
+                    color: white;
+                    border: none;
+                    padding: 20px 50px;
+                    border-radius: 12px;
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.3rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    min-height: 70px;
+                    box-shadow: 0 10px 25px rgba(0, 210, 190, 0.4);
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+                
+                .btn-tutorial-next-large:hover {
+                    transform: translateY(-5px) scale(1.05);
+                    box-shadow: 0 15px 35px rgba(0, 210, 190, 0.6);
+                    background: linear-gradient(135deg, #00e6cc, #00a895);
+                }
+                
+                .btn-tutorial-next-large:active {
+                    transform: translateY(-2px) scale(1.02);
+                }
+                
+                .spacer {
+                    width: 120px;
+                }
+                
+                /* Contenido específico */
                 .team-name {
                     color: #00d2be;
                     background: rgba(0, 210, 190, 0.1);
@@ -1474,544 +1499,97 @@ class F1Manager {
                     animation: pulse 2s infinite;
                 }
                 
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.8; }
+                .highlight-box {
+                    background: rgba(255, 215, 0, 0.1);
+                    border: 2px solid #ffd700;
+                    border-radius: 12px;
+                    padding: 20px;
+                    margin: 20px 0;
                 }
                 
                 .money {
                     color: #ffd700;
                     font-family: 'Orbitron', sans-serif;
+                    font-size: 1.3rem;
                 }
                 
                 .main-mission {
                     background: rgba(225, 6, 0, 0.1);
                     border-left: 4px solid #e10600;
-                    padding: 15px;
-                    border-radius: 0 8px 8px 0;
-                    margin: 25px 0;
-                }
-                
-                .community-stats {
-                    display: flex;
-                    justify-content: space-around;
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 12px;
                     padding: 20px;
+                    border-radius: 0 12px 12px 0;
                     margin: 25px 0;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                }
-                
-                .community-stats .stat {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    color: #aaa;
-                }
-                
-                .community-stats i {
-                    color: #00d2be;
-                    font-size: 1.2rem;
-                }
-                
-                .next-action {
-                    text-align: center;
-                    background: rgba(0, 210, 190, 0.1);
-                    padding: 15px;
-                    border-radius: 10px;
-                    margin-top: 30px;
-                    border: 1px solid rgba(0, 210, 190, 0.3);
-                }
-                
-                /* Dashboard preview */
-                .dashboard-preview {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 15px;
-                    margin: 25px 0;
-                }
-                
-                .dashboard-item {
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 2px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 10px;
-                    padding: 15px;
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                    transition: all 0.3s;
-                }
-                
-                .dashboard-item.highlighted {
-                    border-color: #00d2be;
-                    background: rgba(0, 210, 190, 0.1);
-                    transform: scale(1.05);
-                }
-                
-                .item-icon {
-                    font-size: 1.8rem;
-                    width: 50px;
-                    height: 50px;
-                    background: rgba(0, 210, 190, 0.2);
-                    border-radius: 10px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                .item-text {
-                    flex: 1;
-                }
-                
-                .tip {
-                    background: rgba(255, 193, 7, 0.1);
-                    border-left: 4px solid #ffc107;
-                    padding: 15px;
-                    border-radius: 0 8px 8px 0;
-                    margin: 20px 0;
-                }
-                
-                /* Areas grid */
-                .areas-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-                    gap: 12px;
-                    margin: 25px 0;
-                }
-                
-                .area-card {
-                    background: rgba(42, 42, 56, 0.8);
-                    border: 2px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 10px;
-                    padding: 15px 10px;
-                    text-align: center;
-                    transition: all 0.3s;
-                }
-                
-                .area-card:hover {
-                    border-color: #00d2be;
-                    transform: translateY(-3px);
-                }
-                
-                .area-icon {
-                    font-size: 1.8rem;
-                    margin-bottom: 8px;
-                }
-                
-                .area-name {
-                    font-size: 0.9rem;
-                    font-weight: bold;
-                    color: #ddd;
-                }
-                
-                .level-system {
-                    background: rgba(0, 0, 0, 0.3);
-                    border-radius: 12px;
-                    padding: 20px;
-                    margin: 25px 0;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                }
-                
-                .system-title {
-                    color: #00d2be;
-                    margin-bottom: 15px;
-                    font-family: 'Orbitron', sans-serif;
-                }
-                
-                /* Analysts showcase */
-                .analysts-showcase {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 15px;
-                    margin: 25px 0;
-                }
-                
-                .analyst-example {
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 10px;
-                    padding: 15px;
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                    transition: all 0.3s;
-                }
-                
-                .analyst-example:hover {
-                    border-color: #00d2be;
-                    background: rgba(0, 210, 190, 0.05);
-                }
-                
-                .analyst-icon {
-                    font-size: 2rem;
-                    width: 60px;
-                    height: 60px;
-                    background: rgba(0, 210, 190, 0.2);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                }
-                
-                .analyst-details {
-                    flex: 1;
-                }
-                
-                .analyst-details strong {
-                    color: #00d2be;
-                    font-size: 1.1rem;
-                    display: block;
-                    margin-bottom: 5px;
-                }
-                
-                .analyst-details em {
-                    color: #aaa;
-                    font-style: normal;
-                    font-size: 0.9rem;
-                }
-                
-                .hiring-process {
-                    background: rgba(0, 0, 0, 0.3);
-                    border-radius: 12px;
-                    padding: 20px;
-                    margin: 25px 0;
-                }
-                
-                .process-title {
-                    color: #ffd700;
-                    margin-bottom: 15px;
-                    font-family: 'Orbitron', sans-serif;
-                }
-                
-                .hiring-process ol {
-                    padding-left: 20px;
-                    margin: 15px 0;
-                }
-                
-                .hiring-process li {
-                    margin-bottom: 10px;
-                }
-                
-                .warning-box {
-                    background: rgba(225, 6, 0, 0.15);
-                    border: 2px solid #e10600;
-                    border-radius: 12px;
-                    padding: 20px;
-                    margin: 25px 0;
-                    text-align: center;
-                }
-                
-                .warning-box p {
-                    margin: 10px 0;
-                }
-                
-                /* Manufacturing flow */
-                .manufacturing-flow {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 10px;
-                    margin: 30px 0;
-                }
-                
-                .flow-step {
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 12px;
-                    padding: 20px;
-                    width: 100%;
-                    max-width: 500px;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                }
-                
-                .step-number {
-                    background: linear-gradient(135deg, #00d2be, #009688);
-                    color: white;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-weight: bold;
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 1.2rem;
-                    flex-shrink: 0;
-                }
-                
-                .step-content {
-                    flex: 1;
-                }
-                
-                .flow-arrow {
-                    color: #00d2be;
-                    font-size: 1.5rem;
-                    font-weight: bold;
-                }
-                
-                .tip-box {
-                    background: rgba(76, 175, 80, 0.1);
-                    border: 2px solid #4CAF50;
-                    border-radius: 12px;
-                    padding: 20px;
-                    margin: 25px 0;
-                }
-                
-                /* Simulation interface */
-                .simulation-interface {
-                    background: rgba(0, 0, 0, 0.4);
-                    border-radius: 15px;
-                    padding: 25px;
-                    margin: 25px 0;
-                    border: 2px solid rgba(0, 210, 190, 0.3);
-                }
-                
-                .sim-step {
-                    margin-bottom: 25px;
-                    padding-bottom: 25px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                }
-                
-                .sim-step:last-child {
-                    border-bottom: none;
-                    margin-bottom: 0;
-                    padding-bottom: 0;
-                }
-                
-                .sim-step h4 {
-                    color: #00d2be;
-                    margin-bottom: 15px;
-                    font-family: 'Orbitron', sans-serif;
-                }
-                
-                .sim-select {
-                    width: 100%;
-                    padding: 12px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 2px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 8px;
-                    color: white;
-                    font-size: 1rem;
-                    margin-bottom: 15px;
-                }
-                
-                .sim-btn, .sim-btn-final {
-                    background: linear-gradient(135deg, #00d2be, #009688);
-                    color: white;
-                    border: none;
-                    padding: 15px 30px;
-                    border-radius: 8px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    width: 100%;
-                    font-size: 1rem;
-                    transition: all 0.3s;
-                }
-                
-                .sim-btn-final {
-                    background: linear-gradient(135deg, #e10600, #ff4444);
-                    font-size: 1.1rem;
-                    padding: 18px;
-                }
-                
-                .sim-btn:hover, .sim-btn-final:hover {
-                    transform: translateY(-3px);
-                    box-shadow: 0 8px 20px rgba(0, 210, 190, 0.4);
-                }
-                
-                .forecast-option {
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 2px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 8px;
-                    padding: 15px;
-                    margin-bottom: 10px;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                }
-                
-                .forecast-option:hover {
-                    border-color: #00d2be;
-                    background: rgba(0, 210, 190, 0.05);
-                }
-                
-                .forecast-option input[type="radio"] {
-                    margin-right: 10px;
-                }
-                
-                .sim-info {
-                    color: #aaa;
-                    font-size: 0.95rem;
-                    margin-bottom: 20px;
-                }
-                
-                /* Completion */
-                .completion-celebration {
-                    text-align: center;
-                    margin: 30px 0;
-                }
-                
-                .celebration-icon {
-                    font-size: 4rem;
-                    margin-bottom: 20px;
-                    animation: bounce 1s infinite;
-                }
-                
-                @keyframes bounce {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-10px); }
-                }
-                
-                .next-steps {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 15px;
-                    margin: 30px 0;
-                }
-                
-                .next-step {
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 2px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 10px;
-                    padding: 20px;
-                    transition: all 0.3s;
-                }
-                
-                .next-step:hover {
-                    border-color: #00d2be;
-                    transform: translateX(5px);
-                }
-                
-                .step-icon {
-                    font-size: 1.8rem;
-                    width: 60px;
-                    height: 60px;
-                    background: rgba(0, 210, 190, 0.2);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                }
-                
-                .final-budget {
-                    background: rgba(0, 0, 0, 0.4);
-                    border-radius: 15px;
-                    padding: 25px;
-                    margin: 30px 0;
-                    border: 2px solid rgba(255, 255, 255, 0.1);
-                }
-                
-                .budget-title {
-                    color: #ffd700;
-                    margin-bottom: 20px;
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 1.2rem;
-                }
-                
-                .budget-details {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 15px;
-                }
-                
-                .budget-item {
-                    background: rgba(255, 255, 255, 0.05);
-                    padding: 15px;
-                    border-radius: 8px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                
-                .budget-item span {
-                    color: #aaa;
-                }
-                
-                .team {
-                    color: #00d2be;
-                }
-                
-                .parts {
-                    color: #4CAF50;
-                }
-                
-                .ranking {
-                    color: #ffd700;
-                }
-                
-                .final-message {
-                    text-align: center;
-                    padding: 30px;
-                    background: linear-gradient(135deg, rgba(225, 6, 0, 0.1), rgba(0, 210, 190, 0.1));
-                    border-radius: 15px;
-                    margin-top: 30px;
-                }
-                
-                .challenge {
-                    font-size: 1.3rem;
-                    color: #00d2be;
-                    margin: 20px 0;
-                    font-family: 'Orbitron', sans-serif;
-                }
-                
-                .good-luck {
-                    font-size: 1.5rem;
-                    color: #ffd700;
-                    font-weight: bold;
-                    margin-top: 20px;
-                    animation: pulse 2s infinite;
                 }
                 
                 /* Responsive */
                 @media (max-width: 768px) {
                     .tutorial-container {
-                        padding: 20px;
+                        padding: 25px;
+                        height: 90vh;
                         margin: 10px;
+                    }
+                    
+                    .tutorial-progress-horizontal {
+                        margin-bottom: 30px;
+                    }
+                    
+                    .step-number-horizontal {
+                        width: 35px;
+                        height: 35px;
+                        font-size: 1rem;
+                    }
+                    
+                    .btn-tutorial-next-large {
+                        padding: 18px 30px;
+                        font-size: 1.1rem;
+                        min-height: 60px;
+                    }
+                    
+                    .btn-tutorial-prev {
+                        padding: 12px 20px;
+                        min-height: 50px;
+                    }
+                    
+                    .spacer {
+                        width: 60px;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    .tutorial-header h1 {
+                        font-size: 1.6rem;
                     }
                     
                     .tutorial-content {
                         font-size: 1rem;
                     }
                     
-                    .community-stats {
-                        flex-direction: column;
-                        gap: 15px;
+                    .step-number-horizontal {
+                        width: 30px;
+                        height: 30px;
+                        font-size: 0.9rem;
                     }
                     
-                    .dashboard-preview, .areas-grid, .budget-details {
-                        grid-template-columns: 1fr;
+                    .btn-tutorial-next-large {
+                        padding: 15px 20px;
+                        font-size: 1rem;
+                        gap: 8px;
                     }
                     
-                    .manufacturing-flow {
-                        gap: 5px;
+                    .btn-tutorial-prev {
+                        padding: 10px 15px;
+                        font-size: 0.9rem;
                     }
                     
-                    .flow-step {
-                        flex-direction: column;
-                        text-align: center;
-                        gap: 10px;
-                    }
-                    
-                    .flow-arrow {
-                        transform: rotate(90deg);
-                    }
-                    
-                    .analyst-example {
-                        flex-direction: column;
-                        text-align: center;
+                    .spacer {
+                        width: 40px;
                     }
                 }
             </style>
         `;
         
-        // Eventos
-        document.getElementById('btn-tutorial-next').addEventListener('click', () => {
+        // Eventos CORREGIDOS - Usando funciones de flecha para mantener el contexto
+        document.getElementById('btn-tutorial-next-large').addEventListener('click', () => {
             this.ejecutarAccionTutorial(step.action);
         });
         
@@ -2020,6 +1598,39 @@ class F1Manager {
                 this.tutorialStep--;
                 this.mostrarTutorialStep();
             });
+        }
+    }
+    
+    // Añade esta función al objeto principal
+    ejecutarAccionTutorial(accion) {
+        switch(accion) {
+            case 'siguientePaso':
+                if (this.tutorialStep < 7) {
+                    this.tutorialStep++;
+                    this.mostrarTutorialStep();
+                }
+                break;
+                
+            case 'comenzarJuegoReal':
+                // Finalizar tutorial y mostrar el juego real
+                document.body.innerHTML = '';
+                document.body.appendChild(this.appContainer);
+                this.ocultarLoading();
+                this.inicializarJuego();
+                break;
+                
+            case 'contratarEstratega':
+                // Redirigir a la sección de contratación
+                this.tutorialStep++;
+                this.mostrarTutorialStep();
+                break;
+                
+            default:
+                // Por defecto, siguiente paso
+                if (this.tutorialStep < 7) {
+                    this.tutorialStep++;
+                    this.mostrarTutorialStep();
+                }
         }
     }
     
