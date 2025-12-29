@@ -1588,17 +1588,58 @@ class F1Manager {
             </style>
         `;
         
-        // Eventos CORREGIDOS - Usando funciones de flecha para mantener el contexto
-        document.getElementById('btn-tutorial-next-large').addEventListener('click', () => {
-            this.ejecutarAccionTutorial(step.action);
-        });
-        
-        if (document.getElementById('btn-tutorial-prev')) {
-            document.getElementById('btn-tutorial-prev').addEventListener('click', () => {
-                this.tutorialStep--;
-                this.mostrarTutorialStep();
-            });
-        }
+        setTimeout(() => {
+            // 1. Botón SIGUIENTE
+            const nextBtn = document.getElementById('btn-tutorial-next-large');
+            if (nextBtn) {
+                // ELIMINA cualquier listener anterior
+                nextBtn.replaceWith(nextBtn.cloneNode(true));
+                const newNextBtn = document.getElementById('btn-tutorial-next-large');
+                
+                // AÑADE listener NUEVO
+                newNextBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log("✅ BOTÓN CLICKEADO - Paso:", this.tutorialStep);
+                    
+                    if (this.tutorialStep >= 7) {
+                        // ÚLTIMO PASO
+                        document.body.innerHTML = '';
+                        if (this.appContainer) {
+                            document.body.appendChild(this.appContainer);
+                        }
+                        if (typeof this.inicializarJuego === 'function') {
+                            this.inicializarJuego();
+                        }
+                        if (typeof this.ocultarLoading === 'function') {
+                            this.ocultarLoading();
+                        }
+                    } else {
+                        // AVANZAR
+                        this.tutorialStep++;
+                        this.mostrarTutorialStep();
+                    }
+                });
+            }
+            
+            // 2. Botón ANTERIOR
+            const prevBtn = document.getElementById('btn-tutorial-prev');
+            if (prevBtn) {
+                prevBtn.replaceWith(prevBtn.cloneNode(true));
+                const newPrevBtn = document.getElementById('btn-tutorial-prev');
+                
+                newPrevBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (this.tutorialStep > 1) {
+                        this.tutorialStep--;
+                        this.mostrarTutorialStep();
+                    }
+                });
+            }
+        }, 100);
     }
     
     // Añade esta función al objeto principal
