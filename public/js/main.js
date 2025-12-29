@@ -2129,32 +2129,49 @@ class F1Manager {
     async crearDatosInicialesSiFaltan() {
         console.log('🔍 Verificando si faltan datos iniciales...');
         
-        // 1. Verificar si el usuario ya está en public.users
-        const { data: usuarioPublico, error: userError } = await this.supabase
-            .from('users')
-            .select('id')
-            .eq('id', this.user.id)
+        // ⬇⬇⬇ **NUEVO: Verificar si la tabla users existe** ⬇⬇⬇
+        const { data: tableExists, error: tableError } = await this.supabase
+            .from('information_schema.tables')
+            .select('table_name')
+            .eq('table_schema', 'public')
+            .eq('table_name', 'users')
             .maybeSingle();
         
-        // Si NO existe en public.users, lo creamos
-        if (!usuarioPublico && !userError) {
-            console.log('👤 Creando usuario en tabla pública...');
-            const { error: insertError } = await this.supabase
+        // Si la tabla NO existe, saltar creación de usuario
+        if (!tableExists || tableError) {
+            console.warn('⚠️ Tabla public.users no encontrada. Continuando sin usuario público.');
+            // CONTINUAR directamente con creación de escudería (omitir paso de usuario)
+        } else {
+            // 1. Verificar si el usuario ya está en public.users (SOLO si tabla existe)
+            const { data: usuarioPublico, error: userError } = await this.supabase
                 .from('users')
-                .insert([{
-                    id: this.user.id,
-                    username: this.user.user_metadata?.username || this.user.email?.split('@')[0],
-                    email: this.user.email,
-                    created_at: new Date().toISOString(),
-                    last_login: new Date().toISOString()
-                }]);
+                .select('id')
+                .eq('id', this.user.id)
+                .maybeSingle();
             
-            if (insertError) {
-                console.error('❌ Error creando usuario público:', insertError);
+            // Si NO existe en public.users, lo creamos
+            if (!usuarioPublico && !userError) {
+                console.log('👤 Creando usuario en tabla pública...');
+                // ⬇⬇⬇ **CAMBIADO: Añadido onConflict** ⬇⬇⬇
+                const { error: insertError } = await this.supabase
+                    .from('users')
+                    .insert([{
+                        id: this.user.id,
+                        username: this.user.user_metadata?.username || this.user.email?.split('@')[0],
+                        email: this.user.email,
+                        created_at: new Date().toISOString(),
+                        last_login: new Date().toISOString()
+                    }], { onConflict: 'id' }); // ← **ESTO ES NUEVO**
+                
+                if (insertError) {
+                    console.error('❌ Error creando usuario público:', insertError);
+                    // NO lanzar error, continuar sin usuario en tabla pública
+                }
             }
         }
+        // ⬆⬆⬆ **FIN DE NUEVO CÓDIGO** ⬆⬆⬆
         
-        // 2. Verificar si ya tiene escudería
+        // 2. Verificar si ya tiene escudería (tu código existente - NO cambiar)
         const { data: escuderia, error: escError } = await this.supabase
             .from('escuderias')
             .select('id')
@@ -2166,6 +2183,7 @@ class F1Manager {
             console.log('🏎️ Creando escudería inicial...');
             const nombreEscuderia = this.user.user_metadata?.team_name || `${this.user.user_metadata?.username}'s Team`;
             
+            // ⬇⬇⬇ **CAMBIADO: Quitar returning: 'minimal'** ⬇⬇⬇
             const { error: escInsertError } = await this.supabase
                 .from('escuderias')
                 .insert([{
@@ -2178,7 +2196,7 @@ class F1Manager {
                     color_principal: '#e10600',
                     color_secundario: '#ffffff',
                     creada_en: new Date().toISOString()
-                }], { returning: 'minimal' }); // ← ¡IMPORTANTE!
+                }]); // ← **QUITAR { returning: 'minimal' }**
             
             if (escInsertError) {
                 console.error('❌ Error creando escudería:', escInsertError);
@@ -2221,7 +2239,7 @@ class F1Manager {
         }
         
         return true; // Ya tenía todos los datos
-    }   
+    }
     async cargarCarStats() {
         if (!this.escuderia) return;
         
