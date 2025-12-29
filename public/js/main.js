@@ -977,22 +977,22 @@ class F1Manager {
                 action: 'mostrarTab'
             },
             
-            // PASO 4: Contratar pilotos (OBLIGATORIO)
+            // PASO 4: Contratar ingenieros (OBLIGATORIO)
             {
-                title: "👥 CONTRATAR PILOTOS (OBLIGATORIO)",
+                title: "👨‍🔧 CONTRATAR INGENIEROS (OBLIGATORIO)",
                 content: `
-                    <p>Necesitas <strong>2 pilotos</strong> para competir.</p>
-                    <p>Características de los pilotos:</p>
+                    <p>Necesitas <strong>2 ingenieros</strong> para tu equipo técnico.</p>
+                    <p>Características de los ingenieros:</p>
                     <ul>
-                        <li><strong>Sueldo</strong>: Coste mensual</li>
-                        <li><strong>Experiencia</strong>: Mejores decisiones</li>
-                        <li><strong>Habilidad</strong>: Más puntos en carrera</li>
-                        <li><strong>Contrato</strong>: Duración en carreras</li>
+                        <li><strong>Especialidad</strong>: Área técnica del coche</li>
+                        <li><strong>Bonificación</strong>: % extra en pronósticos específicos</li>
+                        <li><strong>Nivel</strong>: 1-5 (básico a experto)</li>
+                        <li><strong>Salario</strong>: Coste mensual</li>
                     </ul>
-                    <p class="warning">⚠️ NO puedes continuar sin 2 pilotos</p>
+                    <p class="warning">⚠️ CONSEJO: Contrata un ingeniero de Aerodinámica y otro de Estrategia para cubrir áreas clave</p>
                 `,
                 highlight: '#contratar-pilotos-btn',
-                action: 'contratarPilotos',
+                action: 'contratarIngenieros', // CAMBIAR: 'contratarPilotos' → 'contratarIngenieros'
                 mandatory: true
             },
             
@@ -1476,200 +1476,70 @@ class F1Manager {
         }, 1500);
     }
     
-    async mostrarSelectorPilotos() {
-        // Cargar pilotos disponibles desde la base de datos
+    async mostrarSelectorIngenieros() {
         try {
-            const { data: pilotos, error } = await supabase
-                .from('pilotos_catalogo')  // ← NOMBRE CORRECTO
-                .select('id, nombre, nacionalidad, experiencia, habilidad, salario_base')
-                .eq('disponible', true)    // ← Solo pilotos disponibles
-                .order('habilidad', { ascending: false })  // ← Mejores primero
+            // Cargar ingenieros disponibles desde la nueva tabla
+            const { data: ingenieros, error } = await supabase
+                .from('ingenieros_catalogo')
+                .select('id, nombre, especialidad, nivel_habilidad, bonificacion_tipo, bonificacion_valor, salario_base')
+                .eq('disponible', true)
+                .order('nivel_habilidad', { ascending: true }) // Básicos primero
                 .limit(10);
             
             if (error) throw error;
             
-            // Actualizar el contenido del tutorial
+            // Actualizar contenido del tutorial con ingenieros
             document.querySelector('.tutorial-content').innerHTML = `
-                <div class="pilotos-tutorial">
-                    <h3>🏎️ SELECCIONA 2 PILOTOS</h3>
-                    <p class="warning">⚠️ Debes seleccionar exactamente 2 pilotos para continuar</p>
+                <div class="ingenieros-tutorial">
+                    <h3>👨‍🔧 SELECCIONA 2 INGENIEROS</h3>
+                    <p class="warning">⚠️ Debes seleccionar exactamente 2 ingenieros para continuar</p>
                     
-                    <div class="pilotos-grid">
-                        ${pilotos.map(piloto => `
-                            <div class="piloto-card ${this.tutorialData.pilotosContratados.includes(piloto.id) ? 'selected' : ''}" 
-                                 data-piloto-id="${piloto.id}">
-                                <div class="piloto-header">
-                                    <h4>${piloto.nombre}</h4>
-                                    <span class="piloto-nacionalidad">${piloto.nacionalidad || 'Internacional'}</span>
+                    <div class="ingenieros-grid">
+                        ${ingenieros.map(ing => `
+                            <div class="ingeniero-card" data-ingeniero-id="${ing.id}">
+                                <div class="ingeniero-header">
+                                    <h4>${ing.nombre}</h4>
+                                    <span class="ingeniero-especialidad">${ing.especialidad}</span>
                                 </div>
-                                <div class="piloto-stats">
+                                <div class="ingeniero-stats">
                                     <div class="stat">
-                                        <i class="fas fa-brain"></i>
-                                        <span>Experiencia: ${piloto.experiencia || 5}/10</span>
+                                        <i class="fas fa-cog"></i>
+                                        <span>Especialidad: ${ing.especialidad}</span>
                                     </div>
                                     <div class="stat">
-                                        <i class="fas fa-bolt"></i>
-                                        <span>Habilidad: ${piloto.habilidad || 5}/10</span>
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Bonificación: ${ing.bonificacion_valor}% en ${ing.bonificacion_tipo}</span>
                                     </div>
                                     <div class="stat">
                                         <i class="fas fa-coins"></i>
-                                        <span>Sueldo: €${(parseFloat(piloto.salario_base) || 500000).toLocaleString()}/mes</span>
+                                        <span>Salario: €${parseFloat(ing.salario_base).toLocaleString()}/mes</span>
                                     </div>
                                 </div>
-                                <button class="btn-seleccionar" data-piloto-id="${piloto.id}">
-                                    ${this.tutorialData.pilotosContratados.includes(piloto.id) ? '✓ Seleccionado' : 'Seleccionar'}
+                                <button class="btn-seleccionar" data-ingeniero-id="${ing.id}">
+                                    ${this.tutorialData.ingenierosContratados.includes(ing.id) ? '✓ Seleccionado' : 'Seleccionar'}
                                 </button>
                             </div>
                         `).join('')}
                     </div>
                     
-                    <div class="pilotos-selected">
-                        <h4>Pilotos seleccionados: <span id="contador-pilotos">${this.tutorialData.pilotosContratados.length}</span>/2</h4>
-                        <div id="selected-pilotos-list">
-                            ${this.tutorialData.pilotosContratados.map(pilotoId => {
-                                const piloto = pilotos.find(p => p.id === pilotoId);
-                                return piloto ? `<div class="selected-piloto">✓ ${piloto.nombre}</div>` : '';
+                    <div class="ingenieros-selected">
+                        <h4>Ingenieros seleccionados: <span id="contador-ingenieros">${this.tutorialData.ingenierosContratados.length}</span>/2</h4>
+                        <div id="selected-ingenieros-list">
+                            ${this.tutorialData.ingenierosContratados.map(id => {
+                                const ing = ingenieros.find(i => i.id === id);
+                                return ing ? `<div class="selected-ingeniero">✓ ${ing.nombre} (${ing.especialidad})</div>` : '';
                             }).join('')}
                         </div>
-                        <button class="btn-confirmar" id="btn-confirmar-pilotos" 
-                                ${this.tutorialData.pilotosContratados.length !== 2 ? 'disabled' : ''}>
-                            CONFIRMAR SELECCIÓN (€${((pilotos.find(p => this.tutorialData.pilotosContratados.includes(p.id))?.sueldo_base || 0) * 2).toLocaleString()}/mes)
+                        <button class="btn-confirmar" id="btn-confirmar-ingenieros" 
+                                ${this.tutorialData.ingenierosContratados.length !== 2 ? 'disabled' : ''}>
+                            CONFIRMAR SELECCIÓN (€${this.calcularSalarioTotal(ingenieros).toLocaleString()}/mes)
                         </button>
                     </div>
                 </div>
-                
-                <style>
-                    .pilotos-tutorial {
-                        max-width: 800px;
-                        margin: 0 auto;
-                    }
-                    
-                    .pilotos-grid {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                        gap: 20px;
-                        margin: 20px 0;
-                        max-height: 400px;
-                        overflow-y: auto;
-                        padding: 10px;
-                    }
-                    
-                    .piloto-card {
-                        background: rgba(255, 255, 255, 0.05);
-                        border-radius: 10px;
-                        padding: 20px;
-                        border: 2px solid transparent;
-                        transition: all 0.3s;
-                    }
-                    
-                    .piloto-card.selected {
-                        border-color: #00d2be;
-                        background: rgba(0, 210, 190, 0.1);
-                    }
-                    
-                    .piloto-header {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        margin-bottom: 15px;
-                    }
-                    
-                    .piloto-header h4 {
-                        color: white;
-                        margin: 0;
-                        font-size: 1.1rem;
-                    }
-                    
-                    .piloto-nacionalidad {
-                        background: rgba(255, 255, 255, 0.1);
-                        padding: 3px 10px;
-                        border-radius: 15px;
-                        font-size: 0.8rem;
-                    }
-                    
-                    .piloto-stats {
-                        margin: 15px 0;
-                    }
-                    
-                    .piloto-stats .stat {
-                        display: flex;
-                        align-items: center;
-                        gap: 10px;
-                        margin-bottom: 8px;
-                        color: #ccc;
-                        font-size: 0.9rem;
-                    }
-                    
-                    .btn-seleccionar {
-                        width: 100%;
-                        padding: 10px;
-                        background: rgba(0, 210, 190, 0.2);
-                        border: 1px solid #00d2be;
-                        color: #00d2be;
-                        border-radius: 5px;
-                        cursor: pointer;
-                        transition: all 0.3s;
-                        font-weight: bold;
-                    }
-                    
-                    .btn-seleccionar:hover {
-                        background: rgba(0, 210, 190, 0.4);
-                    }
-                    
-                    .pilotos-selected {
-                        margin-top: 30px;
-                        padding: 20px;
-                        background: rgba(0, 0, 0, 0.3);
-                        border-radius: 10px;
-                        border: 2px dashed #00d2be;
-                    }
-                    
-                    .selected-piloto {
-                        background: rgba(0, 210, 190, 0.2);
-                        padding: 10px;
-                        margin: 5px 0;
-                        border-radius: 5px;
-                        color: #00d2be;
-                    }
-                    
-                    .btn-confirmar {
-                        margin-top: 20px;
-                        padding: 15px 30px;
-                        background: #00d2be;
-                        color: white;
-                        border: none;
-                        border-radius: 5px;
-                        font-weight: bold;
-                        cursor: pointer;
-                        width: 100%;
-                        font-size: 1.1rem;
-                    }
-                    
-                    .btn-confirmar:disabled {
-                        background: #666;
-                        cursor: not-allowed;
-                    }
-                </style>
             `;
-            
-            // Eventos de selección
-            document.querySelectorAll('.btn-seleccionar').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const pilotoId = e.target.dataset.pilotoId;
-                    this.seleccionarPilotoTutorial(pilotoId, pilotos);
-                });
-            });
-            
-            document.getElementById('btn-confirmar-pilotos').addEventListener('click', async () => {
-                await this.confirmarPilotosTutorial();
-            });
             
         } catch (error) {
-            console.error('Error cargando pilotos:', error);
-            document.querySelector('.tutorial-content').innerHTML = `
-                <p class="error">❌ Error cargando pilotos. Recarga la página.</p>
-                <button onclick="location.reload()">Recargar</button>
-            `;
+            console.error('Error cargando ingenieros:', error);
         }
     }
     
@@ -2370,16 +2240,16 @@ class F1Manager {
                         <section class="panel-pilotos">
                             <div class="section-header">
                                 <h2><i class="fas fa-user"></i> TUS PILOTOS</h2>
-                                <button class="btn-primary" id="contratar-pilotos-btn">
-                                    <i class="fas fa-plus"></i> Contratar Pilotos
+                                <button class="btn-primary" id="contratar-ingenieros-btn">
+                                    <i class="fas fa-user-plus"></i> Contratar Ingenieros
                                 </button>
                             </div>
                             <div id="pilotos-container" class="pilotos-container">
                                 <div class="empty-state">
                                     <i class="fas fa-user-slash"></i>
                                     <p>No tienes pilotos contratados</p>
-                                    <button class="btn-primary" id="contratar-primer-piloto">
-                                        <i class="fas fa-user-plus"></i> Contratar mi primer piloto
+                                    <button class="btn-primary" id="contratar-ingenieros-btn">
+                                        <i class="fas fa-user-plus"></i> Contratar Ingenieros
                                     </button>
                                 </div>
                             </div>
@@ -2746,8 +2616,8 @@ class F1Manager {
                 <div class="empty-state">
                     <i class="fas fa-user-slash"></i>
                     <p>No tienes pilotos contratados</p>
-                    <button class="btn-primary" id="contratar-primer-piloto">
-                        <i class="fas fa-user-plus"></i> Contratar mi primer piloto
+                    <button class="btn-primary" id="contratar-ingenieros-btn">
+                        <i class="fas fa-user-plus"></i> Contratar ingenieros
                     </button>
                 </div>
             `;
