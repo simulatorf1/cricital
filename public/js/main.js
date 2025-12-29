@@ -951,7 +951,7 @@ class F1Manager {
                     <p>En este tutorial aprenderás a:</p>
                     <ul>
                         <li>Gestionar tu escudería</li>
-                        <li>Contratar pilotos</li>
+                        <li>Contratar ingenieros</li>
                         <li>Fabricar piezas para tu coche</li>
                         <li>Hacer apuestas en carreras</li>
                         <li>Subir en el ranking mundial</li>
