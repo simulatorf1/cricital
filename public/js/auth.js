@@ -333,3 +333,123 @@ window.authManager = new AuthManager();
 window.am = window.authManager;
 
 console.log('✅ AuthManager disponible globalmente como window.authManager');
+// ========================
+// FUNCIONES PARA EL TUTORIAL DE INGENIEROS
+// ========================
+
+// Array global para almacenar ingenieros seleccionados
+window.ingenierosSeleccionados = [];
+
+// Función para seleccionar un ingeniero en el tutorial
+window.selectIngeniero = function(ingenieroId) {
+    console.log('🔧 Intentando seleccionar ingeniero:', ingenieroId);
+    
+    // 1. Aquí deberías buscar los datos del ingeniero en supabase
+    // Por ahora, simulamos con un objeto básico
+    const ingeniero = {
+        id: ingenieroId,
+        nombre: `Ingeniero ${ingenieroId}`,
+        especialidad: 'Estrategia'
+    };
+    
+    // 2. Verificar si ya está seleccionado
+    const yaSeleccionado = window.ingenierosSeleccionados.find(i => i.id === ingenieroId);
+    
+    if (yaSeleccionado) {
+        alert('Este ingeniero ya está seleccionado');
+        return;
+    }
+    
+    // 3. Añadir a la lista (máximo 2)
+    if (window.ingenierosSeleccionados.length >= 2) {
+        alert('Ya has seleccionado el máximo de 2 ingenieros');
+        return;
+    }
+    
+    window.ingenierosSeleccionados.push(ingeniero);
+    console.log('✅ Ingeniero añadido:', ingeniero);
+    
+    // 4. Actualizar la UI del tutorial
+    actualizarListaSeleccionados();
+    
+    // 5. Habilitar el botón de confirmar si hay 2 ingenieros
+    if (window.ingenierosSeleccionados.length === 2) {
+        const btnConfirmar = document.getElementById('btn-confirm-pilots');
+        if (btnConfirmar) {
+            btnConfirmar.disabled = false;
+            btnConfirmar.onclick = window.confirmarIngenieros;
+        }
+    }
+};
+
+// Función para actualizar la lista visual
+function actualizarListaSeleccionados() {
+    const container = document.getElementById('selected-list');
+    if (!container) return;
+    
+    container.innerHTML = window.ingenierosSeleccionados.map(ingeniero => 
+        `<div class="selected-item">
+            <i class="fas fa-user-cog"></i>
+            <span>${ingeniero.nombre} - ${ingeniero.especialidad}</span>
+        </div>`
+    ).join('');
+    
+    // Actualizar contador
+    const titulo = document.querySelector('#pilotos-selected h4');
+    if (titulo) {
+        titulo.textContent = `Ingenieros seleccionados (${window.ingenierosSeleccionados.length}/2)`;
+    }
+}
+
+// Función para confirmar la selección (debe guardar en Supabase)
+window.confirmarIngenieros = async function() {
+    console.log('✅ Confirmando selección de ingenieros:', window.ingenierosSeleccionados);
+    
+    if (window.ingenierosSeleccionados.length === 0) {
+        alert('Debes seleccionar al menos un ingeniero');
+        return;
+    }
+    
+    try {
+        // 1. Aquí debes guardar en 'ingenieros_contratados'
+        // Ejemplo (ajusta según tu esquema):
+        for (const ingeniero of window.ingenierosSeleccionados) {
+            const { error } = await supabase
+                .from('ingenieros_contratados')
+                .insert([{
+                    escuderia_id: window.authManager.escuderia.id,
+                    ingeniero_id: ingeniero.id,
+                    nombre: ingeniero.nombre,
+                    especialidad: ingeniero.especialidad,
+                    contratado_en: new Date().toISOString(),
+                    activo: true
+                }]);
+            
+            if (error) throw error;
+        }
+        
+        // 2. Marcar tutorial como completado
+        localStorage.setItem('f1_tutorial_completed', 'true');
+        
+        // 3. Cerrar el tutorial
+        const modal = document.getElementById('tutorial-modal');
+        if (modal) modal.remove();
+        
+        // 4. Mostrar mensaje de éxito
+        if (window.authManager && window.authManager.showNotification) {
+            window.authManager.showNotification('✅ Ingenieros contratados exitosamente', 'success');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error contratando ingenieros:', error);
+        alert('Error al contratar ingenieros: ' + error.message);
+    }
+};
+
+// Función para saltar el tutorial (ya deberías tenerla)
+window.completarTutorial = function() {
+    localStorage.setItem('f1_tutorial_completed', 'true');
+    const modal = document.getElementById('tutorial-modal');
+    if (modal) modal.remove();
+    console.log('✅ Tutorial saltado');
+};
