@@ -1007,7 +1007,7 @@ class F1Manager {
                         <li><strong>Sueldo</strong>: Coste mensual</li>
                         <li><strong>Experiencia</strong>: Mejores decisiones</li>
                         <li><strong>Habilidad</strong>: Más puntos en carrera</li>
-                        <li><strong>Contrato</strong>: Duración en carreras</li>
+                        
                     </ul>
                     <p class="warning">⚠️ NO puedes continuar sin 2 pilotos</p>
                 `,
@@ -1500,7 +1500,7 @@ class F1Manager {
         // Cargar pilotos disponibles desde la base de datos
         try {
             const { data: pilotos, error } = await supabase
-                .from('pilotos_catalogo')  // ← NOMBRE CORRECTO
+                .from('ingenieros_catalogo')  // ← NOMBRE CORRECTO
                 .select('id, nombre, nacionalidad, experiencia, habilidad, salario_base')
                 .eq('disponible', true)    // ← Solo pilotos disponibles
                 .order('habilidad', { ascending: false })  // ← Mejores primero
@@ -1511,8 +1511,8 @@ class F1Manager {
             // Actualizar el contenido del tutorial
             document.querySelector('.tutorial-content').innerHTML = `
                 <div class="pilotos-tutorial">
-                    <h3>🏎️ SELECCIONA 2 PILOTOS</h3>
-                    <p class="warning">⚠️ Debes seleccionar exactamente 2 pilotos para continuar</p>
+                    <h3>🏎️ SELECCIONA 2 INGENIEROS</h3>
+                    <p class="warning">⚠️ Debes seleccionar exactamente 2 ingenieros para continuar</p>
                     
                     <div class="pilotos-grid">
                         ${pilotos.map(piloto => `
@@ -1763,7 +1763,7 @@ class F1Manager {
         try {
             // 1. Obtener los pilotos seleccionados CON SUS DATOS REALES
             const { data: pilotosCatalogo, error: catalogoError } = await supabase
-                .from('pilotos_catalogo')
+                .from('ingenieros_catalogo')
                 .select('id, nombre, salario_base')
                 .in('id', this.tutorialData.pilotosContratados);
             
