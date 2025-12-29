@@ -7,7 +7,24 @@ class AuthManager {
         this.user = null;
         this.escuderia = null;
     }
-
+    // 🔥 NUEVO MÉTODO AÑADIDO
+    showAuthModal() {
+        console.log('🔐 Mostrando modal de autenticación...');
+        
+        // 1. Ocultar la interfaz del juego si existe
+        const appContainer = document.getElementById('app-container');
+        if (appContainer) {
+            appContainer.style.display = 'none';
+        }
+        
+        // 2. Mostrar el modal de autenticación
+        const authModal = document.getElementById('auth-modal');
+        if (authModal) {
+            authModal.style.display = 'block';
+        } else {
+            console.warn('⚠️ Elemento #auth-modal no encontrado en el DOM');
+        }
+    }
     async init() {
         console.log('🔐 Inicializando autenticación Supabase...');
         
