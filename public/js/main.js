@@ -644,7 +644,7 @@ class F1Manager {
         console.log('🚗 Creando F1Manager para:', user.email);
         this.user = user;
         this.escuderia = null;
-        this.ingenierios = [];
+        this.ingenieros = [];
         this.carStats = null;
         this.proximoGP = null;
         this.tutorialStep = 0;
@@ -912,7 +912,7 @@ class F1Manager {
         this.tutorialStep = 1;
         this.tutorialData = {
             escuderiaCreada: false,
-            ingenieriosContratados: [],
+            ingenierosContratados: [],
             fabricacionIniciada: false,
             piezaEquipada: false,
             apuestaRealizada: false
@@ -931,14 +931,14 @@ class F1Manager {
                     <p>En este tutorial aprenderás a:</p>
                     <ul>
                         <li>Gestionar tu escudería</li>
-                        <li>Contratar ingenierios</li>
+                        <li>Contratar ingenieros</li>
                         <li>Fabricar piezas para tu coche</li>
                         <li>Hacer apuestas en carreras</li>
                         <li>Subir en el ranking mundial</li>
                     </ul>
                     <p class="success">💰 Tu escudería ya está creada y tiene 5,000,000€ para empezar</p> <!-- Texto actualizado -->
                 `,
-                action: 'mostrarPestanas' // CAMBIA 'crearEscuderia' por el nombre del SEGUNDO paso real (ej: 'mostrarPestanas' o 'contrataringenierios')
+                action: 'mostrarPestanas' // CAMBIA 'crearEscuderia' por el nombre del SEGUNDO paso real (ej: 'mostrarPestanas' o 'contrataringenieros')
             },
             
             // PASO 2: Dashboard principal
@@ -948,7 +948,7 @@ class F1Manager {
                     <p>Esta es tu pantalla principal. Aquí verás:</p>
                     <ul>
                         <li><strong>Cabecera</strong>: Nombre, dinero y puntos</li>
-                        <li><strong>Panel de ingenierios</strong>: Tus 2 ingenierios contratados</li>
+                        <li><strong>Panel de ingenieros</strong>: Tus 2 ingenieros contratados</li>
                         <li><strong>Countdown</strong>: Tiempo para la próxima apuesta</li>
                         <li><strong>Fábrica</strong>: Piezas en producción</li>
                         <li><strong>Estado del coche</strong>: Nivel de cada área</li>
@@ -991,8 +991,8 @@ class F1Manager {
                     </ul>
                     <p class="warning">⚠️ CONSEJO: Contrata un ingeniero de Aerodinámica y otro de Estrategia para cubrir áreas clave</p>
                 `,
-                highlight: '#contratar-ingenierios-btn',
-                action: 'contratarIngenieros', // CAMBIAR: 'contrataringenierios' → 'contratarIngenieros'
+                highlight: '#contratar-ingenieros-btn',
+                action: 'contratarIngenieros', // CAMBIAR: 'contrataringenieros' → 'contratarIngenieros'
                 mandatory: true
             },
             
@@ -1310,8 +1310,8 @@ class F1Manager {
                 this.mostrarTutorialStep();
                 break;
                 
-            case 'contrataringenierios':
-                this.mostrarSelectoringenierios();
+            case 'contrataringenieros':
+                this.mostrarSelectoringenieros();
                 break;
                 
             case 'fabricarPieza':
@@ -1543,25 +1543,25 @@ class F1Manager {
         }
     }
     
-    seleccionarIngenierioTutorial(ingenierioId, ingenierios) {
-        const index = this.tutorialData.IngenieriosContratados.indexOf(IngenierioId);
+    seleccionarIngenierioTutorial(ingenierioId, ingenieros) {
+        const index = this.tutorialData.ingenierosContratados.indexOf(IngenierioId);
         
         if (index > -1) {
             // Deseleccionar
-            this.tutorialData.ingenieriosContratados.splice(index, 1);
+            this.tutorialData.ingenierosContratados.splice(index, 1);
         } else {
             // Seleccionar (máximo 2)
-            if (this.tutorialData.ingenieriosContratados.length < 2) {
-                this.tutorialData.ingenieriosContratados.push(ingenierioId);
+            if (this.tutorialData.ingenierosContratados.length < 2) {
+                this.tutorialData.ingenierosContratados.push(ingenierioId);
             } else {
-                alert('Solo puedes seleccionar 2 ingenierios');
+                alert('Solo puedes seleccionar 2 ingenieros');
                 return;
             }
         }
         
         // Actualizar UI
         document.querySelectorAll('.ingenierio-card').forEach(card => {
-            if (this.tutorialData.ingenieriosContratados.includes(card.dataset.ingenierioId)) {
+            if (this.tutorialData.ingenierosContratados.includes(card.dataset.ingenierioId)) {
                 card.classList.add('selected');
                 card.querySelector('.btn-seleccionar').textContent = '✓ Seleccionado';
             } else {
@@ -1571,27 +1571,27 @@ class F1Manager {
         });
         
         // Actualizar contador
-        const contador = document.getElementById('contador-ingenierios');
-        if (contador) contador.textContent = this.tutorialData.ingenieriosContratados.length;
+        const contador = document.getElementById('contador-ingenieros');
+        if (contador) contador.textContent = this.tutorialData.ingenierosContratados.length;
         
         // Actualizar lista de seleccionados
-        const lista = document.getElementById('selected-ingenierios-list');
+        const lista = document.getElementById('selected-ingenieros-list');
         if (lista) {
-            lista.innerHTML = this.tutorialData.ingenieriosContratados.map(id => {
-                const ingenierio = ingenierios.find(p => p.id === id);
+            lista.innerHTML = this.tutorialData.ingenierosContratados.map(id => {
+                const ingenierio = ingenieros.find(p => p.id === id);
                 return ingenierio ? `<div class="selected-ingenierio">✓ ${ingenierio.nombre}</div>` : '';
             }).join('');
         }
         
         // Actualizar botón de confirmar
-        const confirmBtn = document.getElementById('btn-confirmar-ingenierios');
+        const confirmBtn = document.getElementById('btn-confirmar-ingenieros');
         if (confirmBtn) {
-            confirmBtn.disabled = this.tutorialData.ingenieriosContratados.length !== 2;
+            confirmBtn.disabled = this.tutorialData.ingenierosContratados.length !== 2;
             
             // Actualizar costo total
-            if (this.tutorialData.ingenieriosContratados.length === 2) {
-                const totalSueldo = this.tutorialData.ingenieriosContratados.reduce((total, id) => {
-                    const ingenierio = ingenierios.find(p => p.id === id);
+            if (this.tutorialData.ingenierosContratados.length === 2) {
+                const totalSueldo = this.tutorialData.ingenierosContratados.reduce((total, id) => {
+                    const ingenierio = ingenieros.find(p => p.id === id);
                     return total + (ingenierio?.salario_base || 500000);
                 }, 0);
                 confirmBtn.innerHTML = `CONFIRMAR SELECCIÓN (€${totalSueldo.toLocaleString()}/mes)`;
@@ -1599,30 +1599,30 @@ class F1Manager {
         }
     }
     
-    async confirmarIngenieriosTutorial() {
+    async confirmaringenierosTutorial() {
         if (!this.escuderia) {
             alert('Primero debes crear tu escudería');
             return;
         }
         
-        if (this.tutorialData.ingenieriosContratados.length !== 2) {
-            alert('Debes seleccionar exactamente 2 ingenierios');
+        if (this.tutorialData.ingenierosContratados.length !== 2) {
+            alert('Debes seleccionar exactamente 2 ingenieros');
             return;
         }
         
         try {
-            // 1. Obtener los ingenierios seleccionados CON SUS DATOS REALES
-            const { data: ingenieriosCatalogo, error: catalogoError } = await supabase
-                .from('ingenierios_catalogo')
+            // 1. Obtener los ingenieros seleccionados CON SUS DATOS REALES
+            const { data: ingenierosCatalogo, error: catalogoError } = await supabase
+                .from('ingenieros_catalogo')
                 .select('id, nombre, salario_base')
-                .in('id', this.tutorialData.ingenieriosContratados);
+                .in('id', this.tutorialData.ingenierosContratados);
             
             if (catalogoError) throw catalogoError;
             
-            // 2. Contratar CADA ingenierio en la tabla ingenierios_contratados
-            for (const ingenierio of ingenieriosCatalogo) {
+            // 2. Contratar CADA ingenierio en la tabla ingenieros_contratados
+            for (const ingenierio of ingenierosCatalogo) {
                 const { error: contratoError } = await supabase
-                    .from('ingenierios_contratados')
+                    .from('ingenieros_contratados')
                     .insert([{
                         escuderia_id: this.escuderia.id,
                         ingenierio_id: ingenierio.id,
@@ -1637,7 +1637,7 @@ class F1Manager {
             }
             
             // 3. Descontar el dinero de los salarios
-            const totalSalarios = ingenieriosCatalogo.reduce((sum, p) => sum + (p.salario_base || 500000), 0);
+            const totalSalarios = ingenierosCatalogo.reduce((sum, p) => sum + (p.salario_base || 500000), 0);
             this.escuderia.dinero -= totalSalarios;
             await this.updateEscuderiaMoney();
             
@@ -1645,11 +1645,11 @@ class F1Manager {
             this.tutorialStep++;
             this.mostrarTutorialStep();
             
-            alert(`✅ ingenierios contratados: ${ingenieriosCatalogo.map(p => p.nombre).join(' y ')}\n💰 Coste mensual: €${totalSalarios.toLocaleString()}`);
+            alert(`✅ ingenieros contratados: ${ingenierosCatalogo.map(p => p.nombre).join(' y ')}\n💰 Coste mensual: €${totalSalarios.toLocaleString()}`);
             
         } catch (error) {
-            console.error('Error contratando ingenierios:', error);
-            alert('❌ Error contratando ingenierios. Verifica la consola.');
+            console.error('Error contratando ingenieros:', error);
+            alert('❌ Error contratando ingenieros. Verifica la consola.');
         }
     }
     
@@ -1797,7 +1797,7 @@ class F1Manager {
                     <div class="apuesta-card">
                         <h4><i class="fas fa-chart-line"></i> Estrategia</h4>
                         <ul>
-                            <li>Usa las estadísticas de ingenierios</li>
+                            <li>Usa las estadísticas de ingenieros</li>
                             <li>Considera el circuito</li>
                             <li>Analiza el rendimiento reciente</li>
                             <li>Gestiona tu riesgo</li>
@@ -1965,16 +1965,16 @@ class F1Manager {
         }
     }
 
-    async loadingenieriosContratados() {
+    async loadingenierosContratados() {
         if (!this.escuderia || !this.escuderia.id) {
-            console.log('❌ No hay escudería para cargar ingenierios');
+            console.log('❌ No hay escudería para cargar ingenieros');
             return;
         }
 
         try {
-            console.log('👥 Cargando ingenierios contratados...');
-            const { data: ingenierios, error } = await this.supabase
-                .from('ingenierios_contratados')
+            console.log('👥 Cargando ingenieros contratados...');
+            const { data: ingenieros, error } = await this.supabase
+                .from('ingenieros_contratados')
                 .select('*')
                 .eq('escuderia_id', this.escuderia.id)
                 .eq('activo', true)
@@ -1982,16 +1982,16 @@ class F1Manager {
 
             if (error) throw error;
 
-            this.ingenierios = ingenierios || [];
-            console.log(`✅ ${this.ingenierios.length} ingenierio(s) cargado(s)`);
+            this.ingenieros = ingenieros || [];
+            console.log(`✅ ${this.ingenieros.length} ingenierio(s) cargado(s)`);
             
             // Actualizar la interfaz
-            this.updateingenieriosUI();
+            this.updateingenierosUI();
             
         } catch (error) {
-            console.error('❌ Error cargando ingenierios:', error);
-            this.ingenierios = [];
-            this.updateingenieriosUI(); // Aún así actualizar la UI para mostrar estado vacío
+            console.error('❌ Error cargando ingenieros:', error);
+            this.ingenieros = [];
+            this.updateingenierosUI(); // Aún así actualizar la UI para mostrar estado vacío
         }
     }
     
@@ -2236,18 +2236,18 @@ class F1Manager {
                 <main class="dashboard-content">
                     <!-- Tab Principal -->
                     <div id="tab-principal" class="tab-content active">
-                        <!-- Panel de ingenierios -->
-                        <section class="panel-ingenierios">
+                        <!-- Panel de ingenieros -->
+                        <section class="panel-ingenieros">
                             <div class="section-header">
-                                <h2><i class="fas fa-user"></i> TUS ingenierios</h2>
+                                <h2><i class="fas fa-user"></i> TUS ingenieros</h2>
                                 <button class="btn-primary" id="contratar-ingenieros-btn">
                                     <i class="fas fa-user-plus"></i> Contratar Ingenieros
                                 </button>
                             </div>
-                            <div id="ingenierios-container" class="ingenierios-container">
+                            <div id="ingenieros-container" class="ingenieros-container">
                                 <div class="empty-state">
                                     <i class="fas fa-user-slash"></i>
-                                    <p>No tienes ingenierios contratados</p>
+                                    <p>No tienes ingenieros contratados</p>
                                     <button class="btn-primary" id="contratar-ingenieros-btn">
                                         <i class="fas fa-user-plus"></i> Contratar Ingenieros
                                     </button>
@@ -2455,7 +2455,7 @@ class F1Manager {
             };
         } else {
             await this.loadCarStatus();
-            await this.loadingenieriosContratados(); // <-- AÑADE ESTA LÍNEA
+            await this.loadingenierosContratados(); // <-- AÑADE ESTA LÍNEA
             await this.loadProximoGP();
         }
         
@@ -2547,22 +2547,22 @@ class F1Manager {
         }
     }
     
-    async loadingenierios() {
+    async loadingenieros() {
         if (!this.escuderia) return;
         
         try {
-            const { data: ingenierios } = await supabase
-                .from('ingenierios_contratados')
+            const { data: ingenieros } = await supabase
+                .from('ingenieros_contratados')
                 .select('*')
                 .eq('escuderia_id', this.escuderia.id)
                 .eq('activo', true);
             
-            if (ingenierios && ingenierios.length > 0) {
-                this.ingenierios = ingenierios;
-                this.updateingenieriosUI();
+            if (ingenieros && ingenieros.length > 0) {
+                this.ingenieros = ingenieros;
+                this.updateingenierosUI();
             }
         } catch (error) {
-            console.error('Error cargando ingenierios:', error);
+            console.error('Error cargando ingenieros:', error);
         }
     }
     
@@ -2604,18 +2604,18 @@ class F1Manager {
         });
     }
     
-    updateingenieriosUI() {
-        const container = document.getElementById('ingenierios-container'); // El div contenedor
+    updateingenierosUI() {
+        const container = document.getElementById('ingenieros-container'); // El div contenedor
         if (!container) {
-            console.error('❌ No se encontró #ingenierios-container');
+            console.error('❌ No se encontró #ingenieros-container');
             return;
         }
 
-        if (!this.ingenierios || this.ingenierios.length === 0) {
+        if (!this.ingenieros || this.ingenieros.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-user-slash"></i>
-                    <p>No tienes ingenierios contratados</p>
+                    <p>No tienes ingenieros contratados</p>
                     <button class="btn-primary" id="contratar-ingenieros-btn">
                         <i class="fas fa-user-plus"></i> Contratar ingenieros
                     </button>
@@ -2623,14 +2623,14 @@ class F1Manager {
             `;
             // Opcional: agregar evento al botón
             document.getElementById('contratar-primer-ingenierio')?.addEventListener('click', () => {
-                // Tu lógica para abrir el selector de ingenierios
+                // Tu lógica para abrir el selector de ingenieros
             });
             return;
         }
 
         // Generar HTML para cada ingenierio
         let html = '';
-        this.ingenierios.forEach(ingenierio => {
+        this.ingenieros.forEach(ingenierio => {
             // Calcula carreras restantes si no está en los datos
             const carrerasRestantes = ingenierio.carreras_restantes || 'N/A';
             const salario = ingenierio.salario ? '€' + parseInt(ingenierio.salario).toLocaleString('es-ES') : 'N/A';
@@ -2961,13 +2961,13 @@ class F1Manager {
             this.irAlTaller();
         });
         
-        // Botón de contratar ingenierios
-        document.getElementById('contratar-ingenierios-btn')?.addEventListener('click', () => {
-            this.mostrarContrataringenierios();
+        // Botón de contratar ingenieros
+        document.getElementById('contratar-ingenieros-btn')?.addEventListener('click', () => {
+            this.mostrarContrataringenieros();
         });
         
         document.getElementById('contratar-primer-ingenierio')?.addEventListener('click', () => {
-            this.mostrarContrataringenierios();
+            this.mostrarContrataringenieros();
         });
         
         // Botón de apuestas
@@ -2995,9 +2995,9 @@ class F1Manager {
         }, 1000);
     }
     
-    mostrarContrataringenierios() {
-        this.showNotification('🏎️ Sistema de ingenierios en desarrollo', 'info');
-        // Aquí implementarías la lógica para contratar ingenierios
+    mostrarContrataringenieros() {
+        this.showNotification('🏎️ Sistema de ingenieros en desarrollo', 'info');
+        // Aquí implementarías la lógica para contratar ingenieros
     }
     
     mostrarApuestas() {
