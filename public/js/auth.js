@@ -54,6 +54,17 @@ class AuthManager {
     }
 
     async handleLogin(email, password) {
+        // 🔥 NUEVO: Verificar y crear la función si no existe
+        if (!window.iniciarJuegoSiNoHayTutorial) {
+            console.log('⚠️ Función iniciarJuegoSiNoHayTutorial no existe, creando fallback...');
+            window.iniciarJuegoSiNoHayTutorial = function() {
+                console.log('🎮 [FALLBACK] Iniciando juego desde auth.js...');
+                // Iniciar el juego directamente si main.js no lo ha hecho
+                if (window.f1Manager && window.f1Manager.initGame) {
+                    window.f1Manager.initGame();
+                }
+            };
+        }
         try {
             const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
                 email: email,
