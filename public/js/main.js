@@ -3372,31 +3372,31 @@ class F1Manager {
 
     async loadPilotosContratados() {
         if (!this.escuderia || !this.escuderia.id) {
-            console.log('❌ No hay escudería para cargar pilotos');
+            console.log('❌ No hay escudería para cargar pilotos/estrategas');
             return;
         }
-
+    
         try {
-            console.log('👥 Cargando pilotos contratados...');
-            const { data: pilotos, error } = await this.supabase
-                .from('ingenieros_contratados')
+            console.log('👥 Cargando estrategas contratados...');
+            const { data: estrategas, error } = await this.supabase
+                .from('ingenieros_contratados')  // Cambia si tu tabla tiene otro nombre
                 .select('*')
                 .eq('escuderia_id', this.escuderia.id)
                 .eq('activo', true)
                 .order('contratado_en', { ascending: false });
-
+    
             if (error) throw error;
-
-            this.pilotos = pilotos || [];
-            console.log(`✅ ${this.pilotos.length} piloto(s) cargado(s)`);
+    
+            this.pilotos = estrategas || [];  // Guarda como pilotos (aunque sean estrategas)
+            console.log(`✅ ${this.pilotos.length} estratega(s) cargado(s)`);
             
             // Actualizar la interfaz
             this.updatePilotosUI();
             
         } catch (error) {
-            console.error('❌ Error cargando pilotos:', error);
+            console.error('❌ Error cargando estrategas:', error);
             this.pilotos = [];
-            this.updatePilotosUI(); // Aún así actualizar la UI para mostrar estado vacío
+            this.updatePilotosUI();
         }
     }
     
@@ -4472,27 +4472,74 @@ class F1Manager {
         window.tutorialData.estrategaSeleccionado = id;
     };
     
-    window.tutorialEjecutarContratacion = function() {
+    window.tutorialEjecutarContratacion = async function() {
         const estrategaId = window.tutorialData.estrategaSeleccionado;
         if (!estrategaId) {
             alert("Primero selecciona un estratega");
             return;
         }
         
-        // Registrar la contratación
-        window.tutorialData.estrategaContratado = true;
-        window.tutorialData.nombreEstratega = getNombreEstratega(estrategaId);
-        window.tutorialData.sueldoEstratega = getSueldoEstratega(estrategaId);
+        // Obtener el manager del tutorial
+        if (!window.tutorialManager || !window.tutorialManager.escuderia) {
+            alert("Error: No se pudo encontrar tu escudería");
+            return;
+        }
         
-        alert(`✅ ${window.tutorialData.nombreEstratega} contratado con éxito por ${window.tutorialData.sueldoEstratega}€/mes. Su bono se aplicará a tus pronósticos.`);
-        
-        // Avanzar automáticamente
-        setTimeout(() => {
-            if (window.tutorialManager) {
-                window.tutorialManager.tutorialStep++;
-                window.tutorialManager.mostrarTutorialStep();
+        try {
+            // Obtener info del estratega
+            const estrategaInfo = getEstrategaInfo(estrategaId);
+            
+            // Crear el estratega en la base de datos (en la tabla correcta)
+            const { error } = await window.supabase
+                .from('ingenieros_contratados')  // O la tabla correcta
+                .insert([{
+                    escuderia_id: window.tutorialManager.escuderia.id,
+                    nombre: estrategaInfo.nombre,
+                    salario: estrategaInfo.sueldo,
+                    especialidad: estrategaInfo.especialidad,
+                    bonificacion_tipo: 'puntos_extra',
+                    bonificacion_valor: estrategaInfo.bono.replace('%', ''),
+                    activo: true,
+                    contratado_en: new Date().toISOString()
+                }]);
+            
+            if (error) throw error;
+            
+            // Actualizar datos locales
+            window.tutorialData.estrategaContratado = true;
+            window.tutorialData.nombreEstratega = estrategaInfo.nombre;
+            window.tutorialData.sueldoEstratega = estrategaInfo.sueldo;
+            window.tutorialData.bonoEstratega = estrategaInfo.bono;
+            
+            // Descontar dinero
+            if (window.tutorialManager.escuderia) {
+                window.tutorialManager.escuderia.dinero -= parseInt(estrategaInfo.sueldo.replace(',', ''));
+                await window.tutorialManager.updateEscuderiaMoney();
             }
-        }, 1500);
+            
+            alert(`✅ ${estrategaInfo.nombre} contratado con éxito por ${estrategaInfo.sueldo}€/mes. Bono: ${estrategaInfo.bono} puntos extra.`);
+            
+            // Avanzar automáticamente
+            setTimeout(() => {
+                if (window.tutorialManager) {
+                    window.tutorialManager.tutorialStep++;
+                    window.tutorialManager.mostrarTutorialStep();
+                }
+            }, 1500);
+            
+        } catch (error) {
+            console.error("Error contratando estratega:", error);
+            alert("Error contratando estratega: " + error.message);
+        }
+    };
+    
+    function getEstrategaInfo(id) {
+        const estrategas = {
+            1: { nombre: "Analista de Tiempos", sueldo: "50000", bono: "15%", especialidad: "Análisis de tiempos" },
+            2: { nombre: "Meteorólogo", sueldo: "60000", bono: "20%", especialidad: "Condiciones climáticas" },
+            3: { nombre: "Experto en Fiabilidad", sueldo: "55000", bono: "18%", especialidad: "Fiabilidad técnica" }
+        };
+        return estrategas[id] || { nombre: "Estratega", sueldo: "50000", bono: "15%", especialidad: "General" };
     };
     
     function getNombreEstratega(id) {
@@ -4529,29 +4576,71 @@ class F1Manager {
         window.tutorialData.areaSeleccionada = area;
     };
     
-    window.tutorialEjecutarFabricacion = function() {
+    window.tutorialEjecutarFabricacion = async function() {
         const area = window.tutorialData.areaSeleccionada;
         if (!area) {
             alert("Primero selecciona un área para fabricar");
             return;
         }
         
-        // Registrar la fabricación
-        window.tutorialData.piezaFabricando = true;
-        window.tutorialData.areaFabricada = area;
-        window.tutorialData.nombrePieza = getNombrePieza(area);
-        window.tutorialData.costoPieza = getCostoPieza(area);
-        window.tutorialData.puntosPieza = getPuntosPieza(area);
+        // Obtener el manager del tutorial
+        if (!window.tutorialManager || !window.tutorialManager.escuderia) {
+            alert("Error: No se pudo encontrar tu escudería");
+            return;
+        }
         
-        alert(`✅ Pieza de ${window.tutorialData.nombrePieza} en fabricación. Costo: ${window.tutorialData.costoPieza}€, Puntos: +${window.tutorialData.puntosPieza}.`);
-        
-        // Avanzar automáticamente
-        setTimeout(() => {
-            if (window.tutorialManager) {
-                window.tutorialManager.tutorialStep++;
-                window.tutorialManager.mostrarTutorialStep();
+        try {
+            // Obtener info de la pieza
+            const piezaInfo = getPiezaInfo(area);
+            
+            // Crear la fabricación en la base de datos
+            const tiempoInicio = new Date().toISOString();
+            const tiempoFin = new Date(Date.now() + 30000).toISOString(); // 30 segundos para el tutorial
+            
+            const { error } = await window.supabase
+                .from('fabricaciones')  // O la tabla correcta
+                .insert([{
+                    escuderia_id: window.tutorialManager.escuderia.id,
+                    area: area,
+                    nivel: 1,
+                    calidad: 1,
+                    puntos_base: parseInt(piezaInfo.puntos),
+                    costo: parseInt(piezaInfo.costo.replace(',', '')),
+                    tiempo_inicio: tiempoInicio,
+                    tiempo_fin: tiempoFin,
+                    completado: false,
+                    recogido: false
+                }]);
+            
+            if (error) throw error;
+            
+            // Actualizar datos locales
+            window.tutorialData.piezaFabricando = true;
+            window.tutorialData.areaFabricada = area;
+            window.tutorialData.nombrePieza = piezaInfo.nombre;
+            window.tutorialData.costoPieza = piezaInfo.costo;
+            window.tutorialData.puntosPieza = piezaInfo.puntos;
+            
+            // Descontar dinero
+            if (window.tutorialManager.escuderia) {
+                window.tutorialManager.escuderia.dinero -= parseInt(piezaInfo.costo.replace(',', ''));
+                await window.tutorialManager.updateEscuderiaMoney();
             }
-        }, 1500);
+            
+            alert(`✅ Pieza de ${piezaInfo.nombre} en fabricación. Costo: ${piezaInfo.costo}€, Puntos: +${piezaInfo.puntos}. Se completará en 30 segundos.`);
+            
+            // Avanzar automáticamente
+            setTimeout(() => {
+                if (window.tutorialManager) {
+                    window.tutorialManager.tutorialStep++;
+                    window.tutorialManager.mostrarTutorialStep();
+                }
+            }, 1500);
+            
+        } catch (error) {
+            console.error("Error iniciando fabricación:", error);
+            alert("Error iniciando fabricación: " + error.message);
+        }
     };
     
     function getNombrePieza(area) {
@@ -4680,6 +4769,17 @@ class F1Manager {
     };
     // Función para seleccionar opciones de pronóstico
     window.tutorialSeleccionarOpcionPronostico = function(tipo, valor, elemento) {
+        // Evitar propagación
+        if (event) event.stopPropagation();
+        
+        // Inicializar datos si no existen
+        if (!window.tutorialData) {
+            window.tutorialData = {};
+        }
+        if (!window.tutorialData.pronosticosSeleccionados) {
+            window.tutorialData.pronosticosSeleccionados = {};
+        }
+        
         // Quitar selección de otros elementos del mismo tipo
         const elementosMismoTipo = document.querySelectorAll(`[data-tipo="${tipo}"]`);
         elementosMismoTipo.forEach(el => el.classList.remove('seleccionado'));
@@ -4687,10 +4787,7 @@ class F1Manager {
         // Marcar este como seleccionado
         elemento.classList.add('seleccionado');
         
-        // Guardar en tutorialData
-        if (!window.tutorialData.pronosticosSeleccionados) {
-            window.tutorialData.pronosticosSeleccionados = {};
-        }
+        // Guardar la selección
         window.tutorialData.pronosticosSeleccionados[tipo] = valor;
         
         // Mostrar botón de enviar si hay al menos una selección
@@ -4699,22 +4796,87 @@ class F1Manager {
         if (accionBtn && selecciones > 0) {
             accionBtn.style.display = 'block';
         }
+        
+        console.log('Pronóstico seleccionado:', tipo, '=', valor);
+        console.log('Todos los pronósticos:', window.tutorialData.pronosticosSeleccionados);
     };
     
     // Función para ejecutar pronóstico
     window.tutorialEjecutarPronostico = function() {
-        const selecciones = window.tutorialData.pronosticosSeleccionados || {};
-        const count = Object.keys(selecciones).length;
-        
-        if (count < 3) {
-            alert(`Has seleccionado ${count} de 3 pronósticos. Puedes seleccionar uno de cada categoría.`);
+        // Verificar que los datos existen
+        if (!window.tutorialData || !window.tutorialData.pronosticosSeleccionados) {
+            alert("No has seleccionado ningún pronóstico");
             return;
         }
         
-        alert("✅ Pronósticos enviados. Se verificarán con los datos reales post-carrera.");
+        const selecciones = window.tutorialData.pronosticosSeleccionados;
+        const count = Object.keys(selecciones).length;
         
-        // En un tutorial real, aquí avanzarías automáticamente
-        // Para mantener el flujo, el usuario hará clic en SIGUIENTE
+        if (count < 3) {
+            alert(`Has seleccionado ${count} de 3 pronósticos. Necesitas seleccionar uno de cada categoría.`);
+            return;
+        }
+        
+        // SIMULAR RESULTADOS REALES (esto sería aleatorio en el juego real)
+        const resultadosReales = {
+            bandera: 'si',      // En la simulación siempre hay bandera amarilla
+            abandonos: '3-5',   // En la simulación siempre hay 3-5 abandonos
+            diferencia: '1-5s'  // En la simulación siempre es 1-5s
+        };
+        
+        // Calcular aciertos REALES
+        let aciertos = 0;
+        const detalles = [];
+        
+        if (selecciones.bandera === resultadosReales.bandera) {
+            aciertos++;
+            detalles.push('✅ Bandera amarilla: SÍ (acertaste)');
+        } else {
+            detalles.push(`❌ Bandera amarilla: ${selecciones.bandera === 'si' ? 'SÍ' : 'NO'} (era ${resultadosReales.bandera === 'si' ? 'SÍ' : 'NO'})`);
+        }
+        
+        if (selecciones.abandonos === resultadosReales.abandonos) {
+            aciertos++;
+            detalles.push('✅ Abandonos: 3-5 (acertaste)');
+        } else {
+            detalles.push(`❌ Abandonos: ${selecciones.abandonos} (era ${resultadosReales.abandonos})`);
+        }
+        
+        if (selecciones.diferencia === resultadosReales.diferencia) {
+            aciertos++;
+            detalles.push('✅ Diferencia: 1-5s (acertaste)');
+        } else {
+            detalles.push(`❌ Diferencia: ${selecciones.diferencia} (era ${resultadosReales.diferencia})`);
+        }
+        
+        // Mostrar resultados
+        const resultados = document.getElementById('resultado-simulacion');
+        if (resultados) {
+            resultados.innerHTML = `
+                <div class="resultado-simulado">
+                    <h4>📊 RESULTADOS DE LA SIMULACIÓN:</h4>
+                    ${detalles.map(d => `<div class="resultado-item">${d}</div>`).join('')}
+                    <div class="resumen-simulacion">
+                        <strong>${aciertos} de 3 pronósticos acertados (${Math.round((aciertos/3)*100)}%)</strong>
+                    </div>
+                </div>
+            `;
+            resultados.style.display = 'block';
+        }
+        
+        // Guardar resultados para el paso final
+        window.tutorialData.aciertosPronosticos = aciertos;
+        window.tutorialData.totalPronosticos = 3;
+        
+        alert(`✅ ${aciertos} de 3 pronósticos acertados. ¡Buen trabajo!`);
+        
+        // Avanzar automáticamente después de 2 segundos
+        setTimeout(() => {
+            if (window.tutorialManager) {
+                window.tutorialManager.tutorialStep++;
+                window.tutorialManager.mostrarTutorialStep();
+            }
+        }, 2000);
     };
 // Iniciar aplicación
 console.log('🚀 Iniciando aplicación desde el final del archivo...');
