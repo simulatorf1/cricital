@@ -942,24 +942,8 @@ class F1Manager {
     }
     
     mostrarTutorialStep() {
-
-        // 1. Asegúrate que tutorialManager está disponible
-        if (!window.tutorialManager) {
-            window.tutorialManager = this;
-        }
-    
-        // 2. Inicializa tutorialData si no existe
-        if (!window.tutorialData) {
-            window.tutorialData = {
-                estrategaSeleccionado: null,
-                estrategaContratado: false,
-                areaSeleccionada: null,
-                piezaFabricando: false,
-                pronosticoSeleccionado: null
-            };
-        }
         const steps = [
-            // PASO 1: Bienvenida al juego online multijugador
+            // PASO 1: Bienvenida
             {
                 title: "🏆 ¡BIENVENIDO A RACE STRATEGY MANAGER!",
                 content: `
@@ -983,534 +967,518 @@ class F1Manager {
                 action: 'siguientePaso'
             },
             
-            // PASO 2: Herramientas de gestión (CORREGIDO)
+            // PASO 2: Secciones en GRID
             {
-                title: "📊 SECCIONES PRINCIPALES DE GESTIÓN",
+                title: "📊 SECCIONES DE GESTIÓN",
                 content: `
-                    <p>Tu escudería se gestiona a través de <strong>6 secciones clave</strong>:</p>
+                    <p>Tu escudería se gestiona a través de estas <strong>6 secciones principales</strong>:</p>
                     
-                    <div class="sections-grid">
-                        <div class="section-card" onclick="seleccionarSeccion('principal')">
-                            <div class="section-icon">🏠</div>
-                            <div class="section-info">
-                                <h4>PRINCIPAL</h4>
-                                <p>Vista general y resumen</p>
-                                <div class="section-tag">Dashboard</div>
-                            </div>
+                    <div class="grid-6-columns">
+                        <div class="grid-btn-big" onclick="tutorialIrSeccion('principal')">
+                            <div class="grid-icon">🏠</div>
+                            <div class="grid-title">PRINCIPAL</div>
+                            <div class="grid-desc">Vista general del equipo</div>
                         </div>
                         
-                        <div class="section-card" onclick="seleccionarSeccion('taller')">
-                            <div class="section-icon">🔧</div>
-                            <div class="section-info">
-                                <h4>TALLER</h4>
-                                <p>Fabrica piezas técnicas</p>
-                                <div class="section-tag">Producción</div>
-                            </div>
+                        <div class="grid-btn-big" onclick="tutorialIrSeccion('taller')">
+                            <div class="grid-icon">🔧</div>
+                            <div class="grid-title">TALLER</div>
+                            <div class="grid-desc">Fabrica piezas</div>
                         </div>
                         
-                        <div class="section-card" onclick="seleccionarSeccion('equipo')">
-                            <div class="section-icon">👥</div>
-                            <div class="section-info">
-                                <h4>EQUIPO</h4>
-                                <p>Contrata estrategas</p>
-                                <div class="section-tag">Personal</div>
-                            </div>
+                        <div class="grid-btn-big" onclick="tutorialIrSeccion('equipo')">
+                            <div class="grid-icon">👥</div>
+                            <div class="grid-title">EQUIPO</div>
+                            <div class="grid-desc">Contrata estrategas</div>
                         </div>
                         
-                        <div class="section-card" onclick="seleccionarSeccion('almacen')">
-                            <div class="section-icon">📦</div>
-                            <div class="section-info">
-                                <h4>ALMACÉN</h4>
-                                <p>Gestiona piezas</p>
-                                <div class="section-tag">Inventario</div>
-                            </div>
+                        <div class="grid-btn-big" onclick="tutorialIrSeccion('almacen')">
+                            <div class="grid-icon">📦</div>
+                            <div class="grid-title">ALMACÉN</div>
+                            <div class="grid-desc">Gestiona inventario</div>
                         </div>
                         
-                        <div class="section-card" onclick="seleccionarSeccion('pronosticos')">
-                            <div class="section-icon">🎯</div>
-                            <div class="section-info">
-                                <h4>PRONÓSTICOS</h4>
-                                <p>Haz tus predicciones</p>
-                                <div class="section-tag">Competencia</div>
-                            </div>
+                        <div class="grid-btn-big" onclick="tutorialIrSeccion('pronosticos')">
+                            <div class="grid-icon">🎯</div>
+                            <div class="grid-title">PRONÓSTICOS</div>
+                            <div class="grid-desc">Haz predicciones</div>
                         </div>
                         
-                        <div class="section-card" onclick="seleccionarSeccion('ranking')">
-                            <div class="section-icon">🏆</div>
-                            <div class="section-info">
-                                <h4>RANKING</h4>
-                                <p>Posición global</p>
-                                <div class="section-tag">Clasificación</div>
-                            </div>
+                        <div class="grid-btn-big" onclick="tutorialIrSeccion('ranking')">
+                            <div class="grid-icon">🏆</div>
+                            <div class="grid-title">RANKING</div>
+                            <div class="grid-desc">Posición global</div>
                         </div>
-                    </div>
-                    
-                    <p class="tip">💡 <strong>Cada sección tiene una función específica.</strong> Navega entre ellas usando las pestañas superiores.</p>
-                `,
-                action: 'siguientePaso'
-        
-            },
-            
-            // PASO 3: Áreas técnicas (MEJORADO)
-            {
-                title: "🔧 ÁREAS TÉCNICAS DE DESARROLLO",
-                content: `
-                    <p>Desarrolla estas <strong>11 áreas técnicas</strong> fabricando piezas en el Taller:</p>
-                    
-                    <div class="areas-detailed-grid">
-                        <!-- Motor -->
-                        <div class="area-detailed-card">
-                            <div class="area-header">
-                                <div class="area-icon-large">🏎️</div>
-                                <h4>MOTOR</h4>
-                            </div>
-                            <div class="area-description">
-                                Potencia y eficiencia del propulsor
-                            </div>
-                            <div class="area-stats">
-                                <div class="stat">
-                                    <span>Tiempo fabricación:</span>
-                                    <strong>4 horas</strong>
-                                </div>
-                                <div class="stat">
-                                    <span>Puntos base:</span>
-                                    <strong class="points">+15</strong>
-                                </div>
-                            </div>
-                            <button class="btn-fabrica-area" onclick="simularFabricar('motor')">
-                                <i class="fas fa-hammer"></i> Fabricar
-                            </button>
-                        </div>
-                        
-                        <!-- Chasis -->
-                        <div class="area-detailed-card">
-                            <div class="area-header">
-                                <div class="area-icon-large">📊</div>
-                                <h4>CHASIS</h4>
-                            </div>
-                            <div class="area-description">
-                                Estructura principal del vehículo
-                            </div>
-                            <div class="area-stats">
-                                <div class="stat">
-                                    <span>Tiempo fabricación:</span>
-                                    <strong>4 horas</strong>
-                                </div>
-                                <div class="stat">
-                                    <span>Puntos base:</span>
-                                    <strong class="points">+12</strong>
-                                </div>
-                            </div>
-                            <button class="btn-fabrica-area" onclick="simularFabricar('chasis')">
-                                <i class="fas fa-hammer"></i> Fabricar
-                            </button>
-                        </div>
-                        
-                        <!-- Aerodinámica -->
-                        <div class="area-detailed-card">
-                            <div class="area-header">
-                                <div class="area-icon-large">🌀</div>
-                                <h4>AERODINÁMICA</h4>
-                            </div>
-                            <div class="area-description">
-                                Flujo de aire y downforce
-                            </div>
-                            <div class="area-stats">
-                                <div class="stat">
-                                    <span>Tiempo fabricación:</span>
-                                    <strong>3 horas</strong>
-                                </div>
-                                <div class="stat">
-                                    <span>Puntos base:</span>
-                                    <strong class="points">+10</strong>
-                                </div>
-                            </div>
-                            <button class="btn-fabrica-area" onclick="simularFabricar('aerodinamica')">
-                                <i class="fas fa-hammer"></i> Fabricar
-                            </button>
-                        </div>
-                        
-                        <!-- ... Añade las otras 8 áreas de forma similar ... -->
-                    </div>
-                    
-                    <div class="fabrication-info">
-                        <p>🔨 <strong>¿Cómo funciona?</strong></p>
-                        <ol>
-                            <li>Selecciona un área para fabricar</li>
-                            <li>La pieza se producirá en el tiempo indicado</li>
-                            <li>Aparecerá en tu Almacén lista para montar o vender</li>
-                            <li>Cada pieza montada sube el nivel del área</li>
-                        </ol>
                     </div>
                 `,
                 action: 'siguientePaso'
-        
             },
             
-            // PASO 4: Contratar estrategas (CON TABLA REAL)
+            // PASO 3: Áreas técnicas en GRID
             {
-                title: "👥 CONTRATA TU PRIMER ESTRATEGA",
+                title: "🔧 11 ÁREAS TÉCNICAS",
                 content: `
-                    <p>Selecciona uno de estos estrategas disponibles:</p>
+                    <p>Desarrolla estas <strong>11 áreas técnicas</strong> fabricando piezas:</p>
                     
-                    <div id="tabla-estrategas-tutorial" class="estrategas-grid">
-                        <!-- ESTO SE LLENARÁ DINÁMICAMENTE -->
-                        <div class="loading-estrategas">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <p>Cargando estrategas disponibles...</p>
+                    <div class="grid-4-columns">
+                        <div class="area-grid-card">
+                            <div class="area-grid-icon">🏎️</div>
+                            <div class="area-grid-name">MOTOR</div>
+                            <div class="area-grid-desc">Potencia y eficiencia</div>
+                            <div class="area-grid-stats">4h · +15 pts</div>
+                        </div>
+                        
+                        <div class="area-grid-card">
+                            <div class="area-grid-icon">📊</div>
+                            <div class="area-grid-name">CHASIS</div>
+                            <div class="area-grid-desc">Estructura principal</div>
+                            <div class="area-grid-stats">4h · +12 pts</div>
+                        </div>
+                        
+                        <div class="area-grid-card">
+                            <div class="area-grid-icon">🌀</div>
+                            <div class="area-grid-name">AERODINÁMICA</div>
+                            <div class="area-grid-desc">Flujo de aire</div>
+                            <div class="area-grid-stats">3h · +10 pts</div>
+                        </div>
+                        
+                        <div class="area-grid-card">
+                            <div class="area-grid-icon">⚙️</div>
+                            <div class="area-grid-name">SUSPENSIÓN</div>
+                            <div class="area-grid-desc">Control y estabilidad</div>
+                            <div class="area-grid-stats">3h · +9 pts</div>
+                        </div>
+                        
+                        <div class="area-grid-card">
+                            <div class="area-grid-icon">🔄</div>
+                            <div class="area-grid-name">TRANSMISIÓN</div>
+                            <div class="area-grid-desc">Cambio de marchas</div>
+                            <div class="area-grid-stats">4h · +11 pts</div>
+                        </div>
+                        
+                        <div class="area-grid-card">
+                            <div class="area-grid-icon">🛑</div>
+                            <div class="area-grid-name">FRENOS</div>
+                            <div class="area-grid-desc">Poder de detención</div>
+                            <div class="area-grid-stats">3h · +8 pts</div>
+                        </div>
+                        
+                        <div class="area-grid-card">
+                            <div class="area-grid-icon">💡</div>
+                            <div class="area-grid-name">ELECTRÓNICA</div>
+                            <div class="area-grid-desc">Sistemas digitales</div>
+                            <div class="area-grid-stats">5h · +14 pts</div>
+                        </div>
+                        
+                        <div class="area-grid-card">
+                            <div class="area-grid-icon">🎮</div>
+                            <div class="area-grid-name">CONTROL</div>
+                            <div class="area-grid-desc">Manejo y respuesta</div>
+                            <div class="area-grid-stats">3h · +9 pts</div>
+                        </div>
+                        
+                        <div class="area-grid-card">
+                            <div class="area-grid-icon">🌪️</div>
+                            <div class="area-grid-name">DIFUSOR</div>
+                            <div class="area-grid-desc">Downforce trasero</div>
+                            <div class="area-grid-stats">4h · +12 pts</div>
+                        </div>
+                        
+                        <div class="area-grid-card">
+                            <div class="area-grid-icon">🪽</div>
+                            <div class="area-grid-name">ALERONES</div>
+                            <div class="area-grid-desc">Carga aerodinámica</div>
+                            <div class="area-grid-stats">4h · +13 pts</div>
+                        </div>
+                        
+                        <div class="area-grid-card">
+                            <div class="area-grid-icon">📦</div>
+                            <div class="area-grid-name">PONTONES</div>
+                            <div class="area-grid-desc">Refrigeración y flujo</div>
+                            <div class="area-grid-stats">3h · +10 pts</div>
                         </div>
                     </div>
+                `,
+                action: 'siguientePaso'
+            },
+            
+            // PASO 4: Contratación de estrategas en GRID
+            {
+                title: "👥 CONTRATA ESTRATEGAS",
+                content: `
+                    <p>Selecciona y contrata estrategas para potenciar tus pronósticos:</p>
                     
-                    <div class="estratega-seleccionado" id="estratega-seleccionado-container" style="display: none;">
-                        <h4>Estratega Seleccionado:</h4>
-                        <div id="info-estratega-seleccionado"></div>
-                        <button class="btn-contratar" onclick="contratarEstrategaSeleccionado()">
-                            <i class="fas fa-file-contract"></i> Contratar por <span id="sueldo-estratega">0</span>€/mes
-                        </button>
+                    <div id="grid-estrategas-tutorial" class="grid-3-columns">
+                        <!-- Se cargarán dinámicamente -->
+                        <div class="loading">Cargando estrategas...</div>
                     </div>
                 `,
                 action: 'siguientePaso',
                 onLoad: function() {
-                    // Cargar estrategas dinámicamente
-                    cargarEstrategasTutorial();
+                    setTimeout(() => {
+                        cargarEstrategasTutorial();
+                    }, 100);
                 }
-
             },
             
-            // PASO 5: Sistema de producción y almacén
+            // PASO 5: Fabricación en GRID
             {
-                title: "🏭 FABRICACIÓN Y ALMACÉN",
+                title: "🏭 FABRICACIÓN DE PIEZAS",
                 content: `
-                    <p>Mientras desarrollas tu estrategia, puedes <strong>mejorar las áreas técnicas</strong> de tu escudería.</p>
+                    <p>Fábrica piezas para mejorar tus áreas técnicas:</p>
                     
-                    <p class="important">🔧 <strong>Por qué mejorar tus áreas:</strong></p>
-                    <ul>
-                        <li>Cada área mejorada da <strong>más puntos base</strong> a tu puntuación final</li>
-                        <li>Las piezas fabricadas pueden <strong>venderse en el mercado</strong> por dinero extra</li>
-                        <li>Niveles altos desbloquean <strong>pronósticos más complejos y rentables</strong></li>
-                    </ul>
-                    
-                    <div class="manufacturing-flow">
-                        <div class="flow-step">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <strong>FABRICAS</strong> una pieza en el Taller<br>
-                                <small>Tiempo: 4 horas (las primeras son más rápidas)</small>
+                    <div class="grid-3-columns">
+                        <div class="fabricacion-card" onclick="tutorialSeleccionarFabricacion('motor')">
+                            <div class="fab-icon">🏎️</div>
+                            <div class="fab-title">FABRICAR MOTOR</div>
+                            <div class="fab-details">
+                                <div class="fab-time">⏱️ 4 horas</div>
+                                <div class="fab-cost">💰 100,000€</div>
+                                <div class="fab-points">⭐ +15 pts</div>
                             </div>
+                            <div class="fab-action">HACER CLIC PARA FABRICAR</div>
                         </div>
                         
-                        <div class="flow-arrow">↓</div>
-                        
-                        <div class="flow-step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <strong>APARECE</strong> en tu Almacén<br>
-                                <small>Lista para montar o vender</small>
+                        <div class="fabricacion-card" onclick="tutorialSeleccionarFabricacion('chasis')">
+                            <div class="fab-icon">📊</div>
+                            <div class="fab-title">FABRICAR CHASIS</div>
+                            <div class="fab-details">
+                                <div class="fab-time">⏱️ 4 horas</div>
+                                <div class="fab-cost">💰 90,000€</div>
+                                <div class="fab-points">⭐ +12 pts</div>
                             </div>
+                            <div class="fab-action">HACER CLIC PARA FABRICAR</div>
                         </div>
                         
-                        <div class="flow-arrow">↓</div>
-                        
-                        <div class="flow-step">
-                            <div class="step-number">3</div>
-                            <div class="step-content">
-                                <strong>DECIDES:</strong> ¿Montarla o venderla?<br>
-                                <small>Montar: Mejora tu área<br>Vender: Obtienes dinero inmediato</small>
+                        <div class="fabricacion-card" onclick="tutorialSeleccionarFabricacion('aerodinamica')">
+                            <div class="fab-icon">🌀</div>
+                            <div class="fab-title">FABRICAR AERODINÁMICA</div>
+                            <div class="fab-details">
+                                <div class="fab-time">⏱️ 3 horas</div>
+                                <div class="fab-cost">💰 85,000€</div>
+                                <div class="fab-points">⭐ +10 pts</div>
                             </div>
+                            <div class="fab-action">HACER CLIC PARA FABRICAR</div>
                         </div>
                     </div>
                 `,
                 action: 'siguientePaso'
             },
             
-            // PASO 6: Tutorial práctico (MEJORADO Y FUNCIONAL)
+            // PASO 6: DÍA 1 - Contratación (Tutorial práctico)
             {
-                title: "🎯 TUTORIAL PRÁCTICO COMPLETO",
+                title: "📅 DÍA 1: CONTRATAR ESTRATEGA",
                 content: `
-                    <div class="tutorial-progress">
-                        <div class="progress-step active" id="step1">
-                            <div class="step-number">1</div>
-                            <div class="step-title">Contratar Estratega</div>
-                        </div>
-                        <div class="progress-step" id="step2">
-                            <div class="step-number">2</div>
-                            <div class="step-title">Fabricar Pieza</div>
-                        </div>
-                        <div class="progress-step" id="step3">
-                            <div class="step-number">3</div>
-                            <div class="step-title">Hacer Pronóstico</div>
-                        </div>
-                        <div class="progress-step" id="step4">
-                            <div class="step-number">4</div>
-                            <div class="step-title">Ver Resultados</div>
-                        </div>
+                    <div class="dia-info">
+                        <div class="dia-numero">DÍA 1</div>
+                        <div class="dia-titulo">LUNES - CONTRATACIÓN</div>
                     </div>
                     
-                    <!-- PASO 1: Contratar estratega -->
-                    <div id="tutorial-paso1" class="tutorial-paso activo">
-                        <h4>1. CONTRATA TU PRIMER ESTRATEGA</h4>
-                        <div class="estrategas-tutorial-grid">
-                            <div class="estratega-option" onclick="tutorialSeleccionarEstratega(1)">
-                                <div class="estratega-icon">⏱️</div>
-                                <div class="estratega-info">
-                                    <h5>Analista de Tiempos</h5>
-                                    <p><strong>Especialidad:</strong> Diferencias de tiempo</p>
-                                    <p><strong>Bono:</strong> +15% puntos</p>
-                                    <p><strong>Sueldo:</strong> 50,000€/mes</p>
-                                </div>
-                                <button class="btn-seleccionar">Seleccionar</button>
-                            </div>
-                            
-                            <div class="estratega-option" onclick="tutorialSeleccionarEstratega(2)">
-                                <div class="estratega-icon">🌧️</div>
-                                <div class="estratega-info">
-                                    <h5>Meteorólogo</h5>
-                                    <p><strong>Especialidad:</strong> Condiciones climáticas</p>
-                                    <p><strong>Bono:</strong> +20% puntos</p>
-                                    <p><strong>Sueldo:</strong> 60,000€/mes</p>
-                                </div>
-                                <button class="btn-seleccionar">Seleccionar</button>
-                            </div>
-                            
-                            <div class="estratega-option" onclick="tutorialSeleccionarEstratega(3)">
-                                <div class="estratega-icon">🔧</div>
-                                <div class="estratega-info">
-                                    <h5>Experto en Fiabilidad</h5>
-                                    <p><strong>Especialidad:</strong> Abandonos</p>
-                                    <p><strong>Bono:</strong> +18% puntos</p>
-                                    <p><strong>Sueldo:</strong> 55,000€/mes</p>
-                                </div>
-                                <button class="btn-seleccionar">Seleccionar</button>
-                            </div>
+                    <p>Comienza la semana contratando tu primer estratega. Cada uno tiene una especialidad diferente:</p>
+                    
+                    <div class="grid-3-columns">
+                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(1)">
+                            <div class="estratega-icon-tut">⏱️</div>
+                            <div class="estratega-nombre-tut">ANALISTA DE TIEMPOS</div>
+                            <div class="estratega-especialidad">Diferencias de tiempo</div>
+                            <div class="estratega-bono">Bono: <span class="bono-valor">+15%</span></div>
+                            <div class="estratega-sueldo">Sueldo: <span class="sueldo-valor">50,000€/mes</span></div>
+                            <div class="estratega-ejemplo">Ej: "Diferencia 1º-2º < 1s"</div>
                         </div>
                         
-                        <div class="tutorial-accion" id="accion-contratar" style="display: none;">
-                            <button class="btn-tutorial-accion" onclick="tutorialContratarEstratega()">
-                                <i class="fas fa-file-contract"></i> Contratar Estratega Seleccionado
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- PASO 2: Fabricar pieza -->
-                    <div id="tutorial-paso2" class="tutorial-paso">
-                        <h4>2. FABRICA TU PRIMERA PIEZA</h4>
-                        <div class="areas-tutorial-grid">
-                            <div class="area-option" onclick="tutorialSeleccionarArea('motor')">
-                                <div class="area-icon">🏎️</div>
-                                <div class="area-info">
-                                    <h5>Motor</h5>
-                                    <p><strong>Tiempo:</strong> 4 horas</p>
-                                    <p><strong>Puntos:</strong> +15 base</p>
-                                    <p><strong>Costo:</strong> 100,000€</p>
-                                </div>
-                            </div>
-                            
-                            <div class="area-option" onclick="tutorialSeleccionarArea('chasis')">
-                                <div class="area-icon">📊</div>
-                                <div class="area-info">
-                                    <h5>Chasis</h5>
-                                    <p><strong>Tiempo:</strong> 4 horas</p>
-                                    <p><strong>Puntos:</strong> +12 base</p>
-                                    <p><strong>Costo:</strong> 90,000€</p>
-                                </div>
-                            </div>
-                            
-                            <div class="area-option" onclick="tutorialSeleccionarArea('aerodinamica')">
-                                <div class="area-icon">🌀</div>
-                                <div class="area-info">
-                                    <h5>Aerodinámica</h5>
-                                    <p><strong>Tiempo:</strong> 3 horas</p>
-                                    <p><strong>Puntos:</strong> +10 base</p>
-                                    <p><strong>Costo:</strong> 85,000€</p>
-                                </div>
-                            </div>
+                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(2)">
+                            <div class="estratega-icon-tut">🌧️</div>
+                            <div class="estratega-nombre-tut">METEORÓLOGO</div>
+                            <div class="estratega-especialidad">Condiciones climáticas</div>
+                            <div class="estratega-bono">Bono: <span class="bono-valor">+20%</span></div>
+                            <div class="estratega-sueldo">Sueldo: <span class="sueldo-valor">60,000€/mes</span></div>
+                            <div class="estratega-ejemplo">Ej: "Lluvia afectará carrera"</div>
                         </div>
                         
-                        <div class="tutorial-accion" id="accion-fabricar" style="display: none;">
-                            <button class="btn-tutorial-accion" onclick="tutorialIniciarFabricacion()">
-                                <i class="fas fa-hammer"></i> Iniciar Fabricación
-                            </button>
+                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(3)">
+                            <div class="estratega-icon-tut">🔧</div>
+                            <div class="estratega-nombre-tut">EXPERTO EN FIABILIDAD</div>
+                            <div class="estratega-especialidad">Abandonos y fallos</div>
+                            <div class="estratega-bono">Bono: <span class="bono-valor">+18%</span></div>
+                            <div class="estratega-sueldo">Sueldo: <span class="sueldo-valor">55,000€/mes</span></div>
+                            <div class="estratega-ejemplo">Ej: "Más de 5 abandonos"</div>
                         </div>
                     </div>
                     
-                    <!-- PASO 3: Hacer pronóstico -->
-                    <div id="tutorial-paso3" class="tutorial-paso">
-                        <h4>3. HAZ UN PRONÓSTICO</h4>
-                        <div class="pronosticos-tutorial-grid">
-                            <div class="pronostico-option" onclick="tutorialSeleccionarPronostico(1)">
-                                <div class="pronostico-icon">🚩</div>
-                                <div class="pronostico-info">
-                                    <h5>Bandera Amarilla</h5>
-                                    <p>¿Habrá neutralización en carrera?</p>
-                                    <div class="opciones">
-                                        <span class="opcion">SÍ</span>
-                                        <span class="opcion">NO</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="pronostico-option" onclick="tutorialSeleccionarPronostico(2)">
-                                <div class="pronostico-icon">🚗</div>
-                                <div class="pronostico-info">
-                                    <h5>Abandonos</h5>
-                                    <p>¿Cuántos pilotos no terminarán?</p>
-                                    <div class="opciones">
-                                        <span class="opcion">0-2</span>
-                                        <span class="opcion">3-5</span>
-                                        <span class="opcion">>5</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="pronostico-option" onclick="tutorialSeleccionarPronostico(3)">
-                                <div class="pronostico-icon">⏱️</div>
-                                <div class="pronostico-info">
-                                    <h5>Diferencia 1º-2º</h5>
-                                    <p>Tiempo entre primero y segundo</p>
-                                    <div class="opciones">
-                                        <span class="opcion">&lt;1s</span>
-                                        <span class="opcion">1-5s</span>
-                                        <span class="opcion">&gt;5s</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tutorial-accion" id="accion-pronostico" style="display: none;">
-                            <div id="opciones-pronostico" style="display: none;">
-                                <!-- Se llena dinámicamente -->
-                            </div>
-                            <button class="btn-tutorial-accion" onclick="tutorialEnviarPronostico()">
-                                <i class="fas fa-paper-plane"></i> Enviar Pronóstico
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- PASO 4: Ver resultados -->
-                    <div id="tutorial-paso4" class="tutorial-paso">
-                        <h4>4. RESULTADOS Y GANANCIAS</h4>
-                        <div class="resultados-simulados" id="resultados-simulados">
-                            <div class="resultado-item">
-                                <div class="resultado-icon">✅</div>
-                                <div class="resultado-info">
-                                    <h5>Pronóstico Acertado</h5>
-                                    <p><strong>Bandera Amarilla: SÍ</strong> (correcto)</p>
-                                    <p class="ganancia">+150 puntos base</p>
-                                </div>
-                            </div>
-                            
-                            <div class="resultado-item">
-                                <div class="resultado-icon">👥</div>
-                                <div class="resultado-info">
-                                    <h5>Bono de Estratega</h5>
-                                    <p>Analista de Tiempos (+15%)</p>
-                                    <p class="ganancia">+22.5 puntos extra</p>
-                                </div>
-                            </div>
-                            
-                            <div class="resultado-item">
-                                <div class="resultado-icon">🔧</div>
-                                <div class="resultado-info">
-                                    <h5>Bono de Pieza</h5>
-                                    <p>Motor nivel 1 (+15 puntos)</p>
-                                    <p class="ganancia">+15 puntos técnicos</p>
-                                </div>
-                            </div>
-                            
-                            <div class="resultado-total">
-                                <h4>TOTAL OBTENIDO:</h4>
-                                <div class="total-puntos">187.5 puntos</div>
-                                <div class="total-dinero">+18,750€</div>
-                                <p class="conversion">(1 punto = 100€)</p>
-                            </div>
-                        </div>
+                    <div class="tutorial-accion-practica" id="accion-contratar-tut" style="display: none;">
+                        <button class="btn-tutorial-accion-grande" onclick="tutorialEjecutarContratacion()">
+                            <i class="fas fa-file-contract"></i> CONTRATAR ESTRATEGA SELECCIONADO
+                        </button>
                     </div>
                 `,
-                action: 'finalizarTutorial'
+                action: 'siguientePaso'
             },
             
-            // PASO 7: Finalización (ACTUALIZADO)
+            // PASO 7: DÍA 2 - Fabricación
             {
-                title: "🏁 ¡TODO LISTO! TUTORIAL COMPLETADO",
+                title: "📅 DÍA 2: FABRICAR PIEZA",
                 content: `
-                    <div class="completion-celebration">
-                        <div class="celebration-icon">🎉</div>
-                        <h3>¡FELICITACIONES!</h3>
-                        <p class="subtitle">Has completado el tutorial con éxito</p>
+                    <div class="dia-info">
+                        <div class="dia-numero">DÍA 2</div>
+                        <div class="dia-titulo">MARTES - PRODUCCIÓN</div>
                     </div>
                     
-                    <div class="resumen-tutorial">
-                        <h4>📋 RESUMEN DE LO APRENDIDO:</h4>
-                        <div class="resumen-grid">
-                            <div class="resumen-item completado">
-                                <div class="resumen-icon">👥</div>
-                                <div class="resumen-text">
-                                    <strong>Estratega contratado</strong>
-                                    <p>Analista de Tiempos (+15%)</p>
-                                </div>
+                    <p>Ahora fabrica una pieza para mejorar una de tus áreas técnicas:</p>
+                    
+                    <div class="grid-3-columns">
+                        <div class="fabricacion-tutorial-card seleccionable" onclick="tutorialSeleccionarFabricacionPractica('motor')">
+                            <div class="fab-icon-tut">🏎️</div>
+                            <div class="fab-nombre-tut">PIEZA DE MOTOR</div>
+                            <div class="fab-desc-tut">Aumenta potencia y eficiencia</div>
+                            <div class="fab-tiempo-tut">⏱️ Duración: 4 horas</div>
+                            <div class="fab-costo-tut">💰 Costo: 100,000€</div>
+                            <div class="fab-puntos-tut">⭐ Puntos: +15 base</div>
+                            <div class="fab-accion-tut">HACER CLIC PARA SELECCIONAR</div>
+                        </div>
+                        
+                        <div class="fabricacion-tutorial-card seleccionable" onclick="tutorialSeleccionarFabricacionPractica('chasis')">
+                            <div class="fab-icon-tut">📊</div>
+                            <div class="fab-nombre-tut">PIEZA DE CHASIS</div>
+                            <div class="fab-desc-tut">Mejora estructura y rigidez</div>
+                            <div class="fab-tiempo-tut">⏱️ Duración: 4 horas</div>
+                            <div class="fab-costo-tut">💰 Costo: 90,000€</div>
+                            <div class="fab-puntos-tut">⭐ Puntos: +12 base</div>
+                            <div class="fab-accion-tut">HACER CLIC PARA SELECCIONAR</div>
+                        </div>
+                        
+                        <div class="fabricacion-tutorial-card seleccionable" onclick="tutorialSeleccionarFabricacionPractica('aerodinamica')">
+                            <div class="fab-icon-tut">🌀</div>
+                            <div class="fab-nombre-tut">PIEZA AERODINÁMICA</div>
+                            <div class="fab-desc-tut">Optimiza flujo de aire</div>
+                            <div class="fab-tiempo-tut">⏱️ Duración: 3 horas</div>
+                            <div class="fab-costo-tut">💰 Costo: 85,000€</div>
+                            <div class="fab-puntos-tut">⭐ Puntos: +10 base</div>
+                            <div class="fab-accion-tut">HACER CLIC PARA SELECCIONAR</div>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-accion-practica" id="accion-fabricar-tut" style="display: none;">
+                        <button class="btn-tutorial-accion-grande" onclick="tutorialEjecutarFabricacion()">
+                            <i class="fas fa-hammer"></i> INICIAR FABRICACIÓN DE PIEZA
+                        </button>
+                    </div>
+                `,
+                action: 'siguientePaso'
+            },
+            
+            // PASO 8: DÍA 3-4 - Pronósticos
+            {
+                title: "📅 DÍAS 3-4: HACER PRONÓSTICOS",
+                content: `
+                    <div class="dia-info">
+                        <div class="dia-numero">DÍAS 3-4</div>
+                        <div class="dia-titulo">MIÉRCOLES-JUEVES - ANÁLISIS</div>
+                    </div>
+                    
+                    <p>Analiza la próxima carrera y haz tus pronósticos (hasta jueves 23:59):</p>
+                    
+                    <div class="grid-3-columns">
+                        <div class="pronostico-tutorial-card seleccionable" onclick="tutorialSeleccionarPronosticoPractico('bandera')">
+                            <div class="pronostico-icon-tut">🚩</div>
+                            <div class="pronostico-nombre-tut">BANDERA AMARILLA</div>
+                            <div class="pronostico-pregunta">¿Habrá neutralización?</div>
+                            <div class="pronostico-opciones">
+                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('bandera', 'si')">SÍ</div>
+                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('bandera', 'no')">NO</div>
                             </div>
-                            
-                            <div class="resumen-item completado">
-                                <div class="resumen-icon">🔧</div>
-                                <div class="resumen-text">
-                                    <strong>Pieza fabricada</strong>
-                                    <p>Motor en producción (4h)</p>
-                                </div>
+                            <div class="pronostico-puntos">⭐ +150 pts base</div>
+                        </div>
+                        
+                        <div class="pronostico-tutorial-card seleccionable" onclick="tutorialSeleccionarPronosticoPractico('abandonos')">
+                            <div class="pronostico-icon-tut">🚗</div>
+                            <div class="pronostico-nombre-tut">ABANDONOS</div>
+                            <div class="pronostico-pregunta">¿Cuántos no terminarán?</div>
+                            <div class="pronostico-opciones">
+                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('abandonos', '0-2')">0-2</div>
+                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('abandonos', '3-5')">3-5</div>
+                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('abandonos', 'mas5')">>5</div>
                             </div>
-                            
-                            <div class="resumen-item completado">
-                                <div class="resumen-icon">🎯</div>
-                                <div class="resumen-text">
-                                    <strong>Pronóstico realizado</strong>
-                                    <p>Bandera amarilla: SÍ</p>
-                                </div>
+                            <div class="pronostico-puntos">⭐ +180 pts base</div>
+                        </div>
+                        
+                        <div class="pronostico-tutorial-card seleccionable" onclick="tutorialSeleccionarPronosticoPractico('diferencia')">
+                            <div class="pronostico-icon-tut">⏱️</div>
+                            <div class="pronostico-nombre-tut">DIFERENCIA 1º-2º</div>
+                            <div class="pronostico-pregunta">Tiempo entre primero y segundo</div>
+                            <div class="pronostico-opciones">
+                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('diferencia', '<1s')"><1s</div>
+                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('diferencia', '1-5s')">1-5s</div>
+                                <div class="opcion-tut" onclick="event.stopPropagation(); tutorialSeleccionarOpcion('diferencia', '>5s')">>5s</div>
                             </div>
-                            
-                            <div class="resumen-item completado">
-                                <div class="resumen-icon">💰</div>
-                                <div class="resumen-text">
-                                    <strong>Ganancias simuladas</strong>
-                                    <p>187.5 puntos = 18,750€</p>
-                                </div>
+                            <div class="pronostico-puntos">⭐ +200 pts base</div>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-accion-practica" id="accion-pronostico-tut" style="display: none;">
+                        <button class="btn-tutorial-accion-grande" onclick="tutorialEjecutarPronostico()">
+                            <i class="fas fa-paper-plane"></i> ENVIAR PRONÓSTICOS SELECCIONADOS
+                        </button>
+                    </div>
+                `,
+                action: 'siguientePaso'
+            },
+            
+            // PASO 9: FIN DE SEMANA - Simulación carrera
+            {
+                title: "📅 FIN DE SEMANA: CARRERA",
+                content: `
+                    <div class="dia-info">
+                        <div class="dia-numero">FIN DE SEMANA</div>
+                        <div class="dia-titulo">SÁBADO-DOMINGO - COMPETICIÓN</div>
+                    </div>
+                    
+                    <p>La carrera se desarrolla y se verifican tus pronósticos con datos reales:</p>
+                    
+                    <div class="simulacion-carrera">
+                        <div class="carrera-paso">
+                            <div class="paso-icon">🏁</div>
+                            <div class="paso-text">
+                                <strong>GRAN PREMIO EN CURSO</strong><br>
+                                Los pilotos compiten en pista
+                            </div>
+                        </div>
+                        
+                        <div class="carrera-paso">
+                            <div class="paso-icon">📊</div>
+                            <div class="paso-text">
+                                <strong>DATOS EN TIEMPO REAL</strong><br>
+                                Se registran estadísticas
+                            </div>
+                        </div>
+                        
+                        <div class="carrera-paso">
+                            <div class="paso-icon">✅</div>
+                            <div class="paso-text">
+                                <strong>VERIFICACIÓN DE PRONÓSTICOS</strong><br>
+                                Se contrastan con datos objetivos
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-simular-carrera" onclick="tutorialSimularCarrera()">
+                        <i class="fas fa-play-circle"></i> SIMULAR DESARROLLO DE CARRERA
+                    </button>
+                    
+                    <div id="resultado-simulacion" style="display: none;">
+                        <!-- Resultados aparecerán aquí -->
+                    </div>
+                `,
+                action: 'siguientePaso'
+            },
+            
+            // PASO 10: LUNES - Resultados
+            {
+                title: "📅 LUNES: RESULTADOS Y GANANCIAS",
+                content: `
+                    <div class="dia-info">
+                        <div class="dia-numero">LUNES</div>
+                        <div class="dia-titulo">RESULTADOS Y PAGOS</div>
+                    </div>
+                    
+                    <p>Resultados de tu primera semana simulada:</p>
+                    
+                    <div class="resultados-grid">
+                        <div class="resultado-card ganancia">
+                            <div class="resultado-icon">✅</div>
+                            <div class="resultado-titulo">PRONÓSTICO ACERTADO</div>
+                            <div class="resultado-detalle">Bandera amarilla: SÍ</div>
+                            <div class="resultado-puntos">+150 pts base</div>
+                        </div>
+                        
+                        <div class="resultado-card bono">
+                            <div class="resultado-icon">👥</div>
+                            <div class="resultado-titulo">BONO ESTRATEGA</div>
+                            <div class="resultado-detalle">Analista de Tiempos (+15%)</div>
+                            <div class="resultado-puntos">+22.5 pts extra</div>
+                        </div>
+                        
+                        <div class="resultado-card pieza">
+                            <div class="resultado-icon">🔧</div>
+                            <div class="resultado-titulo">BONO PIEZA</div>
+                            <div class="resultado-detalle">Motor (+15 pts base)</div>
+                            <div class="resultado-puntos">+15 pts técnicos</div>
+                        </div>
+                    </div>
+                    
+                    <div class="total-ganancias">
+                        <div class="total-titulo">TOTAL SEMANAL:</div>
+                        <div class="total-puntos">187.5 PUNTOS</div>
+                        <div class="total-dinero">= 18,750€</div>
+                        <div class="total-conversion">(1 punto = 100€)</div>
+                    </div>
+                    
+                    <div class="nuevo-presupuesto">
+                        <div class="presupuesto-inicial">Presupuesto inicial: 5,000,000€</div>
+                        <div class="presupuesto-ganancia">+ Ganancias: 18,750€</div>
+                        <div class="presupuesto-gastos">- Gastos: 150,000€</div>
+                        <div class="presupuesto-final">Nuevo presupuesto: <strong>4,868,750€</strong></div>
+                    </div>
+                `,
+                action: 'siguientePaso'
+            },
+            
+            // PASO 11: Tutorial completado
+            {
+                title: "🏁 ¡TUTORIAL COMPLETADO!",
+                content: `
+                    <div class="completado-celebracion">
+                        <div class="celebracion-icon">🎉</div>
+                        <h3>¡FELICIDADES DIRECTOR!</h3>
+                        <p class="celebracion-sub">Has completado el tutorial con éxito</p>
+                    </div>
+                    
+                    <div class="resumen-final">
+                        <div class="resumen-item">
+                            <div class="resumen-icon">👥</div>
+                            <div class="resumen-text">
+                                <strong>Estratega contratado</strong><br>
+                                Analista de Tiempos
+                            </div>
+                        </div>
+                        
+                        <div class="resumen-item">
+                            <div class="resumen-icon">🔧</div>
+                            <div class="resumen-text">
+                                <strong>Pieza en producción</strong><br>
+                                Motor (lista en 4h)
+                            </div>
+                        </div>
+                        
+                        <div class="resumen-item">
+                            <div class="resumen-icon">💰</div>
+                            <div class="resumen-text">
+                                <strong>Ganancias obtenidas</strong><br>
+                                18,750€ primera semana
+                            </div>
+                        </div>
+                        
+                        <div class="resumen-item">
+                            <div class="resumen-icon">🏆</div>
+                            <div class="resumen-text">
+                                <strong>Posición inicial</strong><br>
+                                Ranking #1,245 global
                             </div>
                         </div>
                     </div>
                     
                     <div class="primeros-pasos-reales">
-                        <h4>🚀 TUS PRIMEROS PASOS REALES:</h4>
-                        <ol>
-                            <li><strong>Ve a la pestaña "Equipo"</strong> y contrata tu primer estratega REAL</li>
-                            <li><strong>Visita el "Taller"</strong> y fabrica tu primera pieza REAL</li>
-                            <li><strong>Revisa "Pronósticos"</strong> para la próxima carrera REAL</li>
-                            <li><strong>Consulta el "Ranking"</strong> y compite contra miles</li>
-                        </ol>
-                    </div>
-                    
-                    <div class="estado-inicial">
-                        <h4>💰 TU SITUACIÓN INICIAL:</h4>
-                        <div class="estado-grid">
-                            <div class="estado-item">
-                                <span>Presupuesto:</span>
-                                <strong class="dinero">5,000,000€</strong>
-                            </div>
-                            <div class="estado-item">
-                                <span>Puntos iniciales:</span>
-                                <strong class="puntos">0</strong>
-                            </div>
-                            <div class="estado-item">
-                                <span>Posición global:</span>
-                                <strong class="ranking">#1,245</strong>
-                            </div>
-                            <div class="estado-item">
-                                <span>Próxima carrera:</span>
-                                <strong class="carrera">En 3 días</strong>
-                            </div>
+                        <h4>🚀 AHORA COMENZARÁS A COMPETIR DE VERDAD:</h4>
+                        <div class="pasos-reales-grid">
+                            <div class="paso-real">1. Ve a <strong>EQUIPO</strong> para contratar más estrategas</div>
+                            <div class="paso-real">2. Visita <strong>TALLER</strong> para fabricar piezas reales</div>
+                            <div class="paso-real">3. Revisa <strong>PRONÓSTICOS</strong> para la próxima carrera real</div>
+                            <div class="paso-real">4. Consulta <strong>RANKING</strong> y compite globalmente</div>
                         </div>
                     </div>
                     
-                    <div class="despedida-tutorial">
-                        <p class="mensaje-final">El mundo del motorsport estratégico te espera. ¡Demuestra que eres el mejor estratega!</p>
-                        <p class="equipo-nombre">¡Buena suerte, director de <strong>${this.escuderia.nombre || "tu escudería"}!</strong></p>
+                    <div class="despedida-final">
+                        <p>El mundo del motorsport estratégico te espera.</p>
+                        <p class="equipo-nombre-final">¡Buena suerte al mando de <strong>${this.escuderia.nombre || "tu escudería"}!</strong></p>
                     </div>
                 `,
                 action: 'comenzarJuegoReal'
@@ -1520,16 +1488,20 @@ class F1Manager {
         const step = steps[this.tutorialStep - 1];
         if (!step) return;
         
+        // Asegurar que tutorialManager está disponible
+        if (!window.tutorialManager) {
+            window.tutorialManager = this;
+        }
+        
         document.body.innerHTML = `
             <div class="tutorial-screen">
                 <div class="tutorial-container">
-                    <!-- Progreso HORIZONTAL -->
+                    <!-- Progreso horizontal -->
                     <div class="tutorial-progress-horizontal">
                         ${steps.map((s, i) => `
                             <div class="progress-step-horizontal ${i + 1 === this.tutorialStep ? 'active' : ''} 
                                  ${i + 1 < this.tutorialStep ? 'completed' : ''}">
                                 <div class="step-number-horizontal">${i + 1}</div>
-                                <div class="step-line-horizontal"></div>
                             </div>
                         `).join('')}
                     </div>
@@ -1539,20 +1511,19 @@ class F1Manager {
                         <h1>${step.title}</h1>
                     </div>
                     
-                    <div class="tutorial-content">
+                    <div class="tutorial-content-grid">
                         ${step.content}
                     </div>
                     
-                    <!-- Botón grande y llamativo -->
+                    <!-- Botones -->
                     <div class="tutorial-actions-bottom">
                         ${this.tutorialStep > 1 ? `
                             <button class="btn-tutorial-prev" id="btn-tutorial-prev">
-                                <i class="fas fa-arrow-left"></i> Anterior
+                                <i class="fas fa-arrow-left"></i> ANTERIOR
                             </button>
                         ` : '<div class="spacer"></div>'}
                         
-                        <button class="btn-tutorial-next-large" id="btn-tutorial-next-large" 
-                                data-action="${step.action}">
+                        <button class="btn-tutorial-next-large" id="btn-tutorial-next-large">
                             ${step.action === 'comenzarJuegoReal' ? '¡EMPEZAR A COMPETIR!' : 'SIGUIENTE'}
                             <i class="fas fa-arrow-right"></i>
                         </button>
@@ -1581,25 +1552,24 @@ class F1Manager {
                 .tutorial-container {
                     background: rgba(21, 21, 30, 0.98);
                     border-radius: 20px;
-                    padding: 40px;
+                    padding: 30px;
                     width: 100%;
-                    max-width: 900px;
+                    max-width: 1000px;
                     border: 3px solid #00d2be;
                     box-shadow: 0 25px 60px rgba(0, 210, 190, 0.3);
                     display: flex;
                     flex-direction: column;
-                    height: 85vh;
-                    max-height: 800px;
+                    height: 90vh;
+                    max-height: 900px;
                 }
                 
-                /* Progreso HORIZONTAL mejorado */
+                /* Progreso horizontal */
                 .tutorial-progress-horizontal {
                     display: flex;
-                    align-items: center;
                     justify-content: space-between;
-                    margin-bottom: 40px;
-                    position: relative;
-                    width: 100%;
+                    align-items: center;
+                    margin-bottom: 30px;
+                    padding: 0 10px;
                 }
                 
                 .progress-step-horizontal {
@@ -1608,7 +1578,6 @@ class F1Manager {
                     align-items: center;
                     position: relative;
                     flex: 1;
-                    z-index: 1;
                 }
                 
                 .step-number-horizontal {
@@ -1624,7 +1593,6 @@ class F1Manager {
                     font-family: 'Orbitron', sans-serif;
                     font-size: 1.1rem;
                     transition: all 0.3s;
-                    z-index: 2;
                     border: 2px solid transparent;
                 }
                 
@@ -1641,66 +1609,578 @@ class F1Manager {
                     color: white;
                 }
                 
-                .step-line-horizontal {
-                    position: absolute;
-                    top: 20px;
-                    left: 50%;
-                    right: -50%;
-                    height: 4px;
-                    background: rgba(255, 255, 255, 0.1);
-                    z-index: 1;
+                /* Grids */
+                .grid-6-columns, .grid-4-columns, .grid-3-columns {
+                    display: grid;
+                    gap: 15px;
+                    margin: 25px 0;
                 }
                 
-                .progress-step-horizontal:last-child .step-line-horizontal {
-                    display: none;
-                }
+                .grid-6-columns { grid-template-columns: repeat(3, 1fr); }
+                .grid-4-columns { grid-template-columns: repeat(4, 1fr); }
+                .grid-3-columns { grid-template-columns: repeat(3, 1fr); }
                 
-                .progress-step-horizontal.completed .step-line-horizontal {
-                    background: linear-gradient(90deg, #4CAF50, #388E3C);
-                }
-                
-                /* Contenido */
-                .tutorial-header h1 {
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: clamp(1.8rem, 4vw, 2.3rem);
-                    text-align: center;
-                    background: linear-gradient(90deg, #00d2be, #e10600);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    margin-bottom: 30px;
-                    line-height: 1.3;
-                }
-                
-                .tutorial-content {
-                    color: #f0f0f0;
-                    line-height: 1.7;
-                    margin-bottom: 30px;
-                    font-size: 1.1rem;
-                    flex: 1;
-                    overflow-y: auto;
-                    padding-right: 10px;
-                }
-                
-                .tutorial-content::-webkit-scrollbar {
-                    width: 8px;
-                }
-                
-                .tutorial-content::-webkit-scrollbar-track {
+                /* Botones grandes en grid */
+                .grid-btn-big {
                     background: rgba(255, 255, 255, 0.05);
-                    border-radius: 4px;
+                    border: 2px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 15px;
+                    padding: 25px 15px;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 150px;
                 }
                 
-                .tutorial-content::-webkit-scrollbar-thumb {
+                .grid-btn-big:hover {
+                    border-color: #00d2be;
+                    background: rgba(0, 210, 190, 0.1);
+                    transform: translateY(-5px);
+                }
+                
+                .grid-icon {
+                    font-size: 2.5rem;
+                    margin-bottom: 15px;
+                }
+                
+                .grid-title {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    color: white;
+                    margin-bottom: 5px;
+                }
+                
+                .grid-desc {
+                    color: #aaa;
+                    font-size: 0.9rem;
+                }
+                
+                /* Cards para áreas */
+                .area-grid-card {
+                    background: rgba(42, 42, 56, 0.8);
+                    border: 2px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    padding: 20px;
+                    text-align: center;
+                    transition: all 0.3s;
+                }
+                
+                .area-grid-card:hover {
+                    border-color: #00d2be;
+                    transform: translateY(-3px);
+                }
+                
+                .area-grid-icon {
+                    font-size: 2rem;
+                    margin-bottom: 10px;
+                }
+                
+                .area-grid-name {
+                    font-family: 'Orbitron', sans-serif;
+                    font-weight: bold;
+                    color: white;
+                    font-size: 1.1rem;
+                    margin-bottom: 5px;
+                }
+                
+                .area-grid-desc {
+                    color: #aaa;
+                    font-size: 0.9rem;
+                    margin-bottom: 10px;
+                    min-height: 40px;
+                }
+                
+                .area-grid-stats {
+                    background: rgba(0, 210, 190, 0.1);
+                    color: #00d2be;
+                    padding: 5px 10px;
+                    border-radius: 20px;
+                    font-size: 0.9rem;
+                    font-weight: bold;
+                }
+                
+                /* Cards de fabricación */
+                .fabricacion-card {
+                    background: linear-gradient(135deg, rgba(225, 6, 0, 0.1), rgba(0, 210, 190, 0.1));
+                    border: 2px solid rgba(225, 6, 0, 0.3);
+                    border-radius: 15px;
+                    padding: 25px 20px;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                }
+                
+                .fabricacion-card:hover {
+                    border-color: #00d2be;
+                    transform: translateY(-5px);
+                    box-shadow: 0 10px 20px rgba(0, 210, 190, 0.2);
+                }
+                
+                .fab-icon {
+                    font-size: 3rem;
+                    margin-bottom: 15px;
+                }
+                
+                .fab-title {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.3rem;
+                    font-weight: bold;
+                    color: white;
+                    margin-bottom: 15px;
+                }
+                
+                .fab-details {
+                    display: flex;
+                    justify-content: space-around;
+                    margin: 15px 0;
+                }
+                
+                .fab-time, .fab-cost, .fab-points {
+                    font-size: 0.9rem;
+                    color: #aaa;
+                }
+                
+                .fab-action {
+                    background: rgba(0, 210, 190, 0.2);
+                    color: #00d2be;
+                    padding: 10px;
+                    border-radius: 10px;
+                    font-weight: bold;
+                    margin-top: 15px;
+                    border: 1px solid #00d2be;
+                }
+                
+                /* Días del tutorial */
+                .dia-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    margin-bottom: 25px;
+                    background: rgba(0, 0, 0, 0.3);
+                    padding: 15px;
+                    border-radius: 10px;
+                    border-left: 5px solid #00d2be;
+                }
+                
+                .dia-numero {
                     background: #00d2be;
-                    border-radius: 4px;
+                    color: white;
+                    font-family: 'Orbitron', sans-serif;
+                    font-weight: bold;
+                    padding: 8px 15px;
+                    border-radius: 20px;
+                    font-size: 1.1rem;
                 }
                 
-                /* Botones en la parte inferior */
+                .dia-titulo {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.2rem;
+                    color: white;
+                    flex: 1;
+                }
+                
+                /* Cards seleccionables */
+                .seleccionable {
+                    cursor: pointer;
+                    transition: all 0.3s;
+                }
+                
+                .seleccionable:hover {
+                    transform: translateY(-5px);
+                }
+                
+                .seleccionable.seleccionado {
+                    border-color: #00d2be !important;
+                    background: rgba(0, 210, 190, 0.15) !important;
+                    box-shadow: 0 0 20px rgba(0, 210, 190, 0.3);
+                }
+                
+                /* Botones de acción grandes */
+                .btn-tutorial-accion-grande {
+                    background: linear-gradient(135deg, #00d2be, #009688);
+                    color: white;
+                    border: none;
+                    padding: 20px 40px;
+                    border-radius: 12px;
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: block;
+                    width: 100%;
+                    margin-top: 20px;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+                
+                .btn-tutorial-accion-grande:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 10px 25px rgba(0, 210, 190, 0.4);
+                }
+                
+                /* Responsive */
+                @media (max-width: 1024px) {
+                    .grid-6-columns, .grid-4-columns {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                    
+                    .grid-3-columns {
+                        grid-template-columns: 1fr;
+                    }
+                }
+                
+                @media (max-width: 768px) {
+                    .tutorial-container {
+                        padding: 20px;
+                        height: 95vh;
+                        margin: 10px;
+                    }
+                    
+                    .grid-6-columns, .grid-4-columns, .grid-3-columns {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .tutorial-progress-horizontal {
+                        flex-wrap: wrap;
+                        gap: 10px;
+                    }
+                    
+                    .progress-step-horizontal {
+                        flex: 0 0 calc(20% - 10px);
+                    }
+                }
+                
+                /* Estilos específicos para tutorial práctico */
+                .estratega-tutorial-card, .fabricacion-tutorial-card, .pronostico-tutorial-card {
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 2px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 15px;
+                    padding: 20px;
+                    text-align: center;
+                    min-height: 250px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                }
+                
+                .estratega-icon-tut, .fab-icon-tut, .pronostico-icon-tut {
+                    font-size: 2.5rem;
+                    margin-bottom: 15px;
+                }
+                
+                .estratega-nombre-tut, .fab-nombre-tut, .pronostico-nombre-tut {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    color: white;
+                    margin-bottom: 10px;
+                }
+                
+                .estratega-especialidad, .fab-desc-tut, .pronostico-pregunta {
+                    color: #aaa;
+                    font-size: 0.9rem;
+                    margin-bottom: 15px;
+                    flex: 1;
+                }
+                
+                .estratega-bono, .estratega-sueldo, .fab-tiempo-tut, .fab-costo-tut, .fab-puntos-tut, .pronostico-puntos {
+                    font-size: 0.9rem;
+                    margin: 5px 0;
+                }
+                
+                .bono-valor, .sueldo-valor {
+                    color: #00d2be;
+                    font-weight: bold;
+                }
+                
+                .estratega-ejemplo {
+                    font-size: 0.8rem;
+                    color: #888;
+                    font-style: italic;
+                    margin-top: 10px;
+                }
+                
+                .fab-accion-tut {
+                    background: rgba(0, 210, 190, 0.2);
+                    color: #00d2be;
+                    padding: 8px;
+                    border-radius: 8px;
+                    font-size: 0.9rem;
+                    margin-top: 15px;
+                    border: 1px solid rgba(0, 210, 190, 0.5);
+                }
+                
+                .pronostico-opciones {
+                    display: flex;
+                    justify-content: center;
+                    gap: 10px;
+                    margin: 15px 0;
+                }
+                
+                .opcion-tut {
+                    background: rgba(255, 255, 255, 0.1);
+                    padding: 8px 15px;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    font-size: 0.9rem;
+                }
+                
+                .opcion-tut:hover {
+                    background: rgba(0, 210, 190, 0.3);
+                    color: white;
+                }
+                
+                .opcion-tut.seleccionado {
+                    background: #00d2be;
+                    color: white;
+                    font-weight: bold;
+                }
+                
+                /* Simulación carrera */
+                .simulacion-carrera {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 15px;
+                    margin: 25px 0;
+                }
+                
+                .carrera-paso {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    background: rgba(255, 255, 255, 0.05);
+                    padding: 15px;
+                    border-radius: 10px;
+                    border-left: 4px solid #00d2be;
+                }
+                
+                .paso-icon {
+                    font-size: 2rem;
+                }
+                
+                .btn-simular-carrera {
+                    background: linear-gradient(135deg, #e10600, #ff4444);
+                    color: white;
+                    border: none;
+                    padding: 15px 30px;
+                    border-radius: 10px;
+                    font-family: 'Orbitron', sans-serif;
+                    font-weight: bold;
+                    cursor: pointer;
+                    width: 100%;
+                    margin: 20px 0;
+                    font-size: 1.1rem;
+                    transition: all 0.3s;
+                }
+                
+                .btn-simular-carrera:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 10px 20px rgba(225, 6, 0, 0.3);
+                }
+                
+                /* Resultados */
+                .resultados-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 15px;
+                    margin: 25px 0;
+                }
+                
+                .resultado-card {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 12px;
+                    padding: 20px;
+                    text-align: center;
+                }
+                
+                .resultado-card.ganancia { border-top: 4px solid #4CAF50; }
+                .resultado-card.bono { border-top: 4px solid #00d2be; }
+                .resultado-card.pieza { border-top: 4px solid #ff9800; }
+                
+                .resultado-icon {
+                    font-size: 2rem;
+                    margin-bottom: 15px;
+                }
+                
+                .resultado-titulo {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    margin-bottom: 10px;
+                }
+                
+                .resultado-detalle {
+                    color: #aaa;
+                    font-size: 0.9rem;
+                    margin-bottom: 15px;
+                }
+                
+                .resultado-puntos {
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    color: #ffd700;
+                }
+                
+                .total-ganancias {
+                    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0, 210, 190, 0.1));
+                    border-radius: 15px;
+                    padding: 25px;
+                    text-align: center;
+                    margin: 25px 0;
+                    border: 2px solid #ffd700;
+                }
+                
+                .total-titulo {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.1rem;
+                    color: #aaa;
+                    margin-bottom: 10px;
+                }
+                
+                .total-puntos {
+                    font-size: 2.5rem;
+                    font-weight: bold;
+                    color: #ffd700;
+                    margin: 10px 0;
+                    font-family: 'Orbitron', sans-serif;
+                }
+                
+                .total-dinero {
+                    font-size: 1.5rem;
+                    color: #4CAF50;
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
+                
+                .total-conversion {
+                    color: #aaa;
+                    font-size: 0.9rem;
+                }
+                
+                .nuevo-presupuesto {
+                    background: rgba(0, 0, 0, 0.3);
+                    border-radius: 12px;
+                    padding: 20px;
+                    margin: 25px 0;
+                }
+                
+                .presupuesto-inicial, .presupuesto-ganancia, .presupuesto-gastos {
+                    display: flex;
+                    justify-content: space-between;
+                    margin: 8px 0;
+                    color: #aaa;
+                }
+                
+                .presupuesto-final {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 15px;
+                    padding-top: 15px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                    font-size: 1.2rem;
+                    color: white;
+                    font-weight: bold;
+                }
+                
+                /* Completado */
+                .completado-celebracion {
+                    text-align: center;
+                    margin: 30px 0;
+                }
+                
+                .celebracion-icon {
+                    font-size: 4rem;
+                    margin-bottom: 20px;
+                    animation: bounce 1s infinite;
+                }
+                
+                @keyframes bounce {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-10px); }
+                }
+                
+                .celebracion-sub {
+                    color: #00d2be;
+                    font-size: 1.2rem;
+                    margin-top: 10px;
+                }
+                
+                .resumen-final {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 15px;
+                    margin: 25px 0;
+                }
+                
+                .resumen-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    background: rgba(255, 255, 255, 0.05);
+                    padding: 15px;
+                    border-radius: 10px;
+                }
+                
+                .resumen-icon {
+                    font-size: 1.8rem;
+                    width: 50px;
+                    height: 50px;
+                    background: rgba(0, 210, 190, 0.2);
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .primeros-pasos-reales {
+                    background: rgba(0, 0, 0, 0.3);
+                    border-radius: 15px;
+                    padding: 25px;
+                    margin: 25px 0;
+                }
+                
+                .pasos-reales-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 15px;
+                    margin-top: 20px;
+                }
+                
+                .paso-real {
+                    background: rgba(255, 255, 255, 0.05);
+                    padding: 15px;
+                    border-radius: 8px;
+                    border-left: 4px solid #00d2be;
+                }
+                
+                .despedida-final {
+                    text-align: center;
+                    padding: 30px;
+                    background: linear-gradient(135deg, rgba(225, 6, 0, 0.1), rgba(0, 210, 190, 0.1));
+                    border-radius: 15px;
+                    margin-top: 25px;
+                }
+                
+                .equipo-nombre-final {
+                    font-size: 1.3rem;
+                    color: #00d2be;
+                    margin-top: 15px;
+                    font-family: 'Orbitron', sans-serif;
+                }
+                
+                /* Botones de navegación */
                 .tutorial-actions-bottom {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    padding-top: 30px;
+                    padding-top: 25px;
                     border-top: 2px solid rgba(255, 255, 255, 0.1);
                     margin-top: 20px;
                 }
@@ -1754,138 +2234,28 @@ class F1Manager {
                     background: linear-gradient(135deg, #00e6cc, #00a895);
                 }
                 
-                .btn-tutorial-next-large:active {
-                    transform: translateY(-2px) scale(1.02);
-                }
-                
                 .spacer {
                     width: 120px;
-                }
-                
-                /* Contenido específico */
-                .team-name {
-                    color: #00d2be;
-                    background: rgba(0, 210, 190, 0.1);
-                    padding: 2px 8px;
-                    border-radius: 4px;
-                    font-family: 'Orbitron', sans-serif;
-                }
-                
-                .online {
-                    color: #ffd700;
-                    animation: pulse 2s infinite;
-                }
-                
-                .highlight-box {
-                    background: rgba(255, 215, 0, 0.1);
-                    border: 2px solid #ffd700;
-                    border-radius: 12px;
-                    padding: 20px;
-                    margin: 20px 0;
-                }
-                
-                .money {
-                    color: #ffd700;
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 1.3rem;
-                }
-                
-                .main-mission {
-                    background: rgba(225, 6, 0, 0.1);
-                    border-left: 4px solid #e10600;
-                    padding: 20px;
-                    border-radius: 0 12px 12px 0;
-                    margin: 25px 0;
-                }
-                
-                /* Responsive */
-                @media (max-width: 768px) {
-                    .tutorial-container {
-                        padding: 25px;
-                        height: 90vh;
-                        margin: 10px;
-                    }
-                    
-                    .tutorial-progress-horizontal {
-                        margin-bottom: 30px;
-                    }
-                    
-                    .step-number-horizontal {
-                        width: 35px;
-                        height: 35px;
-                        font-size: 1rem;
-                    }
-                    
-                    .btn-tutorial-next-large {
-                        padding: 18px 30px;
-                        font-size: 1.1rem;
-                        min-height: 60px;
-                    }
-                    
-                    .btn-tutorial-prev {
-                        padding: 12px 20px;
-                        min-height: 50px;
-                    }
-                    
-                    .spacer {
-                        width: 60px;
-                    }
-                }
-                
-                @media (max-width: 480px) {
-                    .tutorial-header h1 {
-                        font-size: 1.6rem;
-                    }
-                    
-                    .tutorial-content {
-                        font-size: 1rem;
-                    }
-                    
-                    .step-number-horizontal {
-                        width: 30px;
-                        height: 30px;
-                        font-size: 0.9rem;
-                    }
-                    
-                    .btn-tutorial-next-large {
-                        padding: 15px 20px;
-                        font-size: 1rem;
-                        gap: 8px;
-                    }
-                    
-                    .btn-tutorial-prev {
-                        padding: 10px 15px;
-                        font-size: 0.9rem;
-                    }
-                    
-                    .spacer {
-                        width: 40px;
-                    }
                 }
             </style>
         `;
         
+        // Ejecutar onLoad si existe
+        if (step.onLoad && typeof step.onLoad === 'function') {
+            setTimeout(() => step.onLoad(), 100);
+        }
+        
+        // Eventos de navegación
         setTimeout(() => {
-            // 1. Botón SIGUIENTE
             const nextBtn = document.getElementById('btn-tutorial-next-large');
+            const prevBtn = document.getElementById('btn-tutorial-prev');
+            
             if (nextBtn) {
-                // ELIMINA cualquier listener anterior
-                nextBtn.replaceWith(nextBtn.cloneNode(true));
-                const newNextBtn = document.getElementById('btn-tutorial-next-large');
-                
-                // AÑADE listener NUEVO
-                newNextBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    console.log("✅ BOTÓN CLICKEADO - Paso:", this.tutorialStep);
-                    
-                    if (this.tutorialStep >= 7) {
-                        // ÚLTIMO PASO
+                nextBtn.onclick = () => {
+                    if (step.action === 'comenzarJuegoReal') {
+                        // Finalizar tutorial
                         document.body.innerHTML = '';
-                        if (this.appContainer) {
-                            document.body.appendChild(this.appContainer);
-                        }
+                        document.body.appendChild(this.appContainer);
                         if (typeof this.inicializarJuego === 'function') {
                             this.inicializarJuego();
                         }
@@ -1893,31 +2263,142 @@ class F1Manager {
                             this.ocultarLoading();
                         }
                     } else {
-                        // AVANZAR
-                        this.tutorialStep++;
-                        this.mostrarTutorialStep();
+                        // Avanzar paso
+                        if (this.tutorialStep < steps.length) {
+                            this.tutorialStep++;
+                            this.mostrarTutorialStep();
+                        }
                     }
-                });
+                };
             }
             
-            // 2. Botón ANTERIOR
-            const prevBtn = document.getElementById('btn-tutorial-prev');
             if (prevBtn) {
-                prevBtn.replaceWith(prevBtn.cloneNode(true));
-                const newPrevBtn = document.getElementById('btn-tutorial-prev');
-                
-                newPrevBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
+                prevBtn.onclick = () => {
                     if (this.tutorialStep > 1) {
                         this.tutorialStep--;
                         this.mostrarTutorialStep();
                     }
-                });
+                };
             }
-        }, 100);
+        }, 50);
     }
+    
+    // FUNCIONES GLOBALES PARA EL TUTORIAL
+    window.tutorialManager = null;
+    window.tutorialData = {
+        estrategaSeleccionado: null,
+        areaSeleccionada: null,
+        pronosticosSeleccionados: {},
+        piezaFabricando: false
+    };
+    
+    window.cargarEstrategasTutorial = function() {
+        const container = document.getElementById('grid-estrategas-tutorial');
+        if (!container) return;
+        
+        const estrategas = [
+            { id: 1, nombre: "Analista de Tiempos", icono: "⏱️", especialidad: "Diferencias de tiempo", bono: "+15%", sueldo: "50,000€", ejemplo: "Diferencia 1º-2º" },
+            { id: 2, nombre: "Meteorólogo", icono: "🌧️", especialidad: "Condiciones climáticas", bono: "+20%", sueldo: "60,000€", ejemplo: "Lluvia/Sequía" },
+            { id: 3, nombre: "Experto en Fiabilidad", icono: "🔧", especialidad: "Abandonos y fallos", bono: "+18%", sueldo: "55,000€", ejemplo: "Número de abandonos" },
+            { id: 4, nombre: "Estratega de Carrera", icono: "🏁", especialidad: "Estrategias de parada", bono: "+22%", sueldo: "75,000€", ejemplo: "Número de paradas" },
+            { id: 5, nombre: "Analista de Neumáticos", icono: "🛞", especialidad: "Degradación de neumáticos", bono: "+16%", sueldo: "52,000€", ejemplo: "Compuesto predominante" },
+            { id: 6, nombre: "Especialista en Overtakes", icono: "💨", especialidad: "Adelantamientos", bono: "+19%", sueldo: "58,000€", ejemplo: "Adelantamientos entre compañeros" }
+        ];
+        
+        container.innerHTML = estrategas.map(e => `
+            <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(${e.id})">
+                <div class="estratega-icon-tut">${e.icono}</div>
+                <div class="estratega-nombre-tut">${e.nombre}</div>
+                <div class="estratega-especialidad">${e.especialidad}</div>
+                <div class="estratega-bono">Bono: <span class="bono-valor">${e.bono}</span></div>
+                <div class="estratega-sueldo">Sueldo: <span class="sueldo-valor">${e.sueldo}/mes</span></div>
+                <div class="estratega-ejemplo">Ej: "${e.ejemplo}"</div>
+            </div>
+        `).join('');
+    };
+    
+    window.tutorialSeleccionarEstrategaPractico = function(id) {
+        const cards = document.querySelectorAll('.estratega-tutorial-card');
+        cards.forEach(card => card.classList.remove('seleccionado'));
+        cards[id-1].classList.add('seleccionado');
+        
+        const accionBtn = document.getElementById('accion-contratar-tut');
+        if (accionBtn) accionBtn.style.display = 'block';
+        
+        window.tutorialData.estrategaSeleccionado = id;
+    };
+    
+    window.tutorialEjecutarContratacion = function() {
+        alert("✅ Estratega contratado con éxito. Su bono se aplicará a tus pronósticos.");
+        // En un tutorial real, aquí avanzarías al siguiente paso automáticamente
+    };
+    
+    window.tutorialSeleccionarFabricacionPractica = function(area) {
+        const cards = document.querySelectorAll('.fabricacion-tutorial-card');
+        cards.forEach(card => card.classList.remove('seleccionado'));
+        
+        cards.forEach(card => {
+            if (card.getAttribute('onclick') && card.getAttribute('onclick').includes(area)) {
+                card.classList.add('seleccionado');
+            }
+        });
+        
+        const accionBtn = document.getElementById('accion-fabricar-tut');
+        if (accionBtn) accionBtn.style.display = 'block';
+        
+        window.tutorialData.areaSeleccionada = area;
+    };
+    
+    window.tutorialEjecutarFabricacion = function() {
+        alert("✅ Pieza en fabricación. Se completará en el tiempo indicado y aparecerá en tu Almacén.");
+        // En un tutorial real, aquí avanzarías al siguiente paso automáticamente
+    };
+    
+    window.tutorialSeleccionarPronosticoPractico = function(tipo) {
+        const cards = document.querySelectorAll('.pronostico-tutorial-card');
+        cards.forEach(card => card.classList.remove('seleccionado'));
+        
+        cards.forEach(card => {
+            if (card.getAttribute('onclick') && card.getAttribute('onclick').includes(tipo)) {
+                card.classList.add('seleccionado');
+            }
+        });
+        
+        const accionBtn = document.getElementById('accion-pronostico-tut');
+        if (accionBtn) accionBtn.style.display = 'block';
+    };
+    
+    window.tutorialSeleccionarOpcion = function(tipo, opcion) {
+        const opciones = document.querySelectorAll('.opcion-tut');
+        opciones.forEach(op => op.classList.remove('seleccionado'));
+        
+        event.target.classList.add('seleccionado');
+        window.tutorialData.pronosticosSeleccionados[tipo] = opcion;
+    };
+    
+    window.tutorialEjecutarPronostico = function() {
+        alert("✅ Pronósticos enviados. Se verificarán con los datos reales post-carrera.");
+        // En un tutorial real, aquí avanzarías al siguiente paso automáticamente
+    };
+    
+    window.tutorialSimularCarrera = function() {
+        const resultados = document.getElementById('resultado-simulacion');
+        if (resultados) {
+            resultados.innerHTML = `
+                <div class="resultado-simulado">
+                    <h4>📊 RESULTADOS DE LA SIMULACIÓN:</h4>
+                    <div class="resultado-item">✅ Bandera amarilla: SÍ (correcto)</div>
+                    <div class="resultado-item">✅ Abandonos: 3-5 (correcto)</div>
+                    <div class="resultado-item">❌ Diferencia 1º-2º: >5s (incorrecto, fue 2.3s)</div>
+                    <div class="resumen-simulacion">
+                        <strong>2 de 3 pronósticos acertados (66.7%)</strong>
+                    </div>
+                </div>
+            `;
+            resultados.style.display = 'block';
+        }
+        alert("🏁 Carrera simulada. 2 de 3 pronósticos acertados.");
+    };
     
     // Añade esta función al objeto principal
     ejecutarAccionTutorial(accion) {
