@@ -943,126 +943,234 @@ class F1Manager {
     
     mostrarTutorialStep() {
         const steps = [
-            // PASO 1: Bienvenida y creación de escudería
+            // PASO 1: Bienvenida y concepto del juego
             {
-                title: "🏁 ¡BIENVENIDO A F1 MANAGER!",
+                title: "🏆 ¡BIENVENIDO A RACE STRATEGY MANAGER!",
                 content: `
-                    <p>Te damos la bienvenida al mundo de la gestión de Fórmula 1.</p>
-                    <p>En este tutorial aprenderás a:</p>
+                    <p>Te damos la bienvenida al mundo de la <strong>estrategia de motorsport internacional</strong>.</p>
+                    <p>Eres el director de una escudería virtual que compite en el ámbito estratégico global.</p>
+                    
+                    <p class="success">🎯 Tu misión principal:</p>
                     <ul>
-                        <li>Gestionar tu escudería</li>
-                        <li>Contratar ingenieros</li>
-                        <li>Fabricar piezas para tu coche</li>
-                        <li>Hacer apuestas en carreras</li>
-                        <li>Subir en el ranking mundial</li>
+                        <li><strong>Pronosticar eventos</strong> en competiciones reales de motorsport</li>
+                        <li><strong>Desarrollar 11 sistemas técnicos</strong> de tu vehículo virtual</li>
+                        <li><strong>Contratar y gestionar</strong> un equipo de estrategas analistas</li>
+                        <li><strong>Competir globalmente</strong> en precisión predictiva</li>
                     </ul>
-                    <p class="success">💰 Tu escudería ya está creada y tiene 5,000,000€ para empezar</p> <!-- Texto actualizado -->
+                    
+                    <p class="success">💰 Tu escudería ya está creada con <strong>5,000,000€</strong> de presupuesto inicial</p>
                 `,
-                action: 'mostrarPestanas' // CAMBIA 'crearEscuderia' por el nombre del SEGUNDO paso real (ej: 'mostrarPestanas' o 'contratarPilotos')
+                action: 'mostrarPestanas'
             },
             
-            // PASO 2: Dashboard principal
+            // PASO 2: Sistema de pronósticos (el núcleo del juego)
             {
-                title: "📊 DASHBOARD PRINCIPAL",
+                title: "🎯 EL NÚCLEO DEL JUEGO: PRONÓSTICOS",
                 content: `
-                    <p>Esta es tu pantalla principal. Aquí verás:</p>
+                    <p>La esencia del juego es <strong>pronosticar eventos estadísticos</strong> que ocurren en competiciones reales de motorsport.</p>
+                    
+                    <p>📅 <strong>Cada semana, antes de un evento internacional:</strong></p>
                     <ul>
-                        <li><strong>Cabecera</strong>: Nombre, dinero y puntos</li>
-                        <li><strong>Panel de pilotos</strong>: Tus 2 pilotos contratados</li>
-                        <li><strong>Countdown</strong>: Tiempo para la próxima apuesta</li>
-                        <li><strong>Fábrica</strong>: Piezas en producción</li>
-                        <li><strong>Estado del coche</strong>: Nivel de cada área</li>
+                        <li>Realizas pronósticos sobre métricas específicas</li>
+                        <li>Se contrastan con datos objetivos de dominio público</li>
+                        <li>Recibes puntos por cada acierto</li>
                     </ul>
+                    
+                    <p>🔍 <strong>Ejemplos de pronósticos:</strong></p>
+                    <div class="examples-grid">
+                        <div class="example-card">¿Habrá neutralización? (Sí/No)</div>
+                        <div class="example-card">Abandonos: 0-2 / 3-5 / Más de 5</div>
+                        <div class="example-card">Diferencia 1º-2º: <1s / 1-5s / >5s</div>
+                        <div class="example-card">¿Afectará el clima? (Sí/No)</div>
+                    </div>
+                    
+                    <p>👉 Estos datos se verifican con estadísticas públicas post-evento.</p>
                 `,
                 highlight: '.dashboard-header',
                 action: 'mostrarPestanas'
             },
             
-            // PASO 3: Sistema de pestañas
+            // PASO 3: Desarrollo técnico del vehículo
             {
-                title: "🔍 SISTEMA DE PESTAÑAS",
+                title: "🔧 DESARROLLO TÉCNICO DEL VEHÍCULO",
                 content: `
-                    <p>Navega por el juego usando estas pestañas:</p>
+                    <p>Tu vehículo virtual tiene <strong>11 sistemas principales</strong> para desarrollar:</p>
+                    
+                    <div class="systems-grid">
+                        <div class="system-item">🏎️ Motor</div>
+                        <div class="system-item">📊 Chasis</div>
+                        <div class="system-item">🌀 Aerodinámica</div>
+                        <div class="system-item">⚙️ Suspensión</div>
+                        <div class="system-item">🔄 Caja de Cambios</div>
+                        <div class="system-item">🛑 Frenos</div>
+                        <div class="system-item">💡 Electrónica</div>
+                        <div class="system-item">🎮 Volante</div>
+                        <div class="system-item">🌪️ Difusor</div>
+                        <div class="system-item">🪽 Alerones</div>
+                        <div class="system-item">📦 Pontones</div>
+                    </div>
+                    
+                    <p>📈 <strong>Sistema progresivo:</strong></p>
                     <ul>
-                        <li><strong>Principal</strong>: Vista general</li>
-                        <li><strong>Taller</strong>: Fabrica piezas</li>
-                        <li><strong>Almacén</strong>: Gestiona piezas</li>
-                        <li><strong>Mercado</strong>: Compra/vende</li>
-                        <li><strong>Presupuesto</strong>: Controla finanzas</li>
-                        <li><strong>Clasificación</strong>: Ve el ranking</li>
+                        <li>Primeras piezas: 2 minutos</li>
+                        <li>Progresión gradual hasta 4 horas</li>
+                        <li>Cada pieza otorga puntos base permanentes</li>
+                        <li>Nivel máximo: 10 por sistema</li>
                     </ul>
-                    <p>¡Pruébalas todas!</p>
                 `,
                 highlight: '.tabs-navigation',
                 action: 'mostrarTab'
             },
             
-            // PASO 4: Contratar pilotos (OBLIGATORIO)
+            // PASO 4: Contratación de estrategas (OBLIGATORIO)
             {
-                title: "👥 CONTRATAR PILOTOS (OBLIGATORIO)",
+                title: "👥 CONTRATAR ESTRATEGAS (OBLIGATORIO)",
                 content: `
-                    <p>Necesitas <strong>2 pilotos</strong> para competir.</p>
-                    <p>Características de los pilotos:</p>
+                    <p>Necesitas al menos <strong>1 estratega analista</strong> para comenzar.</p>
+                    
+                    <p>🎯 <strong>Los estrategas potencian tu precisión:</strong></p>
                     <ul>
-                        <li><strong>Sueldo</strong>: Coste mensual</li>
-                        <li><strong>Experiencia</strong>: Mejores decisiones</li>
-                        <li><strong>Habilidad</strong>: Más puntos en carrera</li>
-                        
+                        <li><strong>Especialidad</strong>: Bonifica un tipo específico de pronóstico</li>
+                        <li><strong>Bono</strong>: Desde +5% hasta +25% en puntos por acierto</li>
+                        <li><strong>Sueldo</strong>: Coste mensual en tu presupuesto</li>
                     </ul>
-                    <p class="warning">⚠️ NO puedes continuar sin 2 ingenieros</p>
+                    
+                    <p class="warning">⚠️ SELECCIONA TU PRIMER ANALISTA:</p>
+                    
+                    <div class="analyst-options">
+                        <div class="analyst-card">
+                            <h4>🌤️ Meteorólogo Junior</h4>
+                            <p>Bono: <strong>+5% en pronósticos climáticos</strong></p>
+                            <p>Sueldo: 50,000€/mes</p>
+                        </div>
+                        
+                        <div class="analyst-card">
+                            <h4>⏱️ Analista de Ritmo</h4>
+                            <p>Bono: <strong>+5% en pronósticos de tiempos</strong></p>
+                            <p>Sueldo: 50,000€/mes</p>
+                        </div>
+                        
+                        <div class="analyst-card">
+                            <h4>🔧 Experto en Fiabilidad</h4>
+                            <p>Bono: <strong>+5% en pronósticos de abandonos</strong></p>
+                            <p>Sueldo: 50,000€/mes</p>
+                        </div>
+                    </div>
+                    
+                    <p class="warning">⚠️ Debes seleccionar 1 estratega para continuar</p>
                 `,
                 highlight: '#contratar-pilotos-btn',
                 action: 'contratarPilotos',
                 mandatory: true
             },
             
-            // PASO 5: Taller y fabricación
+            // PASO 5: Economía y ciclo semanal
             {
-                title: "🏭 SISTEMA DE FABRICACIÓN",
+                title: "💰 ECONOMÍA Y CICLO SEMANAL",
                 content: `
-                    <p>Mejora tu coche fabricando piezas:</p>
-                    <ul>
-                        <li><strong>4 horas</strong> por pieza</li>
-                        <li><strong>20 piezas</strong> para subir de nivel</li>
-                        <li><strong>11 áreas</strong> del coche</li>
-                        <li><strong>Nivel máximo</strong>: 10</li>
-                    </ul>
-                    <p>Las piezas dan puntos base que generan ingresos.</p>
+                    <p>El juego opera con una <strong>economía interna cerrada</strong> en ciclos semanales:</p>
+                    
+                    <div class="cycle-steps">
+                        <div class="cycle-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <strong>ANÁLISIS (Lunes-Jueves)</strong><br>
+                                • Seleccionas pronósticos para el próximo evento<br>
+                                • Asignas estrategas a cada pronóstico
+                            </div>
+                        </div>
+                        
+                        <div class="cycle-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <strong>EJECUCIÓN (Fin de semana)</strong><br>
+                                • El evento real ocurre<br>
+                                • Tus pronósticos se contrastan con datos públicos
+                            </div>
+                        </div>
+                        
+                        <div class="cycle-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <strong>RESULTADOS (Lunes)</strong><br>
+                                • Recibes puntos por cada acierto<br>
+                                • Puntos → Presupuesto<br>
+                                • Pagas sueldos de tu equipo
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p>🔄 <strong>Componentes obsoletos</strong> pueden venderse en el mercado interno a precio regulado.</p>
                 `,
                 tab: 'taller',
                 action: 'fabricarPieza'
             },
             
-            // PASO 6: Sistema de apuestas
+            // PASO 6: Competencia y rankings
             {
-                title: "💰 SISTEMA DE APUESTAS",
+                title: "🏆 COMPETICIÓN Y CLASIFICACIONES",
                 content: `
-                    <p>Gana dinero apostando en carreras:</p>
-                    <ul>
-                        <li><strong>Cierre</strong>: Jueves 23:59 antes del GP</li>
-                        <li><strong>Top 10</strong>: Predice posiciones</li>
-                        <li><strong>Puntos</strong>: Más aciertos = más puntos</li>
-                        <li><strong>Dinero</strong>: Los puntos se convierten en €</li>
-                    </ul>
+                    <p>Mides tu éxito en <strong>tres clasificaciones globales</strong>:</p>
+                    
+                    <div class="rankings-grid">
+                        <div class="ranking-card">
+                            <h4>📊 Ranking de Precisión</h4>
+                            <p>Basado en la certeza de tus pronósticos</p>
+                        </div>
+                        
+                        <div class="ranking-card">
+                            <h4>🔧 Ranking Técnico</h4>
+                            <p>Nivel de desarrollo de tu vehículo</p>
+                        </div>
+                        
+                        <div class="ranking-card">
+                            <h4>⭐ Ranking Combinado</h4>
+                            <p>La suma de ambos rankings</p>
+                        </div>
+                    </div>
+                    
+                    <p>📈 <strong>Sistema de ligas mensuales:</strong></p>
+                    <div class="leagues">
+                        <div class="league">🥉 NOVATO</div>
+                        <div class="league">🥈 EXPERTO</div>
+                        <div class="league">🥇 ÉLITE</div>
+                    </div>
+                    
+                    <p>• Los mejores 20% ascienden cada mes</p>
+                    <p>• Los peores 20% descienden</p>
                 `,
                 highlight: '#btn-apostar',
                 action: 'apostar'
             },
             
-            // PASO 7: Completado
+            // PASO 7: Práctica inicial y comienzo
             {
-                title: "🎉 ¡TUTORIAL COMPLETADO!",
+                title: "🎯 PRIMERA PRÁCTICA",
                 content: `
-                    <p>¡Felicidades! Ya conoces lo básico de F1 Manager.</p>
-                    <p>Recuerda:</p>
+                    <p>¡Perfecto! Ahora vamos a simular tu <strong>primera semana completa</strong>:</p>
+                    
+                    <div class="practice-steps">
+                        <div class="practice-step">
+                            <strong>1. Selecciona 3 pronósticos</strong> de la lista disponible
+                        </div>
+                        <div class="practice-step">
+                            <strong>2. Asigna tu estratega</strong> a cada pronóstico
+                        </div>
+                        <div class="practice-step">
+                            <strong>3. Veremos resultados simulados</strong>
+                        </div>
+                    </div>
+                    
+                    <p class="info">📝 <strong>Ejemplo de pronósticos disponibles:</strong></p>
                     <ul>
-                        <li>Mantén tu coche actualizado</li>
-                        <li>Gestiona bien tu dinero</li>
-                        <li>Apunta alto en las apuestas</li>
-                        <li>¡Sube en el ranking!</li>
+                        <li>¿Ocurrirá bandera amarilla? (Sí/No)</li>
+                        <li>Número de abandonos: 0-2 / 3-5 / Más de 5</li>
+                        <li>Diferencia 1º-2º: &lt;1s / 1-5s / &gt;5s</li>
+                        <li>¿La vuelta rápida será al final? (Sí/No)</li>
                     </ul>
-                    <p class="success">💰 Dinero inicial: <strong>5,000,000€</strong></p>
-                    <p>¡Que comience la carrera!</p>
+                    
+                    <p class="success">💰 Esta práctica <strong>no afecta tu presupuesto real</strong></p>
+                    <p>¡Que comience tu carrera como estratega!</p>
                 `,
                 action: 'completarTutorial'
             }
@@ -1110,16 +1218,10 @@ class F1Manager {
                         
                         <button class="btn-tutorial next" id="btn-tutorial-next" 
                                 data-action="${step.action}">
-                            ${step.action === 'crearEscuderia' ? 'Crear Escudería' : 
-                              step.action === 'completarTutorial' ? '¡Comenzar!' : 'Siguiente'}
-                            ${step.action !== 'crearEscuderia' && step.action !== 'completarTutorial' ? 
+                            ${step.action === 'completarTutorial' ? '¡Comenzar Práctica!' : 'Siguiente'}
+                            ${step.action !== 'completarTutorial' ? 
                               '<i class="fas fa-arrow-right"></i>' : ''}
                         </button>
-                    </div>
-                    
-                    <!-- Navegación rápida (solo desarrollo) -->
-                    <div class="tutorial-debug">
-                        <small>Paso ${this.tutorialStep}/${steps.length}</small>
                     </div>
                 </div>
             </div>
@@ -1127,7 +1229,7 @@ class F1Manager {
             <style>
                 .tutorial-screen {
                     min-height: 100vh;
-                    background: rgba(21, 21, 30, 0.95);
+                    background: linear-gradient(135deg, #0a0a0f 0%, #15151e 100%);
                     display: flex;
                     justify-content: center;
                     align-items: center;
@@ -1138,6 +1240,7 @@ class F1Manager {
                     right: 0;
                     bottom: 0;
                     z-index: 9999;
+                    overflow-y: auto;
                 }
                 
                 .tutorial-container {
@@ -1145,7 +1248,7 @@ class F1Manager {
                     border-radius: 20px;
                     padding: 40px;
                     width: 100%;
-                    max-width: 700px;
+                    max-width: 800px;
                     border: 3px solid #00d2be;
                     box-shadow: 0 20px 50px rgba(0, 210, 190, 0.3);
                     backdrop-filter: blur(10px);
@@ -1156,6 +1259,7 @@ class F1Manager {
                     justify-content: center;
                     gap: 15px;
                     margin-bottom: 30px;
+                    flex-wrap: wrap;
                 }
                 
                 .progress-step {
@@ -1173,25 +1277,26 @@ class F1Manager {
                 }
                 
                 .progress-step.active {
-                    background: #00d2be;
+                    background: linear-gradient(135deg, #00d2be, #009688);
                     color: white;
                     transform: scale(1.1);
                     box-shadow: 0 0 15px rgba(0, 210, 190, 0.5);
                 }
                 
                 .progress-step.completed {
-                    background: #4CAF50;
+                    background: linear-gradient(135deg, #4CAF50, #388E3C);
                     color: white;
                 }
                 
                 .tutorial-header h1 {
                     font-family: 'Orbitron', sans-serif;
-                    font-size: 2.2rem;
+                    font-size: clamp(1.8rem, 4vw, 2.2rem);
                     text-align: center;
                     background: linear-gradient(90deg, #00d2be, #e10600);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     margin-bottom: 20px;
+                    line-height: 1.3;
                 }
                 
                 .tutorial-content {
@@ -1207,7 +1312,7 @@ class F1Manager {
                 }
                 
                 .tutorial-content li {
-                    margin-bottom: 10px;
+                    margin-bottom: 8px;
                 }
                 
                 .tutorial-actions {
@@ -1217,6 +1322,8 @@ class F1Manager {
                     margin-top: 40px;
                     padding-top: 20px;
                     border-top: 1px solid rgba(255, 255, 255, 0.1);
+                    flex-wrap: wrap;
+                    gap: 15px;
                 }
                 
                 .btn-tutorial {
@@ -1231,6 +1338,7 @@ class F1Manager {
                     display: flex;
                     align-items: center;
                     gap: 10px;
+                    min-height: 50px;
                 }
                 
                 .btn-tutorial.prev {
@@ -1258,6 +1366,8 @@ class F1Manager {
                     display: flex;
                     align-items: center;
                     gap: 10px;
+                    flex-grow: 1;
+                    justify-content: center;
                 }
                 
                 .warning {
@@ -1268,18 +1378,194 @@ class F1Manager {
                 .success {
                     color: #4CAF50;
                     font-weight: bold;
+                    background: rgba(76, 175, 80, 0.1);
+                    padding: 10px;
+                    border-radius: 8px;
+                    border-left: 4px solid #4CAF50;
                 }
                 
-                .tutorial-debug {
+                .info {
+                    color: #2196F3;
+                    background: rgba(33, 150, 243, 0.1);
+                    padding: 10px;
+                    border-radius: 8px;
+                    border-left: 4px solid #2196F3;
+                }
+                
+                /* Estilos específicos para el contenido */
+                .examples-grid, .systems-grid, .analyst-options, 
+                .rankings-grid, .practice-steps {
+                    display: grid;
+                    gap: 10px;
+                    margin: 20px 0;
+                }
+                
+                .examples-grid {
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                }
+                
+                .example-card {
+                    background: rgba(0, 210, 190, 0.1);
+                    border: 1px solid rgba(0, 210, 190, 0.3);
+                    border-radius: 8px;
+                    padding: 10px;
                     text-align: center;
-                    margin-top: 20px;
-                    color: #666;
                     font-size: 0.9rem;
                 }
                 
-                .btn-tutorial:disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
+                .systems-grid {
+                    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                }
+                
+                .system-item {
+                    background: rgba(225, 6, 0, 0.1);
+                    border: 1px solid rgba(225, 6, 0, 0.3);
+                    border-radius: 8px;
+                    padding: 8px;
+                    text-align: center;
+                    font-size: 0.9rem;
+                }
+                
+                .analyst-options {
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    margin: 20px 0;
+                }
+                
+                .analyst-card {
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 2px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                    padding: 15px;
+                    transition: all 0.3s;
+                }
+                
+                .analyst-card:hover {
+                    border-color: #00d2be;
+                    background: rgba(0, 210, 190, 0.1);
+                    transform: translateY(-3px);
+                }
+                
+                .analyst-card h4 {
+                    margin: 0 0 10px 0;
+                    color: #00d2be;
+                }
+                
+                .cycle-steps, .practice-steps {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 15px;
+                    margin: 20px 0;
+                }
+                
+                .cycle-step, .practice-step {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 8px;
+                    padding: 15px;
+                }
+                
+                .step-number {
+                    background: linear-gradient(135deg, #00d2be, #009688);
+                    color: white;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: bold;
+                    font-family: 'Orbitron', sans-serif;
+                    flex-shrink: 0;
+                }
+                
+                .rankings-grid {
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                }
+                
+                .ranking-card {
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                    padding: 15px;
+                    text-align: center;
+                }
+                
+                .ranking-card h4 {
+                    color: #e10600;
+                    margin: 0 0 10px 0;
+                }
+                
+                .leagues {
+                    display: flex;
+                    justify-content: center;
+                    gap: 20px;
+                    margin: 20px 0;
+                    flex-wrap: wrap;
+                }
+                
+                .league {
+                    background: linear-gradient(135deg, #e10600, #ff4444);
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 20px;
+                    font-weight: bold;
+                    min-width: 100px;
+                    text-align: center;
+                }
+                
+                /* Responsive */
+                @media (max-width: 768px) {
+                    .tutorial-container {
+                        padding: 20px;
+                        margin: 10px;
+                    }
+                    
+                    .tutorial-content {
+                        font-size: 1rem;
+                    }
+                    
+                    .tutorial-actions {
+                        flex-direction: column;
+                    }
+                    
+                    .btn-tutorial {
+                        width: 100%;
+                        justify-content: center;
+                    }
+                    
+                    .mandatory-warning {
+                        order: -1;
+                        width: 100%;
+                    }
+                    
+                    .examples-grid, .systems-grid, .analyst-options,
+                    .rankings-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .leagues {
+                        flex-direction: column;
+                        align-items: center;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    .tutorial-progress {
+                        gap: 8px;
+                    }
+                    
+                    .progress-step {
+                        width: 35px;
+                        height: 35px;
+                        font-size: 0.9rem;
+                    }
+                    
+                    .cycle-step, .practice-step {
+                        flex-direction: column;
+                        text-align: center;
+                    }
                 }
             </style>
         `;
