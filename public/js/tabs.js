@@ -82,60 +82,13 @@ class TabManager {
         }
     }
     
-    loadTabContent(tabId) {
-        console.log(`🔴 [DEBUG] loadTabContent() para pestaña: ${tabId}`);
-        const tabContent = document.getElementById(`tab-${tabId}`);
-        if (!tabContent) {
-            console.error(`❌ No se encontró el contenedor tab-${tabId}`);
-            return;
-        }
+    loadTabContents() {
+        // Precargar contenido de todas las pestañas
+        const tabs = ['principal', 'taller', 'almacen', 'mercado', 'presupuesto', 'clasificacion'];
         
-        // 1. Poner contenido HTML
-        tabContent.innerHTML = this.tabContents[tabId];
-        
-        // 2. Configurar eventos específicos de la pestaña
-        console.log(`🔴 [DEBUG] Llamando a setupTabEvents(${tabId})`);
-        this.setupTabEvents(tabId);
-        
-        // 3. SI ES LA PESTAÑA PRINCIPAL, CARGAR DATOS DINÁMICOS
-        if (tabId === 'principal' && window.f1Manager) {
-            console.log('🔴 [DEBUG] Cargando datos dinámicos para pestaña principal...');
-            // Cargar pilotos/estrategas
-            if (window.f1Manager.loadPilotosContratados) {
-                setTimeout(() => {
-                    window.f1Manager.loadPilotosContratados();
-                }, 100);
-            }
-            // Cargar producción
-            if (window.f1Manager.updateProductionMonitor) {
-                setTimeout(() => {
-                    window.f1Manager.updateProductionMonitor();
-                }, 150);
-            }
-            // Cargar áreas del coche
-            if (window.f1Manager.loadCarStatus && window.f1Manager.updateCarAreasUI) {
-                setTimeout(() => {
-                    window.f1Manager.loadCarStatus();
-                    window.f1Manager.updateCarAreasUI();
-                }, 200);
-            }
-            // Cargar countdown
-            if (window.f1Manager.updateCountdown) {
-                setTimeout(() => {
-                    window.f1Manager.updateCountdown();
-                }, 250);
-            }
-            // Configurar eventos
-            if (window.f1Manager.setupDashboardEvents) {
-                setTimeout(() => {
-                    window.f1Manager.setupDashboardEvents();
-                }, 300);
-            }
-        }
-        
-        // 4. Marcar como activo
-        tabContent.classList.add('active');
-        this.currentTab = tabId;
+        tabs.forEach(tab => {
+            this.tabContents[tab] = this.generateTabContent(tab);
+        });
     }
     
     generateTabContent(tabId) {
@@ -194,141 +147,10 @@ class TabManager {
     // ===== CONTENIDO DE PESTAÑAS =====
     
     getPrincipalContent() {
-        // Devolver una plantilla estática, no el HTML actual del DOM
-        return `
-            <!-- Panel de Pilotos -->
-            <section class="panel-pilotos">
-                <div class="section-header">
-                    <h2><i class="fas fa-user"></i> TUS PILOTOS</h2>
-                    <button class="btn-primary" id="contratar-pilotos-btn">
-                        <i class="fas fa-plus"></i> Contratar Pilotos
-                    </button>
-                </div>
-                <div id="pilotos-container" class="pilotos-container">
-                    <!-- Los pilotos se cargarán dinámicamente -->
-                </div>
-            </section>
-            
-            <!-- Two Columns Layout -->
-            <div class="two-columns">
-                <!-- Columna 1: Countdown y GP -->
-                <div class="countdown-section">
-                    <div class="section-header">
-                        <h2><i class="fas fa-clock"></i> PRÓXIMA CARRERA</h2>
-                        <span class="tag upcoming">EN VIVO</span>
-                    </div>
-                    <div id="countdown-container">
-                        <div class="countdown-timer">
-                            <div class="time-block">
-                                <span class="time-number" id="hours">00</span>
-                                <span class="time-label">Horas</span>
-                            </div>
-                            <div class="time-separator">:</div>
-                            <div class="time-block">
-                                <span class="time-number" id="minutes">00</span>
-                                <span class="time-label">Minutos</span>
-                            </div>
-                            <div class="time-separator">:</div>
-                            <div class="time-block">
-                                <span class="time-number" id="seconds">00</span>
-                                <span class="time-label">Segundos</span>
-                            </div>
-                        </div>
-                        <div class="proximo-gp">
-                            <h3 id="gp-nombre">Cargando próximo GP...</h3>
-                            <div class="gp-info">
-                                <div class="gp-date">
-                                    <i class="far fa-calendar"></i>
-                                    <span id="gp-fecha">Fecha por confirmar</span>
-                                </div>
-                                <div class="gp-circuit">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span id="gp-circuito">Circuito por confirmar</span>
-                                </div>
-                            </div>
-                            <button class="btn-primary" id="btn-apostar">
-                                <i class="fas fa-coins"></i> HACER APUESTA
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Columna 2: Monitor de Fábrica -->
-                <div class="monitor-fabrica">
-                    <div class="section-header">
-                        <h2><i class="fas fa-industry"></i> PRODUCCIÓN</h2>
-                        <div id="alerta-almacen" class="alerta-almacen" style="display: none;">
-                            <i class="fas fa-bell"></i>
-                            <span>¡Piezas nuevas en almacén!</span>
-                        </div>
-                    </div>
-                    <div id="produccion-actual" class="produccion-actual">
-                        <!-- La producción se cargará dinámicamente -->
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Análisis de Rendimiento -->
-            <section class="analisis-rendimiento">
-                <div class="section-header">
-                    <h2><i class="fas fa-tachometer-alt"></i> ESTADO DEL COCHE</h2>
-                    <div class="performance-summary">
-                        <div class="perf-best">
-                            <i class="fas fa-caret-up"></i>
-                            <span id="best-area">Mejor: Motor</span>
-                        </div>
-                        <div class="perf-worst">
-                            <i class="fas fa-caret-down"></i>
-                            <span id="worst-area">Peor: Frenos</span>
-                        </div>
-                    </div>
-                </div>
-                <div id="areas-coche" class="areas-coche">
-                    <!-- Las áreas se cargarán dinámicamente -->
-                </div>
-            </section>
-            
-            <!-- Estadísticas y Calendario -->
-            <section class="panel-estadisticas">
-                <div class="section-header">
-                    <h2><i class="fas fa-chart-bar"></i> ESTADÍSTICAS Y CALENDARIO</h2>
-                </div>
-                <div class="stats-calendar-grid">
-                    <div class="mini-calendar">
-                        <h3><i class="far fa-calendar"></i> Próximas Carreras</h3>
-                        <div id="calendario-lista" class="calendar-list">
-                            <div class="calendar-item">
-                                <h4>Gran Premio de España</h4>
-                                <div class="calendar-date">
-                                    <i class="far fa-clock"></i>
-                                    <span>21-23 Junio 2024</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="quick-stats">
-                        <h3><i class="fas fa-chart-line"></i> Tus Estadísticas</h3>
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <i class="fas fa-check-circle"></i>
-                                <div>
-                                    <span class="stat-title">Mejor acierto</span>
-                                    <span class="stat-number" id="mejor-acierto">0 pts</span>
-                                </div>
-                            </div>
-                            <div class="stat-item">
-                                <i class="fas fa-history"></i>
-                                <div>
-                                    <span class="stat-title">Piezas fabricadas</span>
-                                    <span class="stat-number" id="piezas-fabricadas">0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        `;
+        // El contenido principal ya está en el HTML
+        return document.getElementById('tab-principal')?.innerHTML || '';
     }
+    
     getTallerContent() {
         return `
             <div class="taller-container">
