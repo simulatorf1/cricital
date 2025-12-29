@@ -2285,7 +2285,7 @@ class F1Manager {
 
     
     // Añade esta función al objeto principal
-    ejecutarAccionTutorial(accion) {
+    async ejecutarAccionTutorial(accion) {
         switch(accion) {
             case 'siguientePaso':
                 if (this.tutorialStep < 7) {
