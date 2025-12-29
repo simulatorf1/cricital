@@ -679,10 +679,30 @@ class F1Manager {
             }
         }
         
-        // El resto de tu código (cargar dashboard o tutorial)
-        if (!this.escuderia) {
+        // DECISIÓN: ¿Mostrar tutorial o dashboard?
+        // 1. Primero verificamos si el tutorial ya fue completado (en localStorage)
+        const tutorialCompletado = localStorage.getItem('f1_tutorial_completado');
+        console.log('🔍 [TUTORIAL] Estado:', {
+            tieneEscuderia: !!this.escuderia,
+            tutorialCompletado: tutorialCompletado,
+            userId: this.user?.id
+        });
+        
+        // 2. Mostrar tutorial si:
+        //    - El usuario tiene escudería (se creó en registro)
+        //    - PERO no ha completado el tutorial
+        if (this.escuderia && !tutorialCompletado) {
+            console.log('🎯 MOSTRANDO TUTORIAL (tiene escudería pero no completó tutorial)');
             this.mostrarTutorialInicial();
-        } else {
+        } 
+        // 3. Si no tiene escudería (caso raro, pero por seguridad)
+        else if (!this.escuderia) {
+            console.log('🎯 MOSTRANDO TUTORIAL (no tiene escudería)');
+            this.mostrarTutorialInicial();
+        }
+        // 4. Ya completó el tutorial, ir directo al dashboard
+        else {
+            console.log('📊 CARGANDO DASHBOARD (tutorial ya completado)');
             await this.cargarDashboardCompleto();
             await this.inicializarSistemasIntegrados();
         }
