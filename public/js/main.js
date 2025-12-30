@@ -4007,9 +4007,9 @@ class F1Manager {
         
         // 5. Configurar eventos
         await this.cargarDatosDashboard();
-        
         console.log('✅ Dashboard cargado correctamente con CSS');
-    }
+    },1000);
+        
     async loadProximoGP() {
         // VERIFICAR primero que window.supabase existe
         if (!window.supabase || !window.supabase.from) {
