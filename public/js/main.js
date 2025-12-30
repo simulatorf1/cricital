@@ -307,6 +307,7 @@ function mostrarPantallaLogin() {
     });
 }
 
+// MODIFICACIÓN EN LA FUNCIÓN mostrarPantallaRegistro() (línea ~370 en main.js)
 function mostrarPantallaRegistro() {
     document.body.innerHTML = `
         <div class="register-screen">
@@ -328,10 +329,12 @@ function mostrarPantallaRegistro() {
                     <div class="form-group">
                         <label for="register-username">Nombre de tu escudería</label>
                         <input type="text" id="register-username" placeholder="Ej: RedBullManager" maxlength="20">
+                        <div class="validation-message" id="username-validation"></div>
                     </div>
                     <div class="form-group">
                         <label for="register-email">Correo electrónico</label>
                         <input type="email" id="register-email" placeholder="tu@email.com">
+                        <div class="validation-message" id="email-validation"></div>
                     </div>
                     <div class="form-group">
                         <label for="register-password">Contraseña</label>
@@ -351,122 +354,44 @@ function mostrarPantallaRegistro() {
         </div>
         
         <style>
-            .register-screen {
-                min-height: 100vh;
-                background: linear-gradient(135deg, #15151e 0%, #1a1a2e 100%);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 20px;
-            }
-            
-            .register-container {
-                background: rgba(42, 42, 56, 0.9);
-                border-radius: 15px;
-                padding: 40px;
-                width: 100%;
-                max-width: 400px;
-                border: 2px solid #00d2be;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            }
-            
-            .register-header {
-                text-align: center;
-                margin-bottom: 30px;
-            }
-            
-            .register-header h1 {
-                font-family: 'Orbitron', sans-serif;
-                font-size: 2rem;
-                background: linear-gradient(90deg, #00d2be, #e10600);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                margin-bottom: 10px;
-            }
-            
-            .register-header p {
-                color: #888;
-                font-size: 0.9rem;
-            }
-            
-            .back-button {
-                background: transparent;
-                border: none;
-                color: #aaa;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                cursor: pointer;
-                margin-bottom: 20px;
-                transition: color 0.3s;
-            }
-            
-            .back-button:hover {
-                color: #00d2be;
-            }
-            
-            .register-form {
-                margin-bottom: 25px;
-            }
-            
-            .form-group {
-                margin-bottom: 20px;
-            }
-            
-            .form-group label {
-                display: block;
-                color: #aaa;
-                margin-bottom: 5px;
-                font-size: 0.9rem;
-            }
-            
-            .form-group input {
-                width: 100%;
-                padding: 12px;
-                background: rgba(255,255,255,0.1);
-                border: 1px solid rgba(255,255,255,0.2);
-                border-radius: 5px;
-                color: white;
-                font-size: 1rem;
-                transition: border 0.3s;
-            }
-            
-            .form-group input:focus {
-                outline: none;
-                border-color: #e10600;
-            }
-            
-            .register-button {
-                width: 100%;
-                padding: 15px;
-                background: linear-gradient(135deg, #00d2be, #00a35c);
-                border: none;
-                border-radius: 5px;
-                color: white;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 1rem;
-                font-weight: bold;
-                cursor: pointer;
+            /* AÑADIR ESTOS ESTILOS AL EXISTENTE */
+            .validation-message {
+                font-size: 0.85rem;
+                margin-top: 5px;
+                padding: 3px 8px;
+                border-radius: 3px;
+                display: none;
                 transition: all 0.3s;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                margin-top: 10px;
             }
             
-            .register-button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(0, 210, 190, 0.4);
+            .validation-message.valid {
+                display: block;
+                background: rgba(76, 175, 80, 0.1);
+                color: #4CAF50;
+                border: 1px solid #4CAF50;
             }
             
-            .register-footer {
-                text-align: center;
-                margin-top: 25px;
-                padding-top: 20px;
-                border-top: 1px solid rgba(255,255,255,0.1);
-                color: #666;
-                font-size: 0.9rem;
+            .validation-message.invalid {
+                display: block;
+                background: rgba(244, 67, 54, 0.1);
+                color: #f44336;
+                border: 1px solid #f44336;
+            }
+            
+            .form-group input.invalid {
+                border-color: #f44336;
+                background: rgba(244, 67, 54, 0.05);
+            }
+            
+            .form-group input.valid {
+                border-color: #4CAF50;
+                background: rgba(76, 175, 80, 0.05);
+            }
+            
+            .register-button:disabled {
+                background: #666;
+                cursor: not-allowed;
+                opacity: 0.7;
             }
         </style>
     `;
@@ -474,6 +399,32 @@ function mostrarPantallaRegistro() {
     // Configurar eventos
     document.getElementById('btn-back').addEventListener('click', mostrarPantallaLogin);
     document.getElementById('btn-register-submit').addEventListener('click', manejarRegistro);
+    
+    // AÑADIR EVENTOS DE VALIDACIÓN EN TIEMPO REAL
+    const usernameInput = document.getElementById('register-username');
+    const emailInput = document.getElementById('register-email');
+    const registerButton = document.getElementById('btn-register-submit');
+    
+    // Deshabilitar botón inicialmente
+    registerButton.disabled = true;
+    
+    // Validación de nombre de escudería
+    let usernameTimer;
+    usernameInput.addEventListener('input', () => {
+        clearTimeout(usernameTimer);
+        usernameTimer = setTimeout(() => {
+            verificarNombreEscuderia(usernameInput.value.trim());
+        }, 500);
+    });
+    
+    // Validación de email
+    let emailTimer;
+    emailInput.addEventListener('input', () => {
+        clearTimeout(emailTimer);
+        emailTimer = setTimeout(() => {
+            verificarEmail(emailInput.value.trim());
+        }, 500);
+    });
 }
 
 async function manejarLogin() {
@@ -524,6 +475,15 @@ async function manejarRegistro() {
     const errorDiv = document.getElementById('register-error');
     const successDiv = document.getElementById('register-success');
     
+    // VERIFICACIÓN FINAL ANTES DE ENVIAR
+    const usernameValid = await verificarNombreEscuderia(username);
+    const emailValid = await verificarEmail(email);
+    
+    if (!usernameValid || !emailValid) {
+        mostrarMensaje('Por favor, corrige los errores en el formulario', errorDiv);
+        return;
+    }
+    
     if (!username || !email || !password) {
         mostrarMensaje('Por favor, completa todos los campos', errorDiv);
         return;
@@ -536,6 +496,11 @@ async function manejarRegistro() {
     
     try {
         console.log('📝 Registrando usuario:', email);
+        
+        // Deshabilitar botón durante el registro
+        const registerBtn = document.getElementById('btn-register-submit');
+        registerBtn.disabled = true;
+        registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta...';
         
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
@@ -572,39 +537,78 @@ async function manejarRegistro() {
             console.log('✅ Escudería creada automáticamente:', escuderiaCheck.id);
         } else {
             console.log('✅ Registro exitoso. Usuario debe confirmar email.');
-            // En lugar de llamar al tutorial aquí, simplemente recarga o redirige
-            setTimeout(() => {
-                // Opción 1: Recargar la página (lo más simple)
-                location.reload();
-                // Opción 2: Redirigir a la página principal
-                // window.location.href = '/';
-            }, 1500); // Pequeño delay para mostrar el mensaje de éxito
             
-            const { data: nuevaEscuderia, error: escError } = await supabase
+            // VERIFICACIÓN FINAL EXTRA: Asegurar que el nombre de escudería no fue tomado en el intervalo
+            const nombreEscuderia = `${username}'s Team`;
+            const { data: nombreExistente } = await supabase
                 .from('escuderias')
-                .insert([{
-                    user_id: authData.user.id,
-                    nombre: `${username}'s Team`,
-                    dinero: 5000000,
-                    puntos: 0,
-                    ranking: 999,
-                    nivel_ingenieria: 1,
-                    color_principal: '#e10600',
-                    color_secundario: '#ffffff',
-                    creada_en: new Date().toISOString()
-                }])
-                .select()
-                .single();
+                .select('id')
+                .eq('nombre', nombreEscuderia)
+                .maybeSingle();
             
-            if (escError) {
-                console.error('❌ Error creando escudería manual:', escError);
-            } else {
-                console.log('✅ Escudería creada manualmente:', nuevaEscuderia.id);
+            if (nombreExistente) {
+                // Si el nombre ya fue tomado, usar uno alternativo
+                const nombreAlternativo = `${username}'s Team ${Math.floor(Math.random() * 1000)}`;
+                console.log(`⚠️ Nombre duplicado, usando: ${nombreAlternativo}`);
                 
-                await supabase
-                    .from('coches_stats')
-                    .insert([{ escuderia_id: nuevaEscuderia.id }]);
+                const { data: nuevaEscuderia, error: escError } = await supabase
+                    .from('escuderias')
+                    .insert([{
+                        user_id: authData.user.id,
+                        nombre: nombreAlternativo,
+                        dinero: 5000000,
+                        puntos: 0,
+                        ranking: 999,
+                        nivel_ingenieria: 1,
+                        color_principal: '#e10600',
+                        color_secundario: '#ffffff',
+                        creada_en: new Date().toISOString()
+                    }])
+                    .select()
+                    .single();
+                
+                if (escError) {
+                    console.error('❌ Error creando escudería manual:', escError);
+                } else {
+                    console.log('✅ Escudería creada manualmente (nombre alternativo):', nuevaEscuderia.id);
+                    
+                    await supabase
+                        .from('coches_stats')
+                        .insert([{ escuderia_id: nuevaEscuderia.id }]);
+                }
+            } else {
+                // Nombre disponible, crear con el nombre original
+                const { data: nuevaEscuderia, error: escError } = await supabase
+                    .from('escuderias')
+                    .insert([{
+                        user_id: authData.user.id,
+                        nombre: nombreEscuderia,
+                        dinero: 5000000,
+                        puntos: 0,
+                        ranking: 999,
+                        nivel_ingenieria: 1,
+                        color_principal: '#e10600',
+                        color_secundario: '#ffffff',
+                        creada_en: new Date().toISOString()
+                    }])
+                    .select()
+                    .single();
+                
+                if (escError) {
+                    console.error('❌ Error creando escudería manual:', escError);
+                } else {
+                    console.log('✅ Escudería creada manualmente:', nuevaEscuderia.id);
+                    
+                    await supabase
+                        .from('coches_stats')
+                        .insert([{ escuderia_id: nuevaEscuderia.id }]);
+                }
             }
+            
+            // Recargar la página después de mostrar mensaje
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
         }
         
         mostrarMensaje('✅ ¡Cuenta creada! Revisa tu correo para confirmarla.', successDiv);
@@ -612,16 +616,37 @@ async function manejarRegistro() {
         setTimeout(() => mostrarPantallaLogin(), 3000);
         
     } catch (error) {
+        // Reactivar botón en caso de error
+        const registerBtn = document.getElementById('btn-register-submit');
+        registerBtn.disabled = false;
+        registerBtn.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+        
         console.error('❌ Error en registro completo:', error);
         
         let mensajeError = error.message || 'Error creando la cuenta';
         
         if (error.message.includes('already registered')) {
             mensajeError = 'Este correo ya está registrado';
+            // Marcar email como inválido en la UI
+            const emailInput = document.getElementById('register-email');
+            const emailValidation = document.getElementById('email-validation');
+            if (emailInput && emailValidation) {
+                emailValidation.textContent = '✗ Este correo electrónico ya está registrado';
+                emailValidation.className = 'validation-message invalid';
+                emailInput.classList.add('invalid');
+                emailInput.classList.remove('valid');
+            }
         } else if (error.message.includes('password')) {
             mensajeError = 'La contraseña no cumple los requisitos';
         } else if (error.message.includes('email')) {
             mensajeError = 'El correo electrónico no es válido';
+        } else if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+            mensajeError = 'El nombre de escudería o email ya están en uso. Por favor, elige otros.';
+            // Forzar re-validación
+            setTimeout(() => {
+                verificarNombreEscuderia(document.getElementById('register-username').value.trim());
+                verificarEmail(document.getElementById('register-email').value.trim());
+            }, 100);
         }
         
         mostrarMensaje(mensajeError, errorDiv);
@@ -5112,7 +5137,147 @@ class F1Manager {
         console.log('Pronóstico seleccionado:', tipo, '=', valor);
         console.log('Todos los pronósticos:', window.tutorialData.pronosticosSeleccionados);
     };
+    // FUNCIONES DE VERIFICACIÓN EN TIEMPO REAL
+    async function verificarNombreEscuderia(nombre) {
+        const validationDiv = document.getElementById('username-validation');
+        const input = document.getElementById('register-username');
+        const registerButton = document.getElementById('btn-register-submit');
+        
+        if (!nombre || nombre.length < 3) {
+            validationDiv.textContent = 'El nombre debe tener al menos 3 caracteres';
+            validationDiv.className = 'validation-message invalid';
+            input.classList.add('invalid');
+            input.classList.remove('valid');
+            registerButton.disabled = true;
+            return false;
+        }
+        
+        if (nombre.length > 20) {
+            validationDiv.textContent = 'El nombre no puede exceder 20 caracteres';
+            validationDiv.className = 'validation-message invalid';
+            input.classList.add('invalid');
+            input.classList.remove('valid');
+            registerButton.disabled = true;
+            return false;
+        }
+        
+        try {
+            // Verificar si el nombre ya existe en la base de datos
+            const { data, error } = await supabase
+                .from('escuderias')
+                .select('id')
+                .eq('nombre', nombre)
+                .maybeSingle();  // Solo trae un resultado si existe
+            
+            if (error) {
+                console.error('Error verificando nombre:', error);
+                validationDiv.textContent = 'Error verificando disponibilidad';
+                validationDiv.className = 'validation-message invalid';
+                input.classList.add('invalid');
+                input.classList.remove('valid');
+                registerButton.disabled = true;
+                return false;
+            }
+            
+            if (data) {
+                // Nombre ya existe
+                validationDiv.textContent = '✗ Este nombre de escudería ya está en uso';
+                validationDiv.className = 'validation-message invalid';
+                input.classList.add('invalid');
+                input.classList.remove('valid');
+                registerButton.disabled = true;
+                return false;
+            } else {
+                // Nombre disponible
+                validationDiv.textContent = '✓ Nombre disponible';
+                validationDiv.className = 'validation-message valid';
+                input.classList.remove('invalid');
+                input.classList.add('valid');
+                
+                // Habilitar botón si el email también es válido
+                const emailValid = document.getElementById('register-email').classList.contains('valid');
+                if (emailValid) {
+                    registerButton.disabled = false;
+                }
+                return true;
+            }
+        } catch (error) {
+            console.error('Error en verificación:', error);
+            validationDiv.textContent = 'Error de conexión';
+            validationDiv.className = 'validation-message invalid';
+            input.classList.add('invalid');
+            input.classList.remove('valid');
+            registerButton.disabled = true;
+            return false;
+        }
+    }
     
+    async function verificarEmail(email) {
+        const validationDiv = document.getElementById('email-validation');
+        const input = document.getElementById('register-email');
+        const registerButton = document.getElementById('btn-register-submit');
+        
+        // Validación básica de formato
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            validationDiv.textContent = 'Por favor, introduce un email válido';
+            validationDiv.className = 'validation-message invalid';
+            input.classList.add('invalid');
+            input.classList.remove('valid');
+            registerButton.disabled = true;
+            return false;
+        }
+        
+        try {
+            // Verificar si el email ya existe en la base de datos
+            const { data, error } = await supabase
+                .from('users')
+                .select('id')
+                .eq('email', email)
+                .maybeSingle();
+            
+            if (error) {
+                console.error('Error verificando email:', error);
+                validationDiv.textContent = 'Error verificando disponibilidad';
+                validationDiv.className = 'validation-message invalid';
+                input.classList.add('invalid');
+                input.classList.remove('valid');
+                registerButton.disabled = true;
+                return false;
+            }
+            
+            if (data) {
+                // Email ya existe
+                validationDiv.textContent = '✗ Este correo electrónico ya está registrado';
+                validationDiv.className = 'validation-message invalid';
+                input.classList.add('invalid');
+                input.classList.remove('valid');
+                registerButton.disabled = true;
+                return false;
+            } else {
+                // Email disponible
+                validationDiv.textContent = '✓ Email disponible';
+                validationDiv.className = 'validation-message valid';
+                input.classList.remove('invalid');
+                input.classList.add('valid');
+                
+                // Habilitar botón si el nombre también es válido
+                const usernameValid = document.getElementById('register-username').classList.contains('valid');
+                if (usernameValid) {
+                    registerButton.disabled = false;
+                }
+                return true;
+            }
+        } catch (error) {
+            console.error('Error en verificación:', error);
+            validationDiv.textContent = 'Error de conexión';
+            validationDiv.className = 'validation-message invalid';
+            input.classList.add('invalid');
+            input.classList.remove('valid');
+            registerButton.disabled = true;
+            return false;
+        }
+    }
     // Función para ejecutar pronóstico
     window.tutorialEjecutarPronostico = function() {
         // Verificar que los datos existen
