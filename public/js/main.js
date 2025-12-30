@@ -947,7 +947,7 @@ class F1Manager {
             {
                 title: "🏆 ¡BIENVENIDO A RACE STRATEGY MANAGER!",
                 content: `
-                    <p>Eres el nuevo director de la escudería <strong class="team-name">${this.escuderia.nombre || "TU EQUIPO"}</strong>.</p>
+                    <p>Eres el nuevo director de la escudería <span class="escuderia-destacada">${this.escuderia.nombre || "TU EQUIPO"}</span>.</p>
                     
                     <p>Estás a punto de unirte a <strong class="online">una comunidad global</strong> de miles de directores de escuderías que compiten por ser los mejores estrategas del mundo.</p>
                     
@@ -1565,10 +1565,24 @@ class F1Manager {
                     box-shadow: 0 25px 60px rgba(0, 210, 190, 0.3);
                     display: flex;
                     flex-direction: column;
-                    height: 90vh;
-                    max-height: 900px;
+                    min-height: 95vh;
+                    max-height: none;
+                    height: auto;
+                    overflow-y: auto;
+                }
+                /* Y AÑADE ESTO: */
+                .tutorial-content-grid {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding-bottom: 20px;
                 }
                 
+                .tutorial-actions-bottom {
+                    flex-shrink: 0;
+                    padding-top: 20px;
+                    border-top: 2px solid rgba(255, 255, 255, 0.1);
+                    margin-top: auto;
+                }
                 /* Progreso horizontal */
                 .tutorial-progress-horizontal {
                     display: flex;
@@ -2195,7 +2209,21 @@ class F1Manager {
                     padding: 15px;
                     border-radius: 10px;
                 }
+                .escuderia-destacada {
+                    color: #00d2be;
+                    font-size: 1.8rem;
+                    font-weight: bold;
+                    font-family: 'Orbitron', sans-serif;
+                    text-shadow: 0 0 10px rgba(0, 210, 190, 0.7);
+                    display: inline-block;
+                    margin: 0 5px;
+                    animation: glow 2s infinite alternate;
+                }
                 
+                @keyframes glow {
+                    from { text-shadow: 0 0 10px rgba(0, 210, 190, 0.7); }
+                    to { text-shadow: 0 0 20px rgba(0, 210, 190, 1), 0 0 30px rgba(0, 210, 190, 0.5); }
+                }
                 .resumen-icon {
                     font-size: 1.8rem;
                     width: 50px;
@@ -3625,18 +3653,14 @@ class F1Manager {
                         <!-- Panel de Pilotos -->
                         <section class="panel-pilotos">
                             <div class="section-header">
-                                <h2><i class="fas fa-user"></i> TUS PILOTOS</h2>
-                                <button class="btn-primary" id="contratar-pilotos-btn">
-                                    <i class="fas fa-plus"></i> Contratar Pilotos
-                                </button>
+                                <h2><i class="fas fa-user"></i> TUS EQUIPO TÉCNICO</h2>
+
                             </div>
                             <div id="pilotos-container" class="pilotos-container">
                                 <div class="empty-state">
                                     <i class="fas fa-user-slash"></i>
-                                    <p>No tienes pilotos contratados</p>
-                                    <button class="btn-primary" id="contratar-primer-piloto">
-                                        <i class="fas fa-user-plus"></i> Contratar mi primer piloto
-                                    </button>
+                                    <p>No tienes estrategas contratados</p>
+
                                 </div>
                             </div>
                         </section>
@@ -3824,13 +3848,43 @@ class F1Manager {
                 });
             </script>
         `;
+
+        // 2. INICIALIZAR SISTEMAS CRÍTICOS INMEDIATAMENTE
+        setTimeout(async () => {
+            console.log('🔧 Inicializando sistemas críticos del dashboard...');
+            
+            // A. Asegurar que fabricacionManager existe y está inicializado
+            if (!window.fabricacionManager && window.FabricacionManager) {
+                console.log('🏭 Creando fabricacionManager...');
+                window.fabricacionManager = new window.FabricacionManager();
+                
+                if (this.escuderia) {
+                    await window.fabricacionManager.inicializar(this.escuderia.id);
+                    console.log('✅ fabricacionManager inicializado');
+                }
+            } else if (window.fabricacionManager && !window.fabricacionManager.escuderiaId) {
+                // Si ya existe pero no está inicializado
+                if (this.escuderia) {
+                    await window.fabricacionManager.inicializar(this.escuderia.id);
+                    console.log('✅ fabricacionManager re-inicializado');
+                }
+            }
+            
+            // B. Actualizar monitor de producción INMEDIATAMENTE
+            setTimeout(() => {
+                this.updateProductionMonitor();
+            }, 300);
+            
+        }, 100);
         
-        // 2. LUEGO inicializar pestañas
-        if (window.tabManager) {
-            window.tabManager.setup();
-        }
+        // 3. LUEGO inicializar pestañas
+        setTimeout(() => {
+            if (window.tabManager) {
+                window.tabManager.setup();
+            }
+        }, 500);
         
-        // 3. FINALMENTE cargar datos
+        // 4. FINALMENTE cargar datos
         const supabase = await this.esperarSupabase();
         if (!supabase) {
             console.error('❌ No se pudo cargar Supabase, usando datos de ejemplo');
@@ -3841,15 +3895,14 @@ class F1Manager {
             };
         } else {
             await this.loadCarStatus();
-            await this.loadPilotosContratados(); // <-- AÑADE ESTA LÍNEA
+            await this.loadPilotosContratados();
             await this.loadProximoGP();
         }
         
-        // 4. Configurar eventos
+        // 5. Configurar eventos
         await this.cargarDatosDashboard();
         
         console.log('✅ Dashboard cargado correctamente con CSS');
-    }
     
     async loadProximoGP() {
         // VERIFICAR primero que window.supabase existe
@@ -4628,25 +4681,30 @@ class F1Manager {
         }
         
         try {
-            console.log("Iniciando fabricación para área:", area);
+            console.log("Iniciando fabricación REAL para área:", area);
             
-            // 1. CREAR REGISTRO EN fabricacion_actual
+            // 1. MAPPING de IDs a nombres completos
+            const areaMapping = {
+                'motor': { nombre: 'Motor', costo: 10000, puntos: 15 },
+                'chasis': { nombre: 'Chasis', costo: 10000, puntos: 12 },
+                'aerodinamica': { nombre: 'Aerodinámica', costo: 10000, puntos: 10 }
+            };
+            
+            const infoPieza = areaMapping[area] || { 
+                nombre: area, 
+                costo: 10000, 
+                puntos: 15 
+            };
+            
+            // 2. Crear fabricación REAL (120 segundos = 2 minutos)
             const tiempoInicio = new Date();
-            const tiempoFin = new Date(Date.now() + 30000); // 30 segundos para el tutorial
+            const tiempoFin = new Date(tiempoInicio.getTime() + (120 * 1000)); // 120 segundos
             
-            // Costo y puntos según el área
-            const infoPieza = {
-                'motor': { costo: 100000, puntos: 15 },
-                'chasis': { costo: 90000, puntos: 12 },
-                'aerodinamica': { costo: 85000, puntos: 10 }
-            }[area] || { costo: 100000, puntos: 15 };
-            
-            // Crear fabricación
             const { data: fabricacion, error: errorFabricacion } = await window.supabase
                 .from('fabricacion_actual')
                 .insert([{
                     escuderia_id: window.tutorialManager.escuderia.id,
-                    area: area,
+                    area: infoPieza.nombre, // ¡IMPORTANTE! Usar nombre completo
                     nivel: 1,
                     tiempo_inicio: tiempoInicio.toISOString(),
                     tiempo_fin: tiempoFin.toISOString(),
@@ -4658,13 +4716,13 @@ class F1Manager {
                 .single();
             
             if (errorFabricacion) {
-                console.error("Error creando fabricación:", errorFabricacion);
+                console.error("Error creando fabricación REAL:", errorFabricacion);
                 throw errorFabricacion;
             }
             
-            console.log("Fabricación creada:", fabricacion.id);
+            console.log("✅ Fabricación REAL creada:", fabricacion.id);
             
-            // 2. DESCONTAR DINERO de la escudería
+            // 3. DESCONTAR DINERO REAL
             if (window.tutorialManager.escuderia) {
                 const nuevoDinero = window.tutorialManager.escuderia.dinero - infoPieza.costo;
                 
@@ -4673,81 +4731,44 @@ class F1Manager {
                     .update({ dinero: nuevoDinero })
                     .eq('id', window.tutorialManager.escuderia.id);
                 
-                if (errorUpdate) {
-                    console.error("Error actualizando dinero:", errorUpdate);
-                    throw errorUpdate;
-                }
+                if (errorUpdate) throw errorUpdate;
                 
                 // Actualizar en memoria
                 window.tutorialManager.escuderia.dinero = nuevoDinero;
-                
-                // Actualizar UI si existe
-                const moneyElement = document.getElementById('money-value');
-                if (moneyElement) {
-                    moneyElement.textContent = `€${nuevoDinero.toLocaleString()}`;
-                }
             }
             
-            // 3. ACTUALIZAR DATOS LOCALES para el tutorial
+            // 4. Guardar datos del tutorial
             window.tutorialData.piezaFabricando = true;
-            window.tutorialData.areaFabricada = area;
+            window.tutorialData.nombrePieza = infoPieza.nombre;
             window.tutorialData.costoPieza = infoPieza.costo;
             window.tutorialData.puntosPieza = infoPieza.puntos;
             window.tutorialData.fabricacionId = fabricacion.id;
+            window.tutorialData.tiempoFin = tiempoFin;
             
-            // 4. Programar la COMPLETACIÓN AUTOMÁTICA (para el tutorial)
-            setTimeout(async () => {
-                try {
-                    // Marcar como completada
-                    await window.supabase
-                        .from('fabricacion_actual')
-                        .update({ completada: true })
-                        .eq('id', fabricacion.id);
-                    
-                    // Crear pieza en almacen_piezas
-                    const { error: errorAlmacen } = await window.supabase
-                        .from('almacen_piezas')
-                        .insert([{
-                            escuderia_id: window.tutorialManager.escuderia.id,
-                            area: area,
-                            nivel: 1,
-                            puntos_base: infoPieza.puntos,
-                            calidad: 'Básica',
-                            equipada: false,
-                            fabricada_en: new Date().toISOString(),
-                            creada_en: new Date().toISOString()
-                        }]);
-                    
-                    if (errorAlmacen) {
-                        console.error("Error creando pieza en almacén:", errorAlmacen);
-                    } else {
-                        console.log("Pieza creada en almacén para área:", area);
-                    }
-                } catch (autoError) {
-                    console.error("Error en completación automática:", autoError);
-                }
-            }, 30000); // 30 segundos
+            // 5. ¡IMPORTANTE! CREAR fabricacionManager si no existe
+            if (!window.fabricacionManager && window.FabricacionManager) {
+                console.log("🔧 Creando fabricacionManager para el tutorial...");
+                window.fabricacionManager = new window.FabricacionManager();
+                await window.fabricacionManager.inicializar(window.tutorialManager.escuderia.id);
+                
+                // Añadir esta fabricación a la lista del manager
+                window.fabricacionManager.produccionesActivas.push(fabricacion);
+            }
             
-            // 5. Mostrar mensaje
-            const nombreArea = {
-                'motor': 'Motor',
-                'chasis': 'Chasis',
-                'aerodinamica': 'Aerodinámica'
-            }[area] || area;
+            // 6. Mostrar mensaje
+            alert(`✅ ¡Fabricación REAL iniciada!\n\n🔧 ${infoPieza.nombre}\n💰 Costo: ${infoPieza.costo.toLocaleString()}€\n⏱️ Listo en: 2 minutos\n\n📦 Aparecerá en "Producción" y luego en "Almacén"`);
             
-            alert(`✅ Pieza de ${nombreArea} en fabricación.\nCosto: ${infoPieza.costo.toLocaleString()}€\nPuntos: +${infoPieza.puntos}\nSe completará en 30 segundos y aparecerá en tu Almacén.`);
-            
-            // 6. Avanzar automáticamente
+            // 7. Avanzar tutorial
             setTimeout(() => {
                 if (window.tutorialManager) {
                     window.tutorialManager.tutorialStep++;
                     window.tutorialManager.mostrarTutorialStep();
                 }
-            }, 1500);
+            }, 1000);
             
         } catch (error) {
-            console.error("Error completo en fabricación:", error);
-            alert("Error en fabricación: " + (error.message || "Verifica la consola"));
+            console.error("Error en fabricación REAL:", error);
+            alert("Error en fabricación: " + error.message);
         }
     };
     
