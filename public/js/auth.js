@@ -25,7 +25,19 @@ class AuthManager {
 
     async handleRegister(email, password, username, teamName) {
         try {
-            // 1. Registrar usuario en Supabase Auth
+            // 1. VERIFICAR si el nombre de escudería ya existe
+            const { data: nombreExiste } = await supabase
+                .from('escuderias')
+                .select('nombre')
+                .eq('nombre', teamName)
+                .maybeSingle();
+            
+            if (nombreExiste) {
+                this.showNotification(`❌ El nombre "${teamName}" ya está en uso. Elige otro.`, 'error');
+                return false;
+            }
+            
+            // 2. Registrar usuario
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: email,
                 password: password,
@@ -36,19 +48,25 @@ class AuthManager {
                     }
                 }
             });
-
+    
             if (authError) throw authError;
-
+    
             if (authData.user) {
-
-
                 this.showNotification('✅ ¡Registro exitoso! Revisa tu email para confirmar.', 'success');
                 return true;
             }
-
+    
         } catch (error) {
             console.error('❌ Error en registro:', error);
-            this.showNotification('❌ Error al registrarse: ' + error.message, 'error');
+            
+            let mensajeError = error.message;
+            if (error.message.includes('already registered')) {
+                mensajeError = 'Este correo ya está registrado';
+            } else if (error.message.includes('password')) {
+                mensajeError = 'La contraseña debe tener al menos 6 caracteres';
+            }
+            
+            this.showNotification(`❌ Error: ${mensajeError}`, 'error');
             return false;
         }
     }
