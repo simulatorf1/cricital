@@ -536,7 +536,25 @@ async function manejarRegistro() {
     
     try {
         console.log('📝 Registrando usuario:', email);
+        // ← AÑADIR ESTO: Verificar si YA EXISTE una escudería con ese nombre exacto
+        console.log('🔍 Verificando si la escudería ya existe...');
+        const { data: escuderiaExistente, error: escuderiaError } = await supabase
+            .from('escuderias')
+            .select('id, nombre')
+            .eq('nombre', username)  // ← Buscar por nombre EXACTO
+            .maybeSingle();  // ← Devuelve un solo resultado o null
         
+        if (escuderiaError) {
+            console.error('Error verificando escudería:', escuderiaError);
+            // Continuamos igual, no detenemos por error de consulta
+        }
+        
+        // ← AÑADIR: Si YA EXISTE una escudería con ese nombre, mostrar error
+        if (escuderiaExistente) {
+            mostrarMensaje('❌ Ya existe una escudería con ese nombre. Por favor, elige otro nombre único.', errorDiv);
+            return; // ← IMPORTANTE: Detener el registro aquí
+        }
+        // ← FIN AÑADIR      
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
@@ -555,57 +573,38 @@ async function manejarRegistro() {
         }
         
         console.log('✅ Usuario creado en Auth:', authData.user?.id);
-        
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const { data: escuderiaCheck, error: checkError } = await supabase
+        // ← AÑADIR EN SU LUGAR: Siempre crear la escudería después del registro exitoso
+        console.log('🏎️ Creando nueva escudería...');
+        const { data: nuevaEscuderia, error: escError } = await supabase
             .from('escuderias')
-            .select('id')
-            .eq('user_id', authData.user?.id)
-            .maybeSingle();
+            .insert([{
+                user_id: authData.user.id,
+                nombre: username,  // ← CAMBIAR: Usar el username directamente
+                dinero: 5000000,
+                puntos: 0,
+                ranking: 999,
+                nivel_ingenieria: 1,
+                color_principal: '#e10600',
+                color_secundario: '#ffffff',
+                creada_en: new Date().toISOString()
+            }])
+            .select()
+            .single();
         
-        if (checkError) {
-            console.error('❌ Error verificando escudería:', checkError);
+        if (escError) {
+            console.error('❌ Error creando escudería:', escError);
+            throw escError;
         }
         
-        if (escuderiaCheck) {
-            console.log('✅ Escudería creada automáticamente:', escuderiaCheck.id);
-        } else {
-            console.log('✅ Registro exitoso. Usuario debe confirmar email.');
-            // En lugar de llamar al tutorial aquí, simplemente recarga o redirige
-            setTimeout(() => {
-                // Opción 1: Recargar la página (lo más simple)
-                location.reload();
-                // Opción 2: Redirigir a la página principal
-                // window.location.href = '/';
-            }, 1500); // Pequeño delay para mostrar el mensaje de éxito
-            
-            const { data: nuevaEscuderia, error: escError } = await supabase
-                .from('escuderias')
-                .insert([{
-                    user_id: authData.user.id,
-                    nombre: `${username}'s Team`,
-                    dinero: 5000000,
-                    puntos: 0,
-                    ranking: 999,
-                    nivel_ingenieria: 1,
-                    color_principal: '#e10600',
-                    color_secundario: '#ffffff',
-                    creada_en: new Date().toISOString()
-                }])
-                .select()
-                .single();
-            
-            if (escError) {
-                console.error('❌ Error creando escudería manual:', escError);
-            } else {
-                console.log('✅ Escudería creada manualmente:', nuevaEscuderia.id);
-                
-                await supabase
-                    .from('coches_stats')
-                    .insert([{ escuderia_id: nuevaEscuderia.id }]);
-            }
-        }
+        console.log('✅ Escudería creada exitosamente:', nuevaEscuderia.id);
+        
+        // Crear stats del coche
+        await supabase
+            .from('coches_stats')
+            .insert([{ escuderia_id: nuevaEscuderia.id }]);
+        // ← FIN AÑADIR
         
         mostrarMensaje('✅ ¡Cuenta creada! Revisa tu correo para confirmarla.', successDiv);
         
