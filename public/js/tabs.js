@@ -83,13 +83,19 @@ class TabManager {
             // AÑADE ESTO: Verificar si el almacén necesita actualizar
             if (tabId === 'almacen' && window.almacenNecesitaActualizar) {
                 setTimeout(() => {
-                    this.loadAlmacenPiezas();
-                    window.almacenNecesitaActualizar = false;
-                    console.log('📦 Almacén actualizado automáticamente');
-                }, 500);
+                    if (window.almacenNecesitaActualizar) {
+                        console.log('📦 Almacén necesita actualización, cargando...');
+                        this.loadAlmacenPiezas();
+                        window.almacenNecesitaActualizar = false;
+                        
+                        // Ocultar alerta si existe
+                        const alerta = document.getElementById('alerta-almacen');
+                        if (alerta) {
+                            alerta.style.display = 'none';
+                        }
+                    }
+                }, 300);
             }
-        }
-    }
     
     loadTabContents() {
         // Precargar contenido de todas las pestañas
