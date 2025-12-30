@@ -96,7 +96,7 @@ class TabManager {
                     }
                 }, 300);
             }
-    
+    }
     loadTabContents() {
         // Precargar contenido de todas las pestañas
         const tabs = ['principal', 'taller', 'almacen', 'mercado', 'presupuesto', 'clasificacion'];
