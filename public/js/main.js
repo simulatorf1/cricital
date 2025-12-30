@@ -4756,7 +4756,9 @@ class F1Manager {
             }
             
             // 6. Mostrar mensaje
-            alert(`✅ ¡Fabricación REAL iniciada!\n\n🔧 ${infoPieza.nombre}\n💰 Costo: ${infoPieza.costo.toLocaleString()}€\n⏱️ Listo en: 2 minutos\n\n📦 Aparecerá en "Producción" y luego en "Almacén"`);
+            if (window.tutorialManager && window.tutorialManager.showNotification) {
+                window.tutorialManager.showNotification(`✅ ${infoPieza.nombre} en fabricación (2 minutos)`, 'success');
+            }
             
             // 7. Avanzar tutorial
             setTimeout(() => {
@@ -4768,7 +4770,9 @@ class F1Manager {
             
         } catch (error) {
             console.error("Error en fabricación REAL:", error);
-            alert("Error en fabricación: " + error.message);
+            if (window.tutorialManager && window.tutorialManager.showNotification) {
+                window.tutorialManager.showNotification("❌ Error en fabricación", 'error');
+            }
         }
     };
     
@@ -5093,4 +5097,73 @@ iniciarAplicacion();
             console.error("tutorialManager no está disponible");
         }
     };
+    // Función para recoger piezas y actualizar almacén
+    window.recogerPiezaYActualizarAlmacen = async function(fabricacionId) {
+        try {
+            console.log("Recogiendo pieza:", fabricacionId);
+            
+            // 1. Obtener fabricación
+            const { data: fabricacion, error: fetchError } = await supabase
+                .from('fabricacion_actual')
+                .select('*')
+                .eq('id', fabricacionId)
+                .single();
+            
+            if (fetchError) throw fetchError;
+            
+            // 2. Convertir nombre a ID (ej: "Motor" → "motor")
+            const areaId = fabricacion.area.toLowerCase().replace(/ /g, '_');
+            
+            // 3. Crear pieza en almacen_piezas
+            const { error: insertError } = await supabase
+                .from('almacen_piezas')
+                .insert([{
+                    escuderia_id: fabricacion.escuderia_id,
+                    area: areaId,
+                    nivel: fabricacion.nivel || 1,
+                    puntos_base: 10,
+                    calidad: 'Estándar',
+                    equipada: false,
+                    fabricada_en: new Date().toISOString(),
+                    creada_en: new Date().toISOString()
+                }]);
+            
+            if (insertError) throw insertError;
+            
+            // 4. Marcar como completada
+            const { error: updateError } = await supabase
+                .from('fabricacion_actual')
+                .update({ completada: true })
+                .eq('id', fabricacionId);
+            
+            if (updateError) throw updateError;
+            
+            // 5. Notificación
+            if (window.f1Manager && window.f1Manager.showNotification) {
+                window.f1Manager.showNotification(`✅ ${fabricacion.area} añadida al almacén`, 'success');
+            }
+            
+            // 6. Actualizar producción
+            if (window.f1Manager && window.f1Manager.updateProductionMonitor) {
+                setTimeout(() => window.f1Manager.updateProductionMonitor(), 500);
+            }
+            
+            // 7. Si estamos en almacén, actualizar
+            if (window.tabManager && window.tabManager.currentTab === 'almacen') {
+                if (window.tabManager.loadAlmacenPiezas) {
+                    setTimeout(() => window.tabManager.loadAlmacenPiezas(), 1000);
+                }
+            } else {
+                // Forzar recarga del almacén la próxima vez que se abra
+                window.almacenNecesitaActualizar = true;
+            }
+            
+        } catch (error) {
+            console.error("Error recogiendo pieza:", error);
+            if (window.f1Manager && window.f1Manager.showNotification) {
+                window.f1Manager.showNotification("❌ Error al recoger pieza", 'error');
+            }
+        }
+    };
+    
 })();
