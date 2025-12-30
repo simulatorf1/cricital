@@ -512,15 +512,22 @@ async function manejarLogin() {
 }
 
 async function manejarRegistro() {
-    const btnRegistro = document.getElementById('btn-register-submit');
-    if (btnRegistro) {
-        btnRegistro.disabled = true;
-        btnRegistro.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CREANDO CUENTA...';
+    // ← AÑADIR ESTAS 3 LÍNEAS AL PRINCIPIO
+    const btnCrear = document.getElementById('btn-register-submit');
+    if (btnCrear) {
+        btnCrear.disabled = true;
+        btnCrear.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CREANDO CUENTA...';
     }
+    // ← FIN AÑADIR
     
     const supabase = window.supabase;
     if (!supabase) {
         mostrarErrorCritico('No se pudo conectar a la base de datos');
+        // ← AÑADIR: Rehabilitar botón si hay error
+        if (btnCrear) {
+            btnCrear.disabled = false;
+            btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+        }
         return;
     }
     
@@ -532,57 +539,59 @@ async function manejarRegistro() {
     
     if (!username || !email || !password) {
         mostrarMensaje('Por favor, completa todos los campos', errorDiv);
-        if (btnRegistro) {
-            btnRegistro.disabled = false;
-            btnRegistro.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+        // ← AÑADIR: Rehabilitar botón si hay error
+        if (btnCrear) {
+            btnCrear.disabled = false;
+            btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
         }
         return;
     }
     
     if (password.length < 6) {
         mostrarMensaje('La contraseña debe tener al menos 6 caracteres', errorDiv);
-        if (btnRegistro) {
-            btnRegistro.disabled = false;
-            btnRegistro.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+        // ← AÑADIR: Rehabilitar botón si hay error
+        if (btnCrear) {
+            btnCrear.disabled = false;
+            btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
         }
         return;
     }
     
     try {
-        console.log('📝 Verificando disponibilidad...');
+        console.log('📝 Registrando usuario:', email);
         
-        // ← PRIMERO: Verificar si YA EXISTE una escudería con ese nombre
-        console.log('🔍 Verificando escudería...');
+        // ← PRIMERO: Verificar escudería (ANTES de crear usuario)
+        console.log('🔍 Verificando si la escudería ya existe...');
         const { data: escuderiaExistente, error: escuderiaError } = await supabase
             .from('escuderias')
-            .select('id, nombre')
+            .select('id')
             .eq('nombre', username)
             .maybeSingle();
         
         if (escuderiaExistente) {
-            mostrarMensaje('❌ Ya existe una escudería con ese nombre. Por favor, elige otro nombre único.', errorDiv);
-            if (btnRegistro) {
-                btnRegistro.disabled = false;
-                btnRegistro.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+            mostrarMensaje('❌ Ya existe una escudería con ese nombre. Por favor, elige otro.', errorDiv);
+            // ← AÑADIR: Rehabilitar botón
+            if (btnCrear) {
+                btnCrear.disabled = false;
+                btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
             }
             return;
         }
         
-        // ← SEGUNDO: Verificar si el email YA está registrado en Supabase Auth
-        // Usamos signIn para verificar sin crear usuario
-        console.log('🔍 Verificando email...');
+        // ← SEGUNDO: Verificar email (ANTES de crear usuario)
+        console.log('🔍 Verificando si el email ya existe...');
         const { error: emailCheckError } = await supabase.auth.signInWithPassword({
             email: email,
-            password: 'dummyPassword123!' // Contraseña dummy solo para verificar
+            password: 'DummyPassword123!' // Contraseña ficticia solo para verificar
         });
         
-        // Si NO hay error de "invalid credentials", significa que el email SÍ existe
+        // Si NO hay error de "invalid credentials", el email ya existe
         if (!emailCheckError || !emailCheckError.message.includes('Invalid login credentials')) {
-            // El email YA está registrado
             mostrarMensaje('Este correo ya está registrado', errorDiv);
-            if (btnRegistro) {
-                btnRegistro.disabled = false;
-                btnRegistro.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+            // ← AÑADIR: Rehabilitar botón
+            if (btnCrear) {
+                btnCrear.disabled = false;
+                btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
             }
             return;
         }
@@ -659,9 +668,10 @@ async function manejarRegistro() {
         mostrarMensaje(mensajeError, errorDiv);
         
     } finally {
-        if (btnRegistro) {
-            btnRegistro.disabled = false;
-            btnRegistro.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+        // ← AÑADIR ESTO: Siempre rehabilitar el botón al final
+        if (btnCrear) {
+            btnCrear.disabled = false;
+            btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
         }
     }
 }
