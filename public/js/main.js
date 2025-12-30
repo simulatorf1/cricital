@@ -5116,18 +5116,16 @@ iniciarAplicacion();
             // 2. Convertir nombre a ID (ej: "Motor" → "motor")
             const areaId = fabricacion.area.toLowerCase().replace(/ /g, '_');
             
-            // 3. Crear pieza en almacen_piezas
+            // 3. Crear pieza en piezas_almacen (tabla correcta)
             const { error: insertError } = await supabase
-                .from('almacen_piezas')
+                .from('piezas_almacen')
                 .insert([{
                     escuderia_id: fabricacion.escuderia_id,
                     area: areaId,
                     nivel: fabricacion.nivel || 1,
                     puntos_base: 10,
-                    calidad: 'Estándar',
-                    equipada: false,
-                    fabricada_en: new Date().toISOString(),
-                    creada_en: new Date().toISOString()
+                    estado: 'disponible',
+                    fabricada_en: new Date().toISOString()
                 }]);
             
             if (insertError) throw insertError;
