@@ -308,17 +308,17 @@ function mostrarPantallaLogin() {
 }
 
 function mostrarPantallaRegistro() {
-    // USA TU HTML ORIGINAL - no lo cambies
     document.body.innerHTML = `
         <div class="register-screen">
             <div class="register-container">
                 <button class="back-button" id="btn-back">
-                    <i class="fas fa-arrow-left"></i> Volver al login
+                    <i class="fas fa-arrow-left"></i>
+                    Volver al login
                 </button>
                 
                 <div class="register-header">
                     <h1>CREAR CUENTA</h1>
-                    <p>Comienza tu aventura en la F1</p>
+                    <p>Comienza tu aventura en MotorSport</p>
                 </div>
                 
                 <div id="register-error" class="error-message"></div>
@@ -326,24 +326,16 @@ function mostrarPantallaRegistro() {
                 
                 <div class="register-form">
                     <div class="form-group">
-                        <label for="register-username">Nombre de usuario</label>
+                        <label for="register-username">Nombre de tu escudería</label>
                         <input type="text" id="register-username" placeholder="Ej: RedBullManager" maxlength="20">
-                        <div class="validation-feedback" id="username-feedback" style="font-size: 0.8rem; margin-top: 5px; min-height: 20px;"></div>
                     </div>
                     <div class="form-group">
                         <label for="register-email">Correo electrónico</label>
                         <input type="email" id="register-email" placeholder="tu@email.com">
-                        <div class="validation-feedback" id="email-feedback" style="font-size: 0.8rem; margin-top: 5px; min-height: 20px;"></div>
                     </div>
                     <div class="form-group">
                         <label for="register-password">Contraseña</label>
                         <input type="password" id="register-password" placeholder="•••••••• (mínimo 6 caracteres)">
-                        <div class="validation-feedback" id="password-feedback" style="font-size: 0.8rem; margin-top: 5px; min-height: 20px;"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-team">Nombre de tu escudería</label>
-                        <input type="text" id="register-team" placeholder="Ej: McLaren Racing">
-                        <div class="validation-feedback" id="team-feedback" style="font-size: 0.8rem; margin-top: 5px; min-height: 20px;"></div>
                     </div>
                 </div>
                 
@@ -357,204 +349,133 @@ function mostrarPantallaRegistro() {
                 </div>
             </div>
         </div>
+        
+        <style>
+            .register-screen {
+                min-height: 100vh;
+                background: linear-gradient(135deg, #15151e 0%, #1a1a2e 100%);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            
+            .register-container {
+                background: rgba(42, 42, 56, 0.9);
+                border-radius: 15px;
+                padding: 40px;
+                width: 100%;
+                max-width: 400px;
+                border: 2px solid #00d2be;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            }
+            
+            .register-header {
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            
+            .register-header h1 {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 2rem;
+                background: linear-gradient(90deg, #00d2be, #e10600);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 10px;
+            }
+            
+            .register-header p {
+                color: #888;
+                font-size: 0.9rem;
+            }
+            
+            .back-button {
+                background: transparent;
+                border: none;
+                color: #aaa;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                cursor: pointer;
+                margin-bottom: 20px;
+                transition: color 0.3s;
+            }
+            
+            .back-button:hover {
+                color: #00d2be;
+            }
+            
+            .register-form {
+                margin-bottom: 25px;
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+            }
+            
+            .form-group label {
+                display: block;
+                color: #aaa;
+                margin-bottom: 5px;
+                font-size: 0.9rem;
+            }
+            
+            .form-group input {
+                width: 100%;
+                padding: 12px;
+                background: rgba(255,255,255,0.1);
+                border: 1px solid rgba(255,255,255,0.2);
+                border-radius: 5px;
+                color: white;
+                font-size: 1rem;
+                transition: border 0.3s;
+            }
+            
+            .form-group input:focus {
+                outline: none;
+                border-color: #e10600;
+            }
+            
+            .register-button {
+                width: 100%;
+                padding: 15px;
+                background: linear-gradient(135deg, #00d2be, #00a35c);
+                border: none;
+                border-radius: 5px;
+                color: white;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 10px;
+            }
+            
+            .register-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 210, 190, 0.4);
+            }
+            
+            .register-footer {
+                text-align: center;
+                margin-top: 25px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                color: #666;
+                font-size: 0.9rem;
+            }
+        </style>
     `;
     
-    // Configurar eventos básicos
+    // Configurar eventos
     document.getElementById('btn-back').addEventListener('click', mostrarPantallaLogin);
     document.getElementById('btn-register-submit').addEventListener('click', manejarRegistro);
-    
-    // Configurar validación en tiempo real
-    setupRealTimeValidation();
 }
 
-// FUNCIÓN NUEVA: Validación en tiempo real
-function setupRealTimeValidation() {
-    const usernameInput = document.getElementById('register-username');
-    const emailInput = document.getElementById('register-email');
-    const passwordInput = document.getElementById('register-password');
-    const teamInput = document.getElementById('register-team');
-    const submitBtn = document.getElementById('btn-register-submit');
-    
-    // Estados
-    let isUsernameAvailable = false;
-    let isEmailAvailable = false;
-    let isPasswordValid = false;
-    let isTeamAvailable = false;
-    
-    // Función para verificar disponibilidad
-    async function checkAvailability(type, value) {
-        if (!value || value.trim().length < 3) return false;
-        
-        try {
-            let exists = false;
-            
-            if (type === 'email') {
-                // Verificar en tabla users
-                const { data } = await supabase
-                    .from('users')
-                    .select('email')
-                    .eq('email', value.trim())
-                    .maybeSingle();
-                exists = !!data;
-            } 
-            else if (type === 'username') {
-                const { data } = await supabase
-                    .from('users')
-                    .select('username')
-                    .eq('username', value.trim())
-                    .maybeSingle();
-                exists = !!data;
-            }
-            else if (type === 'team') {
-                const { data } = await supabase
-                    .from('escuderias')
-                    .select('nombre')
-                    .eq('nombre', value.trim())
-                    .maybeSingle();
-                exists = !!data;
-            }
-            
-            return !exists; // true = disponible
-            
-        } catch (error) {
-            console.error(`Error checking ${type}:`, error);
-            return false;
-        }
-    }
-    
-    // Función para mostrar feedback
-    function showFeedback(elementId, message, isValid) {
-        const element = document.getElementById(elementId);
-        element.textContent = message;
-        element.style.color = isValid ? '#4CAF50' : '#f44336';
-    }
-    
-    // Validación USERNAME
-    let usernameTimeout;
-    usernameInput.addEventListener('input', async (e) => {
-        const value = e.target.value.trim();
-        clearTimeout(usernameTimeout);
-        
-        if (value.length < 3) {
-            showFeedback('username-feedback', 'Mínimo 3 caracteres', false);
-            isUsernameAvailable = false;
-            return;
-        }
-        
-        showFeedback('username-feedback', 'Verificando...', false);
-        
-        usernameTimeout = setTimeout(async () => {
-            const available = await checkAvailability('username', value);
-            isUsernameAvailable = available;
-            
-            if (available) {
-                showFeedback('username-feedback', '✓ Disponible', true);
-            } else {
-                showFeedback('username-feedback', '✗ Ya en uso', false);
-            }
-        }, 500);
-    });
-    
-    // Validación EMAIL
-    let emailTimeout;
-    emailInput.addEventListener('input', async (e) => {
-        const value = e.target.value.trim();
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        clearTimeout(emailTimeout);
-        
-        if (!emailRegex.test(value)) {
-            showFeedback('email-feedback', 'Email no válido', false);
-            isEmailAvailable = false;
-            return;
-        }
-        
-        showFeedback('email-feedback', 'Verificando...', false);
-        
-        emailTimeout = setTimeout(async () => {
-            const available = await checkAvailability('email', value);
-            isEmailAvailable = available;
-            
-            if (available) {
-                showFeedback('email-feedback', '✓ Disponible', true);
-            } else {
-                showFeedback('email-feedback', '✗ Ya registrado', false);
-            }
-        }, 500);
-    });
-    
-    // Validación PASSWORD
-    passwordInput.addEventListener('input', (e) => {
-        const value = e.target.value;
-        
-        if (value.length < 6) {
-            showFeedback('password-feedback', 'Mínimo 6 caracteres', false);
-            isPasswordValid = false;
-        } else {
-            showFeedback('password-feedback', '✓ Válida', true);
-            isPasswordValid = true;
-        }
-    });
-    
-    // Validación TEAM NAME
-    let teamTimeout;
-    teamInput.addEventListener('input', async (e) => {
-        const value = e.target.value.trim();
-        clearTimeout(teamTimeout);
-        
-        if (value.length < 3) {
-            showFeedback('team-feedback', 'Mínimo 3 caracteres', false);
-            isTeamAvailable = false;
-            return;
-        }
-        
-        showFeedback('team-feedback', 'Verificando...', false);
-        
-        teamTimeout = setTimeout(async () => {
-            const available = await checkAvailability('team', value);
-            isTeamAvailable = available;
-            
-            if (available) {
-                showFeedback('team-feedback', '✓ Disponible', true);
-            } else {
-                showFeedback('team-feedback', '✗ Ya existe', false);
-            }
-        }, 500);
-    });
-    
-    // Interceptar el clic del botón para validar antes de registrar
-    const originalClickHandler = submitBtn.onclick;
-    submitBtn.onclick = async (e) => {
-        e.preventDefault();
-        
-        // Validar TODO antes de proceder
-        if (!isUsernameAvailable) {
-            showFeedback('username-feedback', '✗ Elige un nombre de usuario disponible', false);
-            usernameInput.focus();
-            return;
-        }
-        
-        if (!isEmailAvailable) {
-            showFeedback('email-feedback', '✗ Elige un email disponible', false);
-            emailInput.focus();
-            return;
-        }
-        
-        if (!isPasswordValid) {
-            showFeedback('password-feedback', '✗ Contraseña inválida', false);
-            passwordInput.focus();
-            return;
-        }
-        
-        if (!isTeamAvailable) {
-            showFeedback('team-feedback', '✗ Elige un nombre de escudería disponible', false);
-            teamInput.focus();
-            return;
-        }
-        
-        // Si todo está bien, proceder con el registro original
-        await manejarRegistro();
-    };
-}
 async function manejarLogin() {
     const supabase = window.supabase;
     if (!supabase) {
@@ -591,22 +512,119 @@ async function manejarLogin() {
 }
 
 async function manejarRegistro() {
+    const supabase = window.supabase;
+    if (!supabase) {
+        mostrarErrorCritico('No se pudo conectar a la base de datos');
+        return;
+    }
+    
     const username = document.getElementById('register-username').value.trim();
     const email = document.getElementById('register-email').value.trim();
     const password = document.getElementById('register-password').value;
-    const teamName = document.getElementById('register-team').value.trim();
+    const errorDiv = document.getElementById('register-error');
+    const successDiv = document.getElementById('register-success');
     
-    // Usa tu función handleRegister existente en auth.js
-    if (window.authManager && typeof window.authManager.handleRegister === 'function') {
-        const success = await window.authManager.handleRegister(email, password, username, teamName);
+    if (!username || !email || !password) {
+        mostrarMensaje('Por favor, completa todos los campos', errorDiv);
+        return;
+    }
+    
+    if (password.length < 6) {
+        mostrarMensaje('La contraseña debe tener al menos 6 caracteres', errorDiv);
+        return;
+    }
+    
+    try {
+        console.log('📝 Registrando usuario:', email);
         
-        if (success) {
-            // Éxito - recargar
-            setTimeout(() => location.reload(), 1500);
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: { 
+                    username: username,
+                    team_name: `${username}'s Team`
+                },
+                emailRedirectTo: window.location.origin
+            }
+        });
+        
+        if (authError) {
+            console.error('❌ Error Auth:', authError);
+            throw authError;
         }
-    } else {
-        // Fallback
-        alert('Error: Sistema de autenticación no disponible');
+        
+        console.log('✅ Usuario creado en Auth:', authData.user?.id);
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const { data: escuderiaCheck, error: checkError } = await supabase
+            .from('escuderias')
+            .select('id')
+            .eq('user_id', authData.user?.id)
+            .maybeSingle();
+        
+        if (checkError) {
+            console.error('❌ Error verificando escudería:', checkError);
+        }
+        
+        if (escuderiaCheck) {
+            console.log('✅ Escudería creada automáticamente:', escuderiaCheck.id);
+        } else {
+            console.log('✅ Registro exitoso. Usuario debe confirmar email.');
+            // En lugar de llamar al tutorial aquí, simplemente recarga o redirige
+            setTimeout(() => {
+                // Opción 1: Recargar la página (lo más simple)
+                location.reload();
+                // Opción 2: Redirigir a la página principal
+                // window.location.href = '/';
+            }, 1500); // Pequeño delay para mostrar el mensaje de éxito
+            
+            const { data: nuevaEscuderia, error: escError } = await supabase
+                .from('escuderias')
+                .insert([{
+                    user_id: authData.user.id,
+                    nombre: `${username}'s Team`,
+                    dinero: 5000000,
+                    puntos: 0,
+                    ranking: 999,
+                    nivel_ingenieria: 1,
+                    color_principal: '#e10600',
+                    color_secundario: '#ffffff',
+                    creada_en: new Date().toISOString()
+                }])
+                .select()
+                .single();
+            
+            if (escError) {
+                console.error('❌ Error creando escudería manual:', escError);
+            } else {
+                console.log('✅ Escudería creada manualmente:', nuevaEscuderia.id);
+                
+                await supabase
+                    .from('coches_stats')
+                    .insert([{ escuderia_id: nuevaEscuderia.id }]);
+            }
+        }
+        
+        mostrarMensaje('✅ ¡Cuenta creada! Revisa tu correo para confirmarla.', successDiv);
+        
+        setTimeout(() => mostrarPantallaLogin(), 3000);
+        
+    } catch (error) {
+        console.error('❌ Error en registro completo:', error);
+        
+        let mensajeError = error.message || 'Error creando la cuenta';
+        
+        if (error.message.includes('already registered')) {
+            mensajeError = 'Este correo ya está registrado';
+        } else if (error.message.includes('password')) {
+            mensajeError = 'La contraseña no cumple los requisitos';
+        } else if (error.message.includes('email')) {
+            mensajeError = 'El correo electrónico no es válido';
+        }
+        
+        mostrarMensaje(mensajeError, errorDiv);
     }
 }
 
@@ -3488,34 +3506,102 @@ class F1Manager {
     }
     
      // AÑADE ESTE MÉTODO DENTRO DE LA CLASE F1Manager en main.js
-async crearDatosInicialesSiFaltan() {
-    console.log('🔍 Cargando datos del usuario...');
-    
-    try {
-        // SOLO CARGAR escudería existente
-        const { data: escuderia, error } = await this.supabase
-            .from('escuderias')
-            .select('*')
-            .eq('user_id', this.user.id)
-            .single(); // ← .single() NO .maybeSingle()
+    async crearDatosInicialesSiFaltan() {
+        console.log('🔍 Verificando si faltan datos iniciales...');
         
-        if (error) {
-            console.error('❌ ERROR: Usuario no tiene escudería:', error);
-            this.showNotification('❌ Tu equipo no existe. Contacta soporte.', 'error');
-            return false;
+        // 1. Verificar si el usuario ya está en public.users
+        const { data: usuarioPublico, error: userError } = await this.supabase
+            .from('users')
+            .select('id')
+            .eq('id', this.user.id)
+            .maybeSingle();
+        
+        // Si NO existe en public.users, lo creamos
+        if (!usuarioPublico && !userError) {
+            console.log('👤 Creando usuario en tabla pública...');
+            const { error: insertError } = await this.supabase
+                .from('users')
+                .insert([{
+                    id: this.user.id,
+                    username: this.user.user_metadata?.username || this.user.email?.split('@')[0],
+                    email: this.user.email,
+                    created_at: new Date().toISOString(),
+                    last_login: new Date().toISOString()
+                }]);
+            
+            if (insertError) {
+                console.error('❌ Error creando usuario público:', insertError);
+            }
         }
         
-        // Asignar escudería
-        this.escuderia = escuderia;
-        console.log('✅ Escudería cargada:', escuderia.nombre);
+        // 2. Verificar si ya tiene escudería
+        const { data: escuderia, error: escError } = await this.supabase
+            .from('escuderias')
+            .select('id')
+            .eq('user_id', this.user.id)
+            .maybeSingle();
         
-        return true;
+        // Si NO tiene escudería, la creamos
+        if (!escuderia && !escError) {
+            console.log('🏎️ Creando escudería inicial...');
+            const nombreEscuderia = this.user.user_metadata?.team_name || `${this.user.user_metadata?.username}'s Team`;
+            
+            const { error: escInsertError } = await this.supabase
+                .from('escuderias')
+                .insert([{
+                    user_id: this.user.id,
+                    nombre: nombreEscuderia,
+                    dinero: 5000000,
+                    puntos: 0,
+                    ranking: 999,
+                    nivel_ingenieria: 1,
+                    color_principal: '#e10600',
+                    color_secundario: '#ffffff',
+                    creada_en: new Date().toISOString()
+                }], { returning: 'minimal' }); // ← ¡IMPORTANTE!
+            
+            if (escInsertError) {
+                console.error('❌ Error creando escudería:', escInsertError);
+                return false;
+            }
+            
+            // 3. Crear stats del coche (SOLO si no existen ya)
+            const { data: nuevaEscuderia } = await this.supabase
+                .from('escuderias')
+                .select('id')
+                .eq('user_id', this.user.id)
+                .single();
         
-    } catch (error) {
-        console.error('❌ Error cargando datos:', error);
-        return false;
-    }
-}
+            if (nuevaEscuderia) {
+                // PRIMERO verificar si ya existen stats para esta escudería
+                const { data: statsExistentes, error: statsError } = await this.supabase
+                    .from('coches_stats')
+                    .select('escuderia_id')
+                    .eq('escuderia_id', nuevaEscuderia.id)
+                    .maybeSingle();
+            
+                // SOLO insertar si NO existen stats
+                if (!statsExistentes && !statsError) {
+                    const { error: statsInsertError } = await this.supabase
+                        .from('coches_stats')
+                        .insert([{ escuderia_id: nuevaEscuderia.id }]);
+                
+                    if (statsInsertError) {
+                        console.error('❌ Error creando stats del coche:', statsInsertError);
+                    } else {
+                        console.log('📊 Stats del coche creados');
+                    }
+                } else {
+                    console.log('📊 Stats del coche ya existían, no se crean nuevos');
+                }
+            }
+            
+            console.log('✅ Datos iniciales creados correctamente');
+            return true;
+        }
+        
+        return true; // Ya tenía todos los datos
+    }   
     async cargarCarStats() {
         if (!this.escuderia) return;
         
