@@ -3924,17 +3924,35 @@ class F1Manager {
             
             // Esperar un poco más para que el DOM esté completamente listo
             setTimeout(() => {
-                if (window.tabManager) {
+                console.log('🔧 Inicializando sistema de pestañas...');
+                
+                // Opción 1: Ya existe tabManager (creado por tabs.js)
+                if (window.tabManager && typeof window.tabManager.setup === 'function') {
                     console.log('✅ tabManager ya existe, configurando...');
                     window.tabManager.setup();
-                } else {
-                    console.log('🔄 tabManager no existe, creando uno nuevo...');
-                    if (window.TabManager) {
-                        window.tabManager = new window.TabManager();
+                } 
+                // Opción 2: Existe la clase TabManager
+                else if (window.TabManager) {
+                    console.log('🔄 Creando tabManager desde clase...');
+                    window.tabManager = new window.TabManager();
+                    if (window.tabManager.setup) {
                         window.tabManager.setup();
-                    } else {
-                        console.error('❌ Error: TabManager no está definido');
                     }
+                }
+                // Opción 3: tabs.js no se cargó correctamente
+                else {
+                    console.warn('⚠️ tabs.js no cargó correctamente, recargando...');
+                    // Intentar cargar tabs.js manualmente
+                    const script = document.createElement('script');
+                    script.src = 'js/tabs.js';
+                    script.onload = () => {
+                        if (window.TabManager) {
+                            window.tabManager = new window.TabManager();
+                            window.tabManager.setup();
+                            console.log('✅ tabs.js cargado manualmente');
+                        }
+                    };
+                    document.body.appendChild(script);
                 }
                 
                 // Verificar que los botones funcionan
@@ -3942,17 +3960,33 @@ class F1Manager {
                     const botones = document.querySelectorAll('[data-tab]');
                     console.log(`📌 Botones de pestañas encontrados: ${botones.length}`);
                     
-                    if (botones.length === 0) {
-                        console.error('❌ CRÍTICO: No hay botones de pestañas en el DOM');
-                        console.log('HTML actual:', document.body.innerHTML.substring(0, 500));
-                    } else {
-                        console.log('✅ Sistema de pestañas listo');
-                    }
+                    // Añadir eventos manualmente si es necesario
+                    botones.forEach(btn => {
+                        const tabId = btn.getAttribute('data-tab');
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            console.log(`Clic en pestaña: ${tabId}`);
+                            if (window.tabManager && window.tabManager.switchTab) {
+                                window.tabManager.switchTab(tabId);
+                            } else {
+                                // Fallback manual
+                                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                                document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+                                
+                                const tabContent = document.getElementById(`tab-${tabId}`);
+                                if (tabContent) {
+                                    tabContent.classList.add('active');
+                                    btn.classList.add('active');
+                                }
+                            }
+                        });
+                    });
+                    
+                    console.log('✅ Sistema de pestañas listo');
+                    
                 }, 500);
                 
             }, 400); // 400ms después de los sistemas críticos
-            
-        }, 100);
         
         
         
