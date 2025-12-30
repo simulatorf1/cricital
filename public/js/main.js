@@ -512,22 +512,17 @@ async function manejarLogin() {
 }
 
 async function manejarRegistro() {
-    // ← AÑADIR ESTAS 3 LÍNEAS AL PRINCIPIO
+    // ← DESHABILITAR BOTÓN INMEDIATAMENTE
     const btnCrear = document.getElementById('btn-register-submit');
-    if (btnCrear) {
-        btnCrear.disabled = true;
-        btnCrear.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CREANDO CUENTA...';
-    }
-    // ← FIN AÑADIR
+    const textoOriginal = btnCrear.innerHTML;
+    btnCrear.disabled = true;
+    btnCrear.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESANDO...';
     
     const supabase = window.supabase;
     if (!supabase) {
         mostrarErrorCritico('No se pudo conectar a la base de datos');
-        // ← AÑADIR: Rehabilitar botón si hay error
-        if (btnCrear) {
-            btnCrear.disabled = false;
-            btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
-        }
+        btnCrear.disabled = false;
+        btnCrear.innerHTML = textoOriginal;
         return;
     }
     
@@ -539,65 +534,35 @@ async function manejarRegistro() {
     
     if (!username || !email || !password) {
         mostrarMensaje('Por favor, completa todos los campos', errorDiv);
-        // ← AÑADIR: Rehabilitar botón si hay error
-        if (btnCrear) {
-            btnCrear.disabled = false;
-            btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
-        }
+        btnCrear.disabled = false;
+        btnCrear.innerHTML = textoOriginal;
         return;
     }
     
     if (password.length < 6) {
         mostrarMensaje('La contraseña debe tener al menos 6 caracteres', errorDiv);
-        // ← AÑADIR: Rehabilitar botón si hay error
-        if (btnCrear) {
-            btnCrear.disabled = false;
-            btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
-        }
+        btnCrear.disabled = false;
+        btnCrear.innerHTML = textoOriginal;
         return;
     }
     
     try {
-        console.log('📝 Registrando usuario:', email);
+        console.log('📝 Verificando disponibilidad...');
         
-        // ← PRIMERO: Verificar escudería (ANTES de crear usuario)
-        console.log('🔍 Verificando si la escudería ya existe...');
-        const { data: escuderiaExistente, error: escuderiaError } = await supabase
-            .from('escuderias')
-            .select('id')
-            .eq('nombre', username)
-            .maybeSingle();
-        
-        if (escuderiaExistente) {
-            mostrarMensaje('❌ Ya existe una escudería con ese nombre. Por favor, elige otro.', errorDiv);
-            // ← AÑADIR: Rehabilitar botón
-            if (btnCrear) {
-                btnCrear.disabled = false;
-                btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+        // ← PRIMERO verificar si YA existe usuario con ese email
+        try {
+            // Intento verificar si hay sesión (usuario ya logeado con ese email)
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                mostrarMensaje('⚠️ Ya hay una sesión activa con otro usuario', errorDiv);
+                return;
             }
-            return;
+        } catch (e) {
+            // Ignorar error de verificación
         }
         
-        // ← SEGUNDO: Verificar email (ANTES de crear usuario)
-        console.log('🔍 Verificando si el email ya existe...');
-        const { error: emailCheckError } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: 'DummyPassword123!' // Contraseña ficticia solo para verificar
-        });
-        
-        // Si NO hay error de "invalid credentials", el email ya existe
-        if (!emailCheckError || !emailCheckError.message.includes('Invalid login credentials')) {
-            mostrarMensaje('Este correo ya está registrado', errorDiv);
-            // ← AÑADIR: Rehabilitar botón
-            if (btnCrear) {
-                btnCrear.disabled = false;
-                btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
-            }
-            return;
-        }
-        
-        // ← SOLO SI AMBAS VERIFICACIONES PASAN: Crear usuario
-        console.log('✅ Ambos disponibles, registrando...');
+        // ← SOLO SI pasa la verificación, registrar
+        console.log('✅ Creando usuario:', email);
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
@@ -612,13 +577,21 @@ async function manejarRegistro() {
         
         if (authError) {
             console.error('❌ Error Auth:', authError);
+            
+            // ← SI el error es "email ya registrado", mostramos mensaje y SALIMOS
+            if (authError.message.includes('already registered') || 
+                authError.message.includes('User already registered')) {
+                mostrarMensaje('Este correo ya está registrado', errorDiv);
+                return;
+            }
             throw authError;
         }
         
         console.log('✅ Usuario creado en Auth:', authData.user?.id);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        console.log('🏎️ Creando nueva escudería...');
+        // ← AHORA crear la escudería (la BD ya valida nombre único)
+        console.log('🏎️ Creando escudería:', username);
         const { data: nuevaEscuderia, error: escError } = await supabase
             .from('escuderias')
             .insert([{
@@ -637,10 +610,17 @@ async function manejarRegistro() {
         
         if (escError) {
             console.error('❌ Error creando escudería:', escError);
+            
+            // ← SI la escudería ya existe, mostramos error PERO el usuario YA está creado
+            // Esto es lo que queremos evitar, pero si pasa, al menos informamos
+            if (escError.message.includes('escuderias_nombre_key') || 
+                escError.message.includes('duplicate')) {
+                mostrarMensaje('❌ Ya existe una escudería con ese nombre (el usuario se creó)', errorDiv);
+            }
             throw escError;
         }
         
-        console.log('✅ Escudería creada exitosamente:', nuevaEscuderia.id);
+        console.log('✅ Escudería creada:', nuevaEscuderia.id);
         
         await supabase
             .from('coches_stats')
@@ -668,11 +648,9 @@ async function manejarRegistro() {
         mostrarMensaje(mensajeError, errorDiv);
         
     } finally {
-        // ← AÑADIR ESTO: Siempre rehabilitar el botón al final
-        if (btnCrear) {
-            btnCrear.disabled = false;
-            btnCrear.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
-        }
+        // ← SIEMPRE restaurar botón
+        btnCrear.disabled = false;
+        btnCrear.innerHTML = textoOriginal;
     }
 }
 
