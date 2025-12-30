@@ -851,22 +851,56 @@ class F1Manager {
             }
         }
         
-        // 2. Crear instancia de almacenManager si no existe
-        if (window.AlmacenManager && !window.almacenManager) {
-            console.log('🔧 Creando almacenManager...');
-            window.almacenManager = new window.AlmacenManager();
+        // 2. Crear almacenManager - VERSIÓN A PRUEBA DE FALLOS
+        console.log('🔧 FORZANDO creación de almacenManager...');
+        
+        // SI la clase NO existe, créala AHORA MISMO
+        if (!window.AlmacenManager) {
+            console.log('⚠️ Clase AlmacenManager no existe, creando básica...');
+            window.AlmacenManager = class AlmacenManagerBasico {
+                constructor() {
+                    this.escuderiaId = null;
+                    this.piezas = [];
+                }
+                
+                async inicializar(escuderiaId) {
+                    this.escuderiaId = escuderiaId;
+                    console.log(`✅ almacenManager inicializado para escudería: ${escuderiaId}`);
+                    return true;
+                }
+                
+                async cargarPiezas() {
+                    if (!this.escuderiaId) return [];
+                    try {
+                        const { data, error } = await supabase
+                            .from('almacen_piezas')
+                            .select('*')
+                            .eq('escuderia_id', this.escuderiaId)
+                            .order('fabricada_en', { ascending: false });
+                        
+                        if (error) throw error;
+                        this.piezas = data || [];
+                        return this.piezas;
+                    } catch (error) {
+                        console.error('Error cargando piezas:', error);
+                        return [];
+                    }
+                }
+            };
         }
         
-        if (window.almacenManager && typeof window.almacenManager.inicializar === 'function') {
+        // CREAR la instancia SI O SÍ
+        if (!window.almacenManager) {
+            window.almacenManager = new window.AlmacenManager();
+            console.log('✅ Instancia de almacenManager creada');
+        }
+        
+        // INICIALIZAR SI O SÍ
+        if (window.almacenManager && this.escuderia && this.escuderia.id) {
             await window.almacenManager.inicializar(this.escuderia.id);
-            console.log('✅ Sistema de almacén inicializado');
+            console.log('✅ Sistema de almacén inicializado (GARANTIZADO)');
         } else {
-            console.error('❌ almacenManager no disponible - creando nueva instancia');
-            if (window.AlmacenManager) {
-                window.almacenManager = new window.AlmacenManager();
-                await window.almacenManager.inicializar(this.escuderia.id);
-                console.log('✅ Sistema de almacén inicializado (segundo intento)');
-            }
+            console.error('❌ IMPOSIBLE inicializar almacén - falta escudería');
         }
         
         // 3. Integración (opcional)
