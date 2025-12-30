@@ -591,119 +591,22 @@ async function manejarLogin() {
 }
 
 async function manejarRegistro() {
-    const supabase = window.supabase;
-    if (!supabase) {
-        mostrarErrorCritico('No se pudo conectar a la base de datos');
-        return;
-    }
-    
     const username = document.getElementById('register-username').value.trim();
     const email = document.getElementById('register-email').value.trim();
     const password = document.getElementById('register-password').value;
-    const errorDiv = document.getElementById('register-error');
-    const successDiv = document.getElementById('register-success');
+    const teamName = document.getElementById('register-team').value.trim();
     
-    if (!username || !email || !password) {
-        mostrarMensaje('Por favor, completa todos los campos', errorDiv);
-        return;
-    }
-    
-    if (password.length < 6) {
-        mostrarMensaje('La contraseña debe tener al menos 6 caracteres', errorDiv);
-        return;
-    }
-    
-    try {
-        console.log('📝 Registrando usuario:', email);
+    // Usa tu función handleRegister existente en auth.js
+    if (window.authManager && typeof window.authManager.handleRegister === 'function') {
+        const success = await window.authManager.handleRegister(email, password, username, teamName);
         
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: { 
-                    username: username,
-                    team_name: `${username}'s Team`
-                },
-                emailRedirectTo: window.location.origin
-            }
-        });
-        
-        if (authError) {
-            console.error('❌ Error Auth:', authError);
-            throw authError;
+        if (success) {
+            // Éxito - recargar
+            setTimeout(() => location.reload(), 1500);
         }
-        
-        console.log('✅ Usuario creado en Auth:', authData.user?.id);
-        
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const { data: escuderiaCheck, error: checkError } = await supabase
-            .from('escuderias')
-            .select('id')
-            .eq('user_id', authData.user?.id)
-            .maybeSingle();
-        
-        if (checkError) {
-            console.error('❌ Error verificando escudería:', checkError);
-        }
-        
-        if (escuderiaCheck) {
-            console.log('✅ Escudería creada automáticamente:', escuderiaCheck.id);
-        } else {
-            console.log('✅ Registro exitoso. Usuario debe confirmar email.');
-            // En lugar de llamar al tutorial aquí, simplemente recarga o redirige
-            setTimeout(() => {
-                // Opción 1: Recargar la página (lo más simple)
-                location.reload();
-                // Opción 2: Redirigir a la página principal
-                // window.location.href = '/';
-            }, 1500); // Pequeño delay para mostrar el mensaje de éxito
-            
-            const { data: nuevaEscuderia, error: escError } = await supabase
-                .from('escuderias')
-                .insert([{
-                    user_id: authData.user.id,
-                    nombre: `${username}'s Team`,
-                    dinero: 5000000,
-                    puntos: 0,
-                    ranking: 999,
-                    nivel_ingenieria: 1,
-                    color_principal: '#e10600',
-                    color_secundario: '#ffffff',
-                    creada_en: new Date().toISOString()
-                }])
-                .select()
-                .single();
-            
-            if (escError) {
-                console.error('❌ Error creando escudería manual:', escError);
-            } else {
-                console.log('✅ Escudería creada manualmente:', nuevaEscuderia.id);
-                
-                await supabase
-                    .from('coches_stats')
-                    .insert([{ escuderia_id: nuevaEscuderia.id }]);
-            }
-        }
-        
-        mostrarMensaje('✅ ¡Cuenta creada! Revisa tu correo para confirmarla.', successDiv);
-        
-        setTimeout(() => mostrarPantallaLogin(), 3000);
-        
-    } catch (error) {
-        console.error('❌ Error en registro completo:', error);
-        
-        let mensajeError = error.message || 'Error creando la cuenta';
-        
-        if (error.message.includes('already registered')) {
-            mensajeError = 'Este correo ya está registrado';
-        } else if (error.message.includes('password')) {
-            mensajeError = 'La contraseña no cumple los requisitos';
-        } else if (error.message.includes('email')) {
-            mensajeError = 'El correo electrónico no es válido';
-        }
-        
-        mostrarMensaje(mensajeError, errorDiv);
+    } else {
+        // Fallback
+        alert('Error: Sistema de autenticación no disponible');
     }
 }
 
