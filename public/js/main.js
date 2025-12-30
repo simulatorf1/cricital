@@ -2109,7 +2109,51 @@ class F1Manager {
                     font-weight: bold;
                     color: #ffd700;
                 }
+                .notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #1a1a2e;
+                    border-left: 4px solid #00d2be;
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                    z-index: 10000;
+                    transform: translateX(120%);
+                    transition: transform 0.3s ease;
+                    max-width: 350px;
+                }
                 
+                .notification.show {
+                    transform: translateX(0);
+                }
+                
+                .notification.success {
+                    border-left-color: #4CAF50;
+                }
+                
+                .notification.error {
+                    border-left-color: #f44336;
+                }
+                
+                .notification.warning {
+                    border-left-color: #ff9800;
+                }
+                
+                .notification.info {
+                    border-left-color: #2196F3;
+                }
+                
+                .notification-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                
+                .notification i {
+                    font-size: 1.2rem;
+                }
                 .total-ganancias {
                     background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0, 210, 190, 0.1));
                     border-radius: 15px;
@@ -4833,7 +4877,9 @@ class F1Manager {
         const count = Object.keys(selecciones).length;
         
         if (count < 3) {
-            alert(`Has seleccionado ${count} de 3 pronósticos. Puedes seleccionar uno de cada categoría.`);
+            if (window.tutorialManager && window.tutorialManager.showNotification) {
+                window.tutorialManager.showNotification(`⚠️ Has seleccionado ${count} de 3 pronósticos`, 'warning');
+            }
             return;
         }
         
