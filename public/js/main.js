@@ -3919,14 +3919,42 @@ class F1Manager {
                 this.updateProductionMonitor();
             }, 300);
             
+            // C. INICIALIZAR PESTAÑAS AQUÍ (IMPORTANTE: después del HTML)
+            console.log('🔍 Verificando tabManager...');
+            
+            // Esperar un poco más para que el DOM esté completamente listo
+            setTimeout(() => {
+                if (window.tabManager) {
+                    console.log('✅ tabManager ya existe, configurando...');
+                    window.tabManager.setup();
+                } else {
+                    console.log('🔄 tabManager no existe, creando uno nuevo...');
+                    if (window.TabManager) {
+                        window.tabManager = new window.TabManager();
+                        window.tabManager.setup();
+                    } else {
+                        console.error('❌ Error: TabManager no está definido');
+                    }
+                }
+                
+                // Verificar que los botones funcionan
+                setTimeout(() => {
+                    const botones = document.querySelectorAll('[data-tab]');
+                    console.log(`📌 Botones de pestañas encontrados: ${botones.length}`);
+                    
+                    if (botones.length === 0) {
+                        console.error('❌ CRÍTICO: No hay botones de pestañas en el DOM');
+                        console.log('HTML actual:', document.body.innerHTML.substring(0, 500));
+                    } else {
+                        console.log('✅ Sistema de pestañas listo');
+                    }
+                }, 500);
+                
+            }, 400); // 400ms después de los sistemas críticos
+            
         }, 100);
         
-        // 3. LUEGO inicializar pestañas
-        setTimeout(() => {
-            if (window.tabManager) {
-                window.tabManager.setup();
-            }
-        }, 500);
+        
         
         // 4. FINALMENTE cargar datos
         const supabase = await this.esperarSupabase();
