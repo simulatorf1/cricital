@@ -908,7 +908,9 @@ class TabManager {
     
     async sumarPuntosAlCoche(areaId, puntos) {
         try {
-            console.log(`📊 Sumando ${puntos} pts al área ${areaId}`);
+            // CONVERTIR A MINÚSCULAS
+            const areaLower = areaId.toLowerCase();
+            console.log(`📊 Sumando ${puntos} pts al área ${areaLower}`);
             
             // 1. Obtener stats actuales del coche
             const { data: stats, error: fetchError } = await supabase
@@ -923,8 +925,8 @@ class TabManager {
                     .from('coches_stats')
                     .insert([{
                         escuderia_id: window.f1Manager.escuderia.id,
-                        [`${areaId}_progreso`]: 1,
-                        [`${areaId}_nivel`]: 0,
+                        [`${areaLower}_progreso`]: 1,
+                        [`${areaLower}_nivel`]: 0,
                         actualizado_en: new Date().toISOString()
                     }]);
                 
@@ -935,9 +937,9 @@ class TabManager {
             
             if (!stats) return;
             
-            // 2. Calcular nuevo progreso
-            const columnaProgreso = `${areaId}_progreso`;
-            const columnaNivel = `${areaId}_nivel`;
+            // 2. Calcular nuevo progreso (USAR MINÚSCULAS)
+            const columnaProgreso = `${areaLower}_progreso`;
+            const columnaNivel = `${areaLower}_nivel`;
             
             const progresoActual = stats[columnaProgreso] || 0;
             const nivelActual = stats[columnaNivel] || 0;
@@ -951,7 +953,7 @@ class TabManager {
                 nuevoNivel = nivelActual + 1;
                 if (nuevoNivel > 10) nuevoNivel = 10;
                 
-                console.log(`🎉 ¡NIVEL UP! ${areaId} ahora es nivel ${nuevoNivel}`);
+                console.log(`🎉 ¡NIVEL UP! ${areaLower} ahora es nivel ${nuevoNivel}`);
             }
             
             // 3. Actualizar en BD
@@ -966,7 +968,7 @@ class TabManager {
             
             if (updateError) throw updateError;
             
-            console.log(`✅ Progreso actualizado: ${areaId} - Progreso: ${nuevoProgreso}/20, Nivel: ${nuevoNivel}`);
+            console.log(`✅ Progreso actualizado: ${areaLower} - Progreso: ${nuevoProgreso}/20, Nivel: ${nuevoNivel}`);
             
         } catch (error) {
             console.error('❌ Error sumando puntos al coche:', error);
@@ -975,7 +977,9 @@ class TabManager {
     
     async restarPuntosDelCoche(areaId, puntos) {
         try {
-            console.log(`📊 Restando ${puntos} pts del área ${areaId}`);
+            // CONVERTIR A MINÚSCULAS
+            const areaLower = areaId.toLowerCase();
+            console.log(`📊 Restando ${puntos} pts del área ${areaLower}`);
             
             // 1. Obtener stats actuales del coche
             const { data: stats, error: fetchError } = await supabase
@@ -989,9 +993,9 @@ class TabManager {
                 return;
             }
             
-            // 2. Calcular nuevo progreso (no puede ser negativo)
-            const columnaProgreso = `${areaId}_progreso`;
-            const columnaNivel = `${areaId}_nivel`;
+            // 2. Calcular nuevo progreso (USAR MINÚSCULAS)
+            const columnaProgreso = `${areaLower}_progreso`;
+            const columnaNivel = `${areaLower}_nivel`;
             
             const progresoActual = stats[columnaProgreso] || 0;
             const nivelActual = stats[columnaNivel] || 0;
@@ -1018,7 +1022,7 @@ class TabManager {
             
             if (updateError) throw updateError;
             
-            console.log(`✅ Progreso actualizado: ${areaId} - Progreso: ${nuevoProgreso}/20, Nivel: ${nuevoNivel}`);
+            console.log(`✅ Progreso actualizado: ${areaLower} - Progreso: ${nuevoProgreso}/20, Nivel: ${nuevoNivel}`);
             
         } catch (error) {
             console.error('❌ Error restando puntos del coche:', error);
