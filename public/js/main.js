@@ -3903,7 +3903,7 @@ class F1Manager {
         await this.cargarDatosDashboard();
         
         console.log('✅ Dashboard cargado correctamente con CSS');
-    
+    }
     async loadProximoGP() {
         // VERIFICAR primero que window.supabase existe
         if (!window.supabase || !window.supabase.from) {
