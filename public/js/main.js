@@ -512,6 +512,14 @@ async function manejarLogin() {
 }
 
 async function manejarRegistro() {
+    // ← AÑADIR ESTO al PRINCIPIO
+    const btnRegistro = document.getElementById('btn-register-submit');
+    if (btnRegistro) {
+        btnRegistro.disabled = true;
+        btnRegistro.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CREANDO CUENTA...';
+    }
+    // ← FIN AÑADIR
+    
     const supabase = window.supabase;
     if (!supabase) {
         mostrarErrorCritico('No se pudo conectar a la base de datos');
@@ -526,36 +534,50 @@ async function manejarRegistro() {
     
     if (!username || !email || !password) {
         mostrarMensaje('Por favor, completa todos los campos', errorDiv);
+        // ← AÑADIR: Rehabilitar botón si hay error
+        if (btnRegistro) {
+            btnRegistro.disabled = false;
+            btnRegistro.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+        }
         return;
     }
     
     if (password.length < 6) {
         mostrarMensaje('La contraseña debe tener al menos 6 caracteres', errorDiv);
+        // ← AÑADIR: Rehabilitar botón si hay error
+        if (btnRegistro) {
+            btnRegistro.disabled = false;
+            btnRegistro.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+        }
         return;
     }
     
     try {
         console.log('📝 Registrando usuario:', email);
-        
-        // ← PRIMERO: Verificar si la escudería ya existe
+        // ← AÑADIR ESTO: Verificar si YA EXISTE una escudería con ese nombre exacto
         console.log('🔍 Verificando si la escudería ya existe...');
         const { data: escuderiaExistente, error: escuderiaError } = await supabase
             .from('escuderias')
             .select('id, nombre')
-            .eq('nombre', username)
-            .maybeSingle();
+            .eq('nombre', username)  // ← Buscar por nombre EXACTO
+            .maybeSingle();  // ← Devuelve un solo resultado o null
         
         if (escuderiaError) {
             console.error('Error verificando escudería:', escuderiaError);
+            // Continuamos igual, no detenemos por error de consulta
         }
         
-        // ← Si YA EXISTE, mostrar error y SALIR
+        // ← AÑADIR: Si YA EXISTE una escudería con ese nombre, mostrar error
         if (escuderiaExistente) {
             mostrarMensaje('❌ Ya existe una escudería con ese nombre. Por favor, elige otro nombre único.', errorDiv);
-            return; // ← SALIR aquí
+            // ← AÑADIR: Rehabilitar botón
+            if (btnRegistro) {
+                btnRegistro.disabled = false;
+                btnRegistro.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+            }
+            return; // ← IMPORTANTE: Detener el registro aquí
         }
-        
-        // ← SOLO si la escudería NO existe, proceder con registro
+        // ← FIN AÑADIR      
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
@@ -576,12 +598,13 @@ async function manejarRegistro() {
         console.log('✅ Usuario creado en Auth:', authData.user?.id);
         await new Promise(resolve => setTimeout(resolve, 1000));
         
+        // ← AÑADIR EN SU LUGAR: Siempre crear la escudería después del registro exitoso
         console.log('🏎️ Creando nueva escudería...');
         const { data: nuevaEscuderia, error: escError } = await supabase
             .from('escuderias')
             .insert([{
                 user_id: authData.user.id,
-                nombre: username,
+                nombre: username,  // ← CAMBIAR: Usar el username directamente
                 dinero: 5000000,
                 puntos: 0,
                 ranking: 999,
@@ -600,9 +623,11 @@ async function manejarRegistro() {
         
         console.log('✅ Escudería creada exitosamente:', nuevaEscuderia.id);
         
+        // Crear stats del coche
         await supabase
             .from('coches_stats')
             .insert([{ escuderia_id: nuevaEscuderia.id }]);
+        // ← FIN AÑADIR
         
         mostrarMensaje('✅ ¡Cuenta creada! Revisa tu correo para confirmarla.', successDiv);
         
@@ -614,7 +639,7 @@ async function manejarRegistro() {
         let mensajeError = error.message || 'Error creando la cuenta';
         
         if (error.message.includes('already registered')) {
-            mensajeError = 'Este correo ya está registrado';
+            mensajeError = '❌Este correo ya está registrado';
         } else if (error.message.includes('password')) {
             mensajeError = 'La contraseña no cumple los requisitos';
         } else if (error.message.includes('email')) {
@@ -624,9 +649,16 @@ async function manejarRegistro() {
         }
         
         mostrarMensaje(mensajeError, errorDiv);
+        
+    } finally {
+        // ← AÑADIR ESTO al FINAL (después del catch)
+        if (btnRegistro) {
+            btnRegistro.disabled = false;
+            btnRegistro.innerHTML = '<i class="fas fa-check-circle"></i> CREAR CUENTA';
+        }
+        // ← FIN AÑADIR
     }
 }
-
 function mostrarMensaje(mensaje, elemento) {
     if (elemento) {
         elemento.textContent = mensaje;
