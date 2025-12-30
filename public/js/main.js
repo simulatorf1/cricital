@@ -3698,13 +3698,11 @@ class F1Manager {
                         <section class="panel-pilotos">
                             <div class="section-header">
                                 <h2><i class="fas fa-user"></i> TUS EQUIPO TÉCNICO</h2>
-
                             </div>
                             <div id="pilotos-container" class="pilotos-container">
                                 <div class="empty-state">
                                     <i class="fas fa-user-slash"></i>
                                     <p>No tienes estrategas contratados</p>
-
                                 </div>
                             </div>
                         </section>
@@ -3766,7 +3764,6 @@ class F1Manager {
                                     <div class="empty-state">
                                         <i class="fas fa-industry"></i>
                                         <p>No hay producción en curso</p>
-                                        
                                     </div>
                                 </div>
                             </div>
@@ -3892,7 +3889,7 @@ class F1Manager {
                 });
             </script>
         `;
-
+    
         // 2. INICIALIZAR SISTEMAS CRÍTICOS INMEDIATAMENTE
         setTimeout(async () => {
             console.log('🔧 Inicializando sistemas críticos del dashboard...');
@@ -3987,28 +3984,27 @@ class F1Manager {
                 }, 500);
                 
             }, 400); // 400ms después de los sistemas críticos
-        
-        
-        
-        // 4. FINALMENTE cargar datos
-        const supabase = await this.esperarSupabase();
-        if (!supabase) {
-            console.error('❌ No se pudo cargar Supabase, usando datos de ejemplo');
-            this.proximoGP = {
-                nombre: 'Gran Premio de España',
-                fecha_inicio: new Date(Date.now() + 86400000 * 3).toISOString(),
-                circuito: 'Circuit de Barcelona-Catalunya'
-            };
-        } else {
-            await this.loadCarStatus();
-            await this.loadPilotosContratados();
-            await this.loadProximoGP();
-        }
-        
-        // 5. Configurar eventos
-        await this.cargarDatosDashboard();
-        console.log('✅ Dashboard cargado correctamente con CSS');
-    },1000);
+            
+            // 4. FINALMENTE cargar datos
+            const supabase = await this.esperarSupabase();
+            if (!supabase) {
+                console.error('❌ No se pudo cargar Supabase, usando datos de ejemplo');
+                this.proximoGP = {
+                    nombre: 'Gran Premio de España',
+                    fecha_inicio: new Date(Date.now() + 86400000 * 3).toISOString(),
+                    circuito: 'Circuit de Barcelona-Catalunya'
+                };
+            } else {
+                await this.loadCarStatus();
+                await this.loadPilotosContratados();
+                await this.loadProximoGP();
+            }
+            
+            // 5. Configurar eventos
+            await this.cargarDatosDashboard();
+            console.log('✅ Dashboard cargado correctamente con CSS');
+        }, 1000);
+    } // ← ESTA ES LA LLAVE DE CIERRE DEL MÉTODO cargarDashboardCompleto()
         
     async loadProximoGP() {
         // VERIFICAR primero que window.supabase existe
