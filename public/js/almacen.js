@@ -21,7 +21,7 @@ class AlmacenManager {
                 .from('almacen_piezas')
                 .select('*')
                 .eq('escuderia_id', this.escuderiaId)
-                .eq('estado', 'disponible')
+
                 .order('fabricada_en', { ascending: false }); // ← USAR 'fabricada_en'
 
             if (error) throw error;
@@ -56,6 +56,7 @@ class AlmacenManager {
                     calidad: 'Estándar',
                     equipada: false,
                     fabricada_en: new Date().toISOString()
+                    creada_en: new Date().toISOString()  // ← Añade esto también
                 }])
                 .select()
                 .single();
