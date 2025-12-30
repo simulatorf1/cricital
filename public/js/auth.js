@@ -23,79 +23,10 @@ class AuthManager {
         return false;
     }
 
-    async handleRegister(email, password, username, teamName) {
+    async handleRegisterOriginal(email, password, username, teamName) {
         try {
-            // 1. VALIDAR CAMPOS
-            if (!email || !password || !username || !teamName) {
-                this.showNotification('❌ Todos los campos son obligatorios', 'error');
-                return false;
-            }
-            
-            // 2. VALIDAR EMAIL (formato básico)
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                this.showNotification('❌ Email no válido', 'error');
-                return false;
-            }
-            
-            // 3. VALIDAR PASSWORD
-            if (password.length < 6) {
-                this.showNotification('❌ La contraseña debe tener al menos 6 caracteres', 'error');
-                return false;
-            }
-            
-            console.log('🔍 Validando disponibilidad...');
-            
-            // 4. VERIFICAR EMAIL EN AUTH (intento de login para ver si existe)
-            try {
-                const { error: checkEmailError } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: 'dummyPassword123' // Contraseña falsa para ver si el email existe
-                });
-                
-                // Si NO da error de "invalid credentials", es que el email existe
-                if (!checkEmailError || !checkEmailError.message.includes('Invalid')) {
-                    this.showNotification('❌ Este correo ya está registrado', 'error');
-                    return false;
-                }
-            } catch (e) {
-                // Error esperado - email no existe, continuar
-            }
-            
-            // 5. VERIFICAR NOMBRE DE ESCUDERÍA
-            const { data: teamCheck, error: teamError } = await supabase
-                .from('escuderias')
-                .select('nombre')
-                .eq('nombre', teamName.trim())
-                .maybeSingle();
-            
-            if (teamError) {
-                console.error('Error verificando escudería:', teamError);
-            }
-            
-            if (teamCheck) {
-                this.showNotification(`❌ "${teamName}" ya está en uso`, 'error');
-                return false;
-            }
-            
-            // 6. VERIFICAR NOMBRE DE USUARIO
-            const { data: userCheck, error: userError } = await supabase
-                .from('users')
-                .select('username')
-                .eq('username', username.trim())
-                .maybeSingle();
-            
-            if (userError) {
-                console.error('Error verificando usuario:', userError);
-            }
-            
-            if (userCheck) {
-                this.showNotification(`❌ El usuario "${username}" ya existe`, 'error');
-                return false;
-            }
-            
-            // 7. REGISTRAR USUARIO EN AUTH
-            console.log('✅ Validaciones pasadas, registrando...');
+            // Esta función SOLO registra, NO valida (ya se validó antes)
+            console.log('🚀 Registrando usuario validado...');
             
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: email,
@@ -109,111 +40,51 @@ class AuthManager {
                 }
             });
     
-            if (authError) {
-                if (authError.message.includes('already registered')) {
-                    this.showNotification('❌ Este correo ya está registrado', 'error');
-                } else {
-                    this.showNotification('❌ Error en registro: ' + authError.message, 'error');
-                }
-                return false;
-            }
+            if (authError) throw authError;
     
-            if (!authData.user) {
-                this.showNotification('❌ Error creando usuario', 'error');
-                return false;
-            }
-    
-            console.log('✅ Usuario Auth creado:', authData.user.id);
-            
-            // 8. CREAR USUARIO EN TABLA PÚBLICA
-            const { error: userCreateError } = await supabase
-                .from('users')
-                .insert([{
-                    id: authData.user.id,
-                    username: username,
-                    email: email,
-                    created_at: new Date().toISOString(),
-                    last_login: new Date().toISOString()
-                }]);
-            
-            if (userCreateError) {
-                console.warn('⚠️ No se pudo crear usuario público:', userCreateError);
-                // No es crítico, continuamos
-            }
-            
-            console.log('✅ Usuario público creado');
-            
-            // 9. CREAR ESCUDERÍA (ESTO ES LO MÁS IMPORTANTE)
-            const { data: nuevaEscuderia, error: escError } = await supabase
-                .from('escuderias')
-                .insert([{
-                    user_id: authData.user.id,
-                    nombre: teamName,
-                    dinero: 5000000,
-                    puntos: 0,
-                    ranking: 999,
-                    nivel_ingenieria: 1,
-                    color_principal: '#e10600',
-                    color_secundario: '#ffffff',
-                    creada_en: new Date().toISOString()
-                }])
-                .select()
-                .single();
-            
-            if (escError) {
-                console.error('❌ ERROR CRÍTICO creando escudería:', escError);
-                this.showNotification('❌ Error creando tu equipo. Contacta soporte.', 'error');
-                
-                // Intentar eliminar el usuario de Auth si falló
-                try {
-                    await supabase.auth.admin.deleteUser(authData.user.id);
-                } catch (e) {
-                    console.error('No se pudo limpiar usuario fallido:', e);
-                }
-                
-                return false;
-            }
-            
-            console.log('✅ Escudería creada:', nuevaEscuderia.id);
-            
-            // 10. CREAR STATS DEL COCHE
-            const { error: statsError } = await supabase
-                .from('coches_stats')
-                .insert([{ escuderia_id: nuevaEscuderia.id }]);
-            
-            if (statsError) {
-                console.warn('⚠️ No se crearon stats del coche:', statsError);
-                // No es crítico
-            }
-            
-            console.log('✅ Registro COMPLETO exitoso');
-            
-            // 11. MOSTRAR ÉXITO Y REDIRIGIR
-            this.showNotification('✅ ¡Registro exitoso! Revisa tu email para confirmar.', 'success');
-            
-            // Opcional: auto-login después de registro
-            setTimeout(async () => {
-                try {
-                    const { error: loginError } = await supabase.auth.signInWithPassword({
+            if (authData.user) {
+                // Crear usuario en tabla pública
+                await supabase
+                    .from('users')
+                    .insert([{
+                        id: authData.user.id,
+                        username: username,
                         email: email,
-                        password: password
-                    });
-                    
-                    if (!loginError) {
-                        location.reload();
-                    }
-                } catch (e) {
-                    console.log('Auto-login falló, mostrando pantalla login');
-                    this.showAuthModal();
-                }
-            }, 2000);
-            
-            return true;
+                        created_at: new Date().toISOString()
+                    }]);
+                
+                // Crear escudería (ya validamos que el nombre está disponible)
+                const { data: escuderia, error: escError } = await supabase
+                    .from('escuderias')
+                    .insert([{
+                        user_id: authData.user.id,
+                        nombre: teamName,
+                        dinero: 5000000,
+                        puntos: 0,
+                        ranking: 999,
+                        nivel_ingenieria: 1,
+                        color_principal: '#e10600',
+                        color_secundario: '#ffffff',
+                        creada_en: new Date().toISOString()
+                    }])
+                    .select()
+                    .single();
+                
+                if (escError) throw escError;
+                
+                // Crear stats del coche
+                await supabase
+                    .from('coches_stats')
+                    .insert([{ escuderia_id: escuderia.id }]);
+                
+                return true;
+            }
     
-        } catch (error) {
-            console.error('❌ Error fatal en registro:', error);
-            this.showNotification('❌ Error crítico en el registro', 'error');
             return false;
+            
+        } catch (error) {
+            console.error('❌ Error en registro:', error);
+            throw error;
         }
     }
 
