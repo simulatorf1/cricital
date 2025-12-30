@@ -3506,53 +3506,34 @@ class F1Manager {
     }
     
      // AÑADE ESTE MÉTODO DENTRO DE LA CLASE F1Manager en main.js
-    async crearDatosInicialesSiFaltan() {
-        console.log('🔍 Verificando datos del usuario...');
+async crearDatosInicialesSiFaltan() {
+    console.log('🔍 Cargando datos del usuario...');
+    
+    try {
+        // SOLO CARGAR escudería existente
+        const { data: escuderia, error } = await this.supabase
+            .from('escuderias')
+            .select('*')
+            .eq('user_id', this.user.id)
+            .single(); // ← .single() NO .maybeSingle()
         
-        try {
-            // 1. Verificar si ya tiene escudería
-            const { data: escuderiaExistente, error: escError } = await this.supabase
-                .from('escuderias')
-                .select('*')
-                .eq('user_id', this.user.id)
-                .maybeSingle();
-            
-            if (escError) {
-                console.error('❌ Error verificando escudería:', escError);
-                return false;
-            }
-            
-            if (!escuderiaExistente) {
-                console.error('❌ ERROR CRÍTICO: Usuario no tiene escudería');
-                this.showNotification('❌ Tu equipo no fue creado correctamente. Contacta soporte.', 'error');
-                return false;
-            }
-            
-            // 2. Asignar escudería
-            this.escuderia = escuderiaExistente;
-            console.log('✅ Escudería cargada:', escuderiaExistente.nombre);
-            
-            // 3. Verificar stats del coche
-            const { data: statsExistentes } = await this.supabase
-                .from('coches_stats')
-                .select('*')
-                .eq('escuderia_id', this.escuderia.id)
-                .maybeSingle();
-            
-            if (!statsExistentes) {
-                console.log('📊 Creando stats del coche...');
-                await this.supabase
-                    .from('coches_stats')
-                    .insert([{ escuderia_id: this.escuderia.id }]);
-            }
-            
-            return true;
-            
-        } catch (error) {
-            console.error('❌ Error fatal en crearDatosInicialesSiFaltan:', error);
+        if (error) {
+            console.error('❌ ERROR: Usuario no tiene escudería:', error);
+            this.showNotification('❌ Tu equipo no existe. Contacta soporte.', 'error');
             return false;
         }
+        
+        // Asignar escudería
+        this.escuderia = escuderia;
+        console.log('✅ Escudería cargada:', escuderia.nombre);
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Error cargando datos:', error);
+        return false;
     }
+}
     async cargarCarStats() {
         if (!this.escuderia) return;
         
