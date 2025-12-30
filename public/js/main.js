@@ -536,25 +536,26 @@ async function manejarRegistro() {
     
     try {
         console.log('📝 Registrando usuario:', email);
-        // ← AÑADIR ESTO: Verificar si YA EXISTE una escudería con ese nombre exacto
+        
+        // ← PRIMERO: Verificar si la escudería ya existe
         console.log('🔍 Verificando si la escudería ya existe...');
         const { data: escuderiaExistente, error: escuderiaError } = await supabase
             .from('escuderias')
             .select('id, nombre')
-            .eq('nombre', username)  // ← Buscar por nombre EXACTO
-            .maybeSingle();  // ← Devuelve un solo resultado o null
+            .eq('nombre', username)
+            .maybeSingle();
         
         if (escuderiaError) {
             console.error('Error verificando escudería:', escuderiaError);
-            // Continuamos igual, no detenemos por error de consulta
         }
         
-        // ← AÑADIR: Si YA EXISTE una escudería con ese nombre, mostrar error
+        // ← Si YA EXISTE, mostrar error y SALIR
         if (escuderiaExistente) {
             mostrarMensaje('❌ Ya existe una escudería con ese nombre. Por favor, elige otro nombre único.', errorDiv);
-            return; // ← IMPORTANTE: Detener el registro aquí
+            return; // ← SALIR aquí
         }
-        // ← FIN AÑADIR      
+        
+        // ← SOLO si la escudería NO existe, proceder con registro
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
@@ -575,13 +576,12 @@ async function manejarRegistro() {
         console.log('✅ Usuario creado en Auth:', authData.user?.id);
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // ← AÑADIR EN SU LUGAR: Siempre crear la escudería después del registro exitoso
         console.log('🏎️ Creando nueva escudería...');
         const { data: nuevaEscuderia, error: escError } = await supabase
             .from('escuderias')
             .insert([{
                 user_id: authData.user.id,
-                nombre: username,  // ← CAMBIAR: Usar el username directamente
+                nombre: username,
                 dinero: 5000000,
                 puntos: 0,
                 ranking: 999,
@@ -600,11 +600,9 @@ async function manejarRegistro() {
         
         console.log('✅ Escudería creada exitosamente:', nuevaEscuderia.id);
         
-        // Crear stats del coche
         await supabase
             .from('coches_stats')
             .insert([{ escuderia_id: nuevaEscuderia.id }]);
-        // ← FIN AÑADIR
         
         mostrarMensaje('✅ ¡Cuenta creada! Revisa tu correo para confirmarla.', successDiv);
         
