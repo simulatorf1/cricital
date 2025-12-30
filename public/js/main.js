@@ -110,8 +110,8 @@ function mostrarPantallaLogin() {
         <div class="login-screen">
             <div class="login-container">
                 <div class="login-header">
-                    <h1>F1 MANAGER E-STRATEGY</h1>
-                    <p>Gestiona tu escudería de Fórmula 1</p>
+                    <h1>MOTORSPORT MANAGER E-STRATEGY</h1>
+                    <p>Gestiona tu escudería de MotorSport</p>
                 </div>
                 
                 <div id="login-error" class="error-message"></div>
