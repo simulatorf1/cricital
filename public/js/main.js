@@ -1989,10 +1989,12 @@ class F1Manager {
                             </button>
                         ` : '<div class="spacer"></div>'}
                         
-                        <button class="btn-tutorial-next-large" id="btn-tutorial-next-large">
-                            ${step.action === 'comenzarJuegoReal' ? '¡EMPEZAR A COMPETIR!' : 'SIGUIENTE'}
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
+                        ${step.action ? `
+                            <button class="btn-tutorial-next-large" id="btn-tutorial-next-large">
+                                ${step.action === 'comenzarJuegoReal' ? '¡EMPEZAR A COMPETIR!' : 'SIGUIENTE'}
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             </div>
