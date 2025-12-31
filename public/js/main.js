@@ -205,16 +205,9 @@ function mostrarPantallaLogin() {
                 font-size: 0.9rem;
             }
             
-            .password-input-container {
-                position: relative;
-                display: flex;
-                align-items: center;
-            }
-            
-            .password-input-container input {
+            .form-group input {
                 width: 100%;
                 padding: 12px;
-                padding-right: 45px;
                 background: rgba(255,255,255,0.1);
                 border: 1px solid rgba(255,255,255,0.2);
                 border-radius: 5px;
@@ -228,27 +221,33 @@ function mostrarPantallaLogin() {
                 border-color: #00d2be;
             }
             
+            .password-input-container {
+                position: relative;
+            }
+            
+            .password-input-container input {
+                padding-right: 45px;
+            }
+            
             .toggle-password {
                 position: absolute;
                 right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
                 background: transparent;
                 border: none;
                 color: #aaa;
                 cursor: pointer;
-                padding: 5px;
+                padding: 0;
+                width: 24px;
+                height: 24px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                width: 30px;
-                height: 30px;
             }
             
             .toggle-password:hover {
                 color: #00d2be;
-            }
-            
-            .toggle-password i {
-                font-size: 1rem;
             }
             
             .login-buttons {
@@ -474,16 +473,9 @@ function mostrarPantallaRegistro() {
                 font-size: 0.9rem;
             }
             
-            .password-input-container {
-                position: relative;
-                display: flex;
-                align-items: center;
-            }
-            
-            .password-input-container input {
+            .form-group input {
                 width: 100%;
                 padding: 12px;
-                padding-right: 45px;
                 background: rgba(255,255,255,0.1);
                 border: 1px solid rgba(255,255,255,0.2);
                 border-radius: 5px;
@@ -497,27 +489,33 @@ function mostrarPantallaRegistro() {
                 border-color: #e10600;
             }
             
+            .password-input-container {
+                position: relative;
+            }
+            
+            .password-input-container input {
+                padding-right: 45px;
+            }
+            
             .toggle-password {
                 position: absolute;
                 right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
                 background: transparent;
                 border: none;
                 color: #aaa;
                 cursor: pointer;
-                padding: 5px;
+                padding: 0;
+                width: 24px;
+                height: 24px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                width: 30px;
-                height: 30px;
             }
             
             .toggle-password:hover {
                 color: #00d2be;
-            }
-            
-            .toggle-password i {
-                font-size: 1rem;
             }
             
             .register-button {
