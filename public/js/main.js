@@ -124,7 +124,12 @@ function mostrarPantallaLogin() {
                     </div>
                     <div class="form-group">
                         <label for="login-password">Contraseña</label>
-                        <input type="password" id="login-password" placeholder="••••••••">
+                        <div class="password-input-container">
+                            <input type="password" id="login-password" placeholder="••••••••">
+                            <button type="button" class="toggle-password" id="toggle-login-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -200,9 +205,16 @@ function mostrarPantallaLogin() {
                 font-size: 0.9rem;
             }
             
-            .form-group input {
+            .password-input-container {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            
+            .password-input-container input {
                 width: 100%;
                 padding: 12px;
+                padding-right: 45px;
                 background: rgba(255,255,255,0.1);
                 border: 1px solid rgba(255,255,255,0.2);
                 border-radius: 5px;
@@ -214,6 +226,29 @@ function mostrarPantallaLogin() {
             .form-group input:focus {
                 outline: none;
                 border-color: #00d2be;
+            }
+            
+            .toggle-password {
+                position: absolute;
+                right: 12px;
+                background: transparent;
+                border: none;
+                color: #aaa;
+                cursor: pointer;
+                padding: 5px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+            }
+            
+            .toggle-password:hover {
+                color: #00d2be;
+            }
+            
+            .toggle-password i {
+                font-size: 1rem;
             }
             
             .login-buttons {
@@ -305,6 +340,20 @@ function mostrarPantallaLogin() {
     document.getElementById('login-password').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') manejarLogin();
     });
+    
+    // Configurar botón para mostrar/ocultar contraseña
+    document.getElementById('toggle-login-password').addEventListener('click', function() {
+        const passwordInput = document.getElementById('login-password');
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            passwordInput.type = 'password';
+            icon.className = 'fas fa-eye';
+        }
+    });
 }
 
 function mostrarPantallaRegistro() {
@@ -335,7 +384,12 @@ function mostrarPantallaRegistro() {
                     </div>
                     <div class="form-group">
                         <label for="register-password">Contraseña</label>
-                        <input type="password" id="register-password" placeholder="•••••••• (mínimo 6 caracteres)">
+                        <div class="password-input-container">
+                            <input type="password" id="register-password" placeholder="•••••••• (mínimo 6 caracteres)">
+                            <button type="button" class="toggle-password" id="toggle-register-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -420,9 +474,16 @@ function mostrarPantallaRegistro() {
                 font-size: 0.9rem;
             }
             
-            .form-group input {
+            .password-input-container {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            
+            .password-input-container input {
                 width: 100%;
                 padding: 12px;
+                padding-right: 45px;
                 background: rgba(255,255,255,0.1);
                 border: 1px solid rgba(255,255,255,0.2);
                 border-radius: 5px;
@@ -434,6 +495,29 @@ function mostrarPantallaRegistro() {
             .form-group input:focus {
                 outline: none;
                 border-color: #e10600;
+            }
+            
+            .toggle-password {
+                position: absolute;
+                right: 12px;
+                background: transparent;
+                border: none;
+                color: #aaa;
+                cursor: pointer;
+                padding: 5px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+            }
+            
+            .toggle-password:hover {
+                color: #00d2be;
+            }
+            
+            .toggle-password i {
+                font-size: 1rem;
             }
             
             .register-button {
@@ -474,6 +558,20 @@ function mostrarPantallaRegistro() {
     // Configurar eventos
     document.getElementById('btn-back').addEventListener('click', mostrarPantallaLogin);
     document.getElementById('btn-register-submit').addEventListener('click', manejarRegistro);
+    
+    // Configurar botón para mostrar/ocultar contraseña en registro
+    document.getElementById('toggle-register-password').addEventListener('click', function() {
+        const passwordInput = document.getElementById('register-password');
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            passwordInput.type = 'password';
+            icon.className = 'fas fa-eye';
+        }
+    });
 }
 
 async function manejarLogin() {
