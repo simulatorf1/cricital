@@ -4665,209 +4665,209 @@ class F1Manager {
                 }
             }
             
-            /* ===== NUEVAS CLASES ===== */
-            .estrategas-grid {
-                display: grid !important;
-                grid-template-columns: repeat(4, 1fr) !important;
-                gap: 12px !important;
-                margin-top: 15px !important;
-                margin-bottom: 20px !important;
-            }
-            
-            .estratega-slot {
-                background: rgba(255, 255, 255, 0.03) !important;
-                border: 2px dashed rgba(255, 255, 255, 0.1) !important;
-                border-radius: 10px !important;
-                height: 100px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                min-height: 100px !important;
-                transition: all 0.3s !important;
-            }
-            
-            .estratega-slot:hover {
-                border-color: rgba(0, 210, 190, 0.3) !important;
-                background: rgba(0, 210, 190, 0.05) !important;
-            }
-            
-            .estratega-slot.contratado {
-                border: 2px solid rgba(0, 210, 190, 0.5) !important;
-                background: rgba(0, 210, 190, 0.1) !important;
-                border-style: solid !important;
-            }
-            
-            /* ===== MONITOR DE PRODUCCIÓN SIMPLIFICADO ===== */
-            .alerta-produccion-lista {
-                background: linear-gradient(135deg, rgba(0, 210, 190, 0.15), rgba(0, 210, 190, 0.05)) !important;
-                border: 1px solid #00d2be !important;
-                border-radius: 10px !important;
-                padding: 12px 15px !important;
-                display: flex !important;
-                align-items: center !important;
-                gap: 12px !important;
-                animation: pulse 2s infinite !important;
-                margin-top: 10px !important;
-            }
-            
-            .estado-produccion-activa {
-                background: rgba(255, 255, 255, 0.03) !important;
-                border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                border-radius: 10px !important;
-                padding: 12px 15px !important;
-                display: flex !important;
-                align-items: center !important;
-                gap: 12px !important;
-                color: #888 !important;
-                margin-top: 10px !important;
-            }
-            
-            .sin-produccion {
-                background: rgba(255, 255, 255, 0.02) !important;
-                border: 1px solid rgba(255, 255, 255, 0.05) !important;
-                border-radius: 10px !important;
-                padding: 15px !important;
-                text-align: center !important;
-                color: #666 !important;
-                margin-top: 10px !important;
-            }
-            
-            .alerta-icono, .produccion-icono, .sin-produccion-icono {
-                width: 40px !important;
-                height: 40px !important;
-                border-radius: 50% !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                font-size: 1.2rem !important;
-            }
-            
-            .alerta-icono {
-                background: rgba(0, 210, 190, 0.2) !important;
-                color: #00d2be !important;
-            }
-            
-            .produccion-icono {
-                background: rgba(255, 255, 255, 0.1) !important;
-                color: #888 !important;
-            }
-            
-            .sin-produccion-icono {
-                background: rgba(255, 255, 255, 0.05) !important;
-                color: #666 !important;
-            }
-            
-            .alerta-contenido, .produccion-info {
-                flex: 1 !important;
-            }
-            
-            .alerta-titulo {
-                color: white !important;
-                font-weight: bold !important;
-                font-size: 0.95rem !important;
-            }
-            
-            .alerta-desc, .produccion-subtexto, .sin-produccion-texto {
-                font-size: 0.85rem !important;
-                color: #aaa !important;
-            }
-            
-            .btn-recoger-produccion {
-                background: #00d2be !important;
-                color: white !important;
-                border: none !important;
-                width: 36px !important;
-                height: 36px !important;
-                border-radius: 50% !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                cursor: pointer !important;
-                transition: transform 0.2s !important;
-            }
-            
-            .btn-recoger-produccion:hover {
-                transform: scale(1.1) !important;
-            }
-            
-            /* ===== ÁREAS DEL COCHE (11 SIN BOTONES) ===== */
-            .areas-coche {
-                display: grid !important;
-                grid-template-columns: repeat(4, 1fr) !important;
-                gap: 12px !important;
-                margin-top: 15px !important;
-            }
-            
-            .area-slot {
-                background: rgba(255, 255, 255, 0.03) !important;
-                border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                border-radius: 8px !important;
-                padding: 10px !important;
-                text-align: center !important;
-                min-height: 80px !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                transition: all 0.3s !important;
-            }
-            
-            .area-slot:hover {
-                border-color: rgba(255, 255, 255, 0.2) !important;
-                background: rgba(255, 255, 255, 0.05) !important;
-            }
-            
-            .area-icon {
-                font-size: 1.5rem !important;
-                margin-bottom: 8px !important;
-                color: #00d2be !important;
-            }
-            
-            .area-info {
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 5px !important;
-            }
-            
-            .area-nombre {
-                font-size: 0.9rem !important;
-                color: white !important;
-                font-weight: bold !important;
-            }
-            
-            .area-puntos {
-                font-size: 0.8rem !important;
-                color: #00d2be !important;
-                font-weight: bold !important;
-                background: rgba(0, 210, 190, 0.1) !important;
-                padding: 3px 8px !important;
-                border-radius: 10px !important;
-                display: inline-block !important;
-            }
-            
-            .area-vacio {
-                font-size: 0.8rem !important;
-                color: #888 !important;
-                font-style: italic !important;
-            }
-            
-            /* ===== ANIMACIONES ===== */
-            @keyframes pulse {
-                0% { box-shadow: 0 0 0 0 rgba(0, 210, 190, 0.4); }
-                70% { box-shadow: 0 0 0 10px rgba(0, 210, 190, 0); }
-                100% { box-shadow: 0 0 0 0 rgba(0, 210, 190, 0); }
-            }
-            
-            .error-produccion {
-                background: rgba(255, 0, 0, 0.1) !important;
-                border: 1px solid #ff4444 !important;
-                border-radius: 10px !important;
-                padding: 12px !important;
-                display: flex !important;
-                align-items: center !important;
-                gap: 10px !important;
-                color: #ff4444 !important;
-                margin-top: 10px !important;
-            }
+                /* ===== NUEVAS CLASES ===== */
+                .estrategas-grid {
+                    display: grid !important;
+                    grid-template-columns: repeat(4, 1fr) !important;
+                    gap: 12px !important;
+                    margin-top: 15px !important;
+                    margin-bottom: 20px !important;
+                }
+                
+                .estratega-slot {
+                    background: rgba(255, 255, 255, 0.03) !important;
+                    border: 2px dashed rgba(255, 255, 255, 0.1) !important;
+                    border-radius: 10px !important;
+                    height: 100px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    min-height: 100px !important;
+                    transition: all 0.3s !important;
+                }
+                
+                .estratega-slot:hover {
+                    border-color: rgba(0, 210, 190, 0.3) !important;
+                    background: rgba(0, 210, 190, 0.05) !important;
+                }
+                
+                .estratega-slot.contratado {
+                    border: 2px solid rgba(0, 210, 190, 0.5) !important;
+                    background: rgba(0, 210, 190, 0.1) !important;
+                    border-style: solid !important;
+                }
+                
+                /* ===== MONITOR DE PRODUCCIÓN SIMPLIFICADO ===== */
+                .alerta-produccion-lista {
+                    background: linear-gradient(135deg, rgba(0, 210, 190, 0.15), rgba(0, 210, 190, 0.05)) !important;
+                    border: 1px solid #00d2be !important;
+                    border-radius: 10px !important;
+                    padding: 12px 15px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 12px !important;
+                    animation: pulse 2s infinite !important;
+                    margin-top: 10px !important;
+                }
+                
+                .estado-produccion-activa {
+                    background: rgba(255, 255, 255, 0.03) !important;
+                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                    border-radius: 10px !important;
+                    padding: 12px 15px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 12px !important;
+                    color: #888 !important;
+                    margin-top: 10px !important;
+                }
+                
+                .sin-produccion {
+                    background: rgba(255, 255, 255, 0.02) !important;
+                    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+                    border-radius: 10px !important;
+                    padding: 15px !important;
+                    text-align: center !important;
+                    color: #666 !important;
+                    margin-top: 10px !important;
+                }
+                
+                .alerta-icono, .produccion-icono, .sin-produccion-icono {
+                    width: 40px !important;
+                    height: 40px !important;
+                    border-radius: 50% !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    font-size: 1.2rem !important;
+                }
+                
+                .alerta-icono {
+                    background: rgba(0, 210, 190, 0.2) !important;
+                    color: #00d2be !important;
+                }
+                
+                .produccion-icono {
+                    background: rgba(255, 255, 255, 0.1) !important;
+                    color: #888 !important;
+                }
+                
+                .sin-produccion-icono {
+                    background: rgba(255, 255, 255, 0.05) !important;
+                    color: #666 !important;
+                }
+                
+                .alerta-contenido, .produccion-info {
+                    flex: 1 !important;
+                }
+                
+                .alerta-titulo {
+                    color: white !important;
+                    font-weight: bold !important;
+                    font-size: 0.95rem !important;
+                }
+                
+                .alerta-desc, .produccion-subtexto, .sin-produccion-texto {
+                    font-size: 0.85rem !important;
+                    color: #aaa !important;
+                }
+                
+                .btn-recoger-produccion {
+                    background: #00d2be !important;
+                    color: white !important;
+                    border: none !important;
+                    width: 36px !important;
+                    height: 36px !important;
+                    border-radius: 50% !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    cursor: pointer !important;
+                    transition: transform 0.2s !important;
+                }
+                
+                .btn-recoger-produccion:hover {
+                    transform: scale(1.1) !important;
+                }
+                
+                /* ===== ÁREAS DEL COCHE (11 SIN BOTONES) ===== */
+                .areas-coche {
+                    display: grid !important;
+                    grid-template-columns: repeat(4, 1fr) !important;
+                    gap: 12px !important;
+                    margin-top: 15px !important;
+                }
+                
+                .area-slot {
+                    background: rgba(255, 255, 255, 0.03) !important;
+                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                    border-radius: 8px !important;
+                    padding: 10px !important;
+                    text-align: center !important;
+                    min-height: 80px !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    justify-content: center !important;
+                    transition: all 0.3s !important;
+                }
+                
+                .area-slot:hover {
+                    border-color: rgba(255, 255, 255, 0.2) !important;
+                    background: rgba(255, 255, 255, 0.05) !important;
+                }
+                
+                .area-icon {
+                    font-size: 1.5rem !important;
+                    margin-bottom: 8px !important;
+                    color: #00d2be !important;
+                }
+                
+                .area-info {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 5px !important;
+                }
+                
+                .area-nombre {
+                    font-size: 0.9rem !important;
+                    color: white !important;
+                    font-weight: bold !important;
+                }
+                
+                .area-puntos {
+                    font-size: 0.8rem !important;
+                    color: #00d2be !important;
+                    font-weight: bold !important;
+                    background: rgba(0, 210, 190, 0.1) !important;
+                    padding: 3px 8px !important;
+                    border-radius: 10px !important;
+                    display: inline-block !important;
+                }
+                
+                .area-vacio {
+                    font-size: 0.8rem !important;
+                    color: #888 !important;
+                    font-style: italic !important;
+                }
+                
+                /* ===== ANIMACIONES ===== */
+                @keyframes pulse {
+                    0% { box-shadow: 0 0 0 0 rgba(0, 210, 190, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(0, 210, 190, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(0, 210, 190, 0); }
+                }
+                
+                .error-produccion {
+                    background: rgba(255, 0, 0, 0.1) !important;
+                    border: 1px solid #ff4444 !important;
+                    border-radius: 10px !important;
+                    padding: 12px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 10px !important;
+                    color: #ff4444 !important;
+                    margin-top: 10px !important;
+                }
             </style>
         // 2. INICIALIZAR SISTEMAS CRÍTICOS INMEDIATAMENTE
         setTimeout(async () => {
