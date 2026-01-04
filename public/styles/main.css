@@ -44,7 +44,7 @@ body {
     color: var(--f1-light);
     min-height: 100vh;
     overflow-x: hidden;
-    overflow-y: auto; /* ← CAMBIA ESTO */
+    overflow-y: auto;
     line-height: 1.6;
     position: fixed; /* ← AÑADE ESTO */
     top: 0; /* ← AÑADE ESTO */
@@ -53,6 +53,8 @@ body {
     bottom: 0; /* ← AÑADE ESTO */
     width: 100vw; /* ← AÑADE ESTO */
     height: 100vh; /* ← AÑADE ESTO */
+    -webkit-overflow-scrolling: touch; /* ← Añade esto */
+    background-attachment: fixed; /* ← Añade esto para fondo fijo */
 }
 
 /* ============================================
