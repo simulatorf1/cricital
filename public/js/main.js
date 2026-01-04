@@ -5098,17 +5098,16 @@ class F1Manager {
         const container = document.getElementById('areas-coche');
         if (!container) return;
         
-        // Asegurar que tenemos 11 áreas (de config.js)
         const areas = window.CAR_AREAS || [];
         
         container.innerHTML = areas.map(area => {
-            // Obtener pieza montada (debes adaptar esto a tu BD)
-            const piezaMontada = this.getPiezaMontada(area.id); // <-- MÉTODO NUEVO
+            const piezaMontada = this.getPiezaMontada ? this.getPiezaMontada(area.id) : null;
             
+            // SOLUCIÓN: Usar comillas dobles dentro del template literal
             return `
                 <div class="area-slot">
                     <div class="area-icon">
-                        <i class="${area.icon || 'fas fa-cog'}"></i>
+                        <i class="${area.icon || "fas fa-cog"}"></i>
                     </div>
                     <div class="area-info">
                         <div class="area-nombre">${area.name}</div>
