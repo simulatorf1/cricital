@@ -1829,23 +1829,22 @@ class F1Manager {
                     <p>Resultados de tu primera semana simulada:</p>
                     
                     <div class="resultados-grid">
-                        <div class="resultado-card ganancia">
-                            <div class="resultado-icon">✅</div>
-                            <div class="resultado-titulo">PRONÓSTICO ACERTADO</div>
+                        <div class="resultado-card ${(window.tutorialData?.aciertosPronosticos || 0) > 0 ? 'ganancia' : 'error'}">
+                            <div class="resultado-icon">${(window.tutorialData?.aciertosPronosticos || 0) > 0 ? '✅' : '❌'}</div>
+                            <div class="resultado-titulo">PRONÓSTICOS</div>
                             <div class="resultado-detalle">
                                 ${(() => {
-                                    const selecciones = window.tutorialData?.pronosticosSeleccionados || {};
-                                    const aciertos = window.tutorialData?.aciertosPronosticos || 2;
-                                    const total = window.tutorialData?.totalPronosticos || 3;
+                                    const aciertos = window.tutorialData?.aciertosPronosticos || 0;
+                                    const total = 3; // Siempre 3 pronósticos en el tutorial
                                     
                                     if (aciertos > 0) {
-                                        return `${aciertos} de ${total} pronósticos`;
+                                        return `${aciertos} de ${total} pronósticos acertados`;
                                     } else {
-                                        return 'Pronóstico acertado';
+                                        return 'Sin aciertos esta semana';
                                     }
                                 })()}
                             </div>
-                            <div class="resultado-puntos">+${(window.tutorialData?.aciertosPronosticos || 2) * 150} pts</div>
+                            <div class="resultado-puntos">+${window.tutorialData?.puntosBaseCalculados || 0} pts</div>
                         </div>
                         
                         ${window.tutorialData?.estrategaContratado ? `
@@ -1853,7 +1852,11 @@ class F1Manager {
                             <div class="resultado-icon">👥</div>
                             <div class="resultado-titulo">BONO ESTRATEGA</div>
                             <div class="resultado-detalle">${window.tutorialData.nombreEstratega || 'Estratega'} (+${window.tutorialData.bonoEstratega || 15}%)</div>
-                            <div class="resultado-puntos">+${Math.round(((window.tutorialData.aciertosPronosticos || 2) * 150) * ((window.tutorialData.bonoEstratega || 15) / 100))} pts extra</div>
+                            <div class="resultado-puntos">+${(() => {
+                                const puntosBase = window.tutorialData?.puntosBaseCalculados || 0;
+                                const bono = window.tutorialData?.bonoEstratega || 15;
+                                return Math.round(puntosBase * (bono / 100));
+                            })()} pts extra</div>
                         </div>
                         ` : ''}
                         
@@ -1861,28 +1864,113 @@ class F1Manager {
                         <div class="resultado-card pieza">
                             <div class="resultado-icon">🔧</div>
                             <div class="resultado-titulo">PIEZA FABRICADA</div>
-                            <div class="resultado-detalle">${window.tutorialData.nombrePieza || 'Pieza'} (+${window.tutorialData.puntosPieza || '15'} pts)</div>
-                            <div class="resultado-puntos">+${window.tutorialData.puntosPieza || '15'} pts técnicos</div>
+                            <div class="resultado-detalle">${window.tutorialData.nombrePieza || 'Pieza'}</div>
+                            <div class="resultado-puntos">+${window.tutorialData?.puntosPieza || 15} pts técnicos</div>
                         </div>
                         ` : ''}
                     </div>
                     
                     <div class="total-ganancias">
                         <div class="total-titulo">TOTAL SEMANAL:</div>
-                        <div class="total-puntos">187.5 PUNTOS</div>
-                        <div class="total-dinero">= 18,750€</div>
+                        <div class="total-puntos">${(() => {
+                            // Calcular puntos totales dinámicamente
+                            const puntosBase = window.tutorialData?.puntosBaseCalculados || 0;
+                            let puntosBono = 0;
+                            
+                            if (window.tutorialData?.estrategaContratado && puntosBase > 0) {
+                                const bono = window.tutorialData?.bonoEstratega || 15;
+                                puntosBono = Math.round(puntosBase * (bono / 100));
+                            }
+                            
+                            const puntosPieza = window.tutorialData?.piezaFabricando ? 
+                                (window.tutorialData?.puntosPieza || 15) : 0;
+                            
+                            const total = puntosBase + puntosBono + puntosPieza;
+                            return total.toFixed(1);
+                        })()} PUNTOS</div>
+                        <div class="total-dinero">= ${(() => {
+                            // Calcular dinero (1 punto = 100€)
+                            const puntosBase = window.tutorialData?.puntosBaseCalculados || 0;
+                            let puntosBono = 0;
+                            
+                            if (window.tutorialData?.estrategaContratado && puntosBase > 0) {
+                                const bono = window.tutorialData?.bonoEstratega || 15;
+                                puntosBono = Math.round(puntosBase * (bono / 100));
+                            }
+                            
+                            const puntosPieza = window.tutorialData?.piezaFabricando ? 
+                                (window.tutorialData?.puntosPieza || 15) : 0;
+                            
+                            const totalPuntos = puntosBase + puntosBono + puntosPieza;
+                            const dinero = totalPuntos * 100; // 1 punto = 100€
+                            return dinero.toLocaleString() + '€';
+                        })()}</div>
                         <div class="total-conversion">(1 punto = 100€)</div>
                     </div>
                     
                     <div class="nuevo-presupuesto">
                         <div class="presupuesto-inicial">Presupuesto inicial: 5,000,000€</div>
-                        <div class="presupuesto-ganancia">+ Ganancias: 18,750€</div>
-                        <div class="presupuesto-gastos">- Gastos: 150,000€</div>
-                        <div class="presupuesto-final">Nuevo presupuesto: <strong>4,868,750€</strong></div>
+                        <div class="presupuesto-ganancia">+ Ganancias: ${(() => {
+                            const puntosBase = window.tutorialData?.puntosBaseCalculados || 0;
+                            let puntosBono = 0;
+                            
+                            if (window.tutorialData?.estrategaContratado && puntosBase > 0) {
+                                const bono = window.tutorialData?.bonoEstratega || 15;
+                                puntosBono = Math.round(puntosBase * (bono / 100));
+                            }
+                            
+                            const puntosPieza = window.tutorialData?.piezaFabricando ? 
+                                (window.tutorialData?.puntosPieza || 15) : 0;
+                            
+                            const totalPuntos = puntosBase + puntosBono + puntosPieza;
+                            return (totalPuntos * 100).toLocaleString() + '€';
+                        })()}</div>
+                        <div class="presupuesto-gastos">- Gastos: ${(() => {
+                            // Gastos dinámicos
+                            let gastos = 0;
+                            if (window.tutorialData?.estrategaContratado) {
+                                gastos += 150000; // Salario estratega
+                            }
+                            if (window.tutorialData?.piezaFabricando) {
+                                gastos += 50000; // Costo fabricación
+                            }
+                            return gastos.toLocaleString() + '€';
+                        })()}</div>
+                        <div class="presupuesto-final">Nuevo presupuesto: <strong>${(() => {
+                            // Presupuesto final dinámico
+                            const inicial = 5000000;
+                            
+                            // Calcular ganancias
+                            const puntosBase = window.tutorialData?.puntosBaseCalculados || 0;
+                            let puntosBono = 0;
+                            
+                            if (window.tutorialData?.estrategaContratado && puntosBase > 0) {
+                                const bono = window.tutorialData?.bonoEstratega || 15;
+                                puntosBono = Math.round(puntosBase * (bono / 100));
+                            }
+                            
+                            const puntosPieza = window.tutorialData?.piezaFabricando ? 
+                                (window.tutorialData?.puntosPieza || 15) : 0;
+                            
+                            const totalPuntos = puntosBase + puntosBono + puntosPieza;
+                            const ganancias = totalPuntos * 100;
+                            
+                            // Calcular gastos
+                            let gastos = 0;
+                            if (window.tutorialData?.estrategaContratado) {
+                                gastos += 150000;
+                            }
+                            if (window.tutorialData?.piezaFabricando) {
+                                gastos += 50000;
+                            }
+                            
+                            const final = inicial + ganancias - gastos;
+                            return final.toLocaleString() + '€';
+                        })()}</strong></div>
                     </div>
                 `,
                 action: 'siguientePaso'
-            },
+            }
             
             // PASO 11: Tutorial completado
             {
@@ -5473,28 +5561,78 @@ class F1Manager {
     };
     
     window.tutorialSimularCarrera = function() {
+        // 1. Obtener las selecciones del usuario
+        const tutorialData = window.tutorialData || {};
+        const pronosticosSeleccionados = tutorialData.pronosticosSeleccionados || {};
+        
+        // 2. Definir resultados REALES de la simulación (puedes cambiarlos)
+        const resultadosReales = {
+            bandera: 'si',        // Sí hubo bandera amarilla
+            abandonos: '3-5',     // Hubo 3-5 abandonos
+            diferencia: '1-5s'    // Diferencia fue de 2.3s (1-5s)
+        };
+        
+        // 3. Calcular aciertos
+        let aciertos = 0;
+        let detalles = [];
+        
+        // Bandera amarilla
+        const banderaCorrecto = pronosticosSeleccionados.bandera === resultadosReales.bandera;
+        detalles.push(`<div class="resultado-item ${banderaCorrecto ? 'correcto' : 'incorrecto'}">
+            ${banderaCorrecto ? '✅' : '❌'} Bandera amarilla: ${pronosticosSeleccionados.bandera === 'si' ? 'SÍ' : 'NO'} 
+            (${banderaCorrecto ? 'correcto' : 'incorrecto, fue ' + (resultadosReales.bandera === 'si' ? 'SÍ' : 'NO')})
+        </div>`);
+        if (banderaCorrecto) aciertos++;
+        
+        // Abandonos
+        const abandonosCorrecto = pronosticosSeleccionados.abandonos === resultadosReales.abandonos;
+        detalles.push(`<div class="resultado-item ${abandonosCorrecto ? 'correcto' : 'incorrecto'}">
+            ${abandonosCorrecto ? '✅' : '❌'} Abandonos: ${pronosticosSeleccionados.abandonos} 
+            (${abandonosCorrecto ? 'correcto' : 'incorrecto, fue ' + resultadosReales.abandonos})
+        </div>`);
+        if (abandonosCorrecto) aciertos++;
+        
+        // Diferencia
+        const diferenciaCorrecto = pronosticosSeleccionados.diferencia === resultadosReales.diferencia;
+        detalles.push(`<div class="resultado-item ${diferenciaCorrecto ? 'correcto' : 'incorrecto'}">
+            ${diferenciaCorrecto ? '✅' : '❌'} Diferencia 1º-2º: ${pronosticosSeleccionados.diferencia} 
+            (${diferenciaCorrecto ? 'correcto' : 'incorrecto, fue ' + resultadosReales.diferencia})
+        </div>`);
+        if (diferenciaCorrecto) aciertos++;
+        
+        // 4. Guardar resultados para el PASO 10
+        tutorialData.aciertosPronosticos = aciertos;
+        tutorialData.totalPronosticos = 3;
+        tutorialData.resultadosReales = resultadosReales;
+        tutorialData.puntosBaseCalculados = (banderaCorrecto ? 150 : 0) + 
+                                            (abandonosCorrecto ? 180 : 0) + 
+                                            (diferenciaCorrecto ? 200 : 0);
+        
+        // 5. Mostrar resultados
         const resultados = document.getElementById('resultado-simulacion');
         if (resultados) {
             resultados.innerHTML = `
                 <div class="resultado-simulado">
                     <h4>📊 RESULTADOS DE LA SIMULACIÓN:</h4>
-                    <div class="resultado-item">✅ Bandera amarilla: SÍ (correcto)</div>
-                    <div class="resultado-item">✅ Abandonos: 3-5 (correcto)</div>
-                    <div class="resultado-item">❌ Diferencia 1º-2º: >5s (incorrecto, fue 2.3s)</div>
+                    ${detalles.join('')}
                     <div class="resumen-simulacion">
-                        <strong>2 de 3 pronósticos acertados (66.7%)</strong>
+                        <strong>${aciertos} de 3 pronósticos acertados (${Math.round(aciertos/3*100)}%)</strong>
+                    </div>
+                    <div class="puntos-simulacion">
+                        Puntos base obtenidos: <strong>${tutorialData.puntosBaseCalculados} pts</strong>
                     </div>
                 </div>
             `;
             resultados.style.display = 'block';
         }
-        // Notificación para carrera simulada
+        
+        // 6. Notificación
         const notifCarrera = document.createElement('div');
         notifCarrera.className = 'notification info';
         notifCarrera.innerHTML = `
             <div class="notification-content">
                 <i class="fas fa-flag-checkered"></i>
-                <span>🏁 Carrera simulada - 2 de 3 aciertos</span>
+                <span>🏁 Carrera simulada - ${aciertos} de 3 aciertos (${Math.round(aciertos/3*100)}%)</span>
             </div>
         `;
         document.body.appendChild(notifCarrera);
