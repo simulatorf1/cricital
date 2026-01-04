@@ -4942,14 +4942,21 @@ class F1Manager {
                         btn.addEventListener('click', (e) => {
                             e.preventDefault();
                             console.log('Clic en pestaña:', tabId);
+                            
                             if (window.tabManager && window.tabManager.switchTab) {
                                 window.tabManager.switchTab(tabId);
                             } else {
                                 // Fallback manual
-                                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                                document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+                                document.querySelectorAll('.tab-content').forEach(c => {
+                                    c.classList.remove('active');
+                                });
                                 
-                                const tabContent = document.getElementById(`tab-${tabId}`);
+                                document.querySelectorAll('[data-tab]').forEach(b => {
+                                    b.classList.remove('active');
+                                });
+                                
+                                // Usar concatenación en lugar de template literal
+                                const tabContent = document.getElementById('tab-' + tabId);
                                 if (tabContent) {
                                     tabContent.classList.add('active');
                                     btn.classList.add('active');
