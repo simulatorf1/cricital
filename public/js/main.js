@@ -5099,26 +5099,24 @@ class F1Manager {
         if (!container) return;
         
         const areas = window.CAR_AREAS || [];
-        
-        container.innerHTML = areas.map(area => {
+        const html = areas.map(area => {
             const piezaMontada = this.getPiezaMontada ? this.getPiezaMontada(area.id) : null;
             
-            // SOLUCIÓN: Usar comillas dobles dentro del template literal
-            return `
-                <div class="area-slot">
-                    <div class="area-icon">
-                        <i class="${area.icon || "fas fa-cog"}"></i>
-                    </div>
-                    <div class="area-info">
-                        <div class="area-nombre">${area.name}</div>
-                        ${piezaMontada ? 
-                            `<div class="area-puntos">${piezaMontada.puntos || 0} pts</div>` :
-                            '<div class="area-vacio">Vacío</div>'
-                        }
-                    </div>
-                </div>
-            `;
+            return '<div class="area-slot">' +
+                   '   <div class="area-icon">' +
+                   '       <i class="' + (area.icon || 'fas fa-cog') + '"></i>' +
+                   '   </div>' +
+                   '   <div class="area-info">' +
+                   '       <div class="area-nombre">' + area.name + '</div>' +
+                   (piezaMontada ? 
+                       '<div class="area-puntos">' + (piezaMontada.puntos || 0) + ' pts</div>' :
+                       '<div class="area-vacio">Vacío</div>'
+                   ) +
+                   '   </div>' +
+                   '</div>';
         }).join('');
+        
+        container.innerHTML = html;
     }
     
     // AÑADIR ESTE MÉTODO NUEVO
