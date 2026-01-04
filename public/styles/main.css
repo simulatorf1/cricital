@@ -44,7 +44,15 @@ body {
     color: var(--f1-light);
     min-height: 100vh;
     overflow-x: hidden;
+    overflow-y: auto; /* ← CAMBIA ESTO */
     line-height: 1.6;
+    position: fixed; /* ← AÑADE ESTO */
+    top: 0; /* ← AÑADE ESTO */
+    left: 0; /* ← AÑADE ESTO */
+    right: 0; /* ← AÑADE ESTO */
+    bottom: 0; /* ← AÑADE ESTO */
+    width: 100vw; /* ← AÑADE ESTO */
+    height: 100vh; /* ← AÑADE ESTO */
 }
 
 /* ============================================
@@ -133,6 +141,14 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    position: fixed; /* ← AÑADE ESTO */
+    top: 0; /* ← AÑADE ESTO */
+    left: 0; /* ← AÑADE ESTO */
+    right: 0; /* ← AÑADE ESTO */
+    bottom: 0; /* ← AÑADE ESTO */
+    width: 100vw; /* ← AÑADE ESTO */
+    height: 100vh; /* ← AÑADE ESTO */
+    overflow: hidden; /* ← AÑADE ESTO */
 }
 
 /* ============================================
@@ -338,6 +354,9 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
+    overflow-y: auto; /* ← AÑADE ESTO */
+    overflow-x: hidden; /* ← AÑADE ESTO */
+    -webkit-overflow-scrolling: touch; /* ← AÑADE ESTO (para móvil) */
 }
 
 .tab-content {
