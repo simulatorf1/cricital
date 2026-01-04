@@ -1970,7 +1970,7 @@ class F1Manager {
                     </div>
                 `,
                 action: 'siguientePaso'
-            }
+            },
             
             // PASO 11: Tutorial completado
             {
