@@ -3634,7 +3634,7 @@ class F1Manager {
             if (this.tutorialData.pilotosContratados.length < 2) {
                 this.tutorialData.pilotosContratados.push(ingenieroId);
             } else {
-                alert('Solo puedes seleccionar 2 ingenieros');  // ← Texto actualizado
+                alert('Solo puedes seleccionar 4 estrategas');  // ← Texto actualizado
                 return;
             }
         }
@@ -4862,74 +4862,207 @@ class F1Manager {
     }
     
     updatePilotosUI() {
-        const container = document.getElementById('pilotos-container'); // El div contenedor
+        const container = document.getElementById('pilotos-container');
         if (!container) {
             console.error('❌ No se encontró #pilotos-container');
             return;
         }
-
-        if (!this.pilotos || this.pilotos.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-user-slash"></i>
-                    <p>No tienes pilotos contratados</p>
-                    <button class="btn-primary" id="contratar-primer-piloto">
-                        <i class="fas fa-user-plus"></i> Contratar mi primer piloto
+    
+        // Calcular estrategas contratados
+        const estrategasContratados = this.pilotos || [];
+        const huecosDisponibles = 4 - estrategasContratados.length;
+        
+        // HTML del panel de estrategas
+        let html = `
+            <div class="section-header">
+                <h2><i class="fas fa-users"></i> ESTRATEGAS (${estrategasContratados.length}/4)</h2>
+            </div>
+            <div class="estrategas-grid">
+        `;
+        
+        // Mostrar estrategas contratados primero
+        estrategasContratados.forEach((estratega, index) => {
+            html += `
+                <div class="estratega-card contratado">
+                    <div class="estratega-header">
+                        <div class="estratega-avatar">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="estratega-info">
+                            <h4>${estratega.nombre || 'Estratega'}</h4>
+                            <span class="estratega-especialidad">${estratega.especialidad || 'General'}</span>
+                        </div>
+                    </div>
+                    <div class="estratega-bono">
+                        <i class="fas fa-star"></i>
+                        <span>+${estratega.bonificacion_valor || 15}% puntos</span>
+                    </div>
+                    <div class="estratega-sueldo">
+                        <i class="fas fa-coins"></i>
+                        <span>${(estratega.salario || 50000).toLocaleString()}€/mes</span>
+                    </div>
+                    <button class="btn-despedir" onclick="despedirEstratega(${estratega.id})">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
             `;
-            // Opcional: agregar evento al botón
-            document.getElementById('contratar-primer-piloto')?.addEventListener('click', () => {
-                // Tu lógica para abrir el selector de pilotos
-            });
-            return;
-        }
-
-        // Generar HTML para cada piloto
-        let html = '';
-        this.pilotos.forEach(piloto => {
-            // Calcula carreras restantes si no está en los datos
-            const carrerasRestantes = piloto.carreras_restantes || 'N/A';
-            const salario = piloto.salario ? '€' + parseInt(piloto.salario).toLocaleString('es-ES') : 'N/A';
-            
+        });
+        
+        // Mostrar huecos disponibles
+        for (let i = 0; i < huecosDisponibles; i++) {
             html += `
-                <div class="piloto-card">
-                    <div class="piloto-header">
-                        <div class="piloto-name">
-                            <h3>${piloto.nombre}</h3>
-                            <span class="piloto-nacionalidad">
-                                <i class="fas fa-flag"></i> ${piloto.nacionalidad || 'Internacional'}
-                            </span>
+                <div class="estratega-card hueco">
+                    <div class="estratega-header">
+                        <div class="estratega-avatar">
+                            <i class="fas fa-user-plus"></i>
                         </div>
-                        <div class="piloto-status">Contratado</div>
-                    </div>
-                    <div class="piloto-stats">
-                        <div class="piloto-stat">
-                            <span class="stat-label">Salario</span>
-                            <span class="stat-value">${salario}</span>
-                        </div>
-                        <div class="piloto-stat">
-                            <span class="stat-label">Carreras Restantes</span>
-                            <span class="stat-value">${carrerasRestantes}</span>
-                        </div>
-                        <div class="piloto-stat">
-                            <span class="stat-label">Contrato desde</span>
-                            <span class="stat-value">${new Date(piloto.contratado_en).toLocaleDateString('es-ES')}</span>
+                        <div class="estratega-info">
+                            <h4>Hueco disponible</h4>
+                            <span class="estratega-especialidad">Contratar estratega</span>
                         </div>
                     </div>
-                    <div class="piloto-contract">
-                        <div class="contract-progress">
-                            <span class="contract-label">Progreso del contrato</span>
-                            <span class="carreras-restantes">${carrerasRestantes} carreras</span>
-                        </div>
-                        <div class="progress-bar-small">
-                            <div class="progress-fill-small" style="width: ${(carrerasRestantes/12)*100}%"></div>
-                        </div>
+                    <div class="estratega-bono">
+                        <i class="fas fa-gift"></i>
+                        <span>Bonificación variable</span>
                     </div>
+                    <button class="btn-contratar" onclick="mostrarModalContratacion(${estrategasContratados.length + i + 1})">
+                        <i class="fas fa-plus"></i> Contratar
+                    </button>
                 </div>
             `;
-        });
-
+        }
+        
+        html += `
+            </div>
+            
+            <style>
+                .estrategas-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 15px;
+                    padding: 10px;
+                }
+                
+                .estratega-card {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 10px;
+                    padding: 15px;
+                    border: 2px solid rgba(255, 255, 255, 0.1);
+                    min-height: 140px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    transition: all 0.3s;
+                }
+                
+                .estratega-card.hueco {
+                    border-style: dashed;
+                    border-color: rgba(0, 210, 190, 0.5);
+                    background: rgba(0, 210, 190, 0.05);
+                }
+                
+                .estratega-card.contratado {
+                    border-color: rgba(225, 6, 0, 0.5);
+                }
+                
+                .estratega-card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                }
+                
+                .estratega-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    margin-bottom: 10px;
+                }
+                
+                .estratega-avatar {
+                    width: 40px;
+                    height: 40px;
+                    background: rgba(0, 210, 190, 0.2);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                }
+                
+                .estratega-card.hueco .estratega-avatar {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                
+                .estratega-info h4 {
+                    margin: 0;
+                    color: white;
+                    font-size: 1rem;
+                    font-weight: bold;
+                }
+                
+                .estratega-especialidad {
+                    color: #aaa;
+                    font-size: 0.8rem;
+                }
+                
+                .estratega-bono, .estratega-sueldo {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: #ccc;
+                    font-size: 0.85rem;
+                    margin: 5px 0;
+                }
+                
+                .estratega-bono i {
+                    color: #ffd700;
+                }
+                
+                .estratega-sueldo i {
+                    color: #4CAF50;
+                }
+                
+                .btn-contratar, .btn-despedir {
+                    margin-top: 10px;
+                    padding: 8px 12px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 0.85rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 5px;
+                    width: 100%;
+                    transition: all 0.3s;
+                }
+                
+                .btn-contratar {
+                    background: linear-gradient(135deg, #00d2be, #00a35c);
+                    color: white;
+                }
+                
+                .btn-despedir {
+                    background: rgba(225, 6, 0, 0.2);
+                    color: #ff4444;
+                    border: 1px solid rgba(225, 6, 0, 0.3);
+                }
+                
+                .btn-contratar:hover {
+                    background: linear-gradient(135deg, #00e6cc, #00b368);
+                }
+                
+                .btn-despedir:hover {
+                    background: rgba(225, 6, 0, 0.3);
+                }
+                
+                @media (max-width: 768px) {
+                    .estrategas-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }
+            </style>
+        `;
+        
         container.innerHTML = html;
     }
     
