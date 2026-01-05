@@ -4881,6 +4881,7 @@ class F1Manager {
     }
     
     updatePilotosUI() {
+
         const container = document.getElementById('pilotos-container');
         if (!container) {
             console.error('❌ No se encontró #pilotos-container');
@@ -4889,7 +4890,11 @@ class F1Manager {
     
         // Calcular estrategas contratados
         const estrategasContratados = this.pilotos || [];
-        
+        // Actualizar contador en el header
+        const contadorElement = document.getElementById('contador-estrategas');
+        if (contadorElement) {
+            contadorElement.textContent = `${estrategasContratados.length}/4`;
+        }
         // HTML del panel compacto de estrategas
         let html = `
             <div class="estrategas-compact-container">
@@ -4950,10 +4955,13 @@ class F1Manager {
                     background: rgba(30, 30, 40, 0.8);
                     border-radius: 10px;
                     padding: 15px;
-                    max-width: 300px; /* Máximo la mitad de una pantalla normal */
-                    margin: 0 auto;
+                    width: 100%; /* Ocupa el 100% del contenedor padre */
+                    height: 100%; /* Ocupa toda la altura disponible */
                     border: 1px solid rgba(0, 210, 190, 0.3);
                     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                    display: flex;
+                    flex-direction: column;
+                    box-sizing: border-box; /* Importante para que el padding no rompa el layout */
                 }
                 
                 .estrategas-header-compact {
@@ -4994,7 +5002,7 @@ class F1Manager {
                 }
                 
                 /* BOTONES PEQUEÑOS DE ESTRATEGAS */
-                .estratega-btn-compact {
+                 .estratega-btn-compact {
                     background: rgba(255, 255, 255, 0.05);
                     border: 2px solid rgba(255, 255, 255, 0.1);
                     border-radius: 8px;
@@ -5002,10 +5010,10 @@ class F1Manager {
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    padding: 10px 5px;
+                    padding: 5px;
                     cursor: pointer;
                     transition: all 0.3s;
-                    min-height: 80px; /* Tamaño fijo pequeño */
+                    min-height: 0; /* Importante */
                 }
                 
                 .estratega-btn-compact.contratado {
@@ -5118,7 +5126,12 @@ class F1Manager {
                 }
                 
                 .estrategas-grid-compact {
-                    overflow: hidden !important;
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    grid-template-rows: repeat(2, 1fr);
+                    gap: 10px;
+                    flex: 1; /* Ocupa el espacio restante */
+                    min-height: 0; /* Permite que se reduzca */
                 }
                 
                 /* RESPONSIVE */
