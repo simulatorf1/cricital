@@ -2885,7 +2885,64 @@ body {
        background: linear-gradient(135deg, #e10600, #c62828) !important;
        color: white !important;
    }
-
+   /* LAYOUT DE 3 COLUMNAS */
+   .three-columns-layout {
+       display: flex;
+       gap: 20px;
+       margin-top: 20px;
+   }
+   
+   .col-estrategas {
+       flex: 0 0 320px; /* Ancho fijo para estrategas */
+   }
+   
+   .col-countdown {
+       flex: 1; /* Ocupa espacio disponible */
+       min-width: 0;
+   }
+   
+   .col-fabrica {
+       flex: 1; /* Ocupa espacio disponible */
+       min-width: 0;
+   }
+   
+   /* Panel de estrategas compacto */
+   .panel-pilotos.compacto {
+       background: rgba(30, 30, 40, 0.8);
+       border-radius: 10px;
+       padding: 15px;
+       border: 1px solid rgba(0, 210, 190, 0.3);
+       height: 100%; /* Ocupa toda la altura disponible */
+   }
+   
+   /* Asegurar que el contenido de estrategas no desborde */
+   .pilotos-container {
+       margin: 0;
+       padding: 0;
+       height: calc(100% - 50px); /* Altura menos el header */
+   }
+   
+   /* RESPONSIVE */
+   @media (max-width: 1200px) {
+       .three-columns-layout {
+           flex-wrap: wrap;
+       }
+       
+       .col-estrategas {
+           flex: 0 0 100%;
+           order: 1;
+       }
+       
+       .col-countdown, .col-fabrica {
+           flex: 0 0 calc(50% - 10px);
+       }
+   }
+   
+   @media (max-width: 768px) {
+       .col-countdown, .col-fabrica {
+           flex: 0 0 100%;
+       }
+   }
    .area-tabla {
        background: rgba(42, 42, 56, 0.8) !important;
        border-radius: 10px !important;
