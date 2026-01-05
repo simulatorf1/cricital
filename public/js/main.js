@@ -4413,17 +4413,13 @@ class F1Manager {
                         <!-- Panel de Pilotos -->
                         <section class="panel-pilotos">
                             <div class="section-header">
-                                <h2><i class="fas fa-user-tie"></i> TUS ESTRATEGAS</h2>
-                                <button class="btn-small" id="btn-contratar-estratega">
-                                    <i class="fas fa-user-plus"></i> Contratar
-                                </button>
+                                <h2><i class="fas fa-user"></i> TUS EQUIPO TÉCNICO</h2>
                             </div>
-                            <div id="pilotos-container" class="estrategas-grid">
-                                <!-- 4 huecos fijos -->
-                                <div class="estratega-slot" id="slot-1"></div>
-                                <div class="estratega-slot" id="slot-2"></div>
-                                <div class="estratega-slot" id="slot-3"></div>
-                                <div class="estratega-slot" id="slot-4"></div>
+                            <div id="pilotos-container" class="pilotos-container">
+                                <div class="empty-state">
+                                    <i class="fas fa-user-slash"></i>
+                                    <p>No tienes estrategas contratados</p>
+                                </div>
                             </div>
                         </section>
                         
@@ -4608,267 +4604,8 @@ class F1Manager {
                     }
                 });
             </script>
-   
-            
-
-            <style>
-            /* ===== RESPONSIVE PARA MÓVIL ===== */
-            @media (max-width: 768px) {
-                .two-columns {
-                    grid-template-columns: 1fr !important;
-                    gap: 15px !important;
-                }
-                
-                .estrategas-grid {
-                    grid-template-columns: repeat(2, 1fr) !important;
-                    gap: 10px !important;
-                }
-                
-                .estratega-slot {
-                    height: 80px !important;
-                    min-height: 80px !important;
-                }
-                
-                .areas-coche {
-                    grid-template-columns: repeat(3, 1fr) !important;
-                    gap: 8px !important;
-                }
-                
-                .area-slot {
-                    padding: 8px !important;
-                    min-height: 70px !important;
-                }
-                
-                .dashboard-header {
-                    padding: 10px !important;
-                }
-                
-                .section-header {
-                    flex-direction: column !important;
-                    align-items: flex-start !important;
-                    gap: 10px !important;
-                }
-            }
-            
-            @media (max-width: 480px) {
-                .estrategas-grid {
-                    grid-template-columns: 1fr !important;
-                }
-                
-                .areas-coche {
-                    grid-template-columns: repeat(2, 1fr) !important;
-                }
-                
-                .countdown-timer {
-                    flex-wrap: wrap !important;
-                    justify-content: center !important;
-                }
-            }
-            
-                /* ===== NUEVAS CLASES ===== */
-                .estrategas-grid {
-                    display: grid !important;
-                    grid-template-columns: repeat(4, 1fr) !important;
-                    gap: 12px !important;
-                    margin-top: 15px !important;
-                    margin-bottom: 20px !important;
-                }
-                
-                .estratega-slot {
-                    background: rgba(255, 255, 255, 0.03) !important;
-                    border: 2px dashed rgba(255, 255, 255, 0.1) !important;
-                    border-radius: 10px !important;
-                    height: 100px !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    min-height: 100px !important;
-                    transition: all 0.3s !important;
-                }
-                
-                .estratega-slot:hover {
-                    border-color: rgba(0, 210, 190, 0.3) !important;
-                    background: rgba(0, 210, 190, 0.05) !important;
-                }
-                
-                .estratega-slot.contratado {
-                    border: 2px solid rgba(0, 210, 190, 0.5) !important;
-                    background: rgba(0, 210, 190, 0.1) !important;
-                    border-style: solid !important;
-                }
-                
-                /* ===== MONITOR DE PRODUCCIÓN SIMPLIFICADO ===== */
-                .alerta-produccion-lista {
-                    background: linear-gradient(135deg, rgba(0, 210, 190, 0.15), rgba(0, 210, 190, 0.05)) !important;
-                    border: 1px solid #00d2be !important;
-                    border-radius: 10px !important;
-                    padding: 12px 15px !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 12px !important;
-                    animation: pulse 2s infinite !important;
-                    margin-top: 10px !important;
-                }
-                
-                .estado-produccion-activa {
-                    background: rgba(255, 255, 255, 0.03) !important;
-                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                    border-radius: 10px !important;
-                    padding: 12px 15px !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 12px !important;
-                    color: #888 !important;
-                    margin-top: 10px !important;
-                }
-                
-                .sin-produccion {
-                    background: rgba(255, 255, 255, 0.02) !important;
-                    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-                    border-radius: 10px !important;
-                    padding: 15px !important;
-                    text-align: center !important;
-                    color: #666 !important;
-                    margin-top: 10px !important;
-                }
-                
-                .alerta-icono, .produccion-icono, .sin-produccion-icono {
-                    width: 40px !important;
-                    height: 40px !important;
-                    border-radius: 50% !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    font-size: 1.2rem !important;
-                }
-                
-                .alerta-icono {
-                    background: rgba(0, 210, 190, 0.2) !important;
-                    color: #00d2be !important;
-                }
-                
-                .produccion-icono {
-                    background: rgba(255, 255, 255, 0.1) !important;
-                    color: #888 !important;
-                }
-                
-                .sin-produccion-icono {
-                    background: rgba(255, 255, 255, 0.05) !important;
-                    color: #666 !important;
-                }
-                
-                .alerta-contenido, .produccion-info {
-                    flex: 1 !important;
-                }
-                
-                .alerta-titulo {
-                    color: white !important;
-                    font-weight: bold !important;
-                    font-size: 0.95rem !important;
-                }
-                
-                .alerta-desc, .produccion-subtexto, .sin-produccion-texto {
-                    font-size: 0.85rem !important;
-                    color: #aaa !important;
-                }
-                
-                .btn-recoger-produccion {
-                    background: #00d2be !important;
-                    color: white !important;
-                    border: none !important;
-                    width: 36px !important;
-                    height: 36px !important;
-                    border-radius: 50% !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    cursor: pointer !important;
-                    transition: transform 0.2s !important;
-                }
-                
-                .btn-recoger-produccion:hover {
-                    transform: scale(1.1) !important;
-                }
-                
-                /* ===== ÁREAS DEL COCHE (11 SIN BOTONES) ===== */
-                .areas-coche {
-                    display: grid !important;
-                    grid-template-columns: repeat(4, 1fr) !important;
-                    gap: 12px !important;
-                    margin-top: 15px !important;
-                }
-                
-                .area-slot {
-                    background: rgba(255, 255, 255, 0.03) !important;
-                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                    border-radius: 8px !important;
-                    padding: 10px !important;
-                    text-align: center !important;
-                    min-height: 80px !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                    justify-content: center !important;
-                    transition: all 0.3s !important;
-                }
-                
-                .area-slot:hover {
-                    border-color: rgba(255, 255, 255, 0.2) !important;
-                    background: rgba(255, 255, 255, 0.05) !important;
-                }
-                
-                .area-icon {
-                    font-size: 1.5rem !important;
-                    margin-bottom: 8px !important;
-                    color: #00d2be !important;
-                }
-                
-                .area-info {
-                    display: flex !important;
-                    flex-direction: column !important;
-                    gap: 5px !important;
-                }
-                
-                .area-nombre {
-                    font-size: 0.9rem !important;
-                    color: white !important;
-                    font-weight: bold !important;
-                }
-                
-                .area-puntos {
-                    font-size: 0.8rem !important;
-                    color: #00d2be !important;
-                    font-weight: bold !important;
-                    background: rgba(0, 210, 190, 0.1) !important;
-                    padding: 3px 8px !important;
-                    border-radius: 10px !important;
-                    display: inline-block !important;
-                }
-                
-                .area-vacio {
-                    font-size: 0.8rem !important;
-                    color: #888 !important;
-                    font-style: italic !important;
-                }
-                
-                /* ===== ANIMACIONES ===== */
-                @keyframes pulse {
-                    0% { box-shadow: 0 0 0 0 rgba(0, 210, 190, 0.4); }
-                    70% { box-shadow: 0 0 0 10px rgba(0, 210, 190, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(0, 210, 190, 0); }
-                }
-                
-                .error-produccion {
-                    background: rgba(255, 0, 0, 0.1) !important;
-                    border: 1px solid #ff4444 !important;
-                    border-radius: 10px !important;
-                    padding: 12px !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 10px !important;
-                    color: #ff4444 !important;
-                    margin-top: 10px !important;
-                }
-            </style>
+        `;
+    
         // 2. INICIALIZAR SISTEMAS CRÍTICOS INMEDIATAMENTE
         setTimeout(async () => {
             console.log('🔧 Inicializando sistemas críticos del dashboard...');
@@ -4934,29 +4671,22 @@ class F1Manager {
                 // Verificar que los botones funcionan
                 setTimeout(() => {
                     const botones = document.querySelectorAll('[data-tab]');
-                    console.log('Botones de pestañas encontrados:', botones.length);
+                    console.log(`📌 Botones de pestañas encontrados: ${botones.length}`);
                     
                     // Añadir eventos manualmente si es necesario
                     botones.forEach(btn => {
                         const tabId = btn.getAttribute('data-tab');
                         btn.addEventListener('click', (e) => {
                             e.preventDefault();
-                            console.log('Clic en pestaña:', tabId);
-                            
+                            console.log(`Clic en pestaña: ${tabId}`);
                             if (window.tabManager && window.tabManager.switchTab) {
                                 window.tabManager.switchTab(tabId);
                             } else {
                                 // Fallback manual
-                                document.querySelectorAll('.tab-content').forEach(c => {
-                                    c.classList.remove('active');
-                                });
+                                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                                document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
                                 
-                                document.querySelectorAll('[data-tab]').forEach(b => {
-                                    b.classList.remove('active');
-                                });
-                                
-                                // Usar concatenación en lugar de template literal
-                                const tabContent = document.getElementById('tab-' + tabId);
+                                const tabContent = document.getElementById(`tab-${tabId}`);
                                 if (tabContent) {
                                     tabContent.classList.add('active');
                                     btn.classList.add('active');
@@ -4964,7 +4694,6 @@ class F1Manager {
                             }
                         });
                     });
-                });
                     
                     console.log('✅ Sistema de pestañas listo');
                     
@@ -5096,34 +4825,40 @@ class F1Manager {
     
     updateCarAreasUI() {
         const container = document.getElementById('areas-coche');
-        if (!container) return;
+        if (!container || !this.carStats) return;
         
-        const areas = window.CAR_AREAS || [];
-        const html = areas.map(area => {
-            const piezaMontada = this.getPiezaMontada ? this.getPiezaMontada(area.id) : null;
+        container.innerHTML = window.CAR_AREAS.map(area => {
+            const nivel = this.carStats[`${area.id}_nivel`] || 0;
+            const progreso = this.carStats[`${area.id}_progreso`] || 0;
+            const porcentaje = (progreso / window.CONFIG.PIECES_PER_LEVEL) * 100;
             
-            return '<div class="area-slot">' +
-                   '   <div class="area-icon">' +
-                   '       <i class="' + (area.icon || 'fas fa-cog') + '"></i>' +
-                   '   </div>' +
-                   '   <div class="area-info">' +
-                   '       <div class="area-nombre">' + area.name + '</div>' +
-                   (piezaMontada ? 
-                       '<div class="area-puntos">' + (piezaMontada.puntos || 0) + ' pts</div>' :
-                       '<div class="area-vacio">Vacío</div>'
-                   ) +
-                   '   </div>' +
-                   '</div>';
+            return `
+                <div class="area-item" style="border-left-color: ${area.color}">
+                    <span class="area-nombre">${area.name}</span>
+                    <div class="area-nivel">
+                        <span>Nivel</span>
+                        <span class="nivel-valor">${nivel}</span>
+                    </div>
+                    <div class="area-progreso">
+                        Progreso: <span class="progreso-valor">${progreso}/20</span>
+                    </div>
+                    <div class="progress-bar-small">
+                        <div class="progress-fill-small" style="width: ${porcentaje}%"></div>
+                    </div>
+                    <button class="btn-fabricar" data-area="${area.id}">
+                        <i class="fas fa-hammer"></i> Fabricar (€${window.CONFIG.PIECE_COST.toLocaleString()})
+                    </button>
+                </div>
+            `;
         }).join('');
         
-        container.innerHTML = html;
-    }
-    
-    // AÑADIR ESTE MÉTODO NUEVO
-    getPiezaMontada(areaId) {
-        // Aquí debes consultar tu BD para ver qué pieza está montada
-        // Por ahora devuelve null
-        return null;
+        // Configurar eventos de botones de fabricación
+        document.querySelectorAll('.btn-fabricar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const areaId = e.target.closest('.btn-fabricar').dataset.area;
+                this.iniciarFabricacion(areaId);
+            });
+        });
     }
     
     updatePilotosUI() {
@@ -5384,80 +5119,97 @@ class F1Manager {
         }
         
         try {
-            // SOLO buscar piezas LISTAS para recoger
-            const { data: piezasListas, error } = await this.supabase
+            // Cargar fabricaciones activas
+            const { data: fabricaciones, error } = await this.supabase
                 .from('fabricacion_actual')
                 .select('*')
                 .eq('escuderia_id', this.escuderia.id)
                 .eq('completada', false)
-                .lt('tiempo_fin', new Date().toISOString()); // Solo las que ya terminaron
+                .order('tiempo_inicio', { ascending: true });
             
             if (error) throw error;
             
-            // Verificar si hay piezas en curso (solo para estado, no mostrar)
-            const { data: enCurso } = await this.supabase
-                .from('fabricacion_actual')
-                .select('id')
-                .eq('escuderia_id', this.escuderia.id)
-                .eq('completada', false)
-                .gt('tiempo_fin', new Date().toISOString())
-                .limit(1);
-            
-            const hayProduccionActiva = enCurso && enCurso.length > 0;
-            
-            if (piezasListas && piezasListas.length > 0) {
-                // MOSTRAR SOLO NOTIFICACIÓN DE PIEZAS LISTAS
+            if (!fabricaciones || fabricaciones.length === 0) {
                 container.innerHTML = `
-                    <div class="alerta-produccion-lista">
-                        <div class="alerta-icono">
-                            <i class="fas fa-box-open"></i>
-                        </div>
-                        <div class="alerta-contenido">
-                            <div class="alerta-titulo">¡Piezas listas para recoger!</div>
-                            <div class="alerta-desc">Tienes ${piezasListas.length} pieza(s) completada(s)</div>
-                        </div>
-                        <button class="btn-recoger-produccion" onclick="window.tabManager.switchTab('taller')">
-                            <i class="fas fa-arrow-right"></i>
+                    <div class="empty-state">
+                        <i class="fas fa-industry"></i>
+                        <p>No hay producción en curso</p>
+                        <button class="btn-primary" id="iniciar-fabricacion-btn">
+                            <i class="fas fa-hammer"></i> Iniciar fabricación
                         </button>
                     </div>
                 `;
-            } else if (hayProduccionActiva) {
-                // ESTADO NORMAL - SOLO ICONO
-                container.innerHTML = `
-                    <div class="estado-produccion-activa">
-                        <div class="produccion-icono">
-                            <i class="fas fa-industry"></i>
-                        </div>
-                        <div class="produccion-info">
-                            <div class="produccion-texto">Producción en curso</div>
-                            <div class="produccion-subtexto">Ve al taller para más detalles</div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                // SIN PRODUCCIÓN
-                container.innerHTML = `
-                    <div class="sin-produccion">
-                        <div class="sin-produccion-icono">
-                            <i class="fas fa-industry"></i>
-                        </div>
-                        <div class="sin-produccion-texto">Sin producción activa</div>
-                    </div>
-                `;
+                return;
             }
             
-        } catch (error) {
-            console.error("Error cargando producción:", error);
-            container.innerHTML = `
-                <div class="error-produccion">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Error cargando producción</span>
+            // Mostrar fabricaciones
+            let html = `
+                <div class="produccion-header">
+                    <h3><i class="fas fa-industry"></i> Fabricaciones en curso</h3>
+                    <span class="badge">${fabricaciones.length} activas</span>
                 </div>
+                <div class="fabricaciones-lista">
             `;
+            
+            fabricaciones.forEach(fab => {
+                const ahora = new Date();
+                const tiempoInicio = new Date(fab.tiempo_inicio);
+                const tiempoFin = new Date(fab.tiempo_fin);
+                
+                const tiempoTotal = tiempoFin - tiempoInicio;
+                const tiempoTranscurrido = ahora - tiempoInicio;
+                const progreso = Math.min(100, (tiempoTranscurrido / tiempoTotal) * 100);
+                const tiempoRestante = tiempoFin - ahora;
+                const lista = ahora >= tiempoFin;
+                
+                const nombreArea = {
+                    'motor': 'Motor',
+                    'chasis': 'Chasis',
+                    'aerodinamica': 'Aerodinámica'
+                }[fab.area] || fab.area;
+                
+                html += `
+                    <div class="fabricacion-item ${lista ? 'lista' : ''}">
+                        <div class="fabricacion-info">
+                            <div class="fab-area">
+                                <i class="fas fa-cog"></i>
+                                <span>${nombreArea} Nivel ${fab.nivel}</span>
+                            </div>
+                            <div class="fab-estado">
+                                <span class="estado-badge ${lista ? 'lista' : 'fabricando'}">
+                                    ${lista ? '✅ LISTA' : '🔄 FABRICANDO'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="fab-progreso">
+                            <div class="progress-bar-small">
+                                <div class="progress-fill-small" style="width: ${progreso}%"></div>
+                            </div>
+                            <div class="fab-tiempo">
+                                <i class="far fa-clock"></i>
+                                <span>${lista ? '¡Lista para recoger!' : `Tiempo restante: ${this.formatTime(tiempoRestante)}`}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="fab-acciones">
+                            <button class="btn-small btn-success" ${!lista ? 'disabled' : ''} 
+                                    onclick="recogerPiezaTutorial('${fab.id}', '${fab.area}')">
+                                <i class="fas fa-box-open"></i> ${lista ? 'Recoger' : 'Esperar'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            container.innerHTML = html;
+            
+        } catch (error) {
+            console.error("Error cargando fabricaciones:", error);
+            container.innerHTML = `<p class="error">Error cargando producción</p>`;
         }
     }
-    
-
     
     setupDashboardEvents() {
         // Botón de iniciar fabricación
