@@ -2566,7 +2566,7 @@ class F1Manager {
         });
     }
     
-    async inicializarSistemasIntegrados() {
+    async function inicializarSistemasIntegrados() {
         console.log('🔗 Inicializando sistemas integrados...');
         
         if (!this.escuderia) {
