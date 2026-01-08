@@ -4947,6 +4947,115 @@ class F1Manager {
                     }
                 });
             </script>
+            <style>
+                /* ==================== */
+                /* ESTILOS PARA PIEZAS MONTADAS */
+                /* ==================== */
+                .grid-11-columns {
+                    display: grid;
+                    grid-template-columns: repeat(11, 1fr);
+                    gap: 8px !important;
+                    margin-top: 10px !important;
+                    height: 100px;
+                    align-items: stretch;
+                    width: 100%;
+                }
+                
+                .boton-area-montada, .boton-area-vacia {
+                    background: rgba(255, 255, 255, 0.03) !important;
+                    border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+                    border-radius: 6px !important;
+                    padding: 8px 6px !important;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    height: 85px;
+                    min-height: 85px !important;
+                }
+                
+                .boton-area-montada {
+                    border-color: rgba(0, 210, 190, 0.25) !important;
+                    background: rgba(0, 210, 190, 0.04) !important;
+                }
+                
+                .boton-area-montada:hover {
+                    border-color: rgba(0, 210, 190, 0.5) !important;
+                    background: rgba(0, 210, 190, 0.08) !important;
+                    transform: translateY(-1px);
+                }
+                
+                .boton-area-vacia {
+                    border-style: dashed !important;
+                    border-color: rgba(255, 255, 255, 0.1) !important;
+                    background: rgba(255, 255, 255, 0.015) !important;
+                }
+                
+                .boton-area-vacia:hover {
+                    border-color: rgba(0, 210, 190, 0.4) !important;
+                    background: rgba(0, 210, 190, 0.05) !important;
+                }
+                
+                .icono-area {
+                    font-size: 1.1rem !important;
+                    margin-bottom: 5px !important;
+                    color: #00d2be;
+                    height: 22px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .boton-area-vacia .icono-area {
+                    color: #666;
+                    font-size: 1rem !important;
+                }
+                
+                .nombre-area {
+                    display: block;
+                    font-weight: bold;
+                    font-size: 0.75rem !important;
+                    color: white;
+                    margin-bottom: 2px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    line-height: 1.1;
+                    text-align: center;
+                    width: 100%;
+                }
+                
+                .nivel-pieza {
+                    display: block;
+                    font-size: 0.65rem !important;
+                    color: #4CAF50;
+                    margin-bottom: 1px;
+                    line-height: 1;
+                    font-weight: bold;
+                }
+                
+                .puntos-pieza {
+                    display: block;
+                    font-size: 0.6rem !important;
+                    color: #FFD700;
+                    font-weight: bold;
+                    line-height: 1;
+                }
+                
+                .total-puntos-montadas {
+                    background: rgba(255, 215, 0, 0.1);
+                    border: 1px solid #FFD700;
+                    border-radius: 20px;
+                    padding: 5px 15px;
+                    color: #FFD700;
+                    font-weight: bold;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                }
+            </style>
         `;
     
         // 2. INICIALIZAR SISTEMAS CRÍTICOS INMEDIATAMENTE
