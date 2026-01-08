@@ -4654,6 +4654,7 @@ class F1Manager {
             console.error('❌ No hay escudería para cargar dashboard');
             return;
         }
+        
         // PRIMERO: Inyectar estilos en el HEAD si no existen
         if (!document.getElementById('dashboard-styles')) {
             const style = document.createElement('style');
@@ -4663,13 +4664,13 @@ class F1Manager {
                 /* ESTILOS PARA PIEZAS MONTADAS */
                 /* ==================== */
                 .grid-11-columns {
-                    display: grid;
-                    grid-template-columns: repeat(11, 1fr);
+                    display: grid !important;
+                    grid-template-columns: repeat(11, 1fr) !important;
                     gap: 8px !important;
                     margin-top: 10px !important;
-                    height: 100px;
-                    align-items: stretch;
-                    width: 100%;
+                    height: 100px !important;
+                    align-items: stretch !important;
+                    width: 100% !important;
                 }
                 
                 .boton-area-montada, .boton-area-vacia {
@@ -4677,13 +4678,13 @@ class F1Manager {
                     border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
                     border-radius: 6px !important;
                     padding: 8px 6px !important;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    height: 85px;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    cursor: pointer !important;
+                    transition: all 0.2s ease !important;
+                    height: 85px !important;
                     min-height: 85px !important;
                 }
                 
@@ -4695,7 +4696,7 @@ class F1Manager {
                 .boton-area-montada:hover {
                     border-color: rgba(0, 210, 190, 0.5) !important;
                     background: rgba(0, 210, 190, 0.08) !important;
-                    transform: translateY(-1px);
+                    transform: translateY(-1px) !important;
                 }
                 
                 .boton-area-vacia {
@@ -4769,10 +4770,8 @@ class F1Manager {
             `;
             document.head.appendChild(style);
         }
-        // 1. PRIMERO crear el HTML COMPLETO (igual que tu versión actual)
-        // [Aquí va TODO tu código HTML de cargarDashboardCompleto() que ya tienes]
-        // Lo mantengo igual porque ya funciona bien
         
+        // 1. Crear el HTML COMPLETO
         document.body.innerHTML = `
             <div id="app">
                 <!-- Loading Screen -->
@@ -4865,9 +4864,6 @@ class F1Manager {
                 <main class="dashboard-content">
                     <!-- Tab Principal -->
                     <div id="tab-principal" class="tab-content active">
-                        <!-- Panel de Pilotos -->
-
-                        
                         <!-- Three Columns Layout -->
                         <div class="three-columns-layout" style="display: flex; flex-direction: row; gap: 20px; margin: 20px 0; width: 100%; height: 380px; align-items: stretch;">
                             
@@ -5060,129 +5056,89 @@ class F1Manager {
                         document.getElementById('user-dropdown').classList.remove('show');
                     }
                 });
+                
+                // =============================================
+                // ¡¡IMPORTANTE!! Esta función se debe llamar al cambiar a la pestaña principal
+                // =============================================
+                window.cargarContenidoPrincipal = async function() {
+                    if (window.f1Manager) {
+                        // Cargar piezas montadas
+                        if (window.f1Manager.cargarPiezasMontadas) {
+                            await window.f1Manager.cargarPiezasMontadas();
+                        }
+                        // Cargar estrategas
+                        if (window.f1Manager.loadPilotosContratados) {
+                            await window.f1Manager.loadPilotosContratados();
+                        }
+                        // Cargar producción
+                        if (window.f1Manager.updateProductionMonitor) {
+                            window.f1Manager.updateProductionMonitor();
+                        }
+                    }
+                };
+                
+                // Ejecutar al cargar por primera vez
+                setTimeout(() => {
+                    if (window.cargarContenidoPrincipal) {
+                        window.cargarContenidoPrincipal();
+                    }
+                }, 1500);
             </script>
-
         `;
-    
+        
         // 2. INICIALIZAR SISTEMAS CRÍTICOS INMEDIATAMENTE
         setTimeout(async () => {
             console.log('🔧 Inicializando sistemas críticos del dashboard...');
             
-            // A. Asegurar que fabricacionManager existe y está inicializado
+            // A. Asegurar que fabricacionManager existe
             if (!window.fabricacionManager && window.FabricacionManager) {
-                console.log('🏭 Creando fabricacionManager...');
                 window.fabricacionManager = new window.FabricacionManager();
-                
                 if (this.escuderia) {
                     await window.fabricacionManager.inicializar(this.escuderia.id);
-                    console.log('✅ fabricacionManager inicializado');
-                }
-            } else if (window.fabricacionManager && !window.fabricacionManager.escuderiaId) {
-                // Si ya existe pero no está inicializado
-                if (this.escuderia) {
-                    await window.fabricacionManager.inicializar(this.escuderia.id);
-                    console.log('✅ fabricacionManager re-inicializado');
                 }
             }
             
-            // B. Actualizar monitor de producción INMEDIATAMENTE
+            // B. Configurar sistema de pestañas CON LA FUNCIÓN DE RECARGA
             setTimeout(() => {
-                this.updateProductionMonitor();
-            }, 300);
-            
-            // C. INICIALIZAR PESTAÑAS AQUÍ (IMPORTANTE: después del HTML)
-            console.log('🔍 Verificando tabManager...');
-            
-            // Esperar un poco más para que el DOM esté completamente listo
-            setTimeout(() => {
-                console.log('🔧 Inicializando sistema de pestañas...');
-                
-                // Opción 1: Ya existe tabManager (creado por tabs.js)
-                if (window.tabManager && typeof window.tabManager.setup === 'function') {
-                    console.log('✅ tabManager ya existe, configurando...');
-                    window.tabManager.setup();
-                } 
-                // Opción 2: Existe la clase TabManager
-                else if (window.TabManager) {
-                    console.log('🔄 Creando tabManager desde clase...');
-                    window.tabManager = new window.TabManager();
-                    if (window.tabManager.setup) {
-                        window.tabManager.setup();
-                    }
-                }
-                // Opción 3: tabs.js no se cargó correctamente
-                else {
-                    console.warn('⚠️ tabs.js no cargó correctamente, recargando...');
-                    // Intentar cargar tabs.js manualmente
-                    const script = document.createElement('script');
-                    script.src = 'js/tabs.js';
-                    script.onload = () => {
-                        if (window.TabManager) {
-                            window.tabManager = new window.TabManager();
-                            window.tabManager.setup();
-                            console.log('✅ tabs.js cargado manualmente');
+                if (window.tabManager && window.tabManager.setup) {
+                    // Guardar el switchTab original
+                    const originalSwitchTab = window.tabManager.switchTab;
+                    
+                    // Sobrescribir para que recargue contenido al volver a principal
+                    window.tabManager.switchTab = function(tabId) {
+                        // Llamar al original
+                        originalSwitchTab.call(this, tabId);
+                        
+                        // Si es la pestaña principal, recargar contenido
+                        if (tabId === 'principal') {
+                            setTimeout(() => {
+                                if (window.cargarContenidoPrincipal) {
+                                    window.cargarContenidoPrincipal();
+                                }
+                            }, 100);
                         }
                     };
-                    document.body.appendChild(script);
+                    
+                    window.tabManager.setup();
                 }
-                
-                // Verificar que los botones funcionan
-                setTimeout(() => {
-                    const botones = document.querySelectorAll('[data-tab]');
-                    console.log(`📌 Botones de pestañas encontrados: ${botones.length}`);
-                    
-                    // Añadir eventos manualmente si es necesario
-                    botones.forEach(btn => {
-                        const tabId = btn.getAttribute('data-tab');
-                        btn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            console.log(`Clic en pestaña: ${tabId}`);
-                            if (window.tabManager && window.tabManager.switchTab) {
-                                window.tabManager.switchTab(tabId);
-                            } else {
-                                // Fallback manual
-                                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                                document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
-                                
-                                const tabContent = document.getElementById(`tab-${tabId}`);
-                                if (tabContent) {
-                                    tabContent.classList.add('active');
-                                    btn.classList.add('active');
-                                }
-                            }
-                        });
-                    });
-                    
-                    console.log('✅ Sistema de pestañas listo');
-                    
-                }, 500);
-                
-            }, 400); // 400ms después de los sistemas críticos
+            }, 400);
             
-            // 4. FINALMENTE cargar datos
+            // 3. Cargar datos iniciales
             const supabase = await this.esperarSupabase();
-            if (!supabase) {
-                console.error('❌ No se pudo cargar Supabase, usando datos de ejemplo');
-                this.proximoGP = {
-                    nombre: 'Gran Premio de España',
-                    fecha_inicio: new Date(Date.now() + 86400000 * 3).toISOString(),
-                    circuito: 'Circuit de Barcelona-Catalunya'
-                };
-            } else {
+            if (supabase) {
                 await this.loadCarStatus();
                 await this.loadPilotosContratados();
                 await this.loadProximoGP();
-                // ESPERAR un poco más para asegurar que el DOM está listo
+                
+                // 4. Cargar piezas montadas INMEDIATAMENTE
                 setTimeout(async () => {
                     await this.cargarPiezasMontadas();
                 }, 500);
             }
             
-            // 5. Configurar eventos
-            await this.cargarDatosDashboard();
             console.log('✅ Dashboard cargado correctamente con CSS');
         }, 1000);
-    } // ← ESTA ES LA LLAVE DE CIERRE DEL MÉTODO cargarDashboardCompleto()
+    }
         
     async loadProximoGP() {
         // VERIFICAR primero que window.supabase existe
