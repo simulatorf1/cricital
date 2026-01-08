@@ -1514,12 +1514,9 @@ class F1Manager {
             });
             return;
         }
+        
         console.log('🔧 Cargando piezas montadas...');
-        const contenedor = document.getElementById('grid-piezas-montadas');
-        if (!contenedor) {
-            console.log('❌ No se encontró el contenedor de piezas');
-            return;
-        }
+
         
         try {
             // 1. Obtener stats del coche
