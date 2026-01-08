@@ -134,9 +134,9 @@ class FabricacionManager {
             return false;
         }
         try {
-            // 1. Verificar límite de fabricaciones simultáneas (MÁXIMO 3)
-            if (this.produccionesActivas.length >= 3) {
-                alert('❌ Límite alcanzado: Máximo 3 fabricaciones simultáneas');
+            // 1. Verificar límite de fabricaciones simultáneas (MÁXIMO 4)
+            if (this.produccionesActivas.length >= 4) {
+                alert('❌ Límite alcanzado: Máximo 4 fabricaciones simultáneas');
                 return false;
             }
    
