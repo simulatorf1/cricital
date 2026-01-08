@@ -1907,7 +1907,8 @@ class F1Manager {
     // MÉTODO PARA INICIAR FABRICACIÓN DESDE TALLER MINIMALISTA
     // ========================
     // ========================
-    // MÉTODO CORREGIDO PARA INICIAR FABRICACIÓN
+    // ========================
+    // MÉTODO CORREGIDO PARA INICIAR FABRICACIÓN CON TIEMPOS PROGRESIVOS
     // ========================
     async iniciarFabricacionTaller(areaId, nivel) {
         console.log('🔧 Iniciando fabricación:', { areaId, nivel });
@@ -1932,7 +1933,7 @@ class F1Manager {
                 return false;
             }
             
-            // 2. Contar cuántas piezas ya has fabricado de esta área y nivel (para calcular tiempo)
+            // 2. Contar cuántas piezas ya has fabricado de esta área y nivel
             const { data: piezasExistentes, error: errorPiezas } = await this.supabase
                 .from('almacen_piezas')
                 .select('id')
@@ -1945,9 +1946,9 @@ class F1Manager {
             const numeroPieza = (piezasExistentes?.length || 0) + 1;
             console.log(`📊 Fabricando pieza ${numeroPieza} para ${areaId} nivel ${nivel}`);
             
-            // 3. Calcular tiempo progresivo (usa el número de pieza para calcular tiempo)
+            // 3. Calcular tiempo progresivo SEGÚN TUS ESPECIFICACIONES
             const tiempoMinutos = this.calcularTiempoProgresivo(numeroPieza);
-            console.log(`⏱️ Tiempo: ${tiempoMinutos} minutos`);
+            console.log(`⏱️ Tiempo calculado: ${tiempoMinutos} minutos (pieza ${numeroPieza})`);
             
             // 4. Verificar dinero (costo fijo)
             const costo = 10000;
@@ -1956,10 +1957,16 @@ class F1Manager {
                 return false;
             }
             
-            // 5. Crear fabricación en fabricacion_actual (SOLO columnas que existen)
+            // 5. IMPORTANTE: Calcular tiempo de finalización CORRECTAMENTE
             const ahora = new Date();
-            const tiempoFin = new Date(ahora.getTime() + (tiempoMinutos * 60 * 1000));
+            const tiempoFin = new Date(ahora.getTime() + (tiempoMinutos * 60 * 1000)); // minutos a milisegundos
             
+            console.log('📅 Fechas calculadas:');
+            console.log('- Ahora:', ahora.toISOString());
+            console.log('- Tiempo fin:', tiempoFin.toISOString());
+            console.log('- Diferencia minutos:', tiempoMinutos);
+            
+            // 6. Crear fabricación en fabricacion_actual
             const { data: fabricacion, error: errorCrear } = await this.supabase
                 .from('fabricacion_actual')
                 .insert([{
@@ -1970,26 +1977,31 @@ class F1Manager {
                     tiempo_fin: tiempoFin.toISOString(),
                     completada: false,
                     costo: costo,
-                    // pieza_id: null, // OPCIONAL: dejamos null por ahora
                     creada_en: ahora.toISOString()
                 }])
                 .select()
                 .single();
             
-            if (errorCrear) throw errorCrear;
+            if (errorCrear) {
+                console.error('❌ Error Supabase:', errorCrear);
+                throw errorCrear;
+            }
             
-            // 6. Descontar dinero
+            console.log('✅ Fabricación creada:', fabricacion);
+            
+            // 7. Descontar dinero
             this.escuderia.dinero -= costo;
             await this.updateEscuderiaMoney();
             
-            // 7. Mostrar notificación
+            // 8. Mostrar notificación con tiempo REAL
             const nombreArea = this.getNombreArea(areaId);
+            const tiempoFormateado = this.formatMinutes(tiempoMinutos);
             this.showNotification(
-                `✅ ${nombreArea} (Pieza ${numeroPieza}) en fabricación - ${tiempoMinutos} minutos`, 
+                `✅ ${nombreArea} (Pieza ${numeroPieza}) en fabricación - ${tiempoFormateado}`, 
                 'success'
             );
             
-            // 8. Actualizar UI inmediatamente
+            // 9. Actualizar UI inmediatamente
             setTimeout(() => {
                 this.updateProductionMonitor();
             }, 500);
@@ -2004,10 +2016,10 @@ class F1Manager {
     }
     
     // ========================
-    // MÉTODO AUXILIAR: Calcular tiempo progresivo
+    // MÉTODO PARA CALCULAR TIEMPOS PROGRESIVOS (TU ESPECIFICACIÓN)
     // ========================
     calcularTiempoProgresivo(numeroPieza) {
-        // Sistema progresivo según especificaste:
+        // SISTEMA PROGRESIVO SEGÚN TU ESPECIFICACIÓN:
         // Pieza 1: 2 minutos
         // Pieza 2: 4 minutos  
         // Pieza 3: 15 minutos
@@ -2028,149 +2040,413 @@ class F1Manager {
         }
         
         // Para pieza 6 en adelante: 60 + (numeroPieza - 5) * 50
-        return 60 + ((numeroPieza - 5) * 50);
-    }
-    
-    // ========================
-    // MÉTODO AUXILIAR: Obtener nombre de área
-    // ========================
-    getNombreArea(areaId) {
-        const areas = {
-            'suelo': 'Suelo',
-            'motor': 'Motor',
-            'aleron_delantero': 'Alerón Delantero',
-            'caja_cambios': 'Caja Cambios',
-            'pontones': 'Pontones',
-            'suspension': 'Suspensión',
-            'aleron_trasero': 'Alerón Trasero',
-            'chasis': 'Chasis',
-            'frenos': 'Frenos',
-            'volante': 'Volante',
-            'electronica': 'Electrónica'
-        };
-        return areas[areaId] || areaId;
-    }
-    
-    // ========================
-    // MÉTODO PARA CALCULAR TIEMPOS PROGRESIVOS
-    // ========================
-    calcularTiempoFabricacion(piezaNumero) {
-        // Sistema progresivo según tu especificación:
-        // Pieza 1: 2 minutos
-        // Pieza 2: 4 minutos
-        // Pieza 3: 15 minutos
-        // Pieza 4: 30 minutos
-        // Pieza 5: 60 minutos
-        // Pieza 6-...: +50 minutos cada una
-        
-        const tiemposEspeciales = {
-            1: 2,    // Primera pieza: 2 minutos
-            2: 4,    // Segunda pieza: 4 minutos
-            3: 15,   // Tercera pieza: 15 minutos
-            4: 30,   // Cuarta pieza: 30 minutos
-            5: 60    // Quinta pieza: 60 minutos
-        };
-        
-        if (tiemposEspeciales[piezaNumero]) {
-            return tiemposEspeciales[piezaNumero];
-        }
-        
-        // Para piezas 6 en adelante: 60 + (piezaNumero - 5) * 50
         // Ejemplo: 
         // Pieza 6: 60 + (6-5)*50 = 110 minutos
         // Pieza 7: 60 + (7-5)*50 = 160 minutos
-        // etc.
-        return 60 + ((piezaNumero - 5) * 50);
+        const tiempo = 60 + ((numeroPieza - 5) * 50);
+        console.log(`🧮 Cálculo progresivo: 60 + (${numeroPieza} - 5) * 50 = ${tiempo} minutos`);
+        return tiempo;
     }
     
     // ========================
-    // MÉTODO PARA SUBIR DE NIVEL UN ÁREA
+    // MÉTODO PARA FORMATEAR MINUTOS
     // ========================
-    async subirNivelArea(areaId) {
-        console.log('⬆️ Subiendo nivel del área:', areaId);
+    formatMinutes(minutos) {
+        if (minutos < 60) {
+            return `${minutos} minutos`;
+        } else {
+            const horas = Math.floor(minutos / 60);
+            const minsRestantes = minutos % 60;
+            if (minsRestantes === 0) {
+                return `${horas} horas`;
+            } else {
+                return `${horas}h ${minsRestantes}m`;
+            }
+        }
+    }
+    
+    // ========================
+    // MÉTODO UPDATE PRODUCTION MONITOR CORREGIDO
+    // ========================
+    async updateProductionMonitor() {
+        if (!this.escuderia || !this.escuderia.id || !this.supabase) {
+            console.log('❌ No hay escudería para monitor de producción');
+            return;
+        }
         
-        if (!this.escuderia || !this.escuderia.id || !this.carStats) {
-            this.showNotification('❌ Error: No se encontraron datos del coche', 'error');
+        const container = document.getElementById('produccion-actual');
+        if (!container) {
+            console.log('❌ No se encontró #produccion-actual');
             return;
         }
         
         try {
-            // 1. Verificar que tenemos 5 piezas del nivel actual
-            const nivelActual = this.carStats[`${areaId}_nivel`] || 0;
-            const nivelSiguiente = nivelActual + 1;
+            // Cargar fabricaciones activas
+            const { data: fabricaciones, error } = await this.supabase
+                .from('fabricacion_actual')
+                .select('*')
+                .eq('escuderia_id', this.escuderia.id)
+                .eq('completada', false)
+                .order('tiempo_inicio', { ascending: true });
             
-            const { data: piezasArea, error: errorPiezas } = await this.supabase
+            if (error) throw error;
+            
+            console.log('📊 Fabricaciones activas encontradas:', fabricaciones?.length || 0);
+            
+            let html = `
+                <div class="produccion-slots">
+            `;
+            
+            // Crear 4 slots
+            for (let i = 0; i < 4; i++) {
+                const fabricacion = fabricaciones && fabricaciones[i];
+                
+                if (fabricacion) {
+                    const ahora = new Date();
+                    const tiempoFin = new Date(fabricacion.tiempo_fin);
+                    const tiempoRestante = tiempoFin - ahora;
+                    const lista = tiempoRestante <= 0;
+                    
+                    // Calcular número de pieza dinámicamente
+                    let numeroPieza = 1;
+                    try {
+                        const { data: piezasExistentes } = await this.supabase
+                            .from('almacen_piezas')
+                            .select('id')
+                            .eq('escuderia_id', this.escuderia.id)
+                            .eq('area', fabricacion.area)
+                            .eq('nivel', fabricacion.nivel);
+                        
+                        numeroPieza = (piezasExistentes?.length || 0) + 1;
+                    } catch (e) {
+                        console.error('Error calculando número de pieza:', e);
+                    }
+                    
+                    const nombreArea = this.getNombreArea(fabricacion.area);
+                    const tiempoFormateado = this.formatTime(tiempoRestante);
+                    
+                    html += `
+                        <div class="produccion-slot ${lista ? 'produccion-lista' : 'produccion-activa'}" 
+                             onclick="recogerPiezaSiLista('${fabricacion.id}', ${lista}, ${i})"
+                             title="${nombreArea} - Pieza ${numeroPieza} de nivel ${fabricacion.nivel}">
+                            <div class="produccion-icon">
+                                ${lista ? '✅' : '🔄'}
+                            </div>
+                            <div class="produccion-info">
+                                <span class="produccion-nombre">${nombreArea}</span>
+                                <span class="produccion-pieza-num">Pieza ${numeroPieza}</span>
+                                ${lista ? 
+                                    `<span class="produccion-lista-text">¡LISTA!</span>` :
+                                    `<span class="produccion-tiempo">${tiempoFormateado}</span>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Slot vacío
+                    html += `
+                        <div class="produccion-slot" data-slot="${i}" onclick="irAlTallerDesdeProduccion()">
+                            <div class="slot-content">
+                                <i class="fas fa-plus"></i>
+                                <span>Slot ${i + 1}</span>
+                                <span class="slot-disponible">Disponible</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            html += `</div>`;
+            container.innerHTML = html;
+            
+            // Iniciar timer para actualización en tiempo real
+            this.iniciarTimerProduccion();
+            
+        } catch (error) {
+            console.error("Error en updateProductionMonitor:", error);
+            container.innerHTML = `
+                <div class="produccion-error">
+                    <p>❌ Error cargando producción</p>
+                    <button onclick="window.f1Manager.updateProductionMonitor()">Reintentar</button>
+                </div>
+            `;
+        }
+    }
+    
+    // ========================
+    // MÉTODO PARA INICIAR TIMER DE ACTUALIZACIÓN
+    // ========================
+    iniciarTimerProduccion() {
+        // Limpiar timer anterior
+        if (this.productionUpdateTimer) {
+            clearInterval(this.productionUpdateTimer);
+        }
+        
+        // Actualizar cada segundo
+        this.productionUpdateTimer = setInterval(() => {
+            this.actualizarTiemposEnVivo();
+        }, 1000);
+    }
+    
+    // ========================
+    // ACTUALIZAR TIEMPOS EN VIVO
+    // ========================
+    async actualizarTiemposEnVivo() {
+        const slots = document.querySelectorAll('.produccion-slot.produccion-activa');
+        if (slots.length === 0) return;
+        
+        try {
+            const { data: fabricaciones, error } = await this.supabase
+                .from('fabricacion_actual')
+                .select('id, tiempo_fin, area, nivel')
+                .eq('escuderia_id', this.escuderia.id)
+                .eq('completada', false);
+            
+            if (error || !fabricaciones) return;
+            
+            slots.forEach(slot => {
+                const fabricacionId = slot.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+                if (!fabricacionId) return;
+                
+                const fabricacion = fabricaciones.find(f => f.id === fabricacionId);
+                if (!fabricacion) return;
+                
+                const ahora = new Date();
+                const tiempoFin = new Date(fabricacion.tiempo_fin);
+                const tiempoRestante = tiempoFin - ahora;
+                
+                if (tiempoRestante <= 0) {
+                    // ¡LISTA!
+                    slot.classList.remove('produccion-activa');
+                    slot.classList.add('produccion-lista');
+                    
+                    // Recalcular número de pieza para mostrar
+                    this.calcularNumeroPieza(fabricacion.area, fabricacion.nivel).then(numeroPieza => {
+                        const nombreArea = this.getNombreArea(fabricacion.area);
+                        slot.innerHTML = `
+                            <div class="produccion-icon">✅</div>
+                            <div class="produccion-info">
+                                <span class="produccion-nombre">${nombreArea}</span>
+                                <span class="produccion-pieza-num">Pieza ${numeroPieza}</span>
+                                <span class="produccion-lista-text">¡LISTA!</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    // Actualizar contador
+                    const tiempoElement = slot.querySelector('.produccion-tiempo');
+                    if (tiempoElement) {
+                        tiempoElement.textContent = this.formatTime(tiempoRestante);
+                    }
+                }
+            });
+            
+        } catch (error) {
+            console.error('Error actualizando tiempos en vivo:', error);
+        }
+    }
+    
+    // ========================
+    // MÉTODO AUXILIAR PARA CALCULAR NÚMERO DE PIEZA
+    // ========================
+    async calcularNumeroPieza(area, nivel) {
+        try {
+            const { data: piezasExistentes } = await this.supabase
                 .from('almacen_piezas')
                 .select('id')
                 .eq('escuderia_id', this.escuderia.id)
-                .eq('area', areaId)
-                .eq('nivel', nivelSiguiente)
-                .eq('equipada', false);
+                .eq('area', area)
+                .eq('nivel', nivel);
             
-            if (errorPiezas) throw errorPiezas;
+            return (piezasExistentes?.length || 0) + 1;
+        } catch (error) {
+            console.error('Error calculando número de pieza:', error);
+            return 1;
+        }
+    }
+    
+    // ========================
+    // FUNCIÓN GLOBAL RECOGER PIEZA SI LISTA (CORREGIDA)
+    // ========================
+    window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
+        console.log("🔧 Recogiendo pieza:", { fabricacionId, lista });
+        
+        if (!lista) {
+            // Mostrar información de la pieza en fabricación
+            try {
+                const { data: fabricacion } = await window.supabase
+                    .from('fabricacion_actual')
+                    .select('*')
+                    .eq('id', fabricacionId)
+                    .single();
+                    
+                if (fabricacion) {
+                    const ahora = new Date();
+                    const tiempoFin = new Date(fabricacion.tiempo_fin);
+                    const tiempoRestante = tiempoFin - ahora;
+                    const tiempoFormateado = tiempoRestante > 0 ? 
+                        window.f1Manager?.formatTime(tiempoRestante) : "Finalizando...";
+                    
+                    // Calcular número de pieza
+                    const { data: piezasExistentes } = await window.supabase
+                        .from('almacen_piezas')
+                        .select('id')
+                        .eq('escuderia_id', fabricacion.escuderia_id)
+                        .eq('area', fabricacion.area)
+                        .eq('nivel', fabricacion.nivel);
+                    
+                    const numeroPieza = (piezasExistentes?.length || 0) + 1;
+                    const nombreArea = window.f1Manager?.getNombreArea(fabricacion.area) || fabricacion.area;
+                    
+                    alert(`🔄 ${nombreArea}\nPieza ${numeroPieza} de nivel ${fabricacion.nivel}\nTiempo restante: ${tiempoFormateado}`);
+                }
+            } catch (error) {
+                console.error("Error obteniendo info:", error);
+            }
+            return;
+        }
+        
+        // SI está lista, recoger
+        try {
+            // 1. Obtener fabricación
+            const { data: fabricacion, error: fetchError } = await window.supabase
+                .from('fabricacion_actual')
+                .select('*')
+                .eq('id', fabricacionId)
+                .single();
             
-            if (!piezasArea || piezasArea.length < 5) {
-                this.showNotification(`❌ Necesitas 5 piezas de nivel ${nivelSiguiente} para subir de nivel`, 'error');
-                return;
+            if (fetchError) throw fetchError;
+            
+            // 2. Calcular número de pieza y puntos
+            const { data: piezasExistentes } = await window.supabase
+                .from('almacen_piezas')
+                .select('id')
+                .eq('escuderia_id', fabricacion.escuderia_id)
+                .eq('area', fabricacion.area)
+                .eq('nivel', fabricacion.nivel);
+            
+            const numeroPieza = (piezasExistentes?.length || 0) + 1;
+            
+            // Calcular puntos basados en área, nivel y número de pieza
+            const puntosBase = calcularPuntosBase(fabricacion.area, fabricacion.nivel);
+            const puntosExtra = numeroPieza * 2; // Bonus por dificultad
+            const puntosTotales = puntosBase + puntosExtra;
+            
+            // 3. Crear pieza en almacen_piezas
+            const { error: insertError } = await window.supabase
+                .from('almacen_piezas')
+                .insert([{
+                    escuderia_id: fabricacion.escuderia_id,
+                    area: fabricacion.area,
+                    nivel: fabricacion.nivel || 1,
+                    puntos_base: puntosTotales,
+                    calidad: 'Normal',
+                    equipada: false,
+                    fabricada_en: new Date().toISOString(),
+                    creada_en: new Date().toISOString()
+                }]);
+            
+            if (insertError) {
+                console.error("Error insertando pieza:", insertError);
+                throw insertError;
             }
             
-            // 2. Actualizar nivel en coches_stats
-            const campoNivel = `${areaId}_nivel`;
-            const campoProgreso = `${areaId}_progreso`;
+            console.log("✅ Pieza añadida a almacen_piezas");
             
-            const nuevosStats = {
-                [campoNivel]: nivelSiguiente,
-                [campoProgreso]: 0, // Resetear progreso para el nuevo nivel
-                actualizado_en: new Date().toISOString()
-            };
+            // 4. Marcar fabricación como completada
+            const { error: updateError } = await window.supabase
+                .from('fabricacion_actual')
+                .update({ 
+                    completada: true
+                })
+                .eq('id', fabricacionId);
             
-            const { error: errorStats } = await this.supabase
-                .from('coches_stats')
-                .update(nuevosStats)
-                .eq('escuderia_id', this.escuderia.id);
+            if (updateError) throw updateError;
             
-            if (errorStats) throw errorStats;
+            console.log("✅ Fabricación marcada como completada");
             
-            // 3. Marcar las 5 piezas como equipadas
-            const idsPiezas = piezasArea.slice(0, 5).map(p => p.id);
+            // 5. Mostrar notificación
+            const nombreArea = window.f1Manager?.getNombreArea(fabricacion.area) || fabricacion.area;
+            if (window.f1Manager && window.f1Manager.showNotification) {
+                window.f1Manager.showNotification(
+                    `✅ ${nombreArea} (Pieza ${numeroPieza}) recogida\n+${puntosTotales} puntos técnicos`, 
+                    'success'
+                );
+            }
             
-            const { error: errorEquipar } = await this.supabase
-                .from('almacen_piezas')
-                .update({ equipada: true })
-                .in('id', idsPiezas);
-            
-            if (errorEquipar) throw errorEquipar;
-            
-            // 4. Actualizar datos locales
-            this.carStats[campoNivel] = nivelSiguiente;
-            this.carStats[campoProgreso] = 0;
-            
-            // 5. Mostrar notificación y recargar
-            const areasNombres = {
-                'suelo': 'Suelo',
-                'motor': 'Motor',
-                'aleron_delantero': 'Alerón Delantero',
-                'caja_cambios': 'Caja de Cambios',
-                'pontones': 'Pontones',
-                'suspension': 'Suspensión',
-                'aleron_trasero': 'Alerón Trasero',
-                'chasis': 'Chasis',
-                'frenos': 'Frenos',
-                'volante': 'Volante',
-                'electronica': 'Electrónica'
-            };
-            
-            const nombreArea = areasNombres[areaId] || areaId;
-            this.showNotification(`✅ ${nombreArea} subido a nivel ${nivelSiguiente}!`, 'success');
-            
-            // 6. Recargar la pestaña taller después de 1 segundo
-            setTimeout(() => {
-                this.cargarTabTaller();
-            }, 1000);
+            // 6. Actualizar UI
+            if (window.f1Manager) {
+                // Parar timer de actualización
+                if (window.f1Manager.productionUpdateTimer) {
+                    clearInterval(window.f1Manager.productionUpdateTimer);
+                }
+                
+                // Actualizar producción
+                setTimeout(() => {
+                    window.f1Manager.updateProductionMonitor();
+                }, 500);
+                
+                // Actualizar almacén si está abierto
+                if (window.tabManager && window.tabManager.currentTab === 'almacen') {
+                    setTimeout(() => {
+                        if (window.tabManager.loadAlmacenPiezas) {
+                            window.tabManager.loadAlmacenPiezas();
+                        }
+                    }, 1000);
+                }
+                
+                // Actualizar piezas montadas
+                setTimeout(() => {
+                    if (window.f1Manager.cargarPiezasMontadas) {
+                        window.f1Manager.cargarPiezasMontadas();
+                    }
+                }, 1500);
+            }
             
         } catch (error) {
-            console.error('❌ Error subiendo nivel:', error);
-            this.showNotification(`❌ Error subiendo nivel: ${error.message}`, 'error');
+            console.error('❌ Error recogiendo pieza:', error);
+            if (window.f1Manager && window.f1Manager.showNotification) {
+                window.f1Manager.showNotification(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+    };
+    
+    // ========================
+    // FUNCIONES AUXILIARES (con punto y coma)
+    // ========================
+    function calcularPuntosBase(area, nivel) {
+        const puntosPorArea = {
+            'motor': 15,
+            'chasis': 12,
+            'suelo': 10,
+            'electronica': 14,
+            'aleron_delantero': 8,
+            'aleron_trasero': 8,
+            'caja_cambios': 9,
+            'suspension': 7,
+            'frenos': 6,
+            'volante': 5,
+            'pontones': 7
+        };
+        
+        const puntosArea = puntosPorArea[area] || 10;
+        return puntosArea * (nivel || 1);
+    }
+    
+    function formatTime(milliseconds) {
+        if (milliseconds <= 0) return "00:00:00";
+        
+        const totalSegundos = Math.floor(milliseconds / 1000);
+        const horas = Math.floor(totalSegundos / 3600);
+        const minutos = Math.floor((totalSegundos % 3600) / 60);
+        const segundos = totalSegundos % 60;
+        
+        if (horas > 0) {
+            return `${horas}h ${minutos}m`;
+        } else if (minutos > 0) {
+            return `${minutos}m ${segundos}s`;
+        } else {
+            return `${segundos}s`;
         }
     }
 
