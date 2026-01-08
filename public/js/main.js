@@ -4489,34 +4489,25 @@ class F1Manager {
                                 </div>
                             </div>
                             
-                             <!-- Columna 3: Monitor de Fábrica -->
-                            <div class="col-fabrica" style="flex: 0 0 320px; height: 100%; background: rgba(30,30,40,0.8); border-radius: 10px; border: 1px solid rgba(0,210,190,0.3); padding: 10px;">
+                            <!-- Columna 3: Monitor de Fábrica -->
+                            <div class="col-fabrica" style="flex: 1; min-width: 0; height: 100%; background: rgba(30,30,40,0.8); border-radius: 10px; border: 1px solid rgba(0,210,190,0.3); padding: 15px;">
                                 <div class="monitor-fabrica" style="height: 100%; display: flex; flex-direction: column;">
-                                    <div class="section-header" style="padding-bottom: 8px;">
-                                        <h2 style="margin: 0; font-size: 1.1rem;"><i class="fas fa-industry"></i> PRODUCCIÓN</h2>
-                                        <div class="badge" id="contador-produccion">0/4</div>
+                                    <div class="section-header">
+                                        <h2><i class="fas fa-industry"></i> PRODUCCIÓN</h2>
+                                        <div id="alerta-almacen" class="alerta-almacen" style="display: none;">
+                                            <i class="fas fa-bell"></i>
+                                            <span>¡Piezas nuevas en almacén!</span>
+                                        </div>
                                     </div>
-                                    <div id="produccion-actual" class="produccion-actual" style="flex: 1; overflow: hidden;">
-                                        <!-- Las producciones se cargarán aquí dinámicamente -->
+                                    <div id="produccion-actual" class="produccion-actual" style="flex: 1; overflow-y: auto; padding-right: 5px;">
+                                        <div class="empty-state">
+                                            <i class="fas fa-industry"></i>
+                                            <p>No hay producción en curso</p>
+                                        </div>
                                     </div>
-                                    <button class="btn-iniciar-todas" onclick="irAlTaller()" style="
-                                        margin-top: 8px;
-                                        padding: 6px 10px;
-                                        background: rgba(0,210,190,0.1);
-                                        border: 1px solid rgba(0,210,190,0.4);
-                                        color: #00d2be;
-                                        border-radius: 5px;
-                                        font-size: 0.75rem;
-                                        cursor: pointer;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        gap: 5px;
-                                    ">
-                                        <i class="fas fa-plus"></i> INICIAR PRODUCCIÓN
-                                    </button>
                                 </div>
                             </div>
+                        </div>
                         
                         <!-- Análisis de Rendimiento -->
                         <section class="analisis-rendimiento">
@@ -5311,8 +5302,10 @@ class F1Manager {
         }
         
         const container = document.getElementById('produccion-actual');
-        const contador = document.getElementById('contador-produccion');
-        if (!container) return;
+        if (!container) {
+            console.log('❌ No se encontró #produccion-actual');
+            return;
+        }
         
         try {
             // Cargar fabricaciones activas
@@ -5325,301 +5318,86 @@ class F1Manager {
             
             if (error) throw error;
             
-            const produccionesActivas = fabricaciones || [];
-            const slotsDisponibles = 4 - produccionesActivas.length;
-            
-            // Actualizar contador
-            if (contador) {
-                contador.textContent = `${produccionesActivas.length}/4`;
-                // Cambiar color según uso
-                if (produccionesActivas.length === 4) {
-                    contador.style.background = 'rgba(225, 6, 0, 0.2)';
-                    contador.style.color = '#e10600';
-                } else if (produccionesActivas.length >= 2) {
-                    contador.style.background = 'rgba(255, 152, 0, 0.2)';
-                    contador.style.color = '#ff9800';
-                } else {
-                    contador.style.background = 'rgba(0, 210, 190, 0.15)';
-                    contador.style.color = '#00d2be';
-                }
+            if (!fabricaciones || fabricaciones.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-industry"></i>
+                        <p>No hay producción en curso</p>
+                        <button class="btn-primary" id="iniciar-fabricacion-btn">
+                            <i class="fas fa-hammer"></i> Iniciar fabricación
+                        </button>
+                    </div>
+                `;
+                return;
             }
             
-            // Crear grid 2x2 como estrategas
-            let html = `<div class="produccion-grid-minimal">`;
+            // Mostrar fabricaciones
+            let html = `
+                <div class="produccion-header">
+                    <h3><i class="fas fa-industry"></i> Fabricaciones en curso</h3>
+                    <span class="badge">${fabricaciones.length} activas</span>
+                </div>
+                <div class="fabricaciones-lista">
+            `;
             
-            // Mostrar producciones activas primero
-            produccionesActivas.forEach((fab, index) => {
+            fabricaciones.forEach(fab => {
                 const ahora = new Date();
                 const tiempoInicio = new Date(fab.tiempo_inicio);
                 const tiempoFin = new Date(fab.tiempo_fin);
+                
+                const tiempoTotal = tiempoFin - tiempoInicio;
+                const tiempoTranscurrido = ahora - tiempoInicio;
+                const progreso = Math.min(100, (tiempoTranscurrido / tiempoTotal) * 100);
                 const tiempoRestante = tiempoFin - ahora;
                 const lista = ahora >= tiempoFin;
                 
-                // Mapear área a nombre legible
                 const nombreArea = {
                     'motor': 'Motor',
                     'chasis': 'Chasis',
-                    'aerodinamica': 'Aerodinámica',
-                    'suspension': 'Suspensión',
-                    'transmision': 'Transmisión',
-                    'frenos': 'Frenos',
-                    'electronica': 'Electrónica',
-                    'control': 'Control',
-                    'difusor': 'Difusor',
-                    'alerones': 'Alerones',
-                    'pontones': 'Pontones'
+                    'aerodinamica': 'Aerodinámica'
                 }[fab.area] || fab.area;
                 
-                // Mapear área a icono
-                const iconoArea = {
-                    'motor': '🏎️',
-                    'chasis': '📊',
-                    'aerodinamica': '🌀',
-                    'suspension': '⚙️',
-                    'transmision': '🔄',
-                    'frenos': '🛑',
-                    'electronica': '💡',
-                    'control': '🎮',
-                    'difusor': '🌪️',
-                    'alerones': '🪽',
-                    'pontones': '📦'
-                }[fab.area] || '🔧';
-                
-                // Formatear tiempo restante
-                let tiempoTexto = "";
-                if (lista) {
-                    tiempoTexto = "¡LISTO!";
-                } else if (tiempoRestante > 0) {
-                    const horas = Math.floor(tiempoRestante / (1000 * 60 * 60));
-                    const minutos = Math.floor((tiempoRestante % (1000 * 60 * 60)) / (1000 * 60));
-                    const segundos = Math.floor((tiempoRestante % (1000 * 60)) / 1000);
-                    
-                    if (horas > 0) {
-                        tiempoTexto = `${horas}h`;
-                    } else if (minutos > 0) {
-                        tiempoTexto = `${minutos}m`;
-                    } else {
-                        tiempoTexto = `${segundos}s`;
-                    }
-                }
-                
                 html += `
-                    <div class="produccion-btn ${lista ? 'lista' : 'fabricando'}" 
-                         onclick="${lista ? `recogerPiezaYIrAlmacen('${fab.id}', '${fab.area}')` : ''}"
-                         data-fab-id="${fab.id}">
-                        <div class="produccion-icon">
-                            ${iconoArea}
+                    <div class="fabricacion-item ${lista ? 'lista' : ''}">
+                        <div class="fabricacion-info">
+                            <div class="fab-area">
+                                <i class="fas fa-cog"></i>
+                                <span>${nombreArea} Nivel ${fab.nivel}</span>
+                            </div>
+                            <div class="fab-estado">
+                                <span class="estado-badge ${lista ? 'lista' : 'fabricando'}">
+                                    ${lista ? '✅ LISTA' : '🔄 FABRICANDO'}
+                                </span>
+                            </div>
                         </div>
-                        <div class="produccion-info">
-                            <span class="produccion-nombre">${nombreArea}</span>
-                            <span class="produccion-nivel">Nivel ${fab.nivel || 1}</span>
-                            <span class="produccion-tiempo ${lista ? 'lista' : ''}">${tiempoTexto}</span>
+                        
+                        <div class="fab-progreso">
+                            <div class="progress-bar-small">
+                                <div class="progress-fill-small" style="width: ${progreso}%"></div>
+                            </div>
+                            <div class="fab-tiempo">
+                                <i class="far fa-clock"></i>
+                                <span>${lista ? '¡Lista para recoger!' : `Tiempo restante: ${this.formatTime(tiempoRestante)}`}</span>
+                            </div>
                         </div>
-                        ${lista ? '<div class="produccion-bono">✓</div>' : ''}
+                        
+                        <div class="fab-acciones">
+                            <button class="btn-small btn-success" ${!lista ? 'disabled' : ''} 
+                                    onclick="recogerPiezaTutorial('${fab.id}', '${fab.area}')">
+                                <i class="fas fa-box-open"></i> ${lista ? 'Recoger' : 'Esperar'}
+                            </button>
+                        </div>
                     </div>
                 `;
             });
             
-            // Agregar slots vacíos
-            for (let i = 0; i < slotsDisponibles; i++) {
-                html += `
-                    <div class="produccion-btn vacio" onclick="irAlTaller()">
-                        <div class="produccion-icon">
-                            <i class="fas fa-plus"></i>
-                        </div>
-                        <div class="produccion-info">
-                            <span class="produccion-nombre">Vacío</span>
-                            <span class="produccion-funcion">Click para fabricar</span>
-                        </div>
-                    </div>
-                `;
-            }
-            
             html += `</div>`;
             container.innerHTML = html;
             
-            // Añadir estilos si no existen
-            this.agregarEstilosProduccion();
-            
         } catch (error) {
             console.error("Error cargando fabricaciones:", error);
-            container.innerHTML = `<div class="produccion-error">Error cargando producción</div>`;
+            container.innerHTML = `<p class="error">Error cargando producción</p>`;
         }
-    }
-    
-    agregarEstilosProduccion() {
-        // Solo agregar estilos una vez
-        if (document.getElementById('estilos-produccion')) return;
-        
-        const styles = document.createElement('style');
-        styles.id = 'estilos-produccion';
-        styles.innerHTML = `
-            .produccion-grid-minimal {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                grid-template-rows: repeat(2, 1fr);
-                gap: 8px;
-                height: 100%;
-                padding: 2px;
-            }
-            
-            .produccion-btn {
-                background: rgba(255, 255, 255, 0.03);
-                border: 1.5px solid rgba(255, 255, 255, 0.08);
-                border-radius: 6px;
-                padding: 8px 6px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                position: relative;
-                height: 85px;
-                min-height: 85px;
-            }
-            
-            .produccion-btn.fabricando {
-                border-color: rgba(255, 152, 0, 0.25);
-                background: rgba(255, 152, 0, 0.04);
-            }
-            
-            .produccion-btn.fabricando:hover {
-                border-color: rgba(255, 152, 0, 0.5);
-                background: rgba(255, 152, 0, 0.08);
-            }
-            
-            .produccion-btn.lista {
-                border-color: rgba(76, 175, 80, 0.3);
-                background: rgba(76, 175, 80, 0.1);
-                animation: pulse-green 1.5s infinite;
-            }
-            
-            .produccion-btn.lista:hover {
-                border-color: #4CAF50;
-                background: rgba(76, 175, 80, 0.2);
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-            }
-            
-            .produccion-btn.vacio {
-                border-style: dashed;
-                border-color: rgba(255, 255, 255, 0.1);
-                background: rgba(255, 255, 255, 0.015);
-            }
-            
-            .produccion-btn.vacio:hover {
-                border-color: rgba(0, 210, 190, 0.4);
-                background: rgba(0, 210, 190, 0.05);
-            }
-            
-            .produccion-icon {
-                font-size: 1.3rem;
-                margin-bottom: 5px;
-                color: #00d2be;
-                height: 22px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .produccion-btn.fabricando .produccion-icon {
-                color: #ff9800;
-            }
-            
-            .produccion-btn.lista .produccion-icon {
-                color: #4CAF50;
-            }
-            
-            .produccion-btn.vacio .produccion-icon {
-                color: #666;
-                font-size: 1rem;
-            }
-            
-            .produccion-info {
-                text-align: center;
-                width: 100%;
-                overflow: hidden;
-            }
-            
-            .produccion-nombre {
-                display: block;
-                font-weight: bold;
-                font-size: 0.75rem;
-                color: white;
-                margin-bottom: 2px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                line-height: 1.1;
-            }
-            
-            .produccion-nivel {
-                display: block;
-                font-size: 0.65rem;
-                color: #aaa;
-                margin-bottom: 1px;
-                line-height: 1;
-            }
-            
-            .produccion-tiempo {
-                display: block;
-                font-size: 0.7rem;
-                color: #ff9800;
-                font-weight: bold;
-                line-height: 1;
-            }
-            
-            .produccion-tiempo.lista {
-                color: #4CAF50;
-                animation: blink 1s infinite;
-            }
-            
-            .produccion-funcion {
-                display: block;
-                font-size: 0.6rem;
-                color: #888;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                line-height: 1;
-            }
-            
-            .produccion-bono {
-                position: absolute;
-                top: 4px;
-                right: 4px;
-                background: rgba(76, 175, 80, 0.2);
-                color: #4CAF50;
-                font-size: 0.7rem;
-                padding: 2px 6px;
-                border-radius: 10px;
-                font-weight: bold;
-            }
-            
-            @keyframes pulse-green {
-                0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
-                70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
-                100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
-            }
-            
-            @keyframes blink {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.5; }
-            }
-            
-            .section-header .badge {
-                background: rgba(0, 210, 190, 0.15);
-                color: #00d2be;
-                padding: 3px 8px;
-                border-radius: 10px;
-                font-size: 0.8rem;
-                font-weight: bold;
-                transition: all 0.3s;
-            }
-        `;
-        
-        document.head.appendChild(styles);
     }
     
     setupDashboardEvents() {
