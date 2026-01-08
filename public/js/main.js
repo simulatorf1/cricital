@@ -1497,6 +1497,23 @@ class F1Manager {
     };
 
     async cargarPiezasMontadas() {
+        console.log('🎯 [DEBUG] Método cargarPiezasMontadas EJECUTADO');
+        
+        const contenedor = document.getElementById('grid-piezas-montadas');
+        console.log('🎯 [DEBUG] Contenedor encontrado?', !!contenedor);
+        console.log('🎯 [DEBUG] Contenedor:', contenedor);
+        
+        if (!contenedor) {
+            console.error('❌ [DEBUG] NO EXISTE #grid-piezas-montadas');
+            // Busca si existe con otro nombre
+            console.log('🔍 [DEBUG] Buscando todos los divs...');
+            document.querySelectorAll('div').forEach((div, i) => {
+                if (div.id && div.id.includes('piezas')) {
+                    console.log(`🔍 [DEBUG] Div encontrado: ${div.id}`);
+                }
+            });
+            return;
+        }
         console.log('🔧 Cargando piezas montadas...');
         const contenedor = document.getElementById('grid-piezas-montadas');
         if (!contenedor) {
