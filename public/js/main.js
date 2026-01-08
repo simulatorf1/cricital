@@ -6639,9 +6639,30 @@ class F1Manager {
             
             console.log('📊 Fabricaciones activas encontradas:', fabricaciones?.length || 0);
             
+            // Verificar tiempos REALES de cada fabricación
+            const ahora = new Date();
+            const fabricacionesConEstado = (fabricaciones || []).map(f => {
+                const tiempoFin = new Date(f.tiempo_fin);
+                const tiempoRestante = tiempoFin - ahora;
+                const lista = tiempoRestante <= 0; // SOLO lista si el tiempo restante es <= 0
+                
+                return {
+                    ...f,
+                    tiempoRestante,
+                    lista
+                };
+            });
+            
+            console.log('⏱️ Estado fabricaciones:', fabricacionesConEstado.map(f => ({
+                area: f.area,
+                tiempoFin: f.tiempo_fin,
+                tiempoRestante: f.tiempoRestante,
+                lista: f.lista
+            })));
+            
             // Para cada fabricación, calcular su número de pieza
             const fabricacionesConNumero = [];
-            for (const fabricacion of (fabricaciones || [])) {
+            for (const fabricacion of fabricacionesConEstado) {
                 // Calcular número de pieza basado en cuántas ya hay fabricadas
                 const { data: piezasExistentes } = await this.supabase
                     .from('almacen_piezas')
@@ -6669,10 +6690,8 @@ class F1Manager {
                 const fabricacion = fabricacionesConNumero[i];
                 
                 if (fabricacion) {
-                    const ahora = new Date();
-                    const tiempoFin = new Date(fabricacion.tiempo_fin);
-                    const tiempoRestante = tiempoFin - ahora;
-                    const lista = tiempoRestante <= 0;
+                    const tiempoRestante = fabricacion.tiempoRestante;
+                    const lista = fabricacion.lista;
                     
                     const nombreArea = this.getNombreArea(fabricacion.area);
                     const tiempoFormateado = this.formatTime(tiempoRestante);
