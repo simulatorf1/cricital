@@ -6958,6 +6958,9 @@ class F1Manager {
         console.log("🔧 Recogiendo pieza:", { fabricacionId, lista });
         
         if (!lista) {
+            if (window.f1Manager && window.f1Manager.showNotification) {
+            window.f1Manager.showNotification("⏳ La pieza aún está en producción", "info");
+            }
             // Mostrar información de la pieza en fabricación
             try {
                 const { data: fabricacion } = await window.supabase
