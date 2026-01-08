@@ -4417,15 +4417,31 @@ class F1Manager {
                         <div class="three-columns-layout" style="display: flex; flex-direction: row; gap: 20px; margin: 20px 0; width: 100%; height: 320px; align-items: stretch;">
                             
                             <!-- Columna 1: Estrategas Compactos -->
-                            <div class="col-estrategas" style="flex: 0 0 320px; height: 100%; background: rgba(30,30,40,0.8); border-radius: 10px; border: 1px solid rgba(0,210,190,0.3); padding: 15px;">
+                            <div class="col-estrategas" style="flex: 0 0 320px; height: 100%; background: rgba(30,30,40,0.8); border-radius: 10px; border: 1px solid rgba(0,210,190,0.3); padding: 10px;">
                                 <section class="panel-pilotos compacto" style="height: 100%; display: flex; flex-direction: column;">
-                                    <div class="section-header">
-                                        <h2><i class="fas fa-users"></i> ESTRATEGAS</h2>
+                                    <div class="section-header" style="padding-bottom: 8px;">
+                                        <h2 style="margin: 0; font-size: 1.1rem;"><i class="fas fa-users"></i> ESTRATEGAS</h2>
                                         <span class="badge" id="contador-estrategas">0/4</span>
                                     </div>
                                     <div id="pilotos-container" class="pilotos-container" style="flex: 1; overflow: hidden;">
                                         <!-- Contenido dinámico -->
                                     </div>
+                                    <button class="btn-contratar-todos" onclick="gestionarEstrategas()" style="
+                                        margin-top: 8px;
+                                        padding: 6px 10px;
+                                        background: rgba(0,210,190,0.1);
+                                        border: 1px solid rgba(0,210,190,0.4);
+                                        color: #00d2be;
+                                        border-radius: 5px;
+                                        font-size: 0.75rem;
+                                        cursor: pointer;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        gap: 5px;
+                                    ">
+                                        <i class="fas fa-plus"></i> GESTIONAR ESTRATEGAS
+                                    </button>
                                 </section>
                             </div>
                             
@@ -4935,99 +4951,157 @@ class F1Manager {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 grid-template-rows: repeat(2, 1fr);
-                gap: 10px;
+                gap: 8px !important; /* Menor espacio */
                 height: 100%;
+                padding: 2px;
             }
             
             .estratega-btn {
-                background: rgba(255, 255, 255, 0.05);
-                border: 2px solid rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
-                padding: 12px;
+                background: rgba(255, 255, 255, 0.03) !important;
+                border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+                border-radius: 6px !important;
+                padding: 8px 6px !important; /* Más compacto */
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                transition: all 0.3s ease;
+                transition: all 0.2s ease;
                 position: relative;
-                height: 110px;
+                height: 85px !important; /* Altura reducida */
+                min-height: 85px !important;
             }
             
             .estratega-btn.contratado {
-                border-color: rgba(0, 210, 190, 0.3);
-                background: rgba(0, 210, 190, 0.05);
+                border-color: rgba(0, 210, 190, 0.25) !important;
+                background: rgba(0, 210, 190, 0.04) !important;
             }
             
             .estratega-btn.contratado:hover {
-                border-color: #00d2be;
-                background: rgba(0, 210, 190, 0.1);
-                transform: translateY(-2px);
+                border-color: rgba(0, 210, 190, 0.5) !important;
+                background: rgba(0, 210, 190, 0.08) !important;
+                transform: translateY(-1px);
             }
             
             .estratega-btn.vacio {
-                border-color: rgba(255, 255, 255, 0.1);
-                background: rgba(255, 255, 255, 0.02);
+                border-style: dashed !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
+                background: rgba(255, 255, 255, 0.015) !important;
             }
             
             .estratega-btn.vacio:hover {
-                border-color: rgba(0, 210, 190, 0.5);
-                background: rgba(0, 210, 190, 0.08);
-                transform: translateY(-2px);
+                border-color: rgba(0, 210, 190, 0.4) !important;
+                background: rgba(0, 210, 190, 0.05) !important;
             }
             
             .estratega-icon {
-                font-size: 1.5rem;
-                margin-bottom: 8px;
+                font-size: 1.1rem !important; /* Más pequeño */
+                margin-bottom: 5px !important;
                 color: #00d2be;
+                height: 22px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             
             .estratega-btn.vacio .estratega-icon {
-                color: #888;
+                color: #666;
+                font-size: 1rem !important;
             }
             
             .estratega-info {
                 text-align: center;
                 width: 100%;
+                overflow: hidden;
             }
             
             .estratega-nombre {
                 display: block;
                 font-weight: bold;
-                font-size: 0.9rem;
+                font-size: 0.75rem !important; /* Más pequeño */
                 color: white;
-                margin-bottom: 3px;
+                margin-bottom: 2px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                line-height: 1.1;
             }
             
             .estratega-salario {
                 display: block;
-                font-size: 0.75rem;
+                font-size: 0.65rem !important; /* Más pequeño */
                 color: #4CAF50;
-                margin-bottom: 3px;
+                margin-bottom: 1px;
+                line-height: 1;
             }
             
             .estratega-funcion {
                 display: block;
-                font-size: 0.7rem;
-                color: #aaa;
+                font-size: 0.6rem !important; /* Más pequeño */
+                color: #888;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                line-height: 1;
             }
             
             .estratega-bono {
                 position: absolute;
-                top: 8px;
-                right: 8px;
-                background: rgba(0, 210, 190, 0.2);
+                top: 4px;
+                right: 4px;
+                background: rgba(0, 210, 190, 0.15);
                 color: #00d2be;
-                font-size: 0.7rem;
-                padding: 2px 6px;
-                border-radius: 10px;
+                font-size: 0.6rem !important; /* Más pequeño */
+                padding: 1px 4px;
+                border-radius: 8px;
                 font-weight: bold;
+                line-height: 1;
+            }
+            
+            /* Ajustar section header */
+            .section-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px !important;
+                padding-bottom: 8px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            
+            .section-header h2 {
+                margin: 0 !important;
+                font-size: 1.1rem !important;
+                font-weight: 600;
+            }
+            
+            .section-header .badge {
+                background: rgba(0, 210, 190, 0.15);
+                color: #00d2be;
+                padding: 3px 8px;
+                border-radius: 10px;
+                font-size: 0.8rem;
+                font-weight: bold;
+            }
+            
+            /* Ajustar las otras columnas para más equilibrio */
+            .col-countdown, .col-fabrica {
+                padding: 10px !important; /* Reducir padding general */
+            }
+            
+            /* Mejorar scroll en producción */
+            .produccion-actual {
+                max-height: 220px;
+                overflow-y: auto;
+                padding-right: 3px;
+            }
+            
+            .produccion-actual::-webkit-scrollbar {
+                width: 4px;
+            }
+            
+            .produccion-actual::-webkit-scrollbar-thumb {
+                background: rgba(0, 210, 190, 0.3);
+                border-radius: 2px;
             }
         `;
         
