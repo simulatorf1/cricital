@@ -117,6 +117,42 @@ class TabManager {
                 }, 300);
             }
             
+            // ======================================================
+            // ¡¡AÑADE ESTO PARA LA PESTAÑA TALLER!!
+            // ======================================================
+            if (tabId === 'taller') {
+                console.log('🔧 Cargando contenido del taller...');
+                
+                // Esperar 300ms para que el DOM esté listo
+                setTimeout(async () => {
+                    try {
+                        if (window.f1Manager && window.f1Manager.cargarTabTaller) {
+                            console.log('🔧 Ejecutando cargarTabTaller()...');
+                            await window.f1Manager.cargarTabTaller();
+                            console.log('✅ Taller cargado exitosamente');
+                        } else {
+                            console.error('❌ f1Manager.cargarTabTaller no disponible');
+                            tabContent.innerHTML = `
+                                <div class="error-message">
+                                    <h3>❌ Error cargando el taller</h3>
+                                    <p>El sistema de fabricación no está disponible</p>
+                                    <button onclick="location.reload()">Reintentar</button>
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        console.error('❌ Error cargando taller:', error);
+                        tabContent.innerHTML = `
+                            <div class="error-message">
+                                <h3>❌ Error cargando el taller</h3>
+                                <p>${error.message || 'Error desconocido'}</p>
+                                <button onclick="location.reload()">Reintentar</button>
+                            </div>
+                        `;
+                    }
+                }, 300);
+            }
+            
             // AÑADE ESTO: Verificar si el almacén necesita actualizar
             if (tabId === 'almacen' && window.almacenNecesitaActualizar) {
                 setTimeout(() => {
