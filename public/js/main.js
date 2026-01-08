@@ -1097,6 +1097,7 @@ class F1Manager {
         
         // Cargar datos del usuario
         await this.loadUserData();
+        await this.loadPilotosContratados(); // ← FALTA ESTO
         
         // NUEVO: Verificar y crear datos iniciales si faltan
         if (this.user && this.user.id) {
