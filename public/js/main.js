@@ -2451,7 +2451,7 @@ class F1Manager {
     };
 
     // Añade este método después del init():
-    async mostrarFormularioEscuderiaSimple() {
+    async function mostrarFormularioEscuderiaSimple() {
         // Crear un modal HTML en lugar de usar prompt()
         const modalHTML = `
             <div id="escuderia-modal" style="
