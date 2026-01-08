@@ -4996,7 +4996,7 @@ class F1Manager {
                         <!-- Piezas Montadas en el Coche -->
                         <section class="piezas-montadas">
                             <div class="section-header">
-                                <h2><i class="fas fa-car"></i> PIEZAS MONTADAS (11 ÁREAS)</h2>
+                                <h2><i class="fas fa-car"></i> PIEZAS MONTADAS EN EL COCHE</h2>
                                 <div class="total-puntos-montadas">
                                     <i class="fas fa-star"></i>
                                     <span>Puntos totales: <strong id="puntos-totales-montadas">0</strong></span>
