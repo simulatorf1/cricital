@@ -5755,7 +5755,6 @@ class F1Manager {
                 .from('fabricacion_actual')
                 .update({ 
                     completada: true,
-                    recogida_en: new Date().toISOString()
                 })
                 .eq('id', fabricacionId);
             
