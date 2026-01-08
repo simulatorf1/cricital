@@ -1637,7 +1637,7 @@ class F1Manager {
                         
                         html += `
                             <button class="btn-pieza-mini vacio" 
-                                    onclick="f1Manager.iniciarFabricacionTallerMinimal('${area.id}', ${nivelAFabricar})"
+                                    onclick="iniciarFabricacionTallerDesdeBoton('${area.id}', ${nivelAFabricar})"
                                     ${!puedeFabricar ? 'disabled' : ''}
                                     title="${area.nombre} - Pieza ${piezaNum} (Click para fabricar)">
                                 <i class="fas fa-plus"></i>
@@ -1906,7 +1906,7 @@ class F1Manager {
     // ========================
     // MÉTODO PARA INICIAR FABRICACIÓN DESDE TALLER MINIMALISTA
     // ========================
-    async iniciarFabricacionTallerMinimal(areaId, nivel) {
+    async iniciarFabricacionTaller(areaId, nivel) {
         console.log('🔧 Iniciando fabricación minimal:', { areaId, nivel });
         
         // 1. Verificar que no haya 4 fabricaciones activas
@@ -6851,7 +6851,26 @@ class F1Manager {
         
         window.tutorialData.estrategaSeleccionado = id;
     };
-    
+    // Función global para fabricar desde los botones del taller
+    window.iniciarFabricacionTallerDesdeBoton = async function(areaId, nivel) {
+        console.log('🔧 Función global llamada para:', areaId, nivel);
+        
+        if (window.f1Manager) {
+            // Llamar al método que SÍ existe
+            const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId, nivel);
+            
+            // Si se inició fabricación, cambiar a pestaña principal
+            if (resultado && window.tabManager) {
+                setTimeout(() => {
+                    window.tabManager.switchTab('principal');
+                }, 800);
+            }
+            return resultado;
+        } else {
+            alert('Error: Sistema de fabricación no disponible');
+            return false;
+        }
+    };    
     window.tutorialEjecutarContratacion = async function() {
         const estrategaId = window.tutorialData.estrategaSeleccionado;
         if (!estrategaId && window.tutorialManager && window.tutorialManager.showNotification) {
