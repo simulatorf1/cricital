@@ -80,6 +80,43 @@ class TabManager {
             tabContent.classList.add('active');
             this.currentTab = tabId;
             
+            // ======================================================
+            // ¡¡AÑADE ESTO PARA LA PESTAÑA PRINCIPAL!!
+            // ======================================================
+            if (tabId === 'principal') {
+                console.log('🎯 Recargando contenido principal...');
+                
+                // Esperar 300ms para que el DOM esté listo
+                setTimeout(async () => {
+                    try {
+                        // 1. Cargar piezas montadas
+                        if (window.f1Manager && window.f1Manager.cargarPiezasMontadas) {
+                            console.log('🔧 Ejecutando cargarPiezasMontadas()...');
+                            await window.f1Manager.cargarPiezasMontadas();
+                        }
+                        
+                        // 2. Cargar estrategas
+                        if (window.f1Manager && window.f1Manager.updatePilotosUI) {
+                            window.f1Manager.updatePilotosUI();
+                        }
+                        
+                        // 3. Cargar producción
+                        if (window.f1Manager && window.f1Manager.updateProductionMonitor) {
+                            window.f1Manager.updateProductionMonitor();
+                        }
+                        
+                        // 4. Cargar countdown
+                        if (window.f1Manager && window.f1Manager.updateCountdown) {
+                            window.f1Manager.updateCountdown();
+                        }
+                        
+                        console.log('✅ Contenido principal recargado exitosamente');
+                    } catch (error) {
+                        console.error('❌ Error recargando principal:', error);
+                    }
+                }, 300);
+            }
+            
             // AÑADE ESTO: Verificar si el almacén necesita actualizar
             if (tabId === 'almacen' && window.almacenNecesitaActualizar) {
                 setTimeout(() => {
