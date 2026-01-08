@@ -5490,7 +5490,7 @@ class F1Manager {
                     
                     html += `
                         <div class="produccion-slot ${lista ? 'produccion-lista' : 'produccion-activa'}" 
-                             onclick="recogerPiezaSiLista(${fabricacion.id}, ${lista}, ${i})">
+                             onclick="recogerPiezaSiLista('${fabricacion.id}', ${lista}, ${i})">
                             <div class="produccion-icon">
                                 ${lista ? '✅' : '🔄'}
                             </div>
