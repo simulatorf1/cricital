@@ -2264,7 +2264,7 @@ class F1Manager {
             return 1;
         }
     }
-    
+ }   
     // ========================
     // FUNCIÓN GLOBAL RECOGER PIEZA SI LISTA (CORREGIDA)
     // ========================
