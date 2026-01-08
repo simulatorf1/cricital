@@ -4414,7 +4414,7 @@ class F1Manager {
 
                         
                         <!-- Three Columns Layout -->
-                        <div class="three-columns-layout" style="display: flex; flex-direction: row; gap: 20px; margin: 20px 0; width: 100%; height: 320px; align-items: stretch;">
+                        <div class="three-columns-layout" style="display: flex; flex-direction: row; gap: 20px; margin: 20px 0; width: 100%; height: 380px; align-items: stretch;">
                             
                             <!-- Columna 1: Estrategas Compactos -->
                             <div class="col-estrategas" style="flex: 0 0 320px; height: 100%; background: rgba(30,30,40,0.8); border-radius: 10px; border: 1px solid rgba(0,210,190,0.3); padding: 10px;">
