@@ -7506,7 +7506,14 @@ iniciarAplicacion();
             window.tabManager.switchTab('equipo');
         }
     };
-    
+    // Función global para acceder desde los botones
+    window.iniciarFabricacionTaller = function(areaId, nivel) {
+        if (window.f1Manager && window.f1Manager.iniciarFabricacionTaller) {
+            window.f1Manager.iniciarFabricacionTaller(areaId, nivel);
+        } else {
+            alert('Error: Sistema de fabricación no disponible');
+        }
+    };    
     window.mostrarModalContratacion = function(huecoNumero) {
         // Modal simple para contratar
         const modalHTML = `
