@@ -4166,7 +4166,7 @@ class F1Manager {
         try {
             console.log('👥 Cargando ingenieros contratados...');
             const { data: ingenieros, error } = await this.supabase
-                .from('ingenieros_contratados')
+                .from('ingenieros_contratados')  // ← TABLA CORRECTA
                 .select('*')
                 .eq('escuderia_id', this.escuderia.id)
                 .eq('activo', true)
@@ -4177,8 +4177,7 @@ class F1Manager {
             this.pilotos = ingenieros || [];
             console.log(`✅ ${this.pilotos.length} ingeniero(s) cargado(s)`);
             
-            // Actualizar UI
-            this.updatePilotosUI();
+            this.updatePilotosUI(); // Esta función debe usar this.pilotos
             
         } catch (error) {
             this.pilotos = [];
