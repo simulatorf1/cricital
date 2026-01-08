@@ -4870,7 +4870,7 @@ class F1Manager {
     }
     
     updatePilotosUI() {
-        const container = document.getElementById('pilotos-container-compacto');
+        const container = document.getElementById('pilotos-container');
         if (!container) {
             console.error('❌ No se encontró #pilotos-container');
             return;
