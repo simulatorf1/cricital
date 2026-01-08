@@ -1492,8 +1492,11 @@ class F1Manager {
     // ========================
     // MÉTODO PARA CARGAR PESTAÑA TALLER
     // ========================
+    // ========================
+    // MÉTODO PARA CARGAR PESTAÑA TALLER (VERSIÓN MINIMALISTA)
+    // ========================
     async cargarTabTaller() {
-        console.log('🔧 Cargando pestaña taller...');
+        console.log('🔧 Cargando pestaña taller minimalista...');
         
         const container = document.getElementById('tab-taller');
         if (!container) {
@@ -1507,13 +1510,13 @@ class F1Manager {
         }
         
         try {
-            // 1. Cargar stats del coche desde tu tabla coches_stats
+            // 1. Cargar stats del coche desde coches_stats
             await this.cargarCarStats();
             
             // 2. Cargar piezas fabricadas desde almacen_piezas
             const { data: piezasFabricadas, error: errorPiezas } = await this.supabase
                 .from('almacen_piezas')
-                .select('area, nivel, calidad, puntos_base')
+                .select('area, nivel, calidad')
                 .eq('escuderia_id', this.escuderia.id)
                 .eq('equipada', false);
             
@@ -1534,288 +1537,362 @@ class F1Manager {
                 throw errorFabricaciones;
             }
             
-            // 4. Definir las 8 áreas del coche (basado en tu tabla coches_stats)
+            // 4. Definir las 11 áreas del coche (basado en tu tabla coches_stats)
             const areas = [
-                { id: 'suelo', nombre: 'Suelo', icono: '🏎️', color: '#00d2be' },
-                { id: 'motor', nombre: 'Motor', icono: '⚙️', color: '#e10600' },
-                { id: 'aleron_delantero', nombre: 'Alerón Delantero', icono: '🪽', color: '#ff9800' },
-                { id: 'caja_cambios', nombre: 'Caja de Cambios', icono: '🔄', color: '#9c27b0' },
-                { id: 'pontones', nombre: 'Pontones', icono: '📦', color: '#2196f3' },
-                { id: 'suspension', nombre: 'Suspensión', icono: '⚖️', color: '#4caf50' },
-                { id: 'aleron_trasero', nombre: 'Alerón Trasero', icono: '🌪️', color: '#ff5722' },
-                { id: 'chasis', nombre: 'Chasis', icono: '📊', color: '#795548' },
-                { id: 'frenos', nombre: 'Frenos', icono: '🛑', color: '#f44336' },
-                { id: 'volante', nombre: 'Volante', icono: '🎮', color: '#3f51b5' },
-                { id: 'electronica', nombre: 'Electrónica', icono: '💡', color: '#00bcd4' }
+                { id: 'suelo', nombre: 'Suelo', icono: '🏎️' },
+                { id: 'motor', nombre: 'Motor', icono: '⚙️' },
+                { id: 'aleron_delantero', nombre: 'Alerón Del.', icono: '🪽' },
+                { id: 'caja_cambios', nombre: 'Caja Cambios', icono: '🔄' },
+                { id: 'pontones', nombre: 'Pontones', icono: '📦' },
+                { id: 'suspension', nombre: 'Suspensión', icono: '⚖️' },
+                { id: 'aleron_trasero', nombre: 'Alerón Tras.', icono: '🌪️' },
+                { id: 'chasis', nombre: 'Chasis', icono: '📊' },
+                { id: 'frenos', nombre: 'Frenos', icono: '🛑' },
+                { id: 'volante', nombre: 'Volante', icono: '🎮' },
+                { id: 'electronica', nombre: 'Electrónica', icono: '💡' }
             ];
             
-            // 5. Generar HTML para cada área
+            // 5. Contar fabricaciones activas
+            const fabricacionesCount = fabricacionesActivas?.length || 0;
+            
+            // 6. Generar HTML simple: solo botones
             let html = `
-                <div class="taller-header">
-                    <h1><i class="fas fa-tools"></i> TALLER DE FABRICACIÓN</h1>
-                    <p class="subtitle">Fabrica piezas para mejorar las 8 áreas de tu coche. Cada nivel requiere 5 piezas.</p>
-                </div>
-                
-                <div class="taller-stats">
-                    <div class="stat-taller">
-                        <i class="fas fa-coins"></i>
-                        <div>
-                            <span class="stat-label">FONDOS DISPONIBLES</span>
-                            <span class="stat-value">€${this.escuderia.dinero?.toLocaleString() || '0'}</span>
+                <div class="taller-minimalista">
+                    <div class="taller-header-mini">
+                        <h2><i class="fas fa-tools"></i> TALLER DE FABRICACIÓN</h2>
+                        <div class="fabricaciones-activas-mini">
+                            <span class="badge-fabricacion">${fabricacionesCount}/4 fabricando</span>
                         </div>
                     </div>
-                    <div class="stat-taller">
-                        <i class="fas fa-industry"></i>
-                        <div>
-                            <span class="stat-label">FABRICACIONES ACTIVAS</span>
-                            <span class="stat-value">${fabricacionesActivas?.length || 0}/4</span>
-                        </div>
-                    </div>
-                    <div class="stat-taller">
-                        <i class="fas fa-warehouse"></i>
-                        <div>
-                            <span class="stat-label">PIEZAS EN ALMACÉN</span>
-                            <span class="stat-value">${piezasFabricadas?.length || 0}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="grid-8-fabricacion">
+                    
+                    <div class="taller-botones-grid">
             `;
             
-            // 6. Para cada área, crear su fila con 5 slots de calidad
+            // 7. Para cada área, crear fila con 5 botones horizontales
             areas.forEach(area => {
-                // Obtener nivel actual del coche
+                // Obtener nivel actual del coche desde coches_stats
                 const nivelActual = this.carStats ? 
                     this.carStats[`${area.id}_nivel`] || 0 : 0;
                 
-                // Filtrar piezas de esta área
-                const piezasArea = piezasFabricadas?.filter(p => 
-                    p.area === area.id || p.area === area.nombre
-                ) || [];
+                // Contar cuántas piezas tenemos ya fabricadas de este nivel actual + 1
+                const nivelAFabricar = nivelActual + 1;
                 
-                // Verificar si hay fabricación activa para esta área
-                const fabricacionActiva = fabricacionesActivas?.find(f => 
-                    f.area === area.id || f.area === area.nombre
-                );
+                // Filtrar piezas de esta área del nivel que estamos fabricando
+                const piezasAreaNivel = piezasFabricadas?.filter(p => {
+                    // Verificar si el área coincide
+                    const areaCoincide = p.area === area.id || p.area === area.nombre;
+                    // Verificar si es del nivel que estamos fabricando
+                    const nivelCoincide = (p.nivel || 1) === nivelAFabricar;
+                    return areaCoincide && nivelCoincide;
+                }) || [];
                 
-                // Crear los 5 slots de calidad para esta área
-                let slotsHTML = '';
-                for (let calidad = 1; calidad <= 5; calidad++) {
-                    // Buscar si hay pieza en esta calidad
-                    const piezaEnCalidad = piezasArea.find(p => 
-                        (p.nivel || 1) === calidad
-                    );
+                // Verificar si tenemos fabricación activa para esta área y nivel
+                const fabricacionActiva = fabricacionesActivas?.find(f => {
+                    const areaCoincide = f.area === area.id || f.area === area.nombre;
+                    const nivelCoincide = f.nivel === nivelAFabricar;
+                    return areaCoincide && nivelCoincide && !f.completada;
+                });
+                
+                // Añadir nombre del área como título
+                html += `
+                    <div class="area-fila-mini">
+                        <div class="area-titulo-mini">
+                            <span class="area-icono-mini">${area.icono}</span>
+                            <span class="area-nombre-mini">${area.nombre}</span>
+                            <span class="area-nivel-mini">Nivel ${nivelAFabricar}</span>
+                        </div>
+                        <div class="botones-calidad-mini">
+                `;
+                
+                // Crear 5 botones para esta área (siempre 5 por nivel)
+                for (let piezaNum = 1; piezaNum <= 5; piezaNum++) {
+                    // Verificar si esta pieza específica ya está fabricada
+                    // (en tu sistema, no distinguimos pieza 1, 2, 3... solo contamos total)
+                    const piezaFabricada = piezasAreaNivel.length >= piezaNum;
                     
-                    if (piezaEnCalidad) {
-                        // Slot OCUPADO con pieza fabricada
-                        slotsHTML += `
-                            <div class="calidad-slot ocupado" 
-                                 title="${area.nombre} - Nivel ${calidad}
-Calidad: ${piezaEnCalidad.calidad || 'Normal'}
-Puntos: ${piezaEnCalidad.puntos_base || 10}">
-                                <div class="calidad-pieza">
-                                    <div class="pieza-icon">✓</div>
-                                    <div class="pieza-nivel">Nivel ${calidad}</div>
-                                    <div class="pieza-puntos">+${piezaEnCalidad.puntos_base || 10}</div>
-                                </div>
-                            </div>
+                    if (piezaFabricada) {
+                        // Botón LLENO (ya fabricado)
+                        html += `
+                            <button class="btn-pieza-mini lleno" disabled title="${area.nombre} - Pieza ${piezaNum} fabricada">
+                                <i class="fas fa-check"></i>
+                                <span class="pieza-num">${piezaNum}</span>
+                            </button>
                         `;
-                    } else if (fabricacionActiva && fabricacionActiva.nivel === calidad) {
-                        // Slot en FABRICACIÓN
+                    } else if (fabricacionActiva && piezaNum === piezasAreaNivel.length + 1) {
+                        // Botón en FABRICACIÓN (la siguiente pieza a fabricar está en proceso)
                         const tiempoRestante = new Date(fabricacionActiva.tiempo_fin) - new Date();
-                        const minutos = Math.floor(tiempoRestante / (1000 * 60));
+                        const minutos = Math.ceil(tiempoRestante / (1000 * 60));
                         
-                        slotsHTML += `
-                            <div class="calidad-slot pieza-fabricando" 
-                                 title="${area.nombre} - Nivel ${calidad} en fabricación
-Tiempo restante: ${minutos} minutos">
-                                <div class="calidad-pieza">
-                                    <div class="pieza-icon">🔄</div>
-                                    <div class="pieza-nivel">Fabricando</div>
-                                    <div class="pieza-puntos">${minutos} min</div>
-                                </div>
-                            </div>
+                        html += `
+                            <button class="btn-pieza-mini fabricando" disabled title="${area.nombre} - Pieza ${piezaNum} en fabricación (${minutos} min)">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span class="pieza-num">${piezaNum}</span>
+                            </button>
                         `;
                     } else {
-                        // Slot VACÍO
-                        slotsHTML += `
-                            <div class="calidad-slot vacio" 
-                                 onclick="f1Manager.iniciarFabricacionTaller('${area.id}', ${calidad})"
-                                 title="Click para fabricar ${area.nombre} - Nivel ${calidad}">
-                                <div class="calidad-numero">${calidad}</div>
-                                <div class="calidad-vacia">Vacío</div>
-                            </div>
+                        // Botón VACÍO (se puede fabricar)
+                        const puedeFabricar = fabricacionesCount < 4 && 
+                                            this.escuderia.dinero >= 10000 &&
+                                            piezaNum === piezasAreaNivel.length + 1;
+                        
+                        html += `
+                            <button class="btn-pieza-mini vacio" 
+                                    onclick="f1Manager.iniciarFabricacionTallerMinimal('${area.id}', ${nivelAFabricar})"
+                                    ${!puedeFabricar ? 'disabled' : ''}
+                                    title="${area.nombre} - Pieza ${piezaNum} (Click para fabricar)">
+                                <i class="fas fa-plus"></i>
+                                <span class="pieza-num">${piezaNum}</span>
+                            </button>
                         `;
                     }
                 }
                 
-                // Determinar estado del botón
-                let botonHTML = '';
-                if (fabricacionActiva) {
-                    const tiempoRestante = new Date(fabricacionActiva.tiempo_fin) - new Date();
-                    const minutos = Math.ceil(tiempoRestante / (1000 * 60));
-                    
-                    botonHTML = `
-                        <button class="btn-fabricar-area fabricando" disabled>
-                            <i class="fas fa-spinner fa-spin"></i> FABRICANDO (${minutos} min)
-                        </button>
-                    `;
-                } else {
-                    // Verificar si ya tenemos las 5 piezas de este nivel
-                    const piezasNivelActual = piezasArea.filter(p => 
-                        (p.nivel || 1) === (nivelActual + 1)
-                    ).length;
-                    
-                    const puedeFabricar = piezasNivelActual < 5 && 
-                                         (fabricacionesActivas?.length || 0) < 4 &&
-                                         this.escuderia.dinero >= 10000;
-                    
-                    botonHTML = `
-                        <button class="btn-fabricar-area" 
-                                onclick="f1Manager.iniciarFabricacionTaller('${area.id}', ${nivelActual + 1})"
-                                ${!puedeFabricar ? 'disabled' : ''}>
-                            <i class="fas fa-hammer"></i> FABRICAR NIVEL ${nivelActual + 1}
-                            <br><small>€10,000 - ${piezasNivelActual}/5 piezas</small>
+                // Botón "SUBIR DE NIVEL" solo cuando tengamos las 5 piezas
+                if (piezasAreaNivel.length >= 5) {
+                    html += `
+                        <button class="btn-subir-nivel" onclick="f1Manager.subirNivelArea('${area.id}')" title="Subir ${area.nombre} al nivel ${nivelAFabricar + 1}">
+                            <i class="fas fa-level-up-alt"></i>
+                            SUBIR NIVEL
                         </button>
                     `;
                 }
                 
-                // Añadir área completa al grid
                 html += `
-                    <div class="area-fabricacion" style="border-left: 4px solid ${area.color}">
-                        <div class="area-header">
-                            <div class="area-icon" style="color: ${area.color}">
-                                ${area.icono}
-                            </div>
-                            <div class="area-info">
-                                <div class="area-nombre">${area.nombre}</div>
-                                <div class="area-nivel">Nivel actual: ${nivelActual}</div>
-                            </div>
                         </div>
-                        
-                        <div class="calidad-grid">
-                            ${slotsHTML}
-                        </div>
-                        
-                        ${botonHTML}
                     </div>
                 `;
             });
             
             html += `
-                </div>
-                
-                <div class="taller-info">
-                    <h3><i class="fas fa-info-circle"></i> Información del taller</h3>
-                    <ul>
-                        <li><strong>Cada pieza:</strong> €10,000 - 30 minutos de fabricación</li>
-                        <li><strong>Para subir de nivel:</strong> Necesitas 5 piezas del mismo nivel</li>
-                        <li><strong>Slots activos:</strong> Máximo 4 fabricaciones simultáneas</li>
-                        <li><strong>Calidad:</strong> Niveles 1-5 (cada nivel da más puntos)</li>
-                        <li><strong>Puntos base:</strong> Nivel 1: 10 pts, Nivel 5: 50 pts</li>
-                    </ul>
+                    </div>
+                    
+                    <div class="taller-info-mini">
+                        <p><i class="fas fa-info-circle"></i> Fabricaciones activas: <strong>${fabricacionesCount}/4</strong></p>
+                        <p><i class="fas fa-info-circle"></i> Necesitas 5 piezas del mismo nivel para subir de nivel</p>
+                        <p><i class="fas fa-info-circle"></i> Cada pieza cuesta €10,000 y tarda 30 minutos</p>
+                    </div>
                 </div>
                 
                 <style>
-                    .taller-header {
-                        text-align: center;
-                        margin-bottom: 30px;
-                    }
-                    
-                    .taller-header h1 {
-                        font-family: 'Orbitron', sans-serif;
-                        font-size: 2rem;
-                        background: linear-gradient(90deg, #00d2be, #e10600);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        margin-bottom: 10px;
-                    }
-                    
-                    .subtitle {
-                        color: #aaa;
-                        font-size: 1rem;
-                        max-width: 800px;
-                        margin: 0 auto;
-                    }
-                    
-                    .taller-stats {
-                        display: grid;
-                        grid-template-columns: repeat(3, 1fr);
-                        gap: 15px;
-                        margin-bottom: 30px;
-                    }
-                    
-                    .stat-taller {
-                        background: rgba(255, 255, 255, 0.05);
-                        border-radius: 10px;
-                        padding: 15px;
-                        display: flex;
-                        align-items: center;
-                        gap: 15px;
-                        border-left: 4px solid #00d2be;
-                    }
-                    
-                    .stat-taller i {
-                        font-size: 1.5rem;
-                        color: #00d2be;
-                    }
-                    
-                    .stat-label {
-                        display: block;
-                        color: #aaa;
-                        font-size: 0.9rem;
-                    }
-                    
-                    .stat-value {
-                        display: block;
-                        color: white;
-                        font-size: 1.3rem;
-                        font-weight: bold;
-                        font-family: 'Orbitron', sans-serif;
-                    }
-                    
-                    .taller-info {
-                        margin-top: 30px;
+                    .taller-minimalista {
                         padding: 20px;
-                        background: rgba(0, 0, 0, 0.3);
-                        border-radius: 15px;
-                        border-left: 4px solid #00d2be;
                     }
                     
-                    .taller-info h3 {
-                        color: #00d2be;
-                        margin-top: 0;
+                    .taller-header-mini {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 25px;
+                        padding-bottom: 15px;
+                        border-bottom: 2px solid rgba(0, 210, 190, 0.3);
+                    }
+                    
+                    .taller-header-mini h2 {
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 1.5rem;
+                        color: white;
+                        margin: 0;
                         display: flex;
                         align-items: center;
                         gap: 10px;
                     }
                     
-                    .taller-info ul {
-                        margin: 15px 0 0 0;
-                        padding-left: 20px;
-                        color: #ccc;
+                    .badge-fabricacion {
+                        background: rgba(0, 210, 190, 0.2);
+                        color: #00d2be;
+                        padding: 8px 15px;
+                        border-radius: 20px;
+                        font-weight: bold;
+                        font-size: 0.9rem;
+                        border: 1px solid rgba(0, 210, 190, 0.4);
                     }
                     
-                    .taller-info li {
-                        margin-bottom: 10px;
+                    .area-fila-mini {
+                        margin-bottom: 25px;
+                        background: rgba(255, 255, 255, 0.03);
+                        border-radius: 10px;
+                        padding: 15px;
+                        border: 1px solid rgba(255, 255, 255, 0.08);
+                    }
+                    
+                    .area-titulo-mini {
+                        display: flex;
+                        align-items: center;
+                        gap: 15px;
+                        margin-bottom: 15px;
+                        padding-bottom: 10px;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    }
+                    
+                    .area-icono-mini {
+                        font-size: 1.5rem;
+                    }
+                    
+                    .area-nombre-mini {
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 1.1rem;
+                        color: white;
+                        font-weight: bold;
+                        flex: 1;
+                    }
+                    
+                    .area-nivel-mini {
+                        background: rgba(0, 210, 190, 0.15);
+                        color: #00d2be;
+                        padding: 5px 12px;
+                        border-radius: 15px;
+                        font-size: 0.9rem;
+                        font-weight: bold;
+                    }
+                    
+                    .botones-calidad-mini {
+                        display: flex;
+                        gap: 10px;
+                        align-items: center;
+                    }
+                    
+                    .btn-pieza-mini {
+                        width: 60px;
+                        height: 60px;
+                        border-radius: 10px;
+                        border: 2px solid;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1rem;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        background: rgba(255, 255, 255, 0.05);
+                    }
+                    
+                    .btn-pieza-mini.vacio {
+                        border-color: rgba(255, 255, 255, 0.2);
+                        color: #aaa;
+                    }
+                    
+                    .btn-pieza-mini.vacio:not(:disabled):hover {
+                        border-color: #00d2be;
+                        color: #00d2be;
+                        background: rgba(0, 210, 190, 0.1);
+                        transform: translateY(-3px);
+                    }
+                    
+                    .btn-pieza-mini.vacio:disabled {
+                        border-color: rgba(255, 255, 255, 0.1);
+                        color: #666;
+                        cursor: not-allowed;
+                        opacity: 0.5;
+                    }
+                    
+                    .btn-pieza-mini.lleno {
+                        border-color: rgba(76, 175, 80, 0.4);
+                        color: #4CAF50;
+                        background: rgba(76, 175, 80, 0.1);
+                    }
+                    
+                    .btn-pieza-mini.fabricando {
+                        border-color: rgba(255, 152, 0, 0.4);
+                        color: #FF9800;
+                        background: rgba(255, 152, 0, 0.1);
+                        animation: pulse-naranja 2s infinite;
+                    }
+                    
+                    @keyframes pulse-naranja {
+                        0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+                        70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+                        100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+                    }
+                    
+                    .pieza-num {
+                        font-size: 0.7rem;
+                        margin-top: 5px;
+                        font-weight: bold;
+                    }
+                    
+                    .btn-subir-nivel {
+                        margin-left: 20px;
+                        padding: 12px 20px;
+                        background: linear-gradient(135deg, #4CAF50, #388E3C);
+                        border: none;
+                        border-radius: 8px;
+                        color: white;
+                        font-family: 'Orbitron', sans-serif;
+                        font-weight: bold;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        transition: all 0.3s;
+                    }
+                    
+                    .btn-subir-nivel:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+                    }
+                    
+                    .taller-info-mini {
+                        margin-top: 30px;
+                        padding: 15px;
+                        background: rgba(0, 0, 0, 0.3);
+                        border-radius: 10px;
+                        border-left: 4px solid #00d2be;
+                    }
+                    
+                    .taller-info-mini p {
+                        color: #ccc;
+                        margin: 8px 0;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
                     }
                     
                     .error {
                         color: #ff4444;
                         text-align: center;
-                        padding: 20px;
+                        padding: 40px;
+                    }
+                    
+                    /* Responsive */
+                    @media (max-width: 1200px) {
+                        .botones-calidad-mini {
+                            flex-wrap: wrap;
+                        }
+                        
+                        .btn-pieza-mini {
+                            width: 50px;
+                            height: 50px;
+                        }
+                    }
+                    
+                    @media (max-width: 768px) {
+                        .area-fila-mini {
+                            padding: 10px;
+                        }
+                        
+                        .botones-calidad-mini {
+                            gap: 8px;
+                        }
+                        
+                        .btn-pieza-mini {
+                            width: 45px;
+                            height: 45px;
+                            font-size: 0.9rem;
+                        }
+                        
+                        .btn-subir-nivel {
+                            margin-left: 10px;
+                            padding: 8px 15px;
+                            font-size: 0.8rem;
+                        }
                     }
                 </style>
             `;
             
             container.innerHTML = html;
             
-            // Actualizar el dinero en el header
-            this.updateEscuderiaMoney();
-            
         } catch (error) {
-            console.error('❌ Error cargando taller:', error);
+            console.error('❌ Error cargando taller minimalista:', error);
             container.innerHTML = `
                 <div class="error">
                     <h3>❌ Error cargando el taller</h3>
@@ -1827,24 +1904,12 @@ Tiempo restante: ${minutos} minutos">
     }
     
     // ========================
-    // MÉTODO PARA INICIAR FABRICACIÓN DESDE EL TALLER
+    // MÉTODO PARA INICIAR FABRICACIÓN DESDE TALLER MINIMALISTA
     // ========================
-    async iniciarFabricacionTaller(areaId, nivel) {
-        console.log('🔧 Iniciando fabricación desde taller:', { areaId, nivel });
+    async iniciarFabricacionTallerMinimal(areaId, nivel) {
+        console.log('🔧 Iniciando fabricación minimal:', { areaId, nivel });
         
-        if (!this.escuderia || !this.escuderia.id) {
-            this.showNotification('❌ No se encontró tu escudería', 'error');
-            return false;
-        }
-        
-        // Verificar fondos
-        const costo = 10000;
-        if (this.escuderia.dinero < costo) {
-            this.showNotification(`❌ Fondos insuficientes. Necesitas €${costo.toLocaleString()}`, 'error');
-            return false;
-        }
-        
-        // Verificar slots disponibles
+        // 1. Verificar que no haya 4 fabricaciones activas
         try {
             const { data: fabricacionesActivas, error } = await this.supabase
                 .from('fabricacion_actual')
@@ -1865,9 +1930,74 @@ Tiempo restante: ${minutos} minutos">
             return false;
         }
         
+        // 2. Iniciar fabricación (igual que antes)
+        return await this.iniciarFabricacionTaller(areaId, nivel);
+    }
+    
+    // ========================
+    // MÉTODO PARA SUBIR DE NIVEL UN ÁREA
+    // ========================
+    async subirNivelArea(areaId) {
+        console.log('⬆️ Subiendo nivel del área:', areaId);
+        
+        if (!this.escuderia || !this.escuderia.id || !this.carStats) {
+            this.showNotification('❌ Error: No se encontraron datos del coche', 'error');
+            return;
+        }
+        
         try {
-            // Obtener nombre del área
-            const areas = {
+            // 1. Verificar que tenemos 5 piezas del nivel actual
+            const nivelActual = this.carStats[`${areaId}_nivel`] || 0;
+            const nivelSiguiente = nivelActual + 1;
+            
+            const { data: piezasArea, error: errorPiezas } = await this.supabase
+                .from('almacen_piezas')
+                .select('id')
+                .eq('escuderia_id', this.escuderia.id)
+                .eq('area', areaId)
+                .eq('nivel', nivelSiguiente)
+                .eq('equipada', false);
+            
+            if (errorPiezas) throw errorPiezas;
+            
+            if (!piezasArea || piezasArea.length < 5) {
+                this.showNotification(`❌ Necesitas 5 piezas de nivel ${nivelSiguiente} para subir de nivel`, 'error');
+                return;
+            }
+            
+            // 2. Actualizar nivel en coches_stats
+            const campoNivel = `${areaId}_nivel`;
+            const campoProgreso = `${areaId}_progreso`;
+            
+            const nuevosStats = {
+                [campoNivel]: nivelSiguiente,
+                [campoProgreso]: 0, // Resetear progreso para el nuevo nivel
+                actualizado_en: new Date().toISOString()
+            };
+            
+            const { error: errorStats } = await this.supabase
+                .from('coches_stats')
+                .update(nuevosStats)
+                .eq('escuderia_id', this.escuderia.id);
+            
+            if (errorStats) throw errorStats;
+            
+            // 3. Marcar las 5 piezas como equipadas
+            const idsPiezas = piezasArea.slice(0, 5).map(p => p.id);
+            
+            const { error: errorEquipar } = await this.supabase
+                .from('almacen_piezas')
+                .update({ equipada: true })
+                .in('id', idsPiezas);
+            
+            if (errorEquipar) throw errorEquipar;
+            
+            // 4. Actualizar datos locales
+            this.carStats[campoNivel] = nivelSiguiente;
+            this.carStats[campoProgreso] = 0;
+            
+            // 5. Mostrar notificación y recargar
+            const areasNombres = {
                 'suelo': 'Suelo',
                 'motor': 'Motor',
                 'aleron_delantero': 'Alerón Delantero',
@@ -1881,50 +2011,20 @@ Tiempo restante: ${minutos} minutos">
                 'electronica': 'Electrónica'
             };
             
-            const areaNombre = areas[areaId] || areaId;
+            const nombreArea = areasNombres[areaId] || areaId;
+            this.showNotification(`✅ ${nombreArea} subido a nivel ${nivelSiguiente}!`, 'success');
             
-            // Calcular tiempo de fabricación (30 minutos por defecto)
-            const tiempoInicio = new Date();
-            const tiempoFin = new Date(tiempoInicio.getTime() + (30 * 60 * 1000)); // 30 minutos
-            
-            // Crear fabricación en la tabla fabricacion_actual
-            const { data: fabricacion, error: errorFabricacion } = await this.supabase
-                .from('fabricacion_actual')
-                .insert([{
-                    escuderia_id: this.escuderia.id,
-                    area: areaNombre,
-                    nivel: nivel,
-                    tiempo_inicio: tiempoInicio.toISOString(),
-                    tiempo_fin: tiempoFin.toISOString(),
-                    completada: false,
-                    costo: costo,
-                    creada_en: tiempoInicio.toISOString()
-                }])
-                .select()
-                .single();
-            
-            if (errorFabricacion) throw errorFabricacion;
-            
-            // Descontar dinero
-            this.escuderia.dinero -= costo;
-            await this.updateEscuderiaMoney();
-            
-            // Mostrar notificación
-            this.showNotification(`✅ ${areaNombre} Nivel ${nivel} en fabricación (30 minutos)`, 'success');
-            
-            // Recargar la pestaña taller
+            // 6. Recargar la pestaña taller después de 1 segundo
             setTimeout(() => {
                 this.cargarTabTaller();
             }, 1000);
             
-            return true;
-            
         } catch (error) {
-            console.error('❌ Error iniciando fabricación:', error);
-            this.showNotification(`❌ Error: ${error.message}`, 'error');
-            return false;
+            console.error('❌ Error subiendo nivel:', error);
+            this.showNotification(`❌ Error subiendo nivel: ${error.message}`, 'error');
         }
-    }    
+    }
+
     // Añade este método después del init():
     async mostrarFormularioEscuderiaSimple() {
         // Crear un modal HTML en lugar de usar prompt()
