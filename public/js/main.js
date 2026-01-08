@@ -1495,6 +1495,89 @@ class F1Manager {
         
         console.log('⏱️ Timers automáticos iniciados');
     }
+
+    async function cargarPiezasMontadas() {
+        const contenedor = document.getElementById('grid-piezas-montadas');
+        if (!contenedor) return;
+        
+        // 1. Obtener stats del coche para ver qué piezas están montadas
+        const { data: stats } = await supabase
+            .from('coches_stats')
+            .select('*')
+            .eq('escuderia_id', f1Manager.escuderia.id)
+            .single();
+        
+        // 2. Obtener piezas montadas del almacén
+        const { data: piezasMontadas } = await supabase
+            .from('piezas_almacen')
+            .select('*')
+            .eq('escuderia_id', f1Manager.escuderia.id)
+            .eq('estado', 'montada');
+        
+        // 3. Crear mapeo área -> pieza montada
+        const piezasPorArea = {};
+        piezasMontadas?.forEach(p => {
+            piezasPorArea[p.area] = p;
+        });
+        
+        // 4. Generar 11 botones (uno por área)
+        const areas = [
+            { id: 'suelo', nombre: 'Suelo', icono: '🏎️' },
+            { id: 'motor', nombre: 'Motor', icono: '⚙️' },
+            { id: 'aleron_delantero', nombre: 'Alerón Del.', icono: '🪽' },
+            { id: 'caja_cambios', nombre: 'Caja Cambios', icono: '🔄' },
+            { id: 'pontones', nombre: 'Pontones', icono: '📦' },
+            { id: 'suspension', nombre: 'Suspensión', icono: '⚖️' },
+            { id: 'aleron_trasero', nombre: 'Alerón Tras.', icono: '🌪️' },
+            { id: 'chasis', nombre: 'Chasis', icono: '📊' },
+            { id: 'frenos', nombre: 'Frenos', icono: '🛑' },
+            { id: 'volante', nombre: 'Volante', icono: '🎮' },
+            { id: 'electronica', nombre: 'Electrónica', icono: '💡' }
+        ];
+        
+        let puntosTotales = 0;
+        let html = '';
+        
+        areas.forEach(area => {
+            const pieza = piezasPorArea[area.id];
+            
+            if (pieza) {
+                // Botón con pieza montada
+                puntosTotales += pieza.puntos_base || 0;
+                html += `
+                    <div class="boton-area-montada" title="${area.nombre} - Nivel ${pieza.nivel}">
+                        <div class="icono-area">${area.icono}</div>
+                        <div class="nombre-area">${area.nombre}</div>
+                        <div class="nivel-pieza">Nivel ${pieza.nivel}</div>
+                        <div class="puntos-pieza">+${pieza.puntos_base} pts</div>
+                    </div>
+                `;
+            } else {
+                // Botón vacío
+                html += `
+                    <div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="Sin pieza - Click para equipar">
+                        <div class="icono-area">${area.icono}</div>
+                        <div class="nombre-area">${area.nombre}</div>
+                        <div style="font-size: 0.7rem; color: #888; margin-top: 5px;">
+                            <i class="fas fa-plus"></i> Vacío
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        contenedor.innerHTML = html;
+        
+        // Actualizar total de puntos
+        document.getElementById('puntos-totales-montadas').textContent = puntosTotales;
+    }
+    
+    // Función para ir al almacén
+    window.irAlAlmacenDesdePiezas = function() {
+        if (window.tabManager) {
+            window.tabManager.switchTab('almacen');
+        }
+    };
     
     async esperarSupabase() {
         console.log('⏳ Esperando Supabase...');
@@ -2980,7 +3063,93 @@ class F1Manager {
                 padding: 15px;
                 margin: 20px 0;
             }
+            .grid-11-columns {
+                display: grid;
+                grid-template-columns: repeat(11, 1fr);
+                gap: 8px;
+                margin-top: 15px;
+            }
             
+            .boton-area-montada {
+                background: rgba(0, 210, 190, 0.1);
+                border: 2px solid rgba(0, 210, 190, 0.3);
+                border-radius: 8px;
+                padding: 12px 8px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s;
+                min-height: 90px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .boton-area-montada:hover {
+                border-color: #00d2be;
+                transform: translateY(-2px);
+            }
+            
+            .boton-area-vacia {
+                background: rgba(255, 255, 255, 0.05);
+                border: 2px dashed rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                padding: 12px 8px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s;
+                min-height: 90px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .boton-area-vacia:hover {
+                border-color: #00d2be;
+                background: rgba(0, 210, 190, 0.05);
+            }
+            
+            .icono-area {
+                font-size: 1.5rem;
+                margin-bottom: 5px;
+            }
+            
+            .nombre-area {
+                font-size: 0.75rem;
+                font-weight: bold;
+                color: white;
+                margin-bottom: 3px;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .nivel-pieza {
+                font-size: 0.7rem;
+                color: #00d2be;
+                margin-bottom: 2px;
+            }
+            
+            .puntos-pieza {
+                font-size: 0.7rem;
+                color: #FFD700;
+                font-weight: bold;
+            }
+            
+            .total-puntos-montadas {
+                background: rgba(255, 215, 0, 0.1);
+                border: 1px solid #FFD700;
+                border-radius: 20px;
+                padding: 5px 15px;
+                color: #FFD700;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
             .presupuesto-inicial, .presupuesto-ganancia, .presupuesto-gastos {
                 display: flex;
                 justify-content: space-between;
@@ -4658,23 +4827,18 @@ class F1Manager {
                             </div>
                         </div>
                         
-                        <!-- Análisis de Rendimiento -->
-                        <section class="analisis-rendimiento">
+                        <!-- Piezas Montadas en el Coche -->
+                        <section class="piezas-montadas">
                             <div class="section-header">
-                                <h2><i class="fas fa-tachometer-alt"></i> ESTADO DEL COCHE</h2>
-                                <div class="performance-summary">
-                                    <div class="perf-best">
-                                        <i class="fas fa-caret-up"></i>
-                                        <span id="best-area">Mejor: Motor</span>
-                                    </div>
-                                    <div class="perf-worst">
-                                        <i class="fas fa-caret-down"></i>
-                                        <span id="worst-area">Peor: Frenos</span>
-                                    </div>
+                                <h2><i class="fas fa-car"></i> PIEZAS MONTADAS (11 ÁREAS)</h2>
+                                <div class="total-puntos-montadas">
+                                    <i class="fas fa-star"></i>
+                                    <span>Puntos totales: <strong id="puntos-totales-montadas">0</strong></span>
                                 </div>
                             </div>
-                            <div id="areas-coche" class="areas-coche">
-                                <!-- Las áreas se cargarán dinámicamente -->
+                            
+                            <div id="grid-piezas-montadas" class="grid-11-columns">
+                                <!-- Se generarán dinámicamente 11 botones -->
                             </div>
                         </section>
                     </div>
@@ -4847,6 +5011,7 @@ class F1Manager {
                 await this.loadCarStatus();
                 await this.loadPilotosContratados();
                 await this.loadProximoGP();
+                await cargarPiezasMontadas();
             }
             
             // 5. Configurar eventos
