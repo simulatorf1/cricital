@@ -309,16 +309,166 @@ class TabManager {
         return `
             <div class="almacen-container-completo">
                 <div class="almacen-header">
-                    <h2><i class="fas fa-warehouse"></i> Almacén de Piezas</h2>
-                    <div class="almacen-info">
-                        <p>Equipa piezas para sumar puntos a tu coche o véndelas en el mercado</p>
+                    <h2><i class="fas fa-warehouse"></i> ALMACÉN DE PIEZAS</h2>
+                    <div class="almacen-stats">
+                        <div class="stat-card-almacen">
+                            <i class="fas fa-boxes"></i>
+                            <div>
+                                <span class="stat-label">PIEZAS TOTALES</span>
+                                <span class="stat-value" id="total-piezas">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card-almacen">
+                            <i class="fas fa-car"></i>
+                            <div>
+                                <span class="stat-label">PIEZAS EQUIPADAS</span>
+                                <span class="stat-value" id="piezas-equipadas">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card-almacen">
+                            <i class="fas fa-star"></i>
+                            <div>
+                                <span class="stat-label">PUNTOS TOTALES</span>
+                                <span class="stat-value" id="puntos-totales">0</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="almacen-grid" id="almacen-grid">
-                    <!-- Las piezas se cargarán aquí -->
+                <div class="areas-almacen" id="areas-almacen">
+                    <!-- Áreas con botones se cargarán aquí -->
+                    <div class="cargando-almacen">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando almacén...</p>
+                    </div>
+                </div>
+                
+                <div class="almacen-info-panel">
+                    <h3><i class="fas fa-info-circle"></i> Cómo usar el almacén</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="hueco-ejemplo vacio"></div>
+                            <span>Hueco vacío - Sin pieza</span>
+                        </div>
+                        <div class="info-item">
+                            <div class="hueco-ejemplo fabricada"></div>
+                            <span>Pieza fabricada</span>
+                        </div>
+                        <div class="info-item">
+                            <div class="hueco-ejemplo equipada"></div>
+                            <span>Pieza equipada</span>
+                        </div>
+                        <div class="info-item">
+                            <div class="hueco-ejemplo puede-equipar"></div>
+                            <span>Se puede equipar</span>
+                        </div>
+                    </div>
+                    <p class="info-text">Cada área necesita 5 piezas por nivel. Click en pieza para equipar/desmontar.</p>
                 </div>
             </div>
+            
+            <style>
+                .almacen-stats {
+                    display: flex;
+                    gap: 15px;
+                    margin: 15px 0;
+                    flex-wrap: wrap;
+                }
+                
+                .stat-card-almacen {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 10px;
+                    padding: 15px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    min-width: 200px;
+                    border: 1px solid rgba(0, 210, 190, 0.2);
+                }
+                
+                .stat-card-almacen i {
+                    font-size: 1.5rem;
+                    color: #00d2be;
+                }
+                
+                .stat-label {
+                    display: block;
+                    font-size: 0.8rem;
+                    color: #aaa;
+                    margin-bottom: 5px;
+                }
+                
+                .stat-value {
+                    display: block;
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    color: white;
+                }
+                
+                .areas-almacen {
+                    margin: 20px 0;
+                }
+                
+                .cargando-almacen {
+                    text-align: center;
+                    padding: 40px;
+                    color: #aaa;
+                }
+                
+                .almacen-info-panel {
+                    margin-top: 30px;
+                    padding: 20px;
+                    background: rgba(0, 0, 0, 0.3);
+                    border-radius: 10px;
+                    border-left: 4px solid #00d2be;
+                }
+                
+                .info-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 15px;
+                    margin: 15px 0;
+                }
+                
+                .info-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                
+                .hueco-ejemplo {
+                    width: 25px;
+                    height: 25px;
+                    border-radius: 5px;
+                    border: 2px solid;
+                }
+                
+                .hueco-ejemplo.vacio {
+                    border-color: rgba(255, 255, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.05);
+                }
+                
+                .hueco-ejemplo.fabricada {
+                    border-color: rgba(76, 175, 80, 0.6);
+                    background: rgba(76, 175, 80, 0.2);
+                }
+                
+                .hueco-ejemplo.equipada {
+                    border-color: #4CAF50;
+                    background: #4CAF50;
+                }
+                
+                .hueco-ejemplo.puede-equipar {
+                    border-color: rgba(255, 193, 7, 0.6);
+                    background: rgba(255, 193, 7, 0.2);
+                }
+                
+                .info-text {
+                    margin-top: 15px;
+                    color: #aaa;
+                    font-size: 0.9rem;
+                }
+            </style>
         `;
     }
     
@@ -717,20 +867,38 @@ class TabManager {
     }
     
     async loadAlmacenPiezas() {
-        const container = document.getElementById('almacen-grid');
+        console.log('📦 Cargando almacén con botones...');
+        
+        const container = document.getElementById('areas-almacen');
         if (!container || !window.f1Manager?.escuderia?.id) return;
-    
+        
         try {
-            // CAMBIO 1: Tabla correcta
+            // 1. Cargar nivel actual de cada área desde coches_stats
+            if (window.f1Manager && !window.f1Manager.carStats) {
+                await window.f1Manager.cargarCarStats();
+            }
+            
+            // 2. Cargar TODAS las piezas del almacén
             const { data: todasLasPiezas, error } = await supabase
-                .from('almacen_piezas')  // ← TABLA REAL
-                .select('*')
+                .from('almacen_piezas')
+                .select('id, area, nivel, puntos_base, equipada, fabricada_en')
                 .eq('escuderia_id', window.f1Manager.escuderia.id)
-                .order('fabricada_en', { ascending: false });
-    
+                .order('nivel', { ascending: true })
+                .order('fabricada_en', { ascending: true });
+            
             if (error) throw error;
-    
-            if (!todasLasPiezas || todasLasPiezas.length === 0) {
+            
+            // 3. Calcular estadísticas
+            const totalPiezas = todasLasPiezas?.length || 0;
+            const piezasEquipadas = todasLasPiezas?.filter(p => p.equipada === true).length || 0;
+            const puntosTotales = todasLasPiezas?.reduce((sum, p) => sum + (p.puntos_base || 0), 0) || 0;
+            
+            // Actualizar estadísticas en UI
+            document.getElementById('total-piezas').textContent = totalPiezas;
+            document.getElementById('piezas-equipadas').textContent = piezasEquipadas;
+            document.getElementById('puntos-totales').textContent = puntosTotales;
+            
+            if (totalPiezas === 0) {
                 container.innerHTML = `
                     <div class="almacen-vacio">
                         <i class="fas fa-box-open fa-3x"></i>
@@ -740,56 +908,158 @@ class TabManager {
                 `;
                 return;
             }
-    
-            let html = '<div class="almacen-tabla">';
             
-            // Lista SIMPLE sin agrupar
-            todasLasPiezas.forEach((pieza, index) => {
-                const areaInfo = window.CAR_AREAS.find(a => 
-                    a.id === pieza.area || a.name === pieza.area
-                    );
-                const filaClase = index % 2 === 0 ? 'fila-par' : 'fila-impar';
-                const equipada = pieza.equipada === true;  // CAMBIO 2: usa campo equipada
+            // 4. Agrupar piezas por área y nivel
+            const piezasPorArea = {};
+            todasLasPiezas?.forEach(pieza => {
+                if (!piezasPorArea[pieza.area]) {
+                    piezasPorArea[pieza.area] = {};
+                }
+                if (!piezasPorArea[pieza.area][pieza.nivel]) {
+                    piezasPorArea[pieza.area][pieza.nivel] = [];
+                }
+                piezasPorArea[pieza.area][pieza.nivel].push(pieza);
+            });
+            
+            // 5. Definir las 11 áreas (igual que en el taller)
+            const areas = [
+                { id: 'suelo', nombre: 'Suelo', icono: '🏎️' },
+                { id: 'motor', nombre: 'Motor', icono: '⚙️' },
+                { id: 'aleron_delantero', nombre: 'Alerón Del.', icono: '🪽' },
+                { id: 'caja_cambios', nombre: 'Caja Cambios', icono: '🔄' },
+                { id: 'pontones', nombre: 'Pontones', icono: '📦' },
+                { id: 'suspension', nombre: 'Suspensión', icono: '⚖️' },
+                { id: 'aleron_trasero', nombre: 'Alerón Tras.', icono: '🌪️' },
+                { id: 'chasis', nombre: 'Chasis', icono: '📊' },
+                { id: 'frenos', nombre: 'Frenos', icono: '🛑' },
+                { id: 'volante', nombre: 'Volante', icono: '🎮' },
+                { id: 'electronica', nombre: 'Electrónica', icono: '💡' }
+            ];
+            
+            let html = '<div class="areas-grid-almacen">';
+            
+            // 6. Para cada área
+            areas.forEach(area => {
+                // Obtener nivel actual del coche
+                const nivelActual = window.f1Manager.carStats ? 
+                    (window.f1Manager.carStats[`${area.id}_nivel`] || 0) : 0;
+                
+                // Obtener piezas de esta área
+                const piezasArea = piezasPorArea[area.id] || {};
+                
+                // Encontrar qué pieza está equipada (si hay alguna)
+                let piezaEquipada = null;
+                Object.values(piezasArea).forEach(nivelArray => {
+                    nivelArray.forEach(pieza => {
+                        if (pieza.equipada === true) {
+                            piezaEquipada = pieza;
+                        }
+                    });
+                });
                 
                 html += `
-                    <div class="pieza-fila ${filaClase} ${equipada ? 'equipada' : ''}">
-                        <div class="celda celda-icono" style="color: ${areaInfo?.color || '#666'}">
-                            <i class="${areaInfo?.icon || 'fas fa-cog'}"></i>
+                    <div class="area-almacen-card">
+                        <div class="area-titulo-almacen">
+                            <span class="area-icono-almacen">${area.icono}</span>
+                            <span class="area-nombre-almacen">${area.nombre}</span>
+                            <span class="area-nivel-actual-almacen">Nivel ${nivelActual}</span>
                         </div>
-                        <div class="celda celda-area">${areaInfo?.name || pieza.area}</div>
-                        <div class="celda celda-nivel">Nivel ${pieza.nivel || 1}</div>
-                        <div class="celda celda-puntos">
-                            <span class="badge-puntos">${pieza.puntos_base || 10} pts</span>
+                        
+                        <div class="niveles-grupo-almacen">
+                `;
+                
+                // 7. Mostrar niveles del 0 al 5 (puedes cambiar a 20 si quieres)
+                const nivelesAMostrar = 5; // Cambia a 20 si quieres mostrar todos
+                
+                for (let nivel = 0; nivel <= nivelesAMostrar; nivel++) {
+                    const piezasNivel = piezasArea[nivel] || [];
+                    const piezasFabricadas = piezasNivel.length;
+                    const todasFabricadas = piezasFabricadas >= 5;
+                    
+                    // Verificar si hay una pieza equipada en este nivel
+                    const tieneEquipada = piezasNivel.some(p => p.equipada === true);
+                    
+                    html += `
+                        <div class="nivel-container-almacen ${nivel === nivelActual ? 'nivel-actual-almacen' : ''}">
+                            <div class="nivel-cabecera-almacen">
+                                <span class="nivel-numero-almacen">Nivel ${nivel}</span>
+                                <span class="nivel-progreso-almacen">${piezasFabricadas}/5</span>
+                            </div>
+                            
+                            <div class="huecos-container-almacen">
+                    `;
+                    
+                    // 8. Mostrar 5 huecos por nivel
+                    for (let hueco = 1; hueco <= 5; hueco++) {
+                        const pieza = piezasNivel[hueco - 1];
+                        
+                        if (pieza) {
+                            // Hay pieza en este hueco
+                            const esEquipada = pieza.equipada === true;
+                            const puedeEquipar = !esEquipada && nivel > nivelActual;
+                            
+                            html += `
+                                <button class="hueco-pieza-almacen ${esEquipada ? 'equipada-almacen' : 'fabricada-almacen'} ${puedeEquipar ? 'puede-equipar-almacen' : ''}"
+                                        onclick="window.tabManager.manejarClickPiezaAlmacen('${pieza.id}', ${esEquipada}, ${puedeEquipar})"
+                                        title="${area.nombre} - Nivel ${nivel} - Pieza ${hueco}
+    ${esEquipada ? '✅ EQUIPADA' : '📦 Almacenada'}
+    Puntos: ${pieza.puntos_base || 10}
+    Fabricada: ${pieza.fabricada_en ? new Date(pieza.fabricada_en).toLocaleDateString() : 'Fecha desconocida'}">
+                                    <div class="hueco-numero-almacen">${hueco}</div>
+                                    <div class="hueco-estado-almacen">
+                                        ${esEquipada ? '✅' : '✓'}
+                                    </div>
+                                    ${puedeEquipar ? '<div class="hueco-equipar-almacen">↑</div>' : ''}
+                                </button>
+                            `;
+                        } else {
+                            // Hueco vacío
+                            html += `
+                                <div class="hueco-pieza-almacen vacio-almacen" 
+                                     title="${area.nombre} - Nivel ${nivel} - Pieza ${hueco}
+    No fabricada aún">
+                                    <div class="hueco-numero-almacen">${hueco}</div>
+                                    <div class="hueco-estado-almacen">-</div>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    html += `
+                            </div>
+                            
+                            ${todasFabricadas && nivel === nivelActual ? `
+                            <div class="acciones-nivel-almacen">
+                                <button class="btn-subir-nivel-almacen" onclick="window.tabManager.subirNivelDesdeAlmacen('${area.id}')">
+                                    <i class="fas fa-level-up-alt"></i> SUBIR A NIVEL ${nivel + 1}
+                                </button>
+                            </div>
+                            ` : ''}
                         </div>
-                        <div class="celda celda-estado">
-                            <span class="estado-badge ${equipada ? 'equipada' : 'disponible'}">
-                                ${equipada ? '✓ EQUIPADA' : 'DISPONIBLE'}
-                            </span>
-                        </div>
-                        <div class="celda celda-fecha">
-                            ${pieza.fabricada_en ? new Date(pieza.fabricada_en).toLocaleDateString('es-ES') : '-'}
-                        </div>
-                        <div class="celda celda-acciones">
-                            <button class="btn-accion btn-equipar" 
-                                    onclick="window.tabManager.equiparPieza('${pieza.id}')"
-                                    ${equipada ? 'disabled' : ''}>
-                                ${equipada ? '✓' : 'EQUIPAR'}
-                            </button>
-                            <button class="btn-accion btn-vender" 
-                                    onclick="window.tabManager.venderPieza('${pieza.id}')">
-                                VENDER
-                            </button>
+                    `;
+                }
+                
+                html += `
                         </div>
                     </div>
                 `;
             });
-    
+            
             html += '</div>';
             container.innerHTML = html;
-    
+            
+            // 9. Añadir estilos CSS si no existen
+            this.agregarEstilosAlmacen();
+            
         } catch (error) {
-            console.error('Error cargando almacén:', error);
-            container.innerHTML = '<div class="error">Error cargando el almacén</div>';
+            console.error('❌ Error cargando almacén con botones:', error);
+            container.innerHTML = `
+                <div class="error-almacen">
+                    <h3>❌ Error cargando el almacén</h3>
+                    <p>${error.message}</p>
+                    <button onclick="window.tabManager.loadAlmacenPiezas()">Reintentar</button>
+                </div>
+            `;
         }
     }
        async equiparTodasPiezasArea(areaId) {
@@ -1347,6 +1617,304 @@ class TabManager {
         `;
     }
 }
+
+agregarEstilosAlmacen() {
+    if (document.getElementById('estilos-almacen-nuevo')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'estilos-almacen-nuevo';
+    style.textContent = `
+        .areas-grid-almacen {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .area-almacen-card {
+            background: rgba(42, 42, 56, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .area-almacen-card:hover {
+            border-color: rgba(0, 210, 190, 0.3);
+            transform: translateY(-3px);
+        }
+        
+        .area-titulo-almacen {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .area-icono-almacen {
+            font-size: 1.5rem;
+        }
+        
+        .area-nombre-almacen {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: white;
+            font-weight: bold;
+            flex: 1;
+        }
+        
+        .area-nivel-actual-almacen {
+            background: rgba(0, 210, 190, 0.15);
+            color: #00d2be;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .niveles-grupo-almacen {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .nivel-container-almacen {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .nivel-container-almacen.nivel-actual-almacen {
+            border-color: rgba(0, 210, 190, 0.4);
+            background: rgba(0, 210, 190, 0.05);
+        }
+        
+        .nivel-cabecera-almacen {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .nivel-numero-almacen {
+            font-weight: bold;
+            color: #aaa;
+            font-size: 0.85rem;
+        }
+        
+        .nivel-progreso-almacen {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .huecos-container-almacen {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        
+        .hueco-pieza-almacen {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 2px solid;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+        
+        .hueco-pieza-almacen.vacio-almacen {
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #666;
+            cursor: default;
+        }
+        
+        .hueco-pieza-almacen.fabricada-almacen {
+            border-color: rgba(76, 175, 80, 0.4);
+            color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+        
+        .hueco-pieza-almacen.fabricada-almacen:hover {
+            border-color: rgba(76, 175, 80, 0.8);
+            background: rgba(76, 175, 80, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .hueco-pieza-almacen.equipada-almacen {
+            border-color: #4CAF50;
+            color: #4CAF50;
+            background: rgba(76, 175, 80, 0.2);
+            animation: pulse-verde-almacen 2s infinite;
+        }
+        
+        @keyframes pulse-verde-almacen {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+            70% { box-shadow: 0 0 0 5px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+        
+        .hueco-pieza-almacen.puede-equipar-almacen {
+            border-color: rgba(255, 193, 7, 0.6);
+            background: rgba(255, 193, 7, 0.1);
+        }
+        
+        .hueco-numero-almacen {
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        .hueco-estado-almacen {
+            font-size: 0.9rem;
+            margin-top: 2px;
+        }
+        
+        .hueco-equipar-almacen {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #FFC107;
+            color: black;
+            font-size: 0.6rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .acciones-nivel-almacen {
+            margin-top: 8px;
+        }
+        
+        .btn-subir-nivel-almacen {
+            width: 100%;
+            padding: 6px;
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+        
+        .btn-subir-nivel-almacen:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(76, 175, 80, 0.3);
+        }
+        
+        .almacen-vacio {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+        
+        .almacen-vacio i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #666;
+        }
+        
+        .error-almacen {
+            text-align: center;
+            padding: 30px;
+            color: #ff4444;
+        }
+    `;
+    
+    document.head.appendChild(style);
+}
+
+// Añade estos métodos al final de la clase TabManager:
+
+async manejarClickPiezaAlmacen(piezaId, esEquipada, puedeEquipar) {
+    console.log('Click en pieza almacén:', { piezaId, esEquipada, puedeEquipar });
+    
+    if (esEquipada) {
+        // Desmontar pieza
+        if (confirm('¿Desmontar esta pieza del coche?')) {
+            await this.desequiparPieza(piezaId);
+        }
+    } else if (puedeEquipar) {
+        // Equipar pieza
+        // 1. Primero desmontar cualquier otra pieza equipada de la misma área
+        const { data: pieza } = await supabase
+            .from('almacen_piezas')
+            .select('area')
+            .eq('id', piezaId)
+            .single();
+        
+        if (!pieza) {
+            window.f1Manager?.showNotification('Pieza no encontrada', 'error');
+            return;
+        }
+        
+        // Desmontar todas las piezas equipadas de esta área
+        await supabase
+            .from('almacen_piezas')
+            .update({ equipada: false })
+            .eq('escuderia_id', window.f1Manager.escuderia.id)
+            .eq('area', pieza.area)
+            .eq('equipada', true);
+        
+        // Equipar esta pieza
+        await supabase
+            .from('almacen_piezas')
+            .update({ equipada: true })
+            .eq('id', piezaId);
+        
+        window.f1Manager?.showNotification('✅ Pieza equipada', 'success');
+        
+        // Recargar almacén y piezas montadas
+        setTimeout(() => {
+            this.loadAlmacenPiezas();
+            if (window.f1Manager?.cargarPiezasMontadas) {
+                window.f1Manager.cargarPiezasMontadas();
+            }
+        }, 500);
+    } else {
+        // Pieza almacenada pero no se puede equipar
+        alert('Esta pieza no se puede equipar porque su nivel es igual o inferior al actual.\n\nEquipa piezas de nivel superior para mejorar tu coche.');
+    }
+}
+
+async subirNivelDesdeAlmacen(areaId) {
+    console.log('Subiendo nivel desde almacén:', areaId);
+    
+    if (window.f1Manager && window.f1Manager.subirNivelArea) {
+        await window.f1Manager.subirNivelArea(areaId);
+        
+        // Recargar almacén después de subir nivel
+        setTimeout(() => {
+            this.loadAlmacenPiezas();
+        }, 1000);
+    }
+}
+
 // Hacer la clase disponible globalmente
 window.TabManager = TabManager;
 
