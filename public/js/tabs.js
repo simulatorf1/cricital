@@ -307,37 +307,22 @@ class TabManager {
     
     getAlmacenContent() {
         return `
-            <div class="almacen-container-botones">
-                <div class="almacen-header">
-                    <h2><i class="fas fa-warehouse"></i> Almacén de Piezas</h2>
-                    <p class="almacen-subtitulo">
-                        Click en botón para equipar. Solo una pieza equipada por área.
+            <div class="almacen-botones-container">
+                <div class="almacen-header-botones">
+                    <h2><i class="fas fa-warehouse"></i> ALMACÉN</h2>
+                    <p class="subtitulo-almacen">
+                        Botones = piezas fabricadas. Click para EQUIPAR (dorado) / DESEQUIPAR.
                     </p>
                 </div>
                 
-                <div class="areas-grid" id="areas-grid">
+                <div class="areas-grid-botones" id="areas-grid-botones">
                     <!-- Las áreas con botones se cargarán aquí -->
                 </div>
                 
-                <div class="almacen-actions">
-                    <button class="btn-vender-todas" id="btn-vender-todas" disabled>
+                <div class="almacen-acciones">
+                    <button class="btn-vender-todas" disabled>
                         <i class="fas fa-tag"></i> VENDER PIEZAS (PRÓXIMAMENTE)
                     </button>
-                </div>
-                
-                <div class="almacen-leyenda">
-                    <div class="leyenda-item">
-                        <div class="leyenda-boton vacio"></div>
-                        <span>Sin pieza</span>
-                    </div>
-                    <div class="leyenda-item">
-                        <div class="leyenda-boton disponible"></div>
-                        <span>Pieza disponible</span>
-                    </div>
-                    <div class="leyenda-item">
-                        <div class="leyenda-boton equipada"></div>
-                        <span>Pieza equipada</span>
-                    </div>
                 </div>
             </div>
         `;
@@ -631,8 +616,8 @@ class TabManager {
     setupAlmacenEvents() {
         console.log('🔧 Configurando eventos del almacén...');
         
-        // Botón vender todas (deshabilitado por ahora)
-        document.getElementById('btn-vender-todas')?.addEventListener('click', () => {
+        // Botón vender todas (deshabilitado)
+        document.querySelector('.btn-vender-todas')?.addEventListener('click', () => {
             if (window.f1Manager?.showNotification) {
                 window.f1Manager.showNotification('Función de venta en desarrollo', 'info');
             }
@@ -725,137 +710,151 @@ class TabManager {
     }
     
     async loadAlmacenPiezas() {
-        const container = document.getElementById('areas-grid');
-        if (!container || !window.f1Manager?.escuderia?.id) return;
+        console.log('🔧 Cargando almacén con botones...');
+        const container = document.getElementById('areas-grid-botones');
+        if (!container || !window.f1Manager?.escuderia?.id) {
+            console.error('❌ No hay contenedor o escudería');
+            return;
+        }
     
         try {
+            // Obtener TODAS las piezas
             const { data: todasLasPiezas, error } = await supabase
                 .from('almacen_piezas')
                 .select('*')
                 .eq('escuderia_id', window.f1Manager.escuderia.id)
-                .order('nivel', { ascending: true })
+                .order('nivel', { ascending: false })
                 .order('fabricada_en', { ascending: false });
     
-            if (error) throw error;
-    
-            // Agrupar por área
-            const piezasPorArea = {};
-            const areasConfig = window.CAR_AREAS || [];
-            
-            // Inicializar todas las áreas conocidas
-            areasConfig.forEach(area => {
-                piezasPorArea[area.id] = {
-                    nombre: area.name,
-                    color: area.color,
-                    icono: area.icon,
-                    piezas: []
-                };
-            });
-    
-            // Agrupar piezas por área
-            if (todasLasPiezas) {
-                todasLasPiezas.forEach(pieza => {
-                    const areaId = pieza.area;
-                    if (!piezasPorArea[areaId]) {
-                        piezasPorArea[areaId] = {
-                            nombre: areaId,
-                            color: '#666666',
-                            icono: 'fas fa-cog',
-                            piezas: []
-                        };
-                    }
-                    piezasPorArea[areaId].piezas.push(pieza);
-                });
+            if (error) {
+                console.error('❌ Error BD:', error);
+                throw error;
             }
     
-            // Generar HTML
-            let html = '';
-            
-            Object.entries(piezasPorArea).forEach(([areaId, areaInfo]) => {
-                // Contar piezas por nivel para esta área
-                const piezasPorNivel = {};
-                let piezaEquipadaId = null;
-                
-                areaInfo.piezas.forEach(pieza => {
-                    if (!piezasPorNivel[pieza.nivel]) {
-                        piezasPorNivel[pieza.nivel] = [];
-                    }
-                    piezasPorNivel[pieza.nivel].push(pieza);
-                    
-                    if (pieza.equipada) {
-                        piezaEquipadaId = pieza.id;
-                    }
-                });
-    
-                // Generar fila de área
-                html += `
-                    <div class="area-fila" data-area="${areaId}">
-                        <div class="area-header">
-                            <div class="area-icono" style="color: ${areaInfo.color}">
-                                <i class="${areaInfo.icono}"></i>
-                            </div>
-                            <h3 class="area-nombre">${areaInfo.nombre}</h3>
-                            <span class="area-contador">(${areaInfo.piezas.length} piezas)</span>
-                        </div>
-                        
-                        <div class="area-botones" id="botones-${areaId}">
-                `;
-    
-                // Generar botones para niveles 1-20
-                for (let nivel = 1; nivel <= 20; nivel++) {
-                    const piezasDeEsteNivel = piezasPorNivel[nivel] || [];
-                    const tienePiezas = piezasDeEsteNivel.length > 0;
-                    const hayEquipada = piezasDeEsteNivel.some(p => p.equipada);
-                    
-                    if (tienePiezas) {
-                        // Para cada pieza de este nivel, un botón
-                        piezasDeEsteNivel.forEach((pieza, index) => {
-                            const esEquipada = pieza.equipada;
-                            const esUltima = index === piezasDeEsteNivel.length - 1;
-                            
-                            html += `
-                                <button class="pieza-boton ${esEquipada ? 'equipada' : 'disponible'}"
-                                        data-pieza-id="${pieza.id}"
-                                        data-area="${areaId}"
-                                        data-nivel="${nivel}"
-                                        title="${areaInfo.nombre} - Nivel ${nivel}${esUltima ? '' : ` (${index + 1}/${piezasDeEsteNivel.length})`}">
-                                    <div class="boton-color" style="background-color: ${areaInfo.color}"></div>
-                                    ${esEquipada ? '<i class="fas fa-check"></i>' : ''}
-                                </button>
-                            `;
-                        });
-                    } else {
-                        // Botón vacío
-                        html += `
-                            <div class="pieza-boton vacio" title="${areaInfo.nombre} - Nivel ${nivel} (Sin pieza)">
-                                <div class="boton-punteado"></div>
-                            </div>
-                        `;
-                    }
-                }
-    
-                html += `
-                        </div>
+            // Si no hay piezas
+            if (!todasLasPiezas || todasLasPiezas.length === 0) {
+                container.innerHTML = `
+                    <div class="almacen-vacio-botones">
+                        <i class="fas fa-box-open fa-3x"></i>
+                        <h3>No hay piezas fabricadas</h3>
+                        <p>Ve al taller para fabricar tu primera pieza</p>
+                        <button class="btn-ir-taller" onclick="window.tabManager.switchTab('taller')">
+                            <i class="fas fa-tools"></i> IR AL TALLER
+                        </button>
                     </div>
                 `;
+                return;
+            }
+    
+            // 1. Agrupar por área
+            const piezasPorArea = {};
+            todasLasPiezas.forEach(pieza => {
+                if (!piezasPorArea[pieza.area]) {
+                    piezasPorArea[pieza.area] = [];
+                }
+                piezasPorArea[pieza.area].push(pieza);
             });
     
-            container.innerHTML = html || `
-                <div class="almacen-vacio">
-                    <i class="fas fa-box-open fa-3x"></i>
-                    <h3>No hay piezas fabricadas</h3>
-                    <p>Ve al taller para fabricar tu primera pieza</p>
-                </div>
-            `;
+            // 2. Áreas conocidas (usa las tuyas o estas por defecto)
+            const areasConocidas = window.CAR_AREAS || [
+                { id: 'motor', name: 'Motor', color: '#FF5722', icon: 'fas fa-cogs' },
+                { id: 'chasis', name: 'Chasis', color: '#4CAF50', icon: 'fas fa-car' },
+                { id: 'suelo', name: 'Suelo', color: '#2196F3', icon: 'fas fa-road' }
+            ];
     
-            // Configurar eventos de los botones
-            this.setupAlmacenBotonesEvents();
+            // 3. Generar HTML
+            let html = '';
+            
+            areasConocidas.forEach(areaConfig => {
+                // Buscar piezas por nombre o ID
+                const piezasArea = piezasPorArea[areaConfig.name] || 
+                                  piezasPorArea[areaConfig.id] || 
+                                  [];
+                
+                if (piezasArea.length > 0) {
+                    const equipadas = piezasArea.filter(p => p.equipada).length;
+                    
+                    html += `
+                        <div class="fila-area-botones">
+                            <div class="area-header-botones">
+                                <div class="area-icono-titulo">
+                                    <div class="area-icono" style="color: ${areaConfig.color}">
+                                        <i class="${areaConfig.icon}"></i>
+                                    </div>
+                                    <h3 class="area-nombre">${areaConfig.name}</h3>
+                                </div>
+                                <div class="area-contador">
+                                    <span class="contador-equipadas">${equipadas} equipada${equipadas !== 1 ? 's' : ''}</span>
+                                    <span class="contador-total">${piezasArea.length} pieza${piezasArea.length !== 1 ? 's' : ''}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="area-botones-grid">
+                    `;
+                    
+                    // UN BOTÓN POR CADA PIEZA
+                    piezasArea.forEach(pieza => {
+                        const esEquipada = pieza.equipada;
+                        const puntos = pieza.puntos_base || 10;
+                        const nivel = pieza.nivel || 1;
+                        
+                        html += `
+                            <button class="boton-pieza ${esEquipada ? 'equipada' : 'disponible'}" 
+                                    data-pieza-id="${pieza.id}"
+                                    data-area="${areaConfig.id}"
+                                    data-nivel="${nivel}"
+                                    onclick="window.tabManager.equiparODesequiparPieza('${pieza.id}', ${esEquipada})"
+                                    title="${areaConfig.name} - Nivel ${nivel} (${puntos} pts)
+    ${esEquipada ? '✓ EQUIPADA - Click para desequipar' : 'DISPONIBLE - Click para equipar'}"
+                                    style="background-color: ${this.ajustarColor(areaConfig.color, esEquipada ? 0.9 : 0.7)}">
+                                <div class="contenido-boton">
+                                    ${esEquipada ? '<i class="fas fa-check"></i>' : ''}
+                                    <div class="info-mini">
+                                        <span class="nivel-mini">${nivel}</span>
+                                    </div>
+                                </div>
+                                <div class="badge-puntos">${puntos}</div>
+                            </button>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+    
+            container.innerHTML = html;
+            console.log('✅ Almacén cargado con', Object.keys(piezasPorArea).length, 'áreas');
     
         } catch (error) {
-            console.error('Error cargando almacén:', error);
-            container.innerHTML = '<div class="error">Error cargando el almacén</div>';
+            console.error('❌ Error cargando almacén:', error);
+            container.innerHTML = `
+                <div class="error-almacen">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error cargando el almacén</h3>
+                    <button onclick="window.tabManager.loadAlmacenPiezas()">Reintentar</button>
+                </div>
+            `;
         }
     }
+    // Método para ajustar color con opacidad
+    ajustarColor(colorHex, opacidad = 0.7) {
+        if (!colorHex || !colorHex.startsWith('#')) {
+            return `rgba(100, 100, 100, ${opacidad})`;
+        }
+        
+        try {
+            const r = parseInt(colorHex.slice(1, 3), 16);
+            const g = parseInt(colorHex.slice(3, 5), 16);
+            const b = parseInt(colorHex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${opacidad})`;
+        } catch (e) {
+            return `rgba(100, 100, 100, ${opacidad})`;
+        }
+    }
+    
     setupAlmacenBotonesEvents() {
         // Delegación de eventos para todos los botones de piezas
         document.getElementById('areas-grid')?.addEventListener('click', (e) => {
@@ -1371,6 +1370,23 @@ class TabManager {
         `;
     }
 }
+
+// Nuevo método para manejar click en botones
+async equiparODesequiparPieza(piezaId, actualmenteEquipada) {
+    console.log(`🔧 ${actualmenteEquipada ? 'Desequipando' : 'Equipando'} pieza:`, piezaId);
+    
+    if (actualmenteEquipada) {
+        await this.desequiparPieza(piezaId);
+    } else {
+        await this.equiparPieza(piezaId);
+    }
+    
+    // Recargar después de 500ms
+    setTimeout(() => {
+        this.loadAlmacenPiezas();
+    }, 500);
+}
+
 // Hacer la clase disponible globalmente
 window.TabManager = TabManager;
 
