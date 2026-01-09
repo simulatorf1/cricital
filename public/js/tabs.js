@@ -1369,7 +1369,27 @@ class TabManager {
             </div>
         `;
     }
-}
+
+    // === NUEVO MÉTODO (AÑADIR AQUÍ) ===
+    async equiparODesequiparPieza(piezaId, actualmenteEquipada) {
+        console.log(`🔧 ${actualmenteEquipada ? 'Desequipando' : 'Equipando'} pieza:`, piezaId);
+        
+        if (actualmenteEquipada) {
+            await this.desequiparPieza(piezaId);
+        } else {
+            await this.equiparPieza(piezaId);
+        }
+        
+        // Recargar después de 500ms
+        setTimeout(() => {
+            this.loadAlmacenPiezas();
+        }, 500);
+    }
+}  // <-- Esto es el CIERRE de la clase
+
+// Hacer la clase disponible globalmente
+window.TabManager = TabManager;
+
 
 // Nuevo método para manejar click en botones
 async equiparODesequiparPieza(piezaId, actualmenteEquipada) {
