@@ -74,6 +74,53 @@ class TabManager {
         // Mostrar contenido de la pestaña seleccionada
         const tabContent = document.getElementById(`tab-${tabId}`);
         if (tabContent) {
+            // ======================================================
+            // ¡¡PESTAÑA TALLER - NUEVO COMPORTAMIENTO!!
+            // ======================================================
+            if (tabId === 'taller') {
+                // 1. SOLO marcar como activa
+                tabContent.classList.add('active');
+                this.currentTab = tabId;
+                
+                // 2. LIMPIAR contenido anterior (opcional pero recomendado)
+                tabContent.innerHTML = '<div class="cargando-taller"><i class="fas fa-spinner fa-spin"></i> Cargando taller...</div>';
+                
+                // 3. Cargar el taller MINIMALISTA directamente
+                setTimeout(async () => {
+                    try {
+                        if (window.f1Manager && window.f1Manager.cargarTabTaller) {
+                            console.log('🔧 Ejecutando cargarTabTaller()...');
+                            await window.f1Manager.cargarTabTaller();
+                            console.log('✅ Taller cargado exitosamente');
+                        } else {
+                            console.error('❌ f1Manager.cargarTabTaller no disponible');
+                            tabContent.innerHTML = `
+                                <div class="error-message">
+                                    <h3>❌ Error cargando el taller</h3>
+                                    <p>El sistema de fabricación no está disponible</p>
+                                    <button onclick="location.reload()">Reintentar</button>
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        console.error('❌ Error cargando taller:', error);
+                        tabContent.innerHTML = `
+                            <div class="error-message">
+                                <h3>❌ Error cargando el taller</h3>
+                                <p>${error.message || 'Error desconocido'}</p>
+                                <button onclick="location.reload()">Reintentar</button>
+                            </div>
+                        `;
+                    }
+                }, 300);
+                
+                // SALIR del método - no hacer nada más para el taller
+                return;
+            }
+            
+            // ======================================================
+            // Para TODAS LAS OTRAS pestañas (principal, almacen, etc.)
+            // ======================================================
             // 1. Primero cargar el contenido y eventos
             this.loadTabContent(tabId);
             // 2. Luego marcar como activa
@@ -81,7 +128,7 @@ class TabManager {
             this.currentTab = tabId;
             
             // ======================================================
-            // ¡¡AÑADE ESTO PARA LA PESTAÑA PRINCIPAL!!
+            // ¡¡PESTAÑA PRINCIPAL - CARGAR CONTENIDO!!
             // ======================================================
             if (tabId === 'principal') {
                 console.log('🎯 Recargando contenido principal...');
@@ -118,42 +165,8 @@ class TabManager {
             }
             
             // ======================================================
-            // ¡¡AÑADE ESTO PARA LA PESTAÑA TALLER!!
+            // ¡¡PESTAÑA ALMACÉN - VERIFICAR ACTUALIZACIÓN!!
             // ======================================================
-            if (tabId === 'taller') {
-                console.log('🔧 Cargando contenido del taller...');
-                
-                // Esperar 300ms para que el DOM esté listo
-                setTimeout(async () => {
-                    try {
-                        if (window.f1Manager && window.f1Manager.cargarTabTaller) {
-                            console.log('🔧 Ejecutando cargarTabTaller()...');
-                            await window.f1Manager.cargarTabTaller();
-                            console.log('✅ Taller cargado exitosamente');
-                        } else {
-                            console.error('❌ f1Manager.cargarTabTaller no disponible');
-                            tabContent.innerHTML = `
-                                <div class="error-message">
-                                    <h3>❌ Error cargando el taller</h3>
-                                    <p>El sistema de fabricación no está disponible</p>
-                                    <button onclick="location.reload()">Reintentar</button>
-                                </div>
-                            `;
-                        }
-                    } catch (error) {
-                        console.error('❌ Error cargando taller:', error);
-                        tabContent.innerHTML = `
-                            <div class="error-message">
-                                <h3>❌ Error cargando el taller</h3>
-                                <p>${error.message || 'Error desconocido'}</p>
-                                <button onclick="location.reload()">Reintentar</button>
-                            </div>
-                        `;
-                    }
-                }, 300);
-            }
-            
-            // AÑADE ESTO: Verificar si el almacén necesita actualizar
             if (tabId === 'almacen' && window.almacenNecesitaActualizar) {
                 setTimeout(() => {
                     if (window.almacenNecesitaActualizar) {
