@@ -793,22 +793,32 @@ class TabManager {
                     `;
                     
                     // UN BOTÓN POR CADA PIEZA
+                    // En el método loadAlmacenPiezas(), cambia la parte que genera los botones:
                     piezasArea.forEach(pieza => {
                         const esEquipada = pieza.equipada;
                         const puntos = pieza.puntos_base || 10;
                         const nivel = pieza.nivel || 1;
                         
+                        // Obtener el icono específico del área
+                        const iconoArea = this.obtenerIconoPorArea(areaConfig.id);
+                        
+                        // Verificar si es nueva (fabricada en las últimas 24h)
+                        const fechaFabricacion = new Date(pieza.fabricada_en);
+                        const ahora = new Date();
+                        const diferenciaHoras = (ahora - fechaFabricacion) / (1000 * 60 * 60);
+                        const esNueva = diferenciaHoras < 24;
+                        
                         html += `
-                            <button class="boton-pieza ${esEquipada ? 'equipada' : 'disponible'}" 
+                            <button class="boton-pieza ${esEquipada ? 'equipada' : 'disponible'} ${esNueva ? 'nueva' : ''}" 
                                     data-pieza-id="${pieza.id}"
                                     data-area="${areaConfig.id}"
                                     data-nivel="${nivel}"
                                     onclick="window.tabManager.equiparODesequiparPieza('${pieza.id}', ${esEquipada})"
                                     title="${areaConfig.name} - Nivel ${nivel} (${puntos} pts)
-    ${esEquipada ? '✓ EQUIPADA - Click para desequipar' : 'DISPONIBLE - Click para equipar'}"
-                                    style="background-color: ${this.ajustarColor(areaConfig.color, esEquipada ? 0.9 : 0.7)}">
+                    ${esEquipada ? '✓ EQUIPADA - Click para desequipar' : 'DISPONIBLE - Click para equipar'}"
+                                    style="background: ${this.obtenerGradientePorArea(areaConfig.id, esEquipada)};">
                                 <div class="contenido-boton">
-                                    ${esEquipada ? '<i class="fas fa-check"></i>' : ''}
+                                    <i class="${iconoArea}"></i>
                                     <div class="info-mini">
                                         <span class="nivel-mini">${nivel}</span>
                                     </div>
@@ -817,6 +827,43 @@ class TabManager {
                             </button>
                         `;
                     });
+                    
+                    // Añade estos métodos auxiliares a la clase TabManager:
+                    obtenerIconoPorArea(areaId) {
+                        const iconos = {
+                            'motor': 'fas fa-cogs',
+                            'chasis': 'fas fa-car',
+                            'suelo': 'fas fa-road',
+                            'caja_cambios': 'fas fa-exchange-alt',
+                            'suspension': 'fas fa-cog',
+                            'frenos': 'fas fa-tachometer-alt',
+                            'aleron_delantero': 'fas fa-angle-double-up',
+                            'aleron_trasero': 'fas fa-angle-double-down',
+                            'neumaticos': 'fas fa-circle',
+                            'electronica': 'fas fa-microchip'
+                        };
+                        return iconos[areaId] || 'fas fa-puzzle-piece';
+                    }
+                    
+                    obtenerGradientePorArea(areaId, equipada) {
+                        const colores = {
+                            'motor': equipada ? 
+                                'linear-gradient(135deg, #FFD700, #FFA500)' : 
+                                'linear-gradient(135deg, rgba(255, 87, 34, 0.9), rgba(255, 152, 0, 0.9))',
+                            'chasis': equipada ?
+                                'linear-gradient(135deg, #FFD700, #FFA500)' :
+                                'linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(56, 142, 60, 0.9))',
+                            'suelo': equipada ?
+                                'linear-gradient(135deg, #FFD700, #FFA500)' :
+                                'linear-gradient(135deg, rgba(33, 150, 243, 0.9), rgba(21, 101, 192, 0.9))',
+                            'caja_cambios': equipada ?
+                                'linear-gradient(135deg, #FFD700, #FFA500)' :
+                                'linear-gradient(135deg, rgba(156, 39, 176, 0.9), rgba(123, 31, 162, 0.9))'
+                        };
+                        return colores[areaId] || (equipada ? 
+                            'linear-gradient(135deg, #FFD700, #FFA500)' : 
+                            'linear-gradient(135deg, rgba(100, 100, 100, 0.9), rgba(70, 70, 70, 0.9))');
+                    }
                     
                     html += `
                             </div>
