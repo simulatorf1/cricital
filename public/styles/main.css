@@ -3705,6 +3705,190 @@ body {
            min-height: 80px;
        }
    }
+   /* ==================== */
+   /* ALMACÉN CON BOTONES - ESTILOS SIMPLES */
+   /* ==================== */
+   
+   .almacen-botones-container {
+       padding: 20px;
+       max-width: 1200px;
+       margin: 0 auto;
+   }
+   
+   .almacen-header-botones {
+       text-align: center;
+       margin-bottom: 30px;
+   }
+   
+   .almacen-header-botones h2 {
+       font-family: 'Orbitron', sans-serif;
+       color: white;
+       margin-bottom: 10px;
+   }
+   
+   .subtitulo-almacen {
+       color: #888;
+       font-size: 0.95rem;
+   }
+   
+   /* Filas por área */
+   .fila-area-botones {
+       margin-bottom: 25px;
+       padding: 15px;
+       background: rgba(255, 255, 255, 0.03);
+       border-radius: 10px;
+       border: 1px solid rgba(255, 255, 255, 0.1);
+   }
+   
+   .area-header-botones {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       margin-bottom: 15px;
+   }
+   
+   .area-icono-titulo {
+       display: flex;
+       align-items: center;
+       gap: 10px;
+   }
+   
+   .area-icono {
+       font-size: 1.5rem;
+   }
+   
+   .area-nombre {
+       font-family: 'Orbitron', sans-serif;
+       color: white;
+       font-size: 1.1rem;
+       margin: 0;
+   }
+   
+   .area-contador {
+       font-size: 0.9rem;
+   }
+   
+   .contador-equipadas {
+       color: #FFD700;
+       font-weight: bold;
+   }
+   
+   .contador-total {
+       color: #888;
+   }
+   
+   /* Grid de botones */
+   .area-botones-grid {
+       display: flex;
+       flex-wrap: wrap;
+       gap: 10px;
+       min-height: 70px;
+   }
+   
+   /* Botones individuales */
+   .boton-pieza {
+       width: 60px;
+       height: 60px;
+       border: 2px solid rgba(255, 255, 255, 0.2);
+       border-radius: 8px;
+       cursor: pointer;
+       position: relative;
+       transition: all 0.2s ease;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       padding: 0;
+   }
+   
+   .boton-pieza:hover {
+       transform: translateY(-2px);
+       border-color: rgba(255, 255, 255, 0.4);
+   }
+   
+   .boton-pieza.equipada {
+       border-color: #FFD700;
+       border-width: 3px;
+       box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+   }
+   
+   .contenido-boton {
+       width: 100%;
+       height: 100%;
+       position: relative;
+   }
+   
+   .boton-pieza .fa-check {
+       position: absolute;
+       top: 5px;
+       right: 5px;
+       color: #FFD700;
+       font-size: 0.8rem;
+   }
+   
+   .nivel-mini {
+       position: absolute;
+       bottom: 5px;
+       left: 5px;
+       background: rgba(0, 0, 0, 0.7);
+       color: white;
+       font-size: 0.7rem;
+       padding: 1px 4px;
+       border-radius: 6px;
+       font-weight: bold;
+   }
+   
+   .badge-puntos {
+       position: absolute;
+       top: 5px;
+       left: 5px;
+       background: rgba(0, 0, 0, 0.8);
+       color: #FFD700;
+       font-size: 0.6rem;
+       padding: 1px 3px;
+       border-radius: 5px;
+       font-weight: bold;
+   }
+   
+   /* Vacío */
+   .almacen-vacio-botones {
+       text-align: center;
+       padding: 50px 20px;
+       color: #666;
+   }
+   
+   .btn-ir-taller {
+       margin-top: 15px;
+       padding: 10px 20px;
+       background: #00d2be;
+       color: white;
+       border: none;
+       border-radius: 5px;
+       cursor: pointer;
+       font-weight: bold;
+   }
+   
+   /* Error */
+   .error-almacen {
+       text-align: center;
+       padding: 30px;
+       color: #ff4444;
+   }
+   
+   /* Acciones */
+   .almacen-acciones {
+       text-align: center;
+       margin-top: 30px;
+   }
+   
+   .btn-vender-todas {
+       background: #666;
+       color: white;
+       border: none;
+       padding: 12px 24px;
+       border-radius: 5px;
+       cursor: not-allowed;
+       opacity: 0.6;
+   }
    .area-tabla {
        background: rgba(42, 42, 56, 0.8) !important;
        border-radius: 10px !important;
