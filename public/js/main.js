@@ -1974,7 +1974,7 @@ class F1Manager {
                     area: areaId,
                     nivel: nivel,
                     tiempo_inicio: ahora.toISOString(),
-                    tiempo_fin: tiempoFin.toISOString(),
+                    tiempo_fin: tiempoFin.toISOString().replace('Z', ''),
                     completada: false,
                     costo: costo,
                     creada_en: ahora.toISOString()
@@ -6642,7 +6642,10 @@ class F1Manager {
             // Verificar tiempos REALES de cada fabricación
             const ahora = new Date();
             const fabricacionesConEstado = (fabricaciones || []).map(f => {
-                const tiempoFin = new Date(f.tiempo_fin);
+                let tiempoFin = new Date(f.tiempo_fin);
+                if (f.tiempo_fin && f.tiempo_fin.endsWith('Z')) {
+                    tiempoFin = new Date(tiempoFin.getTime() - (new Date().getTimezoneOffset() * 60000));
+                }
                 const tiempoRestante = tiempoFin - ahora;
                 const lista = tiempoRestante <= 0; // SOLO lista si el tiempo restante es <= 0
                 
@@ -7428,7 +7431,7 @@ class F1Manager {
                     area: infoPieza.nombre, // ¡IMPORTANTE! Usar nombre completo
                     nivel: 1,
                     tiempo_inicio: tiempoInicio.toISOString(),
-                    tiempo_fin: tiempoFin.toISOString(),
+                    tiempo_fin: tiempoFin.toISOString().replace('Z', ''),
                     completada: false,
                     costo: infoPieza.costo,
                     creada_en: tiempoInicio.toISOString()
