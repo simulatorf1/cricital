@@ -766,53 +766,56 @@ class TabManager {
                     const piezaEquipada = piezasArea.find(p => p.equipada);
                     
                     html += `
-                        <div class="fila-area">
-                            <div class="area-header" style="border-left-color: ${areaConfig.color}">
-                                <div class="area-icono" style="background: ${areaConfig.color}20">
+                        <div class="fila-area-almacen">
+                            <div class="area-header-almacen" style="border-left-color: ${areaConfig.color}">
+                                <div class="area-icono-almacen" style="background: ${areaConfig.color}15">
                                     <i class="${areaConfig.icon}" style="color: ${areaConfig.color}"></i>
                                 </div>
-                                <div class="area-info">
-                                    <h3>${areaConfig.name.toUpperCase()}</h3>
-                                    <span class="area-stats">${piezasArea.length} piezas • ${piezaEquipada ? '1 equipada' : '0 equipadas'}</span>
-                                </div>
-                                <div class="area-status">
-                                    ${piezaEquipada ? 
-                                        `<div class="status-led active"></div><span>ACTIVO</span>` : 
-                                        `<div class="status-led"></div><span>INACTIVO</span>`
-                                    }
+                                <div class="area-titulo-almacen">
+                                    <h3>${areaConfig.name}</h3>
+                                    <span>${piezasArea.length} piezas • ${piezaEquipada ? '1 equipada' : 'Sin equipar'}</span>
                                 </div>
                             </div>
                             
-                            <div class="piezas-fila">
+                            <div class="piezas-fila-almacen">
                     `;
                     
                     piezasArea.forEach(pieza => {
                         const esEquipada = piezaEquipada && piezaEquipada.id === pieza.id;
                         const puntos = pieza.puntos_base || 10;
                         const nivel = pieza.nivel || 1;
+                        const calidad = pieza.calidad || 'estándar';
                         
                         html += `
-                            <button class="pieza-btn ${esEquipada ? 'active' : ''}" 
+                            <button class="pieza-boton-almacen ${esEquipada ? 'equipada' : ''}" 
                                     onclick="window.tabManager.equiparPieza('${pieza.id}')"
-                                    style="border-color: ${areaConfig.color}${esEquipada ? 'FF' : '40'};
-                                           background: ${esEquipada ? `${areaConfig.color}20` : 'rgba(30, 30, 40, 0.8)'}">
-                                <div class="pieza-btn-content">
-                                    <div class="pieza-header">
-                                        <span class="pieza-level" style="background: ${areaConfig.color}">L${nivel}</span>
-                                        ${esEquipada ? '<span class="pieza-check">✓</span>' : ''}
-                                    </div>
-                                    <div class="pieza-icon">
-                                        <i class="${areaConfig.icon}" style="color: ${areaConfig.color}"></i>
-                                    </div>
-                                    <div class="pieza-points">
+                                    style="${esEquipada ? 
+                                        `border: 3px solid ${areaConfig.color};
+                                         box-shadow: 0 0 20px ${areaConfig.color}40, 0 0 40px ${areaConfig.color}20;` : 
+                                        `border: 2px solid ${areaConfig.color}40;`
+                                    }
+                                    background: ${esEquipada ? `${areaConfig.color}10` : 'rgba(30, 30, 40, 0.8)'}">
+                                
+                                <div class="pieza-cabecera">
+                                    <span class="pieza-nivel" style="background: ${areaConfig.color}">L${nivel}</span>
+                                    ${esEquipada ? '<span class="equipada-indicador">✓</span>' : ''}
+                                </div>
+                                
+                                <div class="pieza-icono-grande">
+                                    <i class="${areaConfig.icon}" style="color: ${areaConfig.color}"></i>
+                                </div>
+                                
+                                <div class="pieza-info">
+                                    <div class="pieza-puntos">
                                         <i class="fas fa-bolt" style="color: ${areaConfig.color}"></i>
                                         <span>${puntos}</span>
                                     </div>
-                                    <div class="pieza-status">
-                                        ${esEquipada ? 'ACTIVO' : 'DISPONIBLE'}
-                                    </div>
+                                    <div class="pieza-calidad">${calidad}</div>
                                 </div>
-                                ${esEquipada ? `<div class="active-glow" style="background: ${areaConfig.color}"></div>` : ''}
+                                
+                                <div class="pieza-accion">
+                                    ${esEquipada ? 'EQUIPADA' : 'EQUIPAR'}
+                                </div>
                             </button>
                         `;
                     });
