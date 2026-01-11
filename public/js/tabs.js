@@ -962,20 +962,19 @@ class TabManager {
                 .eq('escuderia_id', window.f1Manager.escuderia.id)
                 .eq('area', piezaNueva.area)
                 .eq('equipada', true)
-                .maybeSingle(); // maybeSingle para evitar error si no hay
+                .maybeSingle();
             
             if (fetchEquipadaError) throw fetchEquipadaError;
             
-            // 3. SI HAY PIEZA EQUIPADA, DESEQUIPARLA (RESTAR SUS PUNTOS)
+            // 3. SI HAY PIEZA EQUIPADA, DESEQUIPARLA PRIMERO
             if (piezaEquipadaActual) {
-                console.log('🔄 Hay pieza equipada, desequipando primero:', piezaEquipadaActual.id);
+                console.log('🔄 Desequipando pieza anterior:', piezaEquipadaActual.id);
                 
-                // Desequipar la anterior
+                // DESEQUIPAR LA ANTERIOR - SOLO CAMBIAR equipada a false
                 const { error: desequiparError } = await supabase
                     .from('almacen_piezas')
                     .update({ 
-                        equipada: false,
-                        actualizada_en: new Date().toISOString()
+                        equipada: false  // ← COLUMNA QUE SÍ EXISTE
                     })
                     .eq('id', piezaEquipadaActual.id);
                 
@@ -1000,14 +999,12 @@ class TabManager {
                 console.log('✅ Pieza anterior desequipada y puntos restados');
             }
             
-            // 4. EQUIPAR LA NUEVA PIEZA (SUMAR SUS PUNTOS)
+            // 4. EQUIPAR LA NUEVA PIEZA
             console.log('🎯 Equipando nueva pieza...');
             const { error: equiparError } = await supabase
                 .from('almacen_piezas')
                 .update({ 
-                    equipada: true,
-                    equipada_en: new Date().toISOString(),
-                    actualizada_en: new Date().toISOString()
+                    equipada: true  // ← COLUMNA QUE SÍ EXISTE
                 })
                 .eq('id', piezaId);
             
@@ -1037,7 +1034,7 @@ class TabManager {
                 puntosElement.textContent = nuevosPuntosTotales;
             }
             
-            // 6. RECARGAR ALMACÉN (con un pequeño delay para que se vea la animación)
+            // 6. RECARGAR ALMACÉN
             setTimeout(() => {
                 this.loadAlmacenPiezas();
             }, 300);
