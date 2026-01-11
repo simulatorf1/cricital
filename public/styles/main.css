@@ -1938,6 +1938,200 @@ body {
     color: #fff;
     border-color: #FF1E00;
 }
+
+/* === ESTILOS HORIZONTALES PROFESIONALES === */
+
+.fila-area-horizontal {
+    background: rgba(15, 15, 25, 0.8);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.area-header-horizontal {
+    margin-bottom: 20px;
+}
+
+.area-icono-titulo-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.area-icono-horizontal {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border: 2px solid;
+}
+
+.area-nombre-horizontal {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.area-subtitulo-horizontal {
+    font-size: 13px;
+    color: #aaa;
+    font-weight: 500;
+}
+
+/* FILA DE BOTONES HORIZONTALES (UNO DETRÁS DE OTRO) */
+.area-botones-fila {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding: 10px 5px;
+}
+
+/* BOTÓN GRANDE (3 VECES MÁS GRANDE QUE EL ORIGINAL) */
+.boton-pieza-grande-horizontal {
+    flex: 0 0 auto; /* No se encoge */
+    width: 180px; /* 3 veces más grande que ~60px original */
+    height: 180px; /* Cuadrado grande */
+    border: 2px solid;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+    overflow: hidden;
+    background: rgba(30, 30, 40, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* EFECTO HOVER PROFESIONAL */
+.boton-pieza-grande-horizontal:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ESTILO PARA PIEZA EQUIPADA */
+.boton-pieza-grande-horizontal.equipada {
+    border-width: 3px;
+    box-shadow: 0 0 20px rgba(255, 30, 0, 0.4);
+}
+
+.boton-glow {
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 15px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* CONTENIDO DEL BOTÓN */
+.boton-contenido-horizontal {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
+}
+
+.boton-cabecera-horizontal {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.badge-nivel-horizontal {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    min-width: 40px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.badge-equipada-horizontal {
+    font-size: 16px;
+    background: #00ff00;
+    color: #000;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.boton-icono-horizontal {
+    font-size: 36px;
+    margin: 10px 0;
+}
+
+.boton-info-horizontal {
+    margin-bottom: 10px;
+}
+
+.puntos-display-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.boton-estado-horizontal {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #aaa;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.boton-pieza-grande-horizontal.equipada .boton-estado-horizontal {
+    background: rgba(0, 255, 0, 0.2);
+    color: #00ff00;
+}
+
+/* SCROLLBAR ESTILIZADA */
+.area-botones-fila::-webkit-scrollbar {
+    height: 6px;
+}
+
+.area-botones-fila::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.area-botones-fila::-webkit-scrollbar-thumb {
+    background: rgba(255, 30, 0, 0.5);
+    border-radius: 3px;
+}
+
+.area-botones-fila::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 30, 0, 0.8);
+}
 /* ============================================
    RESPONSIVE
 ============================================ */
