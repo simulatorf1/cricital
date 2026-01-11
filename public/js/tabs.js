@@ -710,7 +710,7 @@ class TabManager {
     }
     
     async loadAlmacenPiezas() {
-        console.log('🔧 Cargando almacén con botones HORIZONTALES grandes...');
+        console.log('🔧 Cargando almacén estilo F1...');
         const container = document.getElementById('areas-grid-botones');
         if (!container || !window.f1Manager?.escuderia?.id) {
             console.error('❌ No hay contenedor o escudería');
@@ -757,9 +757,9 @@ class TabManager {
     
             // 2. Áreas conocidas
             const areasConocidas = window.CAR_AREAS || [
-                { id: 'motor', name: 'Motor', color: '#FF5722', icon: 'fas fa-cogs' },
-                { id: 'chasis', name: 'Chasis', color: '#4CAF50', icon: 'fas fa-car' },
-                { id: 'suelo', name: 'Suelo', color: '#2196F3', icon: 'fas fa-road' }
+                { id: 'motor', name: 'Motor', color: '#FF1E00', icon: 'fas fa-cogs' },
+                { id: 'chasis', name: 'Chasis', color: '#00D2BE', icon: 'fas fa-car' },
+                { id: 'suelo', name: 'Suelo', color: '#FF8700', icon: 'fas fa-road' }
             ];
     
             // 3. Generar HTML
@@ -772,66 +772,81 @@ class TabManager {
                                   [];
                 
                 if (piezasArea.length > 0) {
-                    // Encontrar la pieza equipada actualmente (solo una por área)
+                    // Encontrar la pieza equipada actualmente
                     const piezaEquipada = piezasArea.find(p => p.equipada);
-                    const equipadas = piezaEquipada ? 1 : 0;
                     
                     html += `
-                        <div class="fila-area-botones">
-                            <div class="area-header-botones">
-                                <div class="area-icono-titulo">
-                                    <div class="area-icono" style="color: ${areaConfig.color}">
-                                        <i class="${areaConfig.icon}"></i>
-                                    </div>
-                                    <h3 class="area-nombre">${areaConfig.name}</h3>
+                        <div class="fila-area-f1">
+                            <div class="area-header-f1" style="border-left-color: ${areaConfig.color}">
+                                <div class="area-icono-f1" style="background: ${areaConfig.color}20">
+                                    <i class="${areaConfig.icon}" style="color: ${areaConfig.color}"></i>
                                 </div>
-                                <div class="area-contador">
-                                    <span class="contador-total">${piezasArea.length} pieza${piezasArea.length !== 1 ? 's' : ''}</span>
-                                    ${equipadas > 0 ? '<span class="contador-equipadas">✓ 1 equipada</span>' : ''}
+                                <div class="area-titulo-f1">
+                                    <h3>${areaConfig.name.toUpperCase()}</h3>
+                                    <span class="area-subtitulo">${piezasArea.length} PIEZAS DISPONIBLES</span>
                                 </div>
+                                ${piezaEquipada ? 
+                                    `<div class="area-equipada-indicator">
+                                        <div class="equipada-led" style="background: ${areaConfig.color}"></div>
+                                        <span>EQUIPADO: NIVEL ${piezaEquipada.nivel}</span>
+                                    </div>` : 
+                                    `<div class="area-equipada-indicator">
+                                        <div class="equipada-led off"></div>
+                                        <span>SIN EQUIPAR</span>
+                                    </div>`
+                                }
                             </div>
                             
-                            <div class="area-botones-fila-horizontal">
+                            <div class="piezas-grid-f1">
                     `;
                     
-                    // BOTONES GRANDES EN FILA HORIZONTAL
+                    // BOTONES PROFESIONALES ESTILO F1
                     piezasArea.forEach(pieza => {
                         const esEquipada = piezaEquipada && piezaEquipada.id === pieza.id;
                         const puntos = pieza.puntos_base || 10;
                         const nivel = pieza.nivel || 1;
-                        
-                        // Clase especial si está equipada
-                        const claseEquipada = esEquipada ? 'equipada-seleccionada' : '';
+                        const fecha = new Date(pieza.fabricada_en).toLocaleDateString('es-ES');
                         
                         html += `
-                            <button class="boton-pieza-grande ${claseEquipada}" 
-                                    data-pieza-id="${pieza.id}"
-                                    data-area="${areaConfig.id}"
-                                    data-nivel="${nivel}"
-                                    onclick="window.tabManager.equiparODesequiparPieza('${pieza.id}', ${esEquipada})"
-                                    title="${esEquipada ? 'EQUIPADA - Click para desequipar' : 'DISPONIBLE - Click para equipar'}">
+                            <div class="pieza-card-f1 ${esEquipada ? 'equipada' : ''}" 
+                                 style="border-color: ${areaConfig.color}${esEquipada ? 'FF' : '40'}">
                                 
-                                <div class="boton-pieza-cabecera">
-                                    <span class="badge-nivel">N${nivel}</span>
-                                    ${esEquipada ? '<span class="badge-equipada">✓</span>' : ''}
-                                </div>
-                                
-                                <div class="boton-pieza-icono">
-                                    <i class="${areaConfig.icon} fa-lg"></i>
-                                </div>
-                                
-                                <div class="boton-pieza-info">
-                                    <div class="puntos-display">
-                                        <i class="fas fa-star"></i>
-                                        <span>${puntos}</span>
+                                <div class="pieza-header-f1">
+                                    <div class="pieza-nivel-f1" style="background: ${areaConfig.color}">
+                                        NIVEL ${nivel}
+                                    </div>
+                                    <div class="pieza-puntos-f1">
+                                        <i class="fas fa-bolt" style="color: ${areaConfig.color}"></i>
+                                        ${puntos} PTS
                                     </div>
                                 </div>
                                 
-                                <div class="boton-pieza-estado">
-                                    ${esEquipada ? 'ACTIVA' : 'DISPONIBLE'}
+                                <div class="pieza-icono-f1">
+                                    <i class="${areaConfig.icon} fa-2x" style="color: ${areaConfig.color}"></i>
                                 </div>
                                 
-                            </button>
+                                <div class="pieza-info-f1">
+                                    <div class="pieza-fecha">${fecha}</div>
+                                    <div class="pieza-id">ID: ${pieza.id.substring(0, 8)}</div>
+                                </div>
+                                
+                                <div class="pieza-actions-f1">
+                                    ${esEquipada ? 
+                                        `<button class="btn-desequipar-f1" onclick="window.tabManager.desequiparPieza('${pieza.id}')">
+                                            <i class="fas fa-power-off"></i> DESEQUIPAR
+                                        </button>` :
+                                        `<button class="btn-equipar-f1" onclick="window.tabManager.equiparPieza('${pieza.id}')" 
+                                                 style="background: ${areaConfig.color}">
+                                            <i class="fas fa-check"></i> EQUIPAR
+                                        </button>`
+                                    }
+                                </div>
+                                
+                                ${esEquipada ? 
+                                    `<div class="equipada-glow" style="box-shadow: 0 0 20px ${areaConfig.color}"></div>` : 
+                                    ''
+                                }
+                            </div>
                         `;
                     });
                     
@@ -843,7 +858,7 @@ class TabManager {
             });
     
             container.innerHTML = html;
-            console.log('✅ Almacén horizontal cargado con', Object.keys(piezasPorArea).length, 'áreas');
+            console.log('✅ Almacén F1 cargado');
     
         } catch (error) {
             console.error('❌ Error cargando almacén:', error);
@@ -957,59 +972,96 @@ class TabManager {
     
     // ===== FUNCIONES PARA MANEJAR PIEZAS =====
     
+    // En el método equiparPieza, CAMBIAR esta parte:
     async equiparPieza(piezaId) {
         console.log(`🔧 Equipando pieza: ${piezaId}`);
         
         try {
-            // 1. OBTENER PIEZA DESDE LA TABLA CORRECTA
-            const { data: pieza, error: fetchError } = await supabase
+            // 1. OBTENER PIEZA Y PIEZA ACTUALMENTE EQUIPADA EN EL MISMO ÁREA
+            const { data: piezaNueva, error: fetchError } = await supabase
                 .from('almacen_piezas')
                 .select('*')
                 .eq('id', piezaId)
                 .single();
             
             if (fetchError) throw fetchError;
-            if (!pieza) throw new Error('Pieza no encontrada');
+            if (!piezaNueva) throw new Error('Pieza no encontrada');
             
-            console.log('✅ Pieza encontrada:', pieza);
+            // 2. BUSCAR SI HAY OTRA PIEZA EQUIPADA EN EL MISMO ÁREA
+            const { data: piezaEquipadaActual, error: fetchEquipadaError } = await supabase
+                .from('almacen_piezas')
+                .select('*')
+                .eq('escuderia_id', window.f1Manager.escuderia.id)
+                .eq('area', piezaNueva.area)
+                .eq('equipada', true)
+                .maybeSingle(); // maybeSingle para que no dé error si no hay
             
-            // 2. MARCAR COMO EQUIPADA EN LA MISMA TABLA
-            const { error: updateError } = await supabase
+            if (fetchEquipadaError) throw fetchEquipadaError;
+            
+            // 3. SI HAY UNA PIEZA EQUIPADA, DESEQUIPARLA PRIMERO (restar sus puntos)
+            if (piezaEquipadaActual) {
+                console.log(`🔧 Desequipando pieza anterior: ${piezaEquipadaActual.id}`);
+                
+                // Restar puntos de la pieza anterior
+                await this.restarPuntosDelCoche(piezaEquipadaActual.area, piezaEquipadaActual.puntos_base || 10);
+                
+                // Marcar como no equipada
+                await supabase
+                    .from('almacen_piezas')
+                    .update({ 
+                        equipada: false,
+                        actualizada_en: new Date().toISOString()
+                    })
+                    .eq('id', piezaEquipadaActual.id);
+                
+                // Restar puntos de la escudería
+                const puntosARestar = piezaEquipadaActual.puntos_base || 10;
+                const nuevosPuntos = Math.max(0, (window.f1Manager?.escuderia?.puntos || 0) - puntosARestar);
+                
+                await supabase
+                    .from('escuderias')
+                    .update({ puntos: nuevosPuntos })
+                    .eq('id', window.f1Manager?.escuderia?.id);
+                
+                if (window.f1Manager?.escuderia) {
+                    window.f1Manager.escuderia.puntos = nuevosPuntos;
+                }
+            }
+            
+            // 4. AHORA EQUIPAR LA NUEVA PIEZA
+            // Marcar como equipada
+            await supabase
                 .from('almacen_piezas')
                 .update({ 
                     equipada: true,
-                    creada_en: new Date().toISOString()
+                    equipada_en: new Date().toISOString(),
+                    actualizada_en: new Date().toISOString()
                 })
                 .eq('id', piezaId);
             
-            if (updateError) throw updateError;
+            // Sumar puntos de la nueva pieza
+            await this.sumarPuntosAlCoche(piezaNueva.area, piezaNueva.puntos_base || 10);
             
-            // 3. SUMAR PUNTOS AL COCHE
-            await this.sumarPuntosAlCoche(pieza.area, pieza.puntos_base || 10);
+            // Sumar puntos a la escudería
+            const puntosSumar = piezaNueva.puntos_base || 10;
+            const nuevosPuntosTotales = (window.f1Manager?.escuderia?.puntos || 0) + puntosSumar;
             
-            // 4. SUMAR PUNTOS A LA ESCUDERÍA
-            const puntosSumar = pieza.puntos_base || 10;
-            const nuevosPuntos = (window.f1Manager?.escuderia?.puntos || 0) + puntosSumar;
-            
-            const { error: puntosError } = await supabase
+            await supabase
                 .from('escuderias')
-                .update({ puntos: nuevosPuntos })
+                .update({ puntos: nuevosPuntosTotales })
                 .eq('id', window.f1Manager?.escuderia?.id);
             
-            if (puntosError) throw puntosError;
-            
-            // 5. ACTUALIZAR EN MEMORIA
             if (window.f1Manager?.escuderia) {
-                window.f1Manager.escuderia.puntos = nuevosPuntos;
+                window.f1Manager.escuderia.puntos = nuevosPuntosTotales;
             }
             
-            // 6. ACTUALIZAR UI
+            // 5. ACTUALIZAR UI
             const puntosElement = document.getElementById('points-value');
             if (puntosElement) {
-                puntosElement.textContent = nuevosPuntos;
+                puntosElement.textContent = nuevosPuntosTotales;
             }
             
-            // 7. RECARGAR ALMACÉN Y ESTADÍSTICAS
+            // 6. RECARGAR Y NOTIFICAR
             this.loadAlmacenPiezas();
             
             if (window.f1Manager?.loadCarStatus) {
@@ -1018,18 +1070,20 @@ class TabManager {
                     if (window.f1Manager.updateCarAreasUI) {
                         window.f1Manager.updateCarAreasUI();
                     }
-                }, 500);
+                }, 300);
             }
             
-            // 8. NOTIFICACIÓN
             if (window.f1Manager?.showNotification) {
-                window.f1Manager.showNotification(`✅ ${pieza.area} equipada (+${puntosSumar} pts)`, 'success');
+                const mensaje = piezaEquipadaActual ? 
+                    `🔄 ${piezaNueva.area} actualizada (+${puntosSumar} pts)` :
+                    `✅ ${piezaNueva.area} equipada (+${puntosSumar} pts)`;
+                window.f1Manager.showNotification(mensaje, 'success');
             }
             
         } catch (error) {
             console.error('❌ Error equipando pieza:', error);
             if (window.f1Manager?.showNotification) {
-                window.f1Manager.showNotification('❌ Error al equipar la pieza: ' + error.message, 'error');
+                window.f1Manager.showNotification('❌ Error al equipar la pieza', 'error');
             }
         }
     }
