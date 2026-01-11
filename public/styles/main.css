@@ -1213,174 +1213,7 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 5px 10px rgba(0,0,0,0.3);
 }
-/* === ESTILOS PARA ALMACÉN MEJORADO === */
 
-.area-botones-grid-grande {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    padding: 20px 0;
-}
-
-.pieza-item-grande {
-    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-    border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 16px;
-    padding: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.pieza-item-grande:hover {
-    transform: translateY(-5px);
-    border-color: rgba(255,255,255,0.3);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-}
-
-.pieza-item-grande.equipada-seleccionada {
-    border: 3px solid #FFD700;
-    background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,215,0,0.05) 100%);
-    box-shadow: 0 0 20px rgba(255,215,0,0.3);
-}
-
-.pieza-grande-cabecera {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.pieza-nivel-grande {
-    font-size: 12px;
-    font-weight: 600;
-    background: rgba(255,255,255,0.1);
-    padding: 4px 10px;
-    border-radius: 20px;
-    letter-spacing: 1px;
-}
-
-.pieza-equipada-badge {
-    font-size: 11px;
-    background: linear-gradient(45deg, #FFD700, #FFA500);
-    color: #000;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-weight: 700;
-}
-
-.pieza-grande-icono {
-    text-align: center;
-    margin: 15px 0;
-    font-size: 32px;
-    opacity: 0.9;
-}
-
-.pieza-grande-info {
-    text-align: center;
-    margin-bottom: 15px;
-}
-
-.pieza-area-nombre {
-    font-size: 18px;
-    font-weight: 600;
-    display: block;
-    margin-bottom: 8px;
-    letter-spacing: 0.5px;
-}
-
-.pieza-puntos-grande {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255,255,255,0.1);
-    padding: 6px 15px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.pieza-puntos-grande i {
-    color: #FFD700;
-}
-
-.pieza-grande-estado {
-    text-align: center;
-    font-size: 13px;
-    font-weight: 600;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.pieza-item-grande.equipada-seleccionada .pieza-grande-estado {
-    color: #FFD700;
-}
-
-.fila-area-botones {
-    margin-bottom: 40px;
-    background: rgba(255,255,255,0.03);
-    padding: 20px;
-    border-radius: 12px;
-}
-
-.area-header-botones {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid rgba(255,255,255,0.1);
-}
-
-.area-icono-titulo {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.area-icono {
-    font-size: 24px;
-    width: 50px;
-    height: 50px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.area-nombre {
-    font-size: 24px;
-    margin: 0;
-    font-weight: 700;
-    letter-spacing: 1px;
-}
-
-.area-contador {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 5px;
-}
-
-.contador-total {
-    font-size: 14px;
-    opacity: 0.8;
-}
-
-.contador-equipadas {
-    font-size: 13px;
-    color: #FFD700;
-    font-weight: 600;
-    background: rgba(255,215,0,0.1);
-    padding: 4px 10px;
-    border-radius: 20px;
-}
 /* ============================================
    MODALES
 ============================================ */
@@ -1668,7 +1501,195 @@ body {
     border-top-color: var(--f1-red);
     animation: spin 1s linear infinite;
 }
+/* === ESTILOS PARA BOTONES HORIZONTALES GRANDES === */
 
+.area-botones-fila-horizontal {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 15px;
+    padding: 20px 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.3) rgba(0,0,0,0.1);
+}
+
+.area-botones-fila-horizontal::-webkit-scrollbar {
+    height: 8px;
+}
+
+.area-botones-fila-horizontal::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
+
+.area-botones-fila-horizontal::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+}
+
+.boton-pieza-grande {
+    flex: 0 0 auto; /* No se encogen */
+    width: 180px; /* 3 veces más grande que antes */
+    height: 200px; /* Más alto */
+    background: linear-gradient(145deg, rgba(30,30,40,0.9), rgba(20,20,30,0.9));
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 16px; /* Bordes redondeados */
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.boton-pieza-grande:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: rgba(255,255,255,0.3);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.boton-pieza-grande.equipada-seleccionada {
+    border: 3px solid #FFD700;
+    background: linear-gradient(145deg, rgba(40,35,20,0.9), rgba(30,25,15,0.9));
+    box-shadow: 0 0 30px rgba(255,215,0,0.4), 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.boton-pieza-cabecera {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.badge-nivel {
+    font-size: 14px;
+    font-weight: 700;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 20px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.badge-equipada {
+    font-size: 14px;
+    background: #FFD700;
+    color: #000;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.boton-pieza-icono {
+    font-size: 32px;
+    margin: 15px 0;
+    opacity: 0.9;
+}
+
+.boton-pieza-info {
+    margin-bottom: 15px;
+}
+
+.puntos-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.puntos-display i {
+    color: #FFD700;
+}
+
+.boton-pieza-estado {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.1);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.boton-pieza-grande.equipada-seleccionada .boton-pieza-estado {
+    background: rgba(255,215,0,0.2);
+    color: #FFD700;
+}
+
+.fila-area-botones {
+    margin-bottom: 40px;
+    background: rgba(255,255,255,0.03);
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.area-header-botones {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+}
+
+.area-icono-titulo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.area-icono {
+    font-size: 24px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.area-nombre {
+    font-size: 22px;
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.area-contador {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.contador-total {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.contador-equipadas {
+    font-size: 13px;
+    color: #FFD700;
+    font-weight: 600;
+    background: rgba(255,215,0,0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
 /* ============================================
    SCROLLBAR
 ============================================ */
