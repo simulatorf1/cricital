@@ -710,7 +710,7 @@ class TabManager {
     }
     
     async loadAlmacenPiezas() {
-        console.log('🔧 Cargando almacén estilo F1...');
+        console.log('🔧 Cargando almacén con botones horizontales mejorados...');
         const container = document.getElementById('areas-grid-botones');
         if (!container || !window.f1Manager?.escuderia?.id) {
             console.error('❌ No hay contenedor o escudería');
@@ -718,7 +718,7 @@ class TabManager {
         }
     
         try {
-            // Obtener TODAS las piezas
+            // Obtener TODAS las piezas (MISMA LÓGICA)
             const { data: todasLasPiezas, error } = await supabase
                 .from('almacen_piezas')
                 .select('*')
@@ -731,7 +731,7 @@ class TabManager {
                 throw error;
             }
     
-            // Si no hay piezas
+            // Si no hay piezas (MISMA LÓGICA)
             if (!todasLasPiezas || todasLasPiezas.length === 0) {
                 container.innerHTML = `
                     <div class="almacen-vacio-botones">
@@ -746,7 +746,7 @@ class TabManager {
                 return;
             }
     
-            // 1. Agrupar por área
+            // 1. Agrupar por área (MISMA LÓGICA)
             const piezasPorArea = {};
             todasLasPiezas.forEach(pieza => {
                 if (!piezasPorArea[pieza.area]) {
@@ -776,77 +776,66 @@ class TabManager {
                     const piezaEquipada = piezasArea.find(p => p.equipada);
                     
                     html += `
-                        <div class="fila-area-f1">
-                            <div class="area-header-f1" style="border-left-color: ${areaConfig.color}">
-                                <div class="area-icono-f1" style="background: ${areaConfig.color}20">
-                                    <i class="${areaConfig.icon}" style="color: ${areaConfig.color}"></i>
+                        <div class="fila-area-horizontal">
+                            <div class="area-header-horizontal">
+                                <div class="area-icono-titulo-horizontal">
+                                    <div class="area-icono-horizontal" style="background: ${areaConfig.color}20; border-color: ${areaConfig.color}">
+                                        <i class="${areaConfig.icon}" style="color: ${areaConfig.color}"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="area-nombre-horizontal">${areaConfig.name}</h3>
+                                        <span class="area-subtitulo-horizontal">${piezasArea.length} piezas • ${piezaEquipada ? '1 equipada' : 'Ninguna equipada'}</span>
+                                    </div>
                                 </div>
-                                <div class="area-titulo-f1">
-                                    <h3>${areaConfig.name.toUpperCase()}</h3>
-                                    <span class="area-subtitulo">${piezasArea.length} PIEZAS DISPONIBLES</span>
-                                </div>
-                                ${piezaEquipada ? 
-                                    `<div class="area-equipada-indicator">
-                                        <div class="equipada-led" style="background: ${areaConfig.color}"></div>
-                                        <span>EQUIPADO: NIVEL ${piezaEquipada.nivel}</span>
-                                    </div>` : 
-                                    `<div class="area-equipada-indicator">
-                                        <div class="equipada-led off"></div>
-                                        <span>SIN EQUIPAR</span>
-                                    </div>`
-                                }
                             </div>
                             
-                            <div class="piezas-grid-f1">
+                            <div class="area-botones-fila">
                     `;
                     
-                    // BOTONES PROFESIONALES ESTILO F1
+                    // BOTONES HORIZONTALES UNO DETRÁS DE OTRO (MISMA ESTRUCTURA QUE ANTES)
                     piezasArea.forEach(pieza => {
                         const esEquipada = piezaEquipada && piezaEquipada.id === pieza.id;
                         const puntos = pieza.puntos_base || 10;
                         const nivel = pieza.nivel || 1;
-                        const fecha = new Date(pieza.fabricada_en).toLocaleDateString('es-ES');
                         
                         html += `
-                            <div class="pieza-card-f1 ${esEquipada ? 'equipada' : ''}" 
-                                 style="border-color: ${areaConfig.color}${esEquipada ? 'FF' : '40'}">
+                            <button class="boton-pieza-grande-horizontal ${esEquipada ? 'equipada' : ''}" 
+                                    data-pieza-id="${pieza.id}"
+                                    data-area="${areaConfig.id}"
+                                    data-nivel="${nivel}"
+                                    onclick="window.tabManager.equiparODesequiparPieza('${pieza.id}', ${esEquipada})"
+                                    style="border-color: ${areaConfig.color}${esEquipada ? 'FF' : '40'};
+                                           background: ${esEquipada ? `${areaConfig.color}15` : 'rgba(30, 30, 40, 0.8)'}">
                                 
-                                <div class="pieza-header-f1">
-                                    <div class="pieza-nivel-f1" style="background: ${areaConfig.color}">
-                                        NIVEL ${nivel}
+                                <div class="boton-contenido-horizontal">
+                                    <div class="boton-cabecera-horizontal">
+                                        <span class="badge-nivel-horizontal" style="background: ${areaConfig.color}">
+                                            L${nivel}
+                                        </span>
+                                        ${esEquipada ? '<span class="badge-equipada-horizontal">✓</span>' : ''}
                                     </div>
-                                    <div class="pieza-puntos-f1">
-                                        <i class="fas fa-bolt" style="color: ${areaConfig.color}"></i>
-                                        ${puntos} PTS
+                                    
+                                    <div class="boton-icono-horizontal">
+                                        <i class="${areaConfig.icon} fa-lg" style="color: ${areaConfig.color}"></i>
                                     </div>
-                                </div>
-                                
-                                <div class="pieza-icono-f1">
-                                    <i class="${areaConfig.icon} fa-2x" style="color: ${areaConfig.color}"></i>
-                                </div>
-                                
-                                <div class="pieza-info-f1">
-                                    <div class="pieza-fecha">${fecha}</div>
-                                    <div class="pieza-id">ID: ${pieza.id.substring(0, 8)}</div>
-                                </div>
-                                
-                                <div class="pieza-actions-f1">
-                                    ${esEquipada ? 
-                                        `<button class="btn-desequipar-f1" onclick="window.tabManager.desequiparPieza('${pieza.id}')">
-                                            <i class="fas fa-power-off"></i> DESEQUIPAR
-                                        </button>` :
-                                        `<button class="btn-equipar-f1" onclick="window.tabManager.equiparPieza('${pieza.id}')" 
-                                                 style="background: ${areaConfig.color}">
-                                            <i class="fas fa-check"></i> EQUIPAR
-                                        </button>`
-                                    }
+                                    
+                                    <div class="boton-info-horizontal">
+                                        <div class="puntos-display-horizontal">
+                                            <i class="fas fa-bolt" style="color: ${areaConfig.color}"></i>
+                                            <span>${puntos}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="boton-estado-horizontal">
+                                        ${esEquipada ? 'ACTIVO' : 'DISPONIBLE'}
+                                    </div>
                                 </div>
                                 
                                 ${esEquipada ? 
-                                    `<div class="equipada-glow" style="box-shadow: 0 0 20px ${areaConfig.color}"></div>` : 
+                                    `<div class="boton-glow" style="box-shadow: 0 0 15px ${areaConfig.color}"></div>` : 
                                     ''
                                 }
-                            </div>
+                            </button>
                         `;
                     });
                     
@@ -858,7 +847,7 @@ class TabManager {
             });
     
             container.innerHTML = html;
-            console.log('✅ Almacén F1 cargado');
+            console.log('✅ Almacén horizontal mejorado cargado');
     
         } catch (error) {
             console.error('❌ Error cargando almacén:', error);
