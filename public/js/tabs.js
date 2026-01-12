@@ -789,12 +789,7 @@ class TabManager {
                         html += `
                             <button class="pieza-boton-almacen ${esEquipada ? 'equipada' : ''}" 
                                     onclick="window.tabManager.equiparPieza('${pieza.id}')"
-                                    style="${esEquipada ? 
-                                        `border: 3px solid ${areaConfig.color};
-                                         box-shadow: 0 0 20px ${areaConfig.color}40, 0 0 40px ${areaConfig.color}20;` : 
-                                        `border: 2px solid ${areaConfig.color}40;`
-                                    }
-                                    background: ${esEquipada ? `${areaConfig.color}10` : 'rgba(30, 30, 40, 0.8)'}">
+                                    style="border-color: ${areaConfig.color};">
                                 
                                 <div class="pieza-cabecera">
                                     <span class="pieza-nivel" style="background: ${areaConfig.color}">L${nivel}</span>
