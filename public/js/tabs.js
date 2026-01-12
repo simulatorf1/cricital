@@ -777,7 +777,7 @@ class TabManager {
                                 </div>
                             </div>
                             
-                            <div class="piezas-fila-almacen" style="display:flex;flex-direction:row;flex-wrap:nowrap;gap:15px;padding:15px;overflow-x:auto;min-height:180px;">`;
+                            <div class="piezas-fila-almacen" style="display:flex;flex-direction:row;flex-wrap:nowrap;gap:8px;padding:10px;overflow-x:auto;min-height:95px;">`;
                     
                     piezasArea.forEach(pieza => {
                         const esEquipada = piezaEquipada && piezaEquipada.id === pieza.id;
@@ -788,15 +788,15 @@ class TabManager {
                         html += `<button class="pieza-boton-almacen ${esEquipada ? 'equipada' : ''}" 
                                 onclick="window.tabManager.equiparPieza('${pieza.id}')"
                                 data-color="${areaConfig.color}"
-                                style="flex-shrink:0;min-width:150px;max-width:150px;height:170px;padding:15px;border:3px solid ${areaConfig.color};border-radius:15px;background:linear-gradient(145deg, rgba(20,20,30,0.95), rgba(10,10,20,0.95));color:white;display:flex;flex-direction:column;align-items:center;justify-content:space-between;cursor:pointer;${esEquipada ? 'box-shadow:0 0 25px ' + areaConfig.color + ', 0 0 50px ' + areaConfig.color + '80;' : 'box-shadow:0 8px 25px rgba(0,0,0,0.4);'}">
+                                style="flex-shrink:0;min-width:75px;max-width:75px;height:85px;padding:15px;border:3px solid ${areaConfig.color};border-radius:15px;background:linear-gradient(145deg, rgba(20,20,30,0.95), rgba(10,10,20,0.95));color:white;display:flex;flex-direction:column;align-items:center;justify-content:space-between;cursor:pointer;${esEquipada ? 'box-shadow:0 0 25px ' + areaConfig.color + ', 0 0 50px ' + areaConfig.color + '80;' : 'box-shadow:0 8px 25px rgba(0,0,0,0.4);'}">
                             
                             <div class="pieza-cabecera">
-                                <span class="pieza-nivel" style="background:${areaConfig.color};border-radius:20px;padding:4px 10px;font-weight:bold;color:white;">L${nivel}</span>
+                                <span class="pieza-nivel" style="background:${areaConfig.color};border-radius:10px;padding:2px 6px;font-weight:bold;color:white;font-size:0.7rem;">L${nivel}</span>
                                 ${esEquipada ? '<span class="equipada-indicador" style="color:#FFD700;font-size:1.2rem;">✓</span>' : ''}
                             </div>
                             
                             <div class="pieza-icono-grande">
-                                <i class="${areaConfig.icon}" style="color:${areaConfig.color};font-size:2.5rem;"></i>
+                                <i class="${areaConfig.icon}" style="color:${areaConfig.color};font-size:1.5rem;"></i>
                             </div>
                             
                             <div class="pieza-info">
@@ -807,7 +807,7 @@ class TabManager {
                                 <div class="pieza-calidad" style="font-size:0.8rem;opacity:0.8;text-transform:uppercase;">${calidad}</div>
                             </div>
                             
-                            <div class="pieza-accion" style="font-weight:bold;font-size:0.9rem;text-transform:uppercase;padding:5px 10px;background:rgba(255,255,255,0.1);border-radius:10px;width:100%;text-align:center;">
+                            <div class="pieza-accion" style="font-weight:bold;font-size:0.7rem;text-transform:uppercase;padding:3px 6px;background:rgba(255,255,255,0.1);border-radius:6px;width:100%;text-align:center;">
                                 ${esEquipada ? 'EQUIPADA' : 'EQUIPAR'}
                             </div>
                         </button>`;
