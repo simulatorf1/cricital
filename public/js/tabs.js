@@ -777,7 +777,7 @@ class TabManager {
                                 </div>
                             </div>
                             
-                            <div class="piezas-fila-almacen">
+                            <div class="piezas-fila-almacen" style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 15px;">
                     `;
                     
                     piezasArea.forEach(pieza => {
@@ -799,6 +799,7 @@ class TabManager {
                                            flex-direction: column; 
                                            align-items: center; 
                                            justify-content: space-between;
+                                           flex-shrink: 0;
                                            box-shadow: ${esEquipada ? '0 0 25px ' + areaConfig.color + ', 0 0 50px rgba(225, 6, 0, 0.5)' : '0 8px 25px rgba(0,0,0,0.4)'};"
                                 
                                 <div class="pieza-cabecera">
