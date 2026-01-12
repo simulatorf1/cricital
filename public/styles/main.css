@@ -2502,228 +2502,317 @@ body {
     }
 }
 /* ============================================
-   ESTILOS PARA LOS BOTONES DEL ALMACÉN
-   (Para las clases que usa tabs.js)
+   SOBREESCRIBIR ESTILOS DEL ALMACÉN
+   (Para sobrescribir los estilos inline de tabs.js)
 ============================================ */
 
+/* 1. Primero quitar los estilos en línea con !important */
 .pieza-boton-almacen {
-    width: 140px;
-    height: 160px;
-    border: 2px solid;
-    border-radius: 15px;
-    cursor: pointer;
-    transition: all 0.4s ease;
-    padding: 15px;
-    background: linear-gradient(145deg, rgba(30, 30, 40, 0.95), rgba(20, 20, 30, 0.95));
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-    margin: 5px;
-}
-
-/* Estado normal */
-.pieza-boton-almacen {
-    border-width: 2px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-/* Estado equipado - EFECTO F1 LUMINOSO */
-.pieza-boton-almacen.equipada {
-    border-width: 4px;
-    animation: pulseF1 2s infinite;
-    box-shadow: 
-        0 0 20px currentColor,
-        0 0 40px rgba(225, 6, 0, 0.3),
-        0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 3px solid !important;
+    border-radius: 15px !important;
     background: linear-gradient(145deg, 
-        rgba(255, 255, 255, 0.05), 
-        rgba(225, 6, 0, 0.1));
-    transform: translateY(-5px);
+        rgba(20, 20, 30, 0.95), 
+        rgba(30, 30, 40, 0.95)) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
+    width: 150px !important;
+    height: 170px !important;
+    padding: 15px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    position: relative !important;
+    overflow: hidden !important;
+    cursor: pointer !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    margin: 8px !important;
 }
 
-@keyframes pulseF1 {
+/* 2. Estado equipado con efecto F1 LUMINOSO */
+.pieza-boton-almacen.equipada {
+    border-width: 4px !important;
+    animation: f1Glow 2s infinite !important;
+    box-shadow: 
+        0 0 25px currentColor,
+        0 0 50px rgba(225, 6, 0, 0.5),
+        0 15px 35px rgba(0, 0, 0, 0.6) !important;
+    background: linear-gradient(145deg, 
+        rgba(255, 255, 255, 0.08), 
+        rgba(225, 6, 0, 0.15)) !important;
+    transform: translateY(-8px) !important;
+}
+
+@keyframes f1Glow {
     0%, 100% { 
         box-shadow: 
-            0 0 20px currentColor,
-            0 0 40px rgba(225, 6, 0, 0.3),
-            0 10px 30px rgba(0, 0, 0, 0.5);
+            0 0 25px currentColor,
+            0 0 50px rgba(225, 6, 0, 0.5),
+            0 15px 35px rgba(0, 0, 0, 0.6);
     }
     50% { 
         box-shadow: 
-            0 0 30px currentColor,
-            0 0 60px rgba(225, 6, 0, 0.4),
-            0 15px 40px rgba(0, 0, 0, 0.6);
+            0 0 35px currentColor,
+            0 0 70px rgba(225, 6, 0, 0.7),
+            0 20px 45px rgba(0, 0, 0, 0.8);
     }
 }
 
-/* Hover effect */
+/* 3. Hover effect */
 .pieza-boton-almacen:hover {
-    transform: translateY(-8px) scale(1.05);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-    border-width: 3px;
+    transform: translateY(-12px) scale(1.08) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
+    border-width: 4px !important;
 }
 
-/* Partes internas del botón */
+/* 4. Partes internas - sobrescribir lo que sea necesario */
 .pieza-cabecera {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 15px !important;
 }
 
 .pieza-nivel {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 12px;
-    font-weight: 900;
-    color: white;
-    padding: 5px 12px;
-    border-radius: 20px;
-    min-width: 45px;
-    text-align: center;
-    letter-spacing: 1px;
-    background: rgba(0, 0, 0, 0.5);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    color: white !important;
+    padding: 6px 14px !important;
+    border-radius: 25px !important;
+    min-width: 50px !important;
+    text-align: center !important;
+    letter-spacing: 1.5px !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important;
 }
 
 .equipada-indicador {
-    width: 26px;
-    height: 26px;
-    background: linear-gradient(135deg, #00ff00, #00cc00);
-    color: #000;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 16px;
-    box-shadow: 0 0 15px #00ff00;
-    animation: spin 3s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    width: 28px !important;
+    height: 28px !important;
+    background: linear-gradient(135deg, #00ff00, #00cc00) !important;
+    color: black !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: bold !important;
+    font-size: 16px !important;
+    box-shadow: 0 0 20px #00ff00 !important;
+    animation: spin 3s linear infinite !important;
 }
 
 .pieza-icono-grande {
-    font-size: 42px;
-    margin: 15px 0;
-    position: relative;
-    z-index: 2;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-    filter: drop-shadow(0 0 5px currentColor);
+    font-size: 48px !important;
+    margin: 20px 0 !important;
+    position: relative !important;
+    z-index: 2 !important;
+    text-shadow: 0 0 20px currentColor !important;
+    filter: drop-shadow(0 0 10px currentColor) !important;
 }
 
 .pieza-info {
-    text-align: center;
-    width: 100%;
-    margin-bottom: 10px;
+    text-align: center !important;
+    width: 100% !important;
+    margin-bottom: 15px !important;
 }
 
 .pieza-puntos {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 8px 15px;
-    border-radius: 20px;
-    margin-bottom: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    padding: 10px 18px !important;
+    border-radius: 25px !important;
+    margin-bottom: 10px !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
 }
 
 .pieza-puntos i {
-    color: #FFD700;
-    font-size: 16px;
-    text-shadow: 0 0 10px #FFD700;
+    color: #FFD700 !important;
+    font-size: 18px !important;
+    text-shadow: 0 0 15px #FFD700 !important;
 }
 
 .pieza-puntos span {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-size: 18px;
-    color: #FFD700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 900 !important;
+    font-size: 20px !important;
+    color: #FFD700 !important;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 1) !important;
 }
 
 .pieza-calidad {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 5px 10px;
-    border-radius: 15px;
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
 }
 
 .pieza-accion {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 12px;
-    font-weight: 900;
-    padding: 10px;
-    border-radius: 0 0 13px 13px;
-    width: 100%;
-    text-align: center;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    position: relative;
-    z-index: 2;
-    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    padding: 12px !important;
+    border-radius: 0 0 12px 12px !important;
+    width: 100% !important;
+    text-align: center !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    position: relative !important;
+    z-index: 2 !important;
+    border-top: 3px solid rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Color de la acción según estado */
+/* Color de la acción */
 .pieza-boton-almacen:not(.equipada) .pieza-accion {
-    background: linear-gradient(90deg, rgba(225, 6, 0, 0.8), rgba(255, 68, 68, 0.8));
-    color: white;
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+    background: linear-gradient(90deg, #e10600, #ff4444) !important;
+    color: white !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 1) !important;
 }
 
 .pieza-boton-almacen.equipada .pieza-accion {
-    background: linear-gradient(90deg, #00ff00, #00cc00);
-    color: black;
-    font-weight: 900;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(90deg, #00ff00, #00cc00) !important;
+    color: black !important;
+    font-weight: 900 !important;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important;
 }
 
-/* Efecto de rayas F1 en hover */
-.pieza-boton-almacen::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
+/* 5. Contenedores que también están en tabs.js */
+.fila-area-almacen {
+    background: rgba(15, 15, 25, 0.9) !important;
+    border-radius: 15px !important;
+    margin-bottom: 30px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(225, 6, 0, 0.3) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.area-header-almacen {
+    display: flex !important;
+    align-items: center !important;
+    padding: 20px 25px !important;
+    background: linear-gradient(90deg, 
+        rgba(25, 25, 35, 0.9), 
+        rgba(20, 20, 30, 0.9)) !important;
+    border-left: 8px solid !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.area-icono-almacen {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-right: 20px !important;
+    font-size: 28px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.area-titulo-almacen h3 {
+    margin: 0 !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    color: #fff !important;
+    letter-spacing: 2px !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
+}
+
+.area-titulo-almacen span {
+    font-size: 13px !important;
+    color: #aaa !important;
+    font-weight: 600 !important;
+    letter-spacing: 1px !important;
+}
+
+/* 6. Contenedor de botones */
+.piezas-fila-almacen {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 20px !important;
+    padding: 25px !important;
+    justify-content: flex-start !important;
+    min-height: 200px !important;
+}
+
+/* 7. Efecto de rayas F1 en hover */
+.pieza-boton-almacen::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
     background: linear-gradient(
         90deg,
         transparent,
-        rgba(255, 255, 255, 0.15),
+        rgba(255, 255, 255, 0.2),
         transparent
-    );
-    transition: left 0.7s ease;
+    ) !important;
+    transition: left 0.8s ease !important;
+    pointer-events: none !important;
 }
 
-.pieza-boton-almacen:hover::after {
-    left: 100%;
+.pieza-boton-almacen:hover::before {
+    left: 100% !important;
 }
 
-/* Contenedor de la fila de piezas */
-.piezas-fila-almacen {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    padding: 20px;
-    justify-content: flex-start;
-}
-
-/* Asegurar que los botones no se deformen */
+/* 8. Asegurar que no se deformen */
 .pieza-boton-almacen {
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
+}
+
+/* 9. Almacén vacío */
+.almacen-vacio {
+    text-align: center !important;
+    padding: 60px 20px !important;
+    width: 100% !important;
+}
+
+.almacen-vacio i {
+    font-size: 64px !important;
+    color: rgba(225, 6, 0, 0.5) !important;
+    margin-bottom: 25px !important;
+}
+
+.almacen-vacio h3 {
+    font-family: 'Orbitron', sans-serif !important;
+    color: #aaa !important;
+    margin-bottom: 15px !important;
+    font-size: 24px !important;
+    letter-spacing: 2px !important;
+}
+
+.btn-ir-taller {
+    background: linear-gradient(90deg, #e10600, #ff4444) !important;
+    color: white !important;
+    border: none !important;
+    padding: 15px 30px !important;
+    border-radius: 30px !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 900 !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    margin-top: 15px !important;
+    box-shadow: 0 10px 25px rgba(225, 6, 0, 0.3) !important;
+}
+
+.btn-ir-taller:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 15px 35px rgba(225, 6, 0, 0.5) !important;
 }
