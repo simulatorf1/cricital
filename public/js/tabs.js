@@ -789,10 +789,21 @@ class TabManager {
                         html += `
                             <button class="pieza-boton-almacen ${esEquipada ? 'equipada' : ''}" 
                                     onclick="window.tabManager.equiparPieza('${pieza.id}')"
-                                    style="border-color: ${areaConfig.color};">
+                                    style="border-color: ${areaConfig.color}; 
+                                           border-radius: 15px; 
+                                           border-width: 3px; 
+                                           background: linear-gradient(145deg, rgba(30,30,40,0.95), rgba(20,20,30,0.95)); 
+                                           width: 150px; 
+                                           height: 170px; 
+                                           padding: 15px; 
+                                           display: flex; 
+                                           flex-direction: column; 
+                                           align-items: center; 
+                                           justify-content: space-between;
+                                           box-shadow: ${esEquipada ? '0 0 25px ' + areaConfig.color + ', 0 0 50px rgba(225, 6, 0, 0.5)' : '0 8px 25px rgba(0,0,0,0.4)'};"
                                 
                                 <div class="pieza-cabecera">
-                                    <span class="pieza-nivel" style="border-color: ${areaConfig.color}">L${nivel}</span>
+                                    <span class="pieza-nivel" style="background: ${areaConfig.color}; border-radius: 20px; padding: 4px 10px; font-weight: bold;">L${nivel}</span>
                                     ${esEquipada ? '<span class="equipada-indicador">✓</span>' : ''}
                                 </div>
                                 
