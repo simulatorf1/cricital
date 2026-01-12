@@ -793,8 +793,7 @@ class TabManager {
                                            border-radius: 15px; 
                                            border-width: 3px; 
                                            background: linear-gradient(145deg, rgba(30,30,40,0.95), rgba(20,20,30,0.95)); 
-                                           width: 150px; 
-                                           height: 170px; 
+
                                            padding: 15px; 
                                            display: flex; 
                                            flex-direction: column; 
