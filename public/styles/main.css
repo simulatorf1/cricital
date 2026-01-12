@@ -2501,12 +2501,26 @@ body {
         grid-column: 1 / -1;
     }
 }
+
 /* ============================================
-   SOBREESCRIBIR ESTILOS DEL ALMACÉN
+   SOBREESCRIBIR ESTILOS DEL ALMACÉN - VERSIÓN CORREGIDA
    (Para sobrescribir los estilos inline de tabs.js)
 ============================================ */
 
-/* 1. Primero quitar los estilos en línea con !important */
+/* 0. LO MÁS IMPORTANTE: CONTENEDOR HORIZONTAL */
+.piezas-fila-almacen {
+    display: flex !important;
+    flex-direction: row !important;  /* ¡ESTO FALTABA! */
+    flex-wrap: nowrap !important;    /* Para scroll horizontal */
+    gap: 20px !important;
+    padding: 25px !important;
+    justify-content: flex-start !important;
+    min-height: 200px !important;
+    overflow-x: auto !important;     /* Scroll si hay muchos botones */
+    align-items: flex-start !important;
+}
+
+/* 1. Botones - TAMAÑO FIJO Y NO ENCOGER */
 .pieza-boton-almacen {
     border: 3px solid !important;
     border-radius: 15px !important;
@@ -2514,8 +2528,8 @@ body {
         rgba(20, 20, 30, 0.95), 
         rgba(30, 30, 40, 0.95)) !important;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
-    width: 150px !important;
-    height: 170px !important;
+    width: 150px !important;          /* Tamaño fijo */
+    height: 170px !important;         /* Tamaño fijo */
     padding: 15px !important;
     display: flex !important;
     flex-direction: column !important;
@@ -2525,7 +2539,8 @@ body {
     overflow: hidden !important;
     cursor: pointer !important;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-    margin: 8px !important;
+    margin: 0 !important;             /* Sin margen, usa gap del contenedor */
+    flex-shrink: 0 !important;        /* No se encoje */
 }
 
 /* 2. Estado equipado con efecto F1 LUMINOSO */
@@ -2564,7 +2579,18 @@ body {
     border-width: 4px !important;
 }
 
-/* 4. Partes internas - sobrescribir lo que sea necesario */
+/* 4. Contenedores de área */
+.fila-area-almacen {
+    background: rgba(15, 15, 25, 0.9) !important;
+    border-radius: 15px !important;
+    margin-bottom: 30px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(225, 6, 0, 0.3) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    width: 100% !important;           /* Asegurar ancho completo */
+}
+
+/* 5. Partes internas de los botones (igual que antes) */
 .pieza-cabecera {
     width: 100% !important;
     display: flex !important;
@@ -2601,6 +2627,11 @@ body {
     font-size: 16px !important;
     box-shadow: 0 0 20px #00ff00 !important;
     animation: spin 3s linear infinite !important;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .pieza-icono-grande {
@@ -2686,16 +2717,29 @@ body {
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important;
 }
 
-/* 5. Contenedores que también están en tabs.js */
-.fila-area-almacen {
-    background: rgba(15, 15, 25, 0.9) !important;
-    border-radius: 15px !important;
-    margin-bottom: 30px !important;
-    overflow: hidden !important;
-    border: 1px solid rgba(225, 6, 0, 0.3) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+/* 6. Efecto de rayas F1 en hover */
+.pieza-boton-almacen::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    ) !important;
+    transition: left 0.8s ease !important;
+    pointer-events: none !important;
 }
 
+.pieza-boton-almacen:hover::before {
+    left: 100% !important;
+}
+
+/* 7. Resto de estilos (igual que antes) */
 .area-header-almacen {
     display: flex !important;
     align-items: center !important;
@@ -2737,44 +2781,7 @@ body {
     letter-spacing: 1px !important;
 }
 
-/* 6. Contenedor de botones */
-.piezas-fila-almacen {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 20px !important;
-    padding: 25px !important;
-    justify-content: flex-start !important;
-    min-height: 200px !important;
-}
-
-/* 7. Efecto de rayas F1 en hover */
-.pieza-boton-almacen::before {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: -100% !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-    ) !important;
-    transition: left 0.8s ease !important;
-    pointer-events: none !important;
-}
-
-.pieza-boton-almacen:hover::before {
-    left: 100% !important;
-}
-
-/* 8. Asegurar que no se deformen */
-.pieza-boton-almacen {
-    flex: 0 0 auto !important;
-}
-
-/* 9. Almacén vacío */
+/* 8. Almacén vacío */
 .almacen-vacio {
     text-align: center !important;
     padding: 60px 20px !important;
