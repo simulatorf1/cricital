@@ -787,8 +787,22 @@ class TabManager {
                                 style="flex-shrink:0;min-width:75px;max-width:75px;height:85px;padding:8px;border:2px solid ${areaConfig.color};border-radius:10px;background:linear-gradient(145deg, rgba(20,20,30,0.95), rgba(10,10,20,0.95));color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;${esEquipada ? 'box-shadow:0 0 15px ' + areaConfig.color + ', 0 0 30px ' + areaConfig.color + '80;' : 'box-shadow:0 4px 12px rgba(0,0,0,0.4);'}">
                             
                             <!-- PUNTOS en lugar del icono -->
-                            <div class="pieza-icono-grande" style="font-size: 1.5rem; font-weight: bold; color: #FFD700; margin-bottom: 8px;">
-                                ${puntos} pts
+                            <div style="
+                                font-size: 1.3rem;
+                                font-weight: bold;
+                                color: ${areaConfig.color};
+                                margin-bottom: 5px;
+                                font-family: Arial, sans-serif;
+                            ">
+                                ${puntos}
+                            </div>
+                            <div style="
+                                font-size: 0.6rem;
+                                color: #aaa;
+                                margin-bottom: 8px;
+                                letter-spacing: 0.5px;
+                            ">
+                                puntos
                             </div>
                             
                             <div style="margin-top:5px;">
