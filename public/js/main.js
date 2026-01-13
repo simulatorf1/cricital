@@ -6833,7 +6833,7 @@ class F1Manager {
         try {
             const { data: fabricaciones, error } = await this.supabase
                 .from('fabricacion_actual')
-                .select('id, tiempo_fin, area, pieza_numero')
+                .select('id,tiempo_fin,area,nivel')
                 .eq('escuderia_id', this.escuderia.id)
                 .eq('completada', false);
             
@@ -6860,7 +6860,7 @@ class F1Manager {
                         <div class="produccion-icon">✅</div>
                         <div class="produccion-info">
                             <span class="produccion-nombre">${this.getNombreArea(fabricacion.area)}</span>
-                            <span class="produccion-pieza-num">Pieza ${fabricacion.pieza_numero || 1}</span>
+                            <span class="produccion-pieza-num">Pieza ${fabricacion.nivel || 1}</span>
                             <span class="produccion-lista-text">¡LISTA!</span>
                         </div>
                     `;
