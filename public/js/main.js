@@ -2647,37 +2647,37 @@ class F1Manager {
                     <p>Tu escudería se gestiona a través de estas <strong>6 secciones principales</strong>:</p>
                     
                     <div class="grid-6-columns">
-                        <div class="grid-btn-big" onclick="tutorialIrSeccion('principal')">
+                        <div class="grid-btn-big">
                             <div class="grid-icon">🏠</div>
                             <div class="grid-title">PRINCIPAL</div>
                             <div class="grid-desc">Vista general de tu equipo, puntos y estado del coche</div>
                         </div>
                         
-                        <div class="grid-btn-big" onclick="tutorialIrSeccion('taller')">
+                        <div class="grid-btn-big">
                             <div class="grid-icon">🔧</div>
                             <div class="grid-title">TALLER</div>
                             <div class="grid-desc">Fabrica piezas que mejoran tu coche para la carrera</div>
                         </div>
                         
-                        <div class="grid-btn-big" onclick="tutorialIrSeccion('equipo')">
+                        <div class="grid-btn-big">
                             <div class="grid-icon">👥</div>
                             <div class="grid-title">EQUIPO</div>
                             <div class="grid-desc">Contrata estrategas que aumentan tus puntos en apuestas</div>
                         </div>
                         
-                        <div class="grid-btn-big" onclick="tutorialIrSeccion('almacen')">
+                        <div class="grid-btn-big">
                             <div class="grid-icon">📦</div>
                             <div class="grid-title">ALMACÉN</div>
                             <div class="grid-desc">Equipa o vende las piezas fabricadas para tu coche</div>
                         </div>
                         
-                        <div class="grid-btn-big" onclick="tutorialIrSeccion('pronosticos')">
+                        <div class="grid-btn-big">
                             <div class="grid-icon">🎯</div>
                             <div class="grid-title">PRONÓSTICOS</div>
                             <div class="grid-desc">Antes del viernes, apuesta sobre lo que sucederá en la carrera</div>
                         </div>
                         
-                        <div class="grid-btn-big" onclick="tutorialIrSeccion('ranking')">
+                        <div class="grid-btn-big">
                             <div class="grid-icon">🏆</div>
                             <div class="grid-title">RANKING</div>
                             <div class="grid-desc">Consulta diferentes clasificaciones y compite globalmente</div>
@@ -3330,7 +3330,7 @@ class F1Manager {
                         ` : '<div class="spacer"></div>'}
                         
                         ${step.action ? `
-                            <button class="btn-tutorial-next-large" id="btn-tutorial-next-large">
+                            <button class="btn-tutorial-next-large hidden" id="btn-tutorial-next-large">
                                 ${step.action === 'comenzarJuegoReal' ? '¡EMPEZAR A COMPETIR!' : 'SIGUIENTE'}
                                 <i class="fas fa-arrow-right"></i>
                             </button>
@@ -3338,7 +3338,6 @@ class F1Manager {
                     </div>
                 </div>
             </div>
-            
             <style>
             .tutorial-screen {
                 min-height: 100vh;
@@ -3346,7 +3345,7 @@ class F1Manager {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                padding: 10px;
+                padding: 20px;
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -3357,20 +3356,13 @@ class F1Manager {
                 font-family: 'Roboto', sans-serif;
             }
             
-            .area-grid-sub {
-                color: #aaa;
-                font-size: 0.8rem;
-                margin-top: 5px;
-                font-style: italic;
-            }
-            
             .tutorial-container {
                 background: rgba(21, 21, 30, 0.98);
                 border-radius: 20px;
                 padding: 20px;
                 width: 100%;
-                max-width: 1000px;
-                max-height: 90vh;
+                max-width: 900px;
+                height: 85vh; /* ALTURA FIJA - MODIFICADO */
                 border: 3px solid #00d2be;
                 box-shadow: 0 25px 60px rgba(0, 210, 190, 0.3);
                 display: flex;
@@ -3378,47 +3370,40 @@ class F1Manager {
                 overflow: hidden;
             }
             
+            /* CONTENIDO SIN SCROLL - MODIFICADO */
             .tutorial-content-wrapper {
                 flex: 1;
-                overflow-y: auto;
-                overflow-x: hidden;
-                padding: 10px 5px;
-                margin: 5px 0;
-                -webkit-overflow-scrolling: touch;
+                overflow: hidden; /* Sin scroll - MODIFICADO */
+                padding: 5px 2px;
+                margin: 2px 0;
+                max-height: calc(85vh - 140px); /* Calculado para caber sin scroll - NUEVO */
             }
             
             .tutorial-content-grid {
-                max-width: 100%;
+                max-height: 100%;
                 overflow: visible;
             }
             
+            /* BOTONES SIEMPRE EN MISMO SITIO - MODIFICADO */
             .tutorial-actions-bottom {
                 flex-shrink: 0;
-                padding-top: 15px;
+                padding: 10px 0;
                 border-top: 2px solid rgba(255, 255, 255, 0.1);
-                margin-top: 10px;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                position: sticky;
-                bottom: 0;
-                background: rgba(21, 21, 30, 0.95);
-                z-index: 10;
-                padding: 10px 0;
+                height: 60px; /* Altura fija - NUEVO */
+                background: rgba(21, 21, 30, 0.98);
+                position: relative; /* Para botones de acción - NUEVO */
             }
             
             .tutorial-progress-horizontal {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 15px;
-                padding: 10px 5px;
+                margin-bottom: 10px;
+                padding: 8px 5px;
                 flex-shrink: 0;
-                position: sticky;
-                top: 0;
-                background: rgba(21, 21, 30, 0.95);
-                z-index: 10;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             }
             
             .progress-step-horizontal {
@@ -3430,8 +3415,8 @@ class F1Manager {
             }
             
             .step-number-horizontal {
-                width: 40px;
-                height: 40px;
+                width: 32px;
+                height: 32px;
                 border-radius: 50%;
                 background: rgba(255, 255, 255, 0.1);
                 color: #888;
@@ -3440,7 +3425,7 @@ class F1Manager {
                 justify-content: center;
                 font-weight: bold;
                 font-family: 'Orbitron', sans-serif;
-                font-size: 1.1rem;
+                font-size: 0.9rem;
                 transition: all 0.3s;
                 border: 2px solid transparent;
             }
@@ -3460,22 +3445,347 @@ class F1Manager {
             
             .grid-6-columns, .grid-4-columns, .grid-3-columns {
                 display: grid;
-                gap: 12px;
-                margin: 15px 0;
+                gap: 8px; /* Menor espacio - MODIFICADO */
+                margin: 10px 0;
             }
             
             .grid-6-columns { grid-template-columns: repeat(3, 1fr); }
-            .grid-4-columns { grid-template-columns: repeat(4, 1fr); }
+            .grid-4-columns { grid-template-columns: repeat(2, 1fr); } /* 2 columnas en vez de 4 - MODIFICADO */
             .grid-3-columns { grid-template-columns: repeat(3, 1fr); }
+            
             .grid-11-columns {
                 display: grid;
                 grid-template-columns: repeat(11, 1fr);
-                gap: 8px !important; /* Menor espacio entre botones */
+                gap: 8px !important;
                 margin-top: 10px !important;
-                height: 100px; /* Altura fija para la fila */
+                height: 100px;
                 align-items: stretch;
             }
             
+            /* ========== BOTONES PASOS 2, 3, 4 - SIN ANIMACIONES, SIN CLIC ========== */
+            .grid-btn-big {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1); /* Más delgado - MODIFICADO */
+                border-radius: 8px; /* Más pequeño - MODIFICADO */
+                padding: 8px 6px; /* Más pequeño - MODIFICADO */
+                text-align: center;
+                cursor: default !important; /* No hacer clic - MODIFICADO */
+                min-height: 70px; /* Mucho más pequeño - MODIFICADO */
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            /* QUITAR HOVER Y TRANSICIONES - NUEVO */
+            .grid-btn-big:hover {
+                transform: none !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
+                background: rgba(255, 255, 255, 0.05) !important;
+                box-shadow: none !important;
+            }
+            
+            .grid-icon {
+                font-size: 1.2rem; /* Más pequeño - MODIFICADO */
+                margin-bottom: 5px;
+            }
+            
+            .grid-title {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 0.8rem; /* Más pequeño - MODIFICADO */
+                font-weight: bold;
+                color: white;
+                margin-bottom: 3px;
+            }
+            
+            .grid-desc {
+                color: #aaa;
+                font-size: 0.7rem; /* Más pequeño - MODIFICADO */
+                line-height: 1.1;
+            }
+            
+            .area-grid-card {
+                background: rgba(42, 42, 56, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.1); /* Más delgado - MODIFICADO */
+                border-radius: 8px; /* Más pequeño - MODIFICADO */
+                padding: 8px; /* Más pequeño - MODIFICADO */
+                text-align: center;
+                min-height: 90px; /* Más pequeño - MODIFICADO */
+                cursor: default; /* No hacer clic - NUEVO */
+            }
+            
+            /* QUITAR HOVER - NUEVO */
+            .area-grid-card:hover {
+                transform: none !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
+            }
+            
+            .area-grid-icon {
+                font-size: 1.5rem; /* Más pequeño - MODIFICADO */
+                margin-bottom: 5px;
+            }
+            
+            .area-grid-name {
+                font-family: 'Orbitron', sans-serif;
+                font-weight: bold;
+                color: white;
+                font-size: 0.8rem; /* Más pequeño - MODIFICADO */
+                margin-bottom: 3px;
+            }
+            
+            .area-grid-desc {
+                color: #aaa;
+                font-size: 0.7rem; /* Más pequeño - MODIFICADO */
+                margin-bottom: 5px;
+                min-height: 30px; /* Más pequeño - MODIFICADO */
+            }
+            
+            .area-grid-stats {
+                background: rgba(0, 210, 190, 0.1);
+                color: #00d2be;
+                padding: 3px 6px; /* Más pequeño - MODIFICADO */
+                border-radius: 10px; /* Más pequeño - MODIFICADO */
+                font-size: 0.7rem; /* Más pequeño - MODIFICADO */
+                font-weight: bold;
+            }
+            
+            .area-grid-sub {
+                color: #aaa;
+                font-size: 0.65rem; /* Más pequeño - MODIFICADO */
+                margin-top: 3px;
+                font-style: italic;
+            }
+            
+            /* ========== PASO 5 - DÍA 1 DESTACADO ========== */
+            .dia-numero-simulacion {
+                background: #e10600; /* Color diferente para destacar - MODIFICADO */
+                color: white;
+                display: inline-block;
+                padding: 4px 10px; /* Más pequeño - MODIFICADO */
+                border-radius: 15px; /* Más pequeño - MODIFICADO */
+                font-weight: bold;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 0.9rem; /* Más pequeño - MODIFICADO */
+            }
+            
+            .dia-titulo-simulacion {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1rem; /* Más pequeño - MODIFICADO */
+                color: white;
+                margin: 5px 0;
+            }
+            
+            .dia-descripcion {
+                color: #ccc;
+                font-size: 0.85rem; /* Más pequeño - MODIFICADO */
+            }
+            
+            /* BOTONES DE ESTRATEGA - MÁS PEQUEÑOS Y CUADRADOS - MODIFICADO */
+            .estratega-tutorial-card {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                padding: 8px; /* Más pequeño - MODIFICADO */
+                text-align: center;
+                min-height: 120px; /* Más pequeño - MODIFICADO */
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                cursor: pointer;
+            }
+            
+            .estratega-icon-tut {
+                font-size: 1.5rem; /* Más pequeño - MODIFICADO */
+                margin-bottom: 5px;
+            }
+            
+            .estratega-nombre-tut {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 0.8rem; /* Más pequeño - MODIFICADO */
+                font-weight: bold;
+                color: white;
+                margin-bottom: 5px;
+            }
+            
+            .estratega-especialidad {
+                color: #aaa;
+                font-size: 0.7rem; /* Más pequeño - MODIFICADO */
+                margin-bottom: 8px;
+                flex: 1;
+            }
+            
+            .estratega-bono, .estratega-sueldo {
+                font-size: 0.7rem; /* Más pequeño - MODIFICADO */
+                margin: 3px 0;
+            }
+            
+            .estratega-ejemplo {
+                font-size: 0.65rem; /* Más pequeño - MODIFICADO */
+                color: #888;
+                font-style: italic;
+                margin-top: 5px;
+            }
+            
+            /* BOTÓN DE ACCIÓN EN POSICIÓN FIJA - MODIFICADO */
+            .tutorial-accion-practica {
+                display: none; /* Oculto inicialmente */
+                position: absolute;
+                bottom: 70px; /* Justo encima del botón Siguiente - NUEVO */
+                left: 20px;
+                right: 20px;
+                z-index: 10;
+                margin: 0;
+            }
+            
+            .tutorial-accion-practica.show {
+                display: block;
+            }
+            
+            .btn-tutorial-accion-grande {
+                background: linear-gradient(135deg, #00d2be, #009688);
+                color: white;
+                border: none;
+                padding: 10px 20px; /* Más pequeño - MODIFICADO */
+                border-radius: 8px;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 0.9rem; /* Más pequeño - MODIFICADO */
+                font-weight: bold;
+                cursor: pointer;
+                width: 100%;
+                text-align: center;
+            }
+            
+            /* ========== PASO 6 - BOTONES DE FABRICACIÓN PEQUEÑOS ========== */
+            .fabricacion-tutorial-card {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                padding: 8px; /* Más pequeño - MODIFICADO */
+                text-align: center;
+                min-height: 120px; /* Más pequeño - MODIFICADO */
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                cursor: pointer;
+            }
+            
+            .fab-icon-tut {
+                font-size: 1.5rem; /* Más pequeño - MODIFICADO */
+                margin-bottom: 5px;
+            }
+            
+            .fab-nombre-tut {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 0.8rem; /* Más pequeño - MODIFICADO */
+                font-weight: bold;
+                color: white;
+                margin-bottom: 5px;
+            }
+            
+            .fab-desc-tut {
+                color: #aaa;
+                font-size: 0.7rem; /* Más pequeño - MODIFICADO */
+                margin-bottom: 8px;
+                flex: 1;
+            }
+            
+            .fab-puntos-tut, .fab-calidad-tut {
+                font-size: 0.7rem; /* Más pequeño - MODIFICADO */
+                margin: 3px 0;
+            }
+            
+            .fab-accion-tut {
+                background: rgba(0, 210, 190, 0.2);
+                color: #00d2be;
+                padding: 5px; /* Más pequeño - MODIFICADO */
+                border-radius: 6px;
+                font-size: 0.7rem; /* Más pequeño - MODIFICADO */
+                margin-top: 8px;
+                border: 1px solid rgba(0, 210, 190, 0.5);
+            }
+            
+            /* ========== PASO 7 - BOTONES DE PRONÓSTICO PEQUEÑOS ========== */
+            .pronostico-tutorial-card {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                padding: 8px; /* Más pequeño - MODIFICADO */
+                text-align: center;
+                min-height: 130px; /* Más pequeño - MODIFICADO */
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+            
+            .pronostico-icon-tut {
+                font-size: 1.5rem; /* Más pequeño - MODIFICADO */
+                margin-bottom: 5px;
+            }
+            
+            .pronostico-nombre-tut {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 0.8rem; /* Más pequeño - MODIFICADO */
+                font-weight: bold;
+                color: white;
+                margin-bottom: 5px;
+            }
+            
+            .pronostico-pregunta {
+                color: #aaa;
+                font-size: 0.7rem; /* Más pequeño - MODIFICADO */
+                margin-bottom: 8px;
+                flex: 1;
+            }
+            
+            .pronostico-opciones {
+                display: flex;
+                justify-content: center;
+                gap: 5px; /* Menor espacio - MODIFICADO */
+                margin: 8px 0;
+            }
+            
+            .opcion-tut {
+                background: rgba(255, 255, 255, 0.1);
+                padding: 4px 8px; /* Más pequeño - MODIFICADO */
+                border-radius: 15px;
+                cursor: pointer;
+                font-size: 0.7rem; /* Más pequeño - MODIFICADO */
+                min-width: 40px; /* Más pequeño - MODIFICADO */
+                text-align: center;
+            }
+            
+            .opcion-tut.seleccionado {
+                background: #00d2be;
+                color: white;
+                font-weight: bold;
+            }
+            
+            .pronostico-puntos {
+                font-size: 0.7rem; /* Más pequeño - MODIFICADO */
+                margin-top: 5px;
+            }
+            
+            /* ========== PASO 8 - BOTÓN SIGUIENTE CONDICIONAL ========== */
+            .btn-simular-carrera {
+                background: linear-gradient(135deg, #e10600, #ff4444);
+                color: white;
+                border: none;
+                padding: 10px 20px; /* Más pequeño - MODIFICADO */
+                border-radius: 8px;
+                font-family: 'Orbitron', sans-serif;
+                font-weight: bold;
+                cursor: pointer;
+                width: 100%;
+                margin: 10px 0;
+                font-size: 0.9rem; /* Más pequeño - MODIFICADO */
+            }
+            
+            /* OCULTAR BOTÓN SIGUIENTE INICIALMENTE EN PASO 8 - NUEVO */
+            .btn-tutorial-next-large.hidden {
+                display: none;
+            }
+            
+            /* ========== ESTILOS RESTANTES (MANTENIDOS) ========== */
             .boton-area-montada, .boton-area-vacia {
                 background: rgba(255, 255, 255, 0.03) !important;
                 border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
@@ -3487,7 +3797,7 @@ class F1Manager {
                 justify-content: center;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                height: 85px; /* Igual que estrategas y producción */
+                height: 85px;
                 min-height: 85px !important;
             }
             
@@ -3570,87 +3880,6 @@ class F1Manager {
                 align-items: center;
                 gap: 5px;
             }
-            .grid-btn-big {
-                background: rgba(255, 255, 255, 0.05);
-                border: 2px solid rgba(255, 255, 255, 0.1);
-                border-radius: 15px;
-                padding: 15px 10px;
-                text-align: center;
-                cursor: pointer;
-                transition: all 0.3s;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                min-height: 120px;
-            }
-            
-            .grid-btn-big:hover {
-                border-color: #00d2be;
-                background: rgba(0, 210, 190, 0.1);
-                transform: translateY(-5px);
-            }
-            
-            .grid-icon {
-                font-size: 2rem;
-                margin-bottom: 10px;
-            }
-            
-            .grid-title {
-                font-family: 'Orbitron', sans-serif;
-                font-size: 1.2rem;
-                font-weight: bold;
-                color: white;
-                margin-bottom: 5px;
-            }
-            
-            .grid-desc {
-                color: #aaa;
-                font-size: 0.9rem;
-            }
-            
-            .area-grid-card {
-                background: rgba(42, 42, 56, 0.8);
-                border: 2px solid rgba(255, 255, 255, 0.1);
-                border-radius: 12px;
-                padding: 15px;
-                text-align: center;
-                transition: all 0.3s;
-            }
-            
-            .area-grid-card:hover {
-                border-color: #00d2be;
-                transform: translateY(-3px);
-            }
-            
-            .area-grid-icon {
-                font-size: 2rem;
-                margin-bottom: 10px;
-            }
-            
-            .area-grid-name {
-                font-family: 'Orbitron', sans-serif;
-                font-weight: bold;
-                color: white;
-                font-size: 1.1rem;
-                margin-bottom: 5px;
-            }
-            
-            .area-grid-desc {
-                color: #aaa;
-                font-size: 0.9rem;
-                margin-bottom: 10px;
-                min-height: 40px;
-            }
-            
-            .area-grid-stats {
-                background: rgba(0, 210, 190, 0.1);
-                color: #00d2be;
-                padding: 5px 10px;
-                border-radius: 20px;
-                font-size: 0.9rem;
-                font-weight: bold;
-            }
             
             .fabricacion-card {
                 background: linear-gradient(135deg, rgba(225, 6, 0, 0.1), rgba(0, 210, 190, 0.1));
@@ -3713,23 +3942,6 @@ class F1Manager {
                 border-left: 5px solid #00d2be;
             }
             
-            .dia-numero {
-                background: #00d2be;
-                color: white;
-                font-family: 'Orbitron', sans-serif;
-                font-weight: bold;
-                padding: 8px 15px;
-                border-radius: 20px;
-                font-size: 1.1rem;
-            }
-            
-            .dia-titulo {
-                font-family: 'Orbitron', sans-serif;
-                font-size: 1.2rem;
-                color: white;
-                flex: 1;
-            }
-            
             .seleccionable {
                 cursor: pointer;
                 transition: all 0.3s;
@@ -3745,29 +3957,6 @@ class F1Manager {
                 box-shadow: 0 0 20px rgba(0, 210, 190, 0.3);
             }
             
-            .btn-tutorial-accion-grande {
-                background: linear-gradient(135deg, #00d2be, #009688);
-                color: white;
-                border: none;
-                padding: 15px 30px;
-                border-radius: 12px;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 1.2rem;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.3s;
-                display: block;
-                width: 100%;
-                margin-top: 15px;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-            }
-            
-            .btn-tutorial-accion-grande:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 10px 25px rgba(0, 210, 190, 0.4);
-            }
-            
             .tutorial-header {
                 margin-bottom: 15px;
                 text-align: center;
@@ -3780,216 +3969,6 @@ class F1Manager {
                 padding: 0 10px;
                 word-wrap: break-word;
                 line-height: 1.3;
-            }
-            
-            @media (max-width: 1024px) {
-                .grid-6-columns {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-                
-                .grid-4-columns {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-                
-                .grid-3-columns {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-            }
-            
-            @media (max-width: 1200px) {
-                .grid-6-columns {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-                
-                .grid-4-columns {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-                
-                .grid-3-columns {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-            }
-            
-            @media (max-width: 900px) {
-                .grid-6-columns, .grid-4-columns, .grid-3-columns {
-                    grid-template-columns: 1fr;
-                }
-                
-                .area-grid-card {
-                    min-height: auto;
-                    padding: 12px;
-                }
-                
-                .area-grid-name {
-                    font-size: 1rem;
-                }
-                
-                .area-grid-desc {
-                    font-size: 0.85rem;
-                    min-height: 35px;
-                }
-                
-                .area-grid-stats, .area-grid-sub {
-                    font-size: 0.85rem;
-                }
-            }
-            
-            @media (max-width: 768px) {
-                .tutorial-container {
-                    padding: 15px;
-                    max-height: 85vh;
-                    margin: 10px;
-                }
-                
-                .grid-btn-big {
-                    min-height: 110px;
-                    padding: 12px 8px;
-                }
-                
-                .grid-icon {
-                    font-size: 1.8rem;
-                }
-                
-                .grid-title {
-                    font-size: 0.9rem;
-                }
-                
-                .grid-desc {
-                    font-size: 0.75rem;
-                }
-                
-                .estratega-tutorial-card, .fabricacion-tutorial-card, .pronostico-tutorial-card {
-                    min-height: 180px;
-                    padding: 12px;
-                }
-                
-                .estratega-icon-tut, .fab-icon-tut, .pronostico-icon-tut {
-                    font-size: 1.8rem;
-                }
-                
-                .estratega-nombre-tut, .fab-nombre-tut, .pronostico-nombre-tut {
-                    font-size: 0.9rem;
-                }
-                
-                .tutorial-header h1 {
-                    font-size: 1.3rem;
-                }
-                
-                .grid-6-columns, .grid-4-columns, .grid-3-columns {
-                    grid-template-columns: 1fr;
-                    gap: 10px;
-                }
-                
-                .btn-tutorial-next-large, .btn-tutorial-prev {
-                    padding: 10px 20px;
-                    font-size: 1rem;
-                    min-height: 45px;
-                }
-                
-                .step-number-horizontal {
-                    width: 32px;
-                    height: 32px;
-                    font-size: 0.9rem;
-                }
-                
-                .tutorial-content-wrapper {
-                    padding: 5px 2px;
-                }
-                
-                .area-grid-name, .estratega-nombre-tut, .fab-nombre-tut, .pronostico-nombre-tut {
-                    font-size: 0.9rem;
-                }
-                
-                .area-grid-desc, .estratega-especialidad, .fab-desc-tut, .pronostico-pregunta {
-                    font-size: 0.8rem;
-                    margin-bottom: 10px;
-                }
-            }
-            
-            .estratega-tutorial-card, .fabricacion-tutorial-card, .pronostico-tutorial-card {
-                background: rgba(255, 255, 255, 0.05);
-                border: 2px solid rgba(255, 255, 255, 0.1);
-                border-radius: 15px;
-                padding: 15px;
-                text-align: center;
-                min-height: 200px;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-            }
-            
-            .estratega-icon-tut, .fab-icon-tut, .pronostico-icon-tut {
-                font-size: 2rem;
-                margin-bottom: 10px;
-            }
-            
-            .estratega-nombre-tut, .fab-nombre-tut, .pronostico-nombre-tut {
-                font-family: 'Orbitron', sans-serif;
-                font-size: 1.1rem;
-                font-weight: bold;
-                color: white;
-                margin-bottom: 10px;
-            }
-            
-            .estratega-especialidad, .fab-desc-tut, .pronostico-pregunta {
-                color: #aaa;
-                font-size: 0.9rem;
-                margin-bottom: 15px;
-                flex: 1;
-            }
-            
-            .estratega-bono, .estratega-sueldo, .fab-tiempo-tut, .fab-costo-tut, .fab-puntos-tut, .pronostico-puntos {
-                font-size: 0.9rem;
-                margin: 5px 0;
-            }
-            
-            .bono-valor, .sueldo-valor {
-                color: #00d2be;
-                font-weight: bold;
-            }
-            
-            .estratega-ejemplo {
-                font-size: 0.8rem;
-                color: #888;
-                font-style: italic;
-                margin-top: 10px;
-            }
-            
-            .fab-accion-tut {
-                background: rgba(0, 210, 190, 0.2);
-                color: #00d2be;
-                padding: 8px;
-                border-radius: 8px;
-                font-size: 0.9rem;
-                margin-top: 15px;
-                border: 1px solid rgba(0, 210, 190, 0.5);
-            }
-            
-            .pronostico-opciones {
-                display: flex;
-                justify-content: center;
-                gap: 10px;
-                margin: 15px 0;
-            }
-            
-            .opcion-tut {
-                background: rgba(255, 255, 255, 0.1);
-                padding: 8px 15px;
-                border-radius: 20px;
-                cursor: pointer;
-                transition: all 0.3s;
-                font-size: 0.9rem;
-            }
-            
-            .opcion-tut:hover {
-                background: rgba(0, 210, 190, 0.3);
-                color: white;
-            }
-            
-            .opcion-tut.seleccionado {
-                background: #00d2be;
-                color: white;
-                font-weight: bold;
             }
             
             .simulacion-carrera {
@@ -4011,26 +3990,6 @@ class F1Manager {
             
             .paso-icon {
                 font-size: 1.8rem;
-            }
-            
-            .btn-simular-carrera {
-                background: linear-gradient(135deg, #e10600, #ff4444);
-                color: white;
-                border: none;
-                padding: 12px 25px;
-                border-radius: 10px;
-                font-family: 'Orbitron', sans-serif;
-                font-weight: bold;
-                cursor: pointer;
-                width: 100%;
-                margin: 15px 0;
-                font-size: 1.1rem;
-                transition: all 0.3s;
-            }
-            
-            .btn-simular-carrera:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 10px 20px rgba(225, 6, 0, 0.3);
             }
             
             .resultados-grid {
@@ -4163,7 +4122,7 @@ class F1Manager {
                 padding: 15px;
                 margin: 20px 0;
             }
-
+            
             .presupuesto-inicial, .presupuesto-ganancia, .presupuesto-gastos {
                 display: flex;
                 justify-content: space-between;
@@ -4338,14 +4297,31 @@ class F1Manager {
                 width: 100px;
             }
             
-            @media (max-width: 480px) {
+            @media (max-width: 768px) {
                 .tutorial-container {
-                    max-height: 80vh;
-                    padding: 10px;
+                    height: 80vh;
+                    padding: 15px;
+                    margin: 10px;
+                }
+                
+                .tutorial-content-wrapper {
+                    max-height: calc(80vh - 130px);
+                }
+                
+                .grid-6-columns, .grid-4-columns, .grid-3-columns {
+                    grid-template-columns: 1fr;
+                    gap: 6px;
+                }
+                
+                .grid-btn-big, .area-grid-card, .estratega-tutorial-card, 
+                .fabricacion-tutorial-card, .pronostico-tutorial-card {
+                    min-height: auto;
+                    padding: 6px;
                 }
                 
                 .tutorial-header h1 {
-                    font-size: 1.1rem;
+                    font-size: 1.2rem;
+                    padding: 0 5px;
                 }
                 
                 .btn-tutorial-next-large, .btn-tutorial-prev {
@@ -4360,23 +4336,56 @@ class F1Manager {
                     font-size: 0.8rem;
                 }
                 
-                .grid-icon, .estratega-icon-tut, .fab-icon-tut, .pronostico-icon-tut {
-                    font-size: 1.5rem;
-                    margin-bottom: 8px;
+                .pronostico-opciones {
+                    flex-wrap: wrap;
                 }
                 
-                .spacer {
-                    width: 80px;
+                .opcion-tut {
+                    flex: 1;
+                    min-width: auto;
                 }
                 
-                .grid-btn-big {
-                    min-height: 100px;
-                    padding: 10px 8px;
+                .tutorial-accion-practica {
+                    bottom: 60px;
+                    left: 15px;
+                    right: 15px;
                 }
-                
-                .estratega-tutorial-card, .fabricacion-tutorial-card, .pronostico-tutorial-card {
-                    min-height: 170px;
+            }
+            
+            @media (max-width: 480px) {
+                .tutorial-container {
+                    height: 75vh;
                     padding: 10px;
+                }
+                
+                .tutorial-content-wrapper {
+                    max-height: calc(75vh - 120px);
+                }
+                
+                .tutorial-header h1 {
+                    font-size: 1rem;
+                }
+                
+                .btn-tutorial-next-large, .btn-tutorial-prev {
+                    padding: 6px 12px;
+                    font-size: 0.8rem;
+                    min-height: 35px;
+                }
+                
+                .step-number-horizontal {
+                    width: 24px;
+                    height: 24px;
+                    font-size: 0.7rem;
+                }
+                
+                .grid-title, .area-grid-name, .estratega-nombre-tut, 
+                .fab-nombre-tut, .pronostico-nombre-tut {
+                    font-size: 0.7rem;
+                }
+                
+                .grid-desc, .area-grid-desc, .estratega-especialidad, 
+                .fab-desc-tut, .pronostico-pregunta {
+                    font-size: 0.65rem;
                 }
                 
                 .resultados-grid {
@@ -4389,6 +4398,12 @@ class F1Manager {
                 
                 .pasos-reales-grid {
                     grid-template-columns: 1fr;
+                }
+                
+                .tutorial-accion-practica {
+                    bottom: 55px;
+                    left: 10px;
+                    right: 10px;
                 }
             }
             
@@ -4403,7 +4418,7 @@ class F1Manager {
                 overflow-x: hidden;
                 position: relative;
             }
-
+            
             .logout-btn-visible {
                 background: rgba(225, 6, 0, 0.2);
                 border: 1px solid rgba(225, 6, 0, 0.4);
@@ -4425,7 +4440,8 @@ class F1Manager {
                 background: rgba(225, 6, 0, 0.3);
                 transform: translateY(-2px);
             }
-            </style>
+            </style>            
+
         `;
         
         // Ejecutar onLoad si existe
@@ -7860,6 +7876,10 @@ class F1Manager {
                 }
             }, 300);
         }, 2000);
+        // ========== AÑADE ESTA LÍNEA AL FINAL ==========
+        // 7. MOSTRAR EL BOTÓN SIGUIENTE
+        document.getElementById('btn-tutorial-next-large').classList.remove('hidden');
+        // ========== FIN DE LA LÍNEA A AÑADIR ==========
     };
     window.tutorialIrSeccion = function(seccion) {
         alert(`Esta función te llevaría a la sección: ${seccion.toUpperCase()}\n\nEn el juego real, puedes navegar entre secciones usando el menú superior.`);
