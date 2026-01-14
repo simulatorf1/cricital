@@ -3261,7 +3261,7 @@ class F1Manager {
                         <p class="equipo-nombre-final">¡Buena suerte al mando de <strong>${this.escuderia?.nombre || "tu escudería"}!</strong></p>
                     </div>
                 `,
-                action: 'comenzarJuegoReal'
+                action: 'finalizarTutorial'
             }
         ];
         
@@ -4418,25 +4418,10 @@ class F1Manager {
             
             if (nextBtn) {
                 nextBtn.onclick = async () => {
-                    if (step.action === 'comenzarJuegoReal') {
-                        // Finalizar tutorial y cargar dashboard
-                        document.body.innerHTML = '';
-                        await this.cargarDashboardCompleto();
-                        await this.inicializarSistemasIntegrados();
-                        
-                        // Marcar tutorial como completado
-                        localStorage.setItem('f1_tutorial_completado', 'true');
-                        
-                        if (this.escuderia && this.supabase) {
-                            this.supabase
-                                .from('escuderias')
-                                .update({ tutorial_completado: true })
-                                .eq('id', this.escuderia.id)
-                                .catch(error => console.warn('No se pudo actualizar tutorial en BD:', error));
-                        }
-                    } else {
-                        // Avanzar paso
-                        if (this.tutorialStep < steps.length) {
+                    if (step.action === 'finalizarTutorial') {
+                        await this.finalizarTutorial();
+                    } else if (step.action === 'siguientePaso') {
+                        if (this.tutorialStep < 11) {
                             this.tutorialStep++;
                             this.mostrarTutorialStep();
                         }
@@ -4466,6 +4451,10 @@ class F1Manager {
                     this.mostrarTutorialStep();
                 }
                 break;
+                
+            case 'finalizarTutorial':
+                await this.finalizarTutorial();  // ← Usar async/await
+                break;   
                 
             case 'comenzarJuegoReal':
                 // Finalizar tutorial y cargar dashboard
@@ -5408,32 +5397,77 @@ class F1Manager {
         });
     }
     
-    finalizarTutorial() {
-        // 1. Guardar en localStorage que el tutorial está completado
-        localStorage.setItem('f1_tutorial_completado', 'true');
-        console.log('💾 Tutorial marcado como completado en localStorage');
+    async finalizarTutorial() {
+        console.log('✅ Finalizando tutorial...');
         
-        // 2. Cargar dashboard completo
-        this.cargarDashboardCompleto();
-        
-        // 3. Opcional: Marcar también en la base de datos
-        if (this.escuderia && this.supabase) {
-            this.supabase
-                .from('escuderias')
-                .update({ tutorial_completado: true })
-                .eq('id', this.escuderia.id)
-                .then(() => {
-                    console.log('✅ Tutorial marcado como completado en BD');
-                })
-                .catch(error => {
-                    console.warn('⚠️ No se pudo actualizar tutorial en BD:', error);
-                });
+        try {
+            // 1. Marcar en localStorage (con ID específico de la escudería)
+            localStorage.setItem(`f1_tutorial_${this.escuderia?.id}`, 'true');
+            localStorage.setItem('f1_tutorial_completado', 'true'); // Mantener compatibilidad
+            console.log('💾 Tutorial marcado como completado en localStorage');
+            
+            // 2. Actualizar en la base de datos - ¡ESPERAR a que se complete!
+            if (this.escuderia && this.supabase) {
+                console.log('📝 Actualizando BD con tutorial_completado = true...');
+                
+                const { error } = await this.supabase
+                    .from('escuderias')
+                    .update({ 
+                        tutorial_completado: true,
+                        actualizado_en: new Date().toISOString()
+                    })
+                    .eq('id', this.escuderia.id);
+                
+                if (error) {
+                    console.error('❌ Error actualizando tutorial en BD:', error);
+                    // Mostrar error pero continuar
+                    this.showNotification('⚠️ Error guardando progreso, pero continuando...', 'warning');
+                } else {
+                    console.log('✅ Tutorial marcado como TRUE en BD');
+                }
+            }
+            
+            // 3. Recargar datos de la escudería para obtener el nuevo estado
+            if (this.escuderia && this.supabase) {
+                const { data: escuderiaActualizada, error } = await this.supabase
+                    .from('escuderias')
+                    .select('*')
+                    .eq('id', this.escuderia.id)
+                    .single();
+                
+                if (!error && escuderiaActualizada) {
+                    this.escuderia = escuderiaActualizada;
+                    console.log('🔄 Escudería recargada con tutorial_completado:', this.escuderia.tutorial_completado);
+                }
+            }
+            
+            // 4. Limpiar pantalla y cargar dashboard
+            document.body.innerHTML = '';
+            
+            // 5. Cargar dashboard (estas funciones deben ser async)
+            if (this.cargarDashboardCompleto) {
+                await this.cargarDashboardCompleto();
+            }
+            
+            if (this.inicializarSistemasIntegrados) {
+                await this.inicializarSistemasIntegrados();
+            }
+            
+            // 6. Mostrar notificación de bienvenida
+            setTimeout(() => {
+                if (this.showNotification) {
+                    this.showNotification('🎉 ¡Tutorial completado! ¡Bienvenido a F1 Manager!', 'success');
+                }
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ Error fatal en finalizarTutorial:', error);
+            // Si falla todo, al menos intentar cargar el dashboard
+            document.body.innerHTML = '';
+            if (this.cargarDashboardCompleto) {
+                await this.cargarDashboardCompleto();
+            }
         }
-        
-        // 4. Mostrar notificación de bienvenida
-        setTimeout(() => {
-            this.showNotification('🎉 ¡Tutorial completado! ¡Bienvenido a F1 Manager!', 'success');
-        }, 1000);
     }
     
     async loadUserData() {
