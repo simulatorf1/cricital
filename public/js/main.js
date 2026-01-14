@@ -6030,19 +6030,6 @@ class F1Manager {
                 <!-- Footer -->
                 <footer class="dashboard-footer">
                     <div class="footer-content">
-                        <div class="footer-logo">
-                            <i class="fas fa-flag-checkered"></i>
-                            <span>Structural Solidworks</span>
-                        </div>
-                        <div class="footer-links">
-                            <a href="#"><i class="fas fa-question-circle"></i> Ayuda</a>
-                            <a href="#"><i class="fas fa-book"></i> Reglas</a>
-                            <a href="#"><i class="fas fa-users"></i> Comunidad</a>
-                        </div>
-                        <div class="footer-status">
-                            <i class="fas fa-circle" style="color: #00a35c;"></i>
-                            <span>Conectado</span>
-                        </div>
                     </div>
                 </footer>
             </div>
