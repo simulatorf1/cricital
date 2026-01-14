@@ -5435,8 +5435,7 @@ class F1Manager {
                 const { error } = await this.supabase
                     .from('escuderias')
                     .update({ 
-                        tutorial_completado: true,
-                        actualizado_en: new Date().toISOString()
+                        tutorial_completado: true,                      
                     })
                     .eq('id', this.escuderia.id);
                 
