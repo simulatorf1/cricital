@@ -1433,7 +1433,6 @@ class F1Manager {
         this.supabase = null; // Añadir referencia a supabase
     }
     
-    // En el método init() de F1Manager, después de cargar la escudería:
     async init() {
         console.log('🔧 Inicializando juego...');
         
@@ -1445,9 +1444,9 @@ class F1Manager {
             return;
         }
         
-        // Cargar datos del usuario
+        // Cargar datos del usuario (IMPORTANTE: esto carga this.escuderia)
         await this.loadUserData();
-        await this.loadPilotosContratados(); // ← FALTA ESTO
+        await this.loadPilotosContratados();
         
         // NUEVO: Verificar y crear datos iniciales si faltan
         if (this.user && this.user.id) {
@@ -1456,37 +1455,60 @@ class F1Manager {
             
             if (!datosCreados) {
                 this.showNotification('⚠️ Hubo un problema configurando tu equipo.', 'warning');
-            } else {
-                console.log('✅ Usuario listo para jugar');
             }
         }
         
-        // DECISIÓN: ¿Mostrar tutorial o dashboard?
-        // 1. Primero verificamos si el tutorial ya fue completado (en localStorage)
-        const tutorialCompletado = localStorage.getItem('f1_tutorial_completado');
-        console.log('🔍 [TUTORIAL] Estado:', {
-            tieneEscuderia: !!this.escuderia,
-            tutorialCompletado: tutorialCompletado,
-            userId: this.user?.id
+        // VERIFICACIÓN MEJORADA DEL TUTORIAL
+        console.log('🔍 Verificando estado del tutorial...');
+        
+        // 1. Primero, asegúrate de que loadUserData cargó la escudería completa
+        // Si no, recárgala incluyendo tutorial_completado
+        if (this.escuderia && !('tutorial_completado' in this.escuderia)) {
+            console.log('🔄 Recargando escudería con campo tutorial...');
+            const { data: escuderiaCompleta, error } = await this.supabase
+                .from('escuderias')
+                .select('*')
+                .eq('id', this.escuderia.id)
+                .single();
+            
+            if (!error && escuderiaCompleta) {
+                this.escuderia = escuderiaCompleta;
+            }
+        }
+        
+        // 2. Verificar en ORDEN de prioridad:
+        const tutorialCompletadoBD = this.escuderia?.tutorial_completado;
+        const tutorialCompletadoLocal = localStorage.getItem('f1_tutorial_completado');
+        
+        console.log('📊 Estado tutorial:', {
+            BD: tutorialCompletadoBD,
+            localStorage: tutorialCompletadoLocal,
+            tieneEscudería: !!this.escuderia
         });
         
-        // 2. Mostrar tutorial si:
-        //    - El usuario tiene escudería (se creó en registro)
-        //    - PERO no ha completado el tutorial
-        if (this.escuderia && !tutorialCompletado) {
-            console.log('🎯 MOSTRANDO TUTORIAL (tiene escudería pero no completó tutorial)');
+        // 3. LÓGICA DECISIVA: ¿Mostrar tutorial?
+        // MOSTRAR tutorial solo si:
+        // - Hay escudería
+        // - Y NO está completado en BD
+        // - Y NO está completado en localStorage
+        
+        if (this.escuderia && !tutorialCompletadoBD && !tutorialCompletadoLocal) {
+            console.log('🎯 MOSTRANDO TUTORIAL (primera vez en este dispositivo)');
             this.mostrarTutorialInicial();
         } 
-        // 3. Si no tiene escudería (caso raro, pero por seguridad)
         else if (!this.escuderia) {
             console.log('🎯 MOSTRANDO TUTORIAL (no tiene escudería)');
             this.mostrarTutorialInicial();
         }
-        // 4. Ya completó el tutorial, ir directo al dashboard
         else {
             console.log('📊 CARGANDO DASHBOARD (tutorial ya completado)');
             await this.cargarDashboardCompleto();
             await this.inicializarSistemasIntegrados();
+            
+            // Sincronizar localStorage si está en BD pero no en localStorage
+            if (tutorialCompletadoBD && !tutorialCompletadoLocal) {
+                localStorage.setItem('f1_tutorial_completado', 'true');
+            }
         }
     }
     // ========================
