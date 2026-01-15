@@ -3192,7 +3192,7 @@ class F1Manager {
                     }
                 }
             },
-            // PASO 9: FIN DE SEMANA - Simulación carrera
+            // PASO 8: FIN DE SEMANA - Simulación carrera
             {
                 title: "📅 FIN DE SEMANA: CARRERA",
                 content: `
@@ -3203,33 +3203,7 @@ class F1Manager {
                     
                     <p>La carrera se desarrolla y se verifican tus pronósticos con datos reales:</p>
                     
-                    <div class="simulacion-carrera">
-                        <div class="carrera-paso">
-                            <div class="paso-icon">🏁</div>
-                            <div class="paso-text">
-                                <strong>GRAN PREMIO EN CURSO</strong><br>
-                                Los pilotos compiten en pista
-                            </div>
-                        </div>
-                        
-                        <div class="carrera-paso">
-                            <div class="paso-icon">📊</div>
-                            <div class="paso-text">
-                                <strong>DATOS EN TIEMPO REAL</strong><br>
-                                Se registran estadísticas
-                            </div>
-                        </div>
-                        
-                        <div class="carrera-paso">
-                            <div class="paso-icon">✅</div>
-                            <div class="paso-text">
-                                <strong>VERIFICACIÓN DE PRONÓSTICOS</strong><br>
-                                Se contrastan con datos objetivos
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button class="btn-simular-carrera" onclick="tutorialSimularCarrera()">
+                    <button class="btn-simular-carrera" onclick="tutorialSimularCarrera()" id="btn-simular-carrera-tutorial">
                         <i class="fas fa-play-circle"></i> SIMULAR DESARROLLO DE CARRERA
                     </button>
                     
@@ -3237,7 +3211,84 @@ class F1Manager {
                         <!-- Resultados aparecerán aquí -->
                     </div>
                 `,
-                action: 'siguientePaso'
+                action: 'siguientePaso',
+                onLoad: function() {
+                    const nextBtn = document.getElementById('btn-tutorial-next-large');
+                    if (nextBtn) {
+                        nextBtn.style.display = 'none'; // Ocultar botón Siguiente inicialmente
+                    }
+                    
+                    // Guardar el onclick original
+                    const originalOnclick = nextBtn ? nextBtn.onclick : null;
+                    
+                    // Definir función para simular carrera
+                    window.tutorialSimularCarrera = async function() {
+                        const btnSimular = document.getElementById('btn-simular-carrera-tutorial');
+                        if (btnSimular) {
+                            btnSimular.disabled = true;
+                            btnSimular.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SIMULANDO...';
+                        }
+                        
+                        // Simular espera de simulación
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        
+                        // Calcular aciertos simulados (siempre 2 de 3 en el tutorial)
+                        const aciertosSimulados = 2;
+                        
+                        // Guardar datos del tutorial SOLO EN MEMORIA
+                        if (window.tutorialData) {
+                            window.tutorialData.aciertosPronosticos = aciertosSimulados;
+                            window.tutorialData.puntosBaseCalculados = aciertosSimulados * 10; // 10 pts por acierto
+                        }
+                        
+                        // Mostrar resultados
+                        const resultadoDiv = document.getElementById('resultado-simulacion');
+                        if (resultadoDiv) {
+                            resultadoDiv.style.display = 'block';
+                            resultadoDiv.innerHTML = `
+                                <div class="simulacion-resultado" style="
+                                    background: rgba(0, 210, 190, 0.1);
+                                    border: 1px solid #00d2be;
+                                    border-radius: 10px;
+                                    padding: 15px;
+                                    margin-top: 15px;
+                                    text-align: center;
+                                ">
+                                    <div style="font-size: 2rem; margin-bottom: 10px;">🏁</div>
+                                    <h4 style="color: #00d2be; margin-bottom: 10px;">¡CARRERA SIMULADA!</h4>
+                                    <p style="color: #ccc; margin-bottom: 5px;">Has acertado <strong style="color: #4CAF50;">${aciertosSimulados} de 3</strong> pronósticos</p>
+                                    <p style="color: #ccc; margin-bottom: 5px;">Puntos obtenidos: <strong style="color: #FFD700;">${aciertosSimulados * 10}</strong></p>
+                                    <p style="color: #aaa; font-size: 0.9rem; margin-top: 10px;">¡Excelente trabajo! Continúa para ver tus ganancias.</p>
+                                </div>
+                            `;
+                        }
+                        
+                        // Mostrar botón Siguiente
+                        if (nextBtn) {
+                            nextBtn.style.display = 'flex';
+                        }
+                        
+                        // Restaurar botón Simular
+                        if (btnSimular) {
+                            setTimeout(() => {
+                                btnSimular.disabled = false;
+                                btnSimular.innerHTML = '<i class="fas fa-check-circle"></i> CARRERA SIMULADA ✓';
+                                btnSimular.style.background = 'linear-gradient(135deg, #4CAF50, #388E3C)';
+                            }, 500);
+                        }
+                    };
+                    
+                    // Sobrescribir el onclick para el paso 8
+                    if (nextBtn) {
+                        nextBtn.onclick = async () => {
+                            // Avanzar al siguiente paso
+                            if (window.tutorialManager && window.tutorialManager.tutorialStep < 11) {
+                                window.tutorialManager.tutorialStep++;
+                                window.tutorialManager.mostrarTutorialStep();
+                            }
+                        };
+                    }
+                }
             },
             
             // PASO 10: LUNES - Resultados
