@@ -5914,97 +5914,71 @@ class F1Manager {
         console.log('✅ Finalizando tutorial...');
         
         try {
-            // 1. Marcar tutorial como completado...
-            // (mantén tu código actual aquí)
+            // 1. Marcar en localStorage (con ID específico de la escudería)
+            localStorage.setItem(`f1_tutorial_${this.escuderia?.id}`, 'true');
+            localStorage.setItem('f1_tutorial_completado', 'true'); // Mantener compatibilidad
+            console.log('💾 Tutorial marcado como completado en localStorage');
             
-            // 2. Mostrar pantalla de carga PERO CON EL MISMO ESTILO DEL TUTORIAL
-            document.body.innerHTML = `
-                <div class="tutorial-screen" style="justify-content: center; align-items: center;">
-                    <div class="tutorial-container" style="text-align: center; padding: 40px;">
-                        <div style="margin-bottom: 30px;">
-                            <div style="font-size: 3rem; color: #00d2be; margin-bottom: 20px;">
-                                <i class="fas fa-flag-checkered fa-spin"></i>
-                            </div>
-                            <h1 style="color: white; margin-bottom: 10px;">CARGANDO</h1>
-                            <p style="color: #aaa;">Preparando tu escudería...</p>
-                        </div>
-                        
-                        <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
-                            <div id="loading-progress" style="width: 0%; height: 100%; background: #00d2be; transition: width 1s;"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // 3. Animar la barra de progreso
-            setTimeout(() => {
-                const progressBar = document.getElementById('loading-progress');
-                if (progressBar) {
-                    progressBar.style.width = '50%';
-                }
-            }, 300);
-            
-            setTimeout(() => {
-                const progressBar = document.getElementById('loading-progress');
-                if (progressBar) {
-                    progressBar.style.width = '100%';
-                }
-            }, 800);
-            
-            // 4. Después de 1.5 segundos, cargar el dashboard
-            setTimeout(async () => {
-                // Cargar dashboard (sin la animación de carga dentro del dashboard)
-                document.body.innerHTML = '';
+            // 2. Actualizar en la base de datos - ¡ESPERAR a que se complete!
+            if (this.escuderia && this.supabase) {
+                console.log('📝 Actualizando BD con tutorial_completado = true...');
                 
-                if (this.cargarDashboardCompleto) {
-                    // Llama a una versión modificada que no muestre la animación inicial
-                    await this.cargarDashboardSinLoading();
-                }
+                const { error } = await this.supabase
+                    .from('escuderias')
+                    .update({ 
+                        tutorial_completado: true,                      
+                    })
+                    .eq('id', this.escuderia.id);
                 
-            }, 1500);
+                if (error) {
+                    console.error('❌ Error actualizando tutorial en BD:', error);
+                    // Mostrar error pero continuar
+                    this.showNotification('⚠️ Error guardando progreso, pero continuando...', 'warning');
+                } else {
+                    console.log('✅ Tutorial marcado como TRUE en BD');
+                }
+            }
+            
+            // 3. Recargar datos de la escudería para obtener el nuevo estado
+            if (this.escuderia && this.supabase) {
+                const { data: escuderiaActualizada, error } = await this.supabase
+                    .from('escuderias')
+                    .select('*')
+                    .eq('id', this.escuderia.id)
+                    .single();
+                
+                if (!error && escuderiaActualizada) {
+                    this.escuderia = escuderiaActualizada;
+                    console.log('🔄 Escudería recargada con tutorial_completado:', this.escuderia.tutorial_completado);
+                }
+            }
+            
+            // 4. Limpiar pantalla y cargar dashboard
+            document.body.innerHTML = '';
+            
+            // 5. Cargar dashboard (estas funciones deben ser async)
+            if (this.cargarDashboardCompleto) {
+                await this.cargarDashboardCompleto();
+            }
+            
+            if (this.inicializarSistemasIntegrados) {
+                await this.inicializarSistemasIntegrados();
+            }
+            
+            // 6. Mostrar notificación de bienvenida
+            setTimeout(() => {
+                if (this.showNotification) {
+                    this.showNotification('🎉 ¡Tutorial completado! ¡Bienvenido a F1 Manager!', 'success');
+                }
+            }, 1000);
             
         } catch (error) {
             console.error('❌ Error fatal en finalizarTutorial:', error);
-            // Si falla, recargar página
-            location.reload();
-        }
-    }
-    
-    // Añade este método auxiliar
-    async cargarDashboardSinLoading() {
-        // Copia todo el código de cargarDashboardCompleto pero quita la sección #loading-screen
-        // O mejor aún, modifica cargarDashboardCompleto para que acepte un parámetro:
-        console.log('📊 Cargando dashboard sin pantalla de carga inicial...');
-        
-        // Usa tu código actual de cargarDashboardCompleto pero:
-        // 1. NO incluyas la sección <div id="loading-screen">...</div>
-        // 2. Comienza directamente con el <header class="dashboard-header">
-        
-        // Ejemplo simplificado:
-        document.body.innerHTML = `
-            <div id="app">
-                <!-- Solo el header y contenido, SIN loading-screen -->
-                <header class="dashboard-header">
-                    <!-- ... todo el contenido del header ... -->
-                </header>
-                
-                <main class="dashboard-content">
-                    <!-- ... todo el contenido ... -->
-                </main>
-            </div>
-        `;
-        
-        // Luego inicializa todos los sistemas como lo haces normalmente
-        if (this.inicializarSistemasIntegrados) {
-            await this.inicializarSistemasIntegrados();
-        }
-        
-        // Cargar datos
-        const supabase = await this.esperarSupabase();
-        if (supabase) {
-            await this.loadCarStatus();
-            await this.loadPilotosContratados();
-            await this.loadProximoGP();
+            // Si falla todo, al menos intentar cargar el dashboard
+            document.body.innerHTML = '';
+            if (this.cargarDashboardCompleto) {
+                await this.cargarDashboardCompleto();
+            }
         }
     }
     
