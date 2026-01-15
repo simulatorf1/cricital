@@ -3666,11 +3666,7 @@ class F1Manager {
             {
                 title: "🏁 ¡TUTORIAL COMPLETADO!",
                 content: `
-                    <div class="completado-celebracion">
-                        <p class="celebracion-sub">Has completado el tutorial con éxito</p>
-                    </div>
 
-                    
                     <div class="primeros-pasos-reales">
                         <h4>🚀 AHORA COMENZARÁS A COMPETIR DE VERDAD:</h4>
                         <div class="pasos-reales-grid">
