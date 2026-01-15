@@ -2841,15 +2841,23 @@ class F1Manager {
                     </div>
                     
                     <div class="tutorial-accion-practica" id="accion-contratar-tut" style="display: none;">
-                        <button class="btn-tutorial-accion-grande" id="btn-contratar-estratega-tut" onclick="tutorialContratarEstratega(); return false;">
+                        <button class="btn-tutorial-accion-grande" id="btn-contratar-estratega-tut" onclick="tutorialContratarEstratega()">
                             <i class="fas fa-user-plus"></i>
                             CONTRATAR ESTRATEGA SELECCIONADO
+                        </button>
+                    </div>
+                    
+                    <!-- BOTÓN SIGUIENTE OCULTO INICIALMENTE -->
+                    <div style="margin-top: 20px; display: none;" id="contenedor-boton-siguiente-paso5">
+                        <button class="btn-tutorial-next-large" onclick="avanzarDesdePaso5()">
+                            SIGUIENTE
+                            <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
                 `,
                 action: null,
                 onLoad: function() {
-                    // Ocultar botón siguiente al cargar este paso
+                    // Ocultar botón siguiente principal
                     const nextBtn = document.getElementById('btn-tutorial-next-large');
                     if (nextBtn) {
                         nextBtn.style.display = 'none';
@@ -2894,30 +2902,26 @@ class F1Manager {
                                                                window.tutorialEstrategaSeleccionado === 2 ? 20 : 18;
                         }
                         
-                        // MOSTRAR BOTÓN SIGUIENTE Y CONFIGURAR EVENTO
-                        const nextBtn = document.getElementById('btn-tutorial-next-large');
-                        if (nextBtn) {
-                            nextBtn.style.display = 'flex';
-                            nextBtn.style.alignItems = 'center';
-                            nextBtn.style.justifyContent = 'center';
-                            
-                            // Configurar evento para avanzar al siguiente paso
-                            nextBtn.onclick = () => {
-                                if (window.tutorialManager && window.tutorialManager.tutorialStep < 11) {
-                                    window.tutorialManager.tutorialStep++;
-                                    window.tutorialManager.mostrarTutorialStep();
-                                }
-                            };
-                        }
-                        
-                        // Ocultar botón de acción
+                        // Ocultar botón de contratar
                         const accionDiv = document.getElementById('accion-contratar-tut');
                         if (accionDiv) {
                             accionDiv.style.display = 'none';
                         }
-
+                        
+                        // Mostrar botón siguiente personalizado
+                        const contenedorSiguiente = document.getElementById('contenedor-boton-siguiente-paso5');
+                        if (contenedorSiguiente) {
+                            contenedorSiguiente.style.display = 'block';
+                        }
                     };
-
+                    
+                    // FUNCIÓN PARA AVANZAR DESDE PASO 5
+                    window.avanzarDesdePaso5 = function() {
+                        if (window.tutorialManager && window.tutorialManager.tutorialStep < 11) {
+                            window.tutorialManager.tutorialStep++;
+                            window.tutorialManager.mostrarTutorialStep();
+                        }
+                    };
                 }
             },
             
