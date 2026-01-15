@@ -5984,7 +5984,7 @@ class F1Manager {
                         height: 100%;
                         background: linear-gradient(90deg, #e10600, #ff4444);
                         border-radius: 4px;
-                        transition: width 0.5s ease;
+                        transition: width 1.5s ease;
                         position: relative;
                         box-shadow: 0 0 10px rgba(225, 6, 0, 0.5);
                     ">
@@ -6150,7 +6150,7 @@ class F1Manager {
             
             // 7. Limpiar pantalla y cargar dashboard
             updateProgress(100, "¡Escudería lista! Redirigiendo...");
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 2000));
             
             document.body.innerHTML = '';
             
@@ -6517,20 +6517,6 @@ class F1Manager {
         // 1. Crear el HTML COMPLETO
         document.body.innerHTML = `
             <div id="app">
-                <!-- Loading Screen -->
-                <div id="loading-screen">
-                    <div class="loading-content">
-                        <div class="f1-logo">
-                            <i class="fas fa-flag-checkered"></i>
-                        </div>
-                        <h1>MOTORSPORT MANAGER E-STRATEGY</h1>
-                        <div class="loading-bar">
-                            <div class="loading-progress"></div>
-                        </div>
-                        <p class="loading-text">Cargando tu escudería...</p>
-                    </div>
-                </div>
-                
                 <!-- Header -->
                 <header class="dashboard-header">
                     <div class="header-top">
