@@ -2841,7 +2841,7 @@ class F1Manager {
                     </div>
                     
                     <div class="tutorial-accion-practica" id="accion-contratar-tut" style="display: none;">
-                        <button class="btn-tutorial-accion-grande" id="btn-contratar-estratega-tut" onclick="tutorialContratarEstratega()">
+                        <button class="btn-tutorial-accion-grande" id="btn-contratar-estratega-tut" onclick="tutorialContratarEstratega(); return false;">
                             <i class="fas fa-user-plus"></i>
                             CONTRATAR ESTRATEGA SELECCIONADO
                         </button>
@@ -2886,8 +2886,8 @@ class F1Manager {
                             3: "EXPERTO FIABILIDAD"
                         };
                         
-                        // Mostrar mensaje de éxito
-                        alert(`✅ ¡Estratega contratado: ${nombres[window.tutorialEstrategaSeleccionado]}!`);
+                        // ELIMINA LA ALERTA - NO MOSTRAR MENSAJE EMERGENTE
+                        // alert(`✅ ¡Estratega contratado: ${nombres[window.tutorialEstrategaSeleccionado]}!`);
                         
                         // Guardar datos del tutorial
                         if (window.tutorialData) {
@@ -2897,12 +2897,20 @@ class F1Manager {
                                                                window.tutorialEstrategaSeleccionado === 2 ? 20 : 18;
                         }
                         
-                        // MOSTRAR BOTÓN SIGUIENTE
+                        // MOSTRAR BOTÓN SIGUIENTE Y CONFIGURARLO CORRECTAMENTE
                         const nextBtn = document.getElementById('btn-tutorial-next-large');
                         if (nextBtn) {
                             nextBtn.style.display = 'flex';
                             nextBtn.style.alignItems = 'center';
                             nextBtn.style.justifyContent = 'center';
+                            
+                            // AÑADIR EL EVENTO PARA AVANZAR
+                            nextBtn.onclick = async () => {
+                                if (window.tutorialManager && window.tutorialManager.tutorialStep < 11) {
+                                    window.tutorialManager.tutorialStep++;
+                                    window.tutorialManager.mostrarTutorialStep();
+                                }
+                            };
                         }
                         
                         // Ocultar botón de acción
@@ -2911,6 +2919,7 @@ class F1Manager {
                             accionDiv.style.display = 'none';
                         }
                     };
+
                 }
             },
             
