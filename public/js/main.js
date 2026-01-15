@@ -3079,16 +3079,15 @@ class F1Manager {
             {
                 title: "🎯 HACER PRONÓSTICOS",
                 content: `
+                    <div class="simulacion-intro">       
+                        <p class="simulacion-nota">Vamos a simular una carrera! En el juego real, tendrás más opciones de pronóstico por carrera.</p>
+                    </div>
                     <div class="simulacion-dia">
                         <div class="dia-titulo-simulacion">PRONÓSTICOS DE CARRERA</div>
                         <p class="dia-descripcion">Selecciona tus predicciones (marca una opción en cada categoría):</p>
                     </div>
-                    // Después de .dia-descripcion y antes de .grid-3-columns, añade:
-                    <div class="simulacion-intro">
-                        <div class="intro-icon">🎮</div>
-                        <p>Vamos a simular una carrera (en el juego habrá más pronósticos diferentes):</p>
-                        <p class="simulacion-nota">En el juego real, tendrás más opciones de pronóstico por carrera.</p>
-                    </div>
+                    
+
                     <div class="grid-3-columns">
                         <div class="pronostico-tutorial-card">
                             <div class="pronostico-icon-tut">🚩</div>
