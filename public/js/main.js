@@ -123,39 +123,12 @@ async function iniciarAplicacion() {
     
     // Fuerza un progreso rápido
     updateProgress(30, 'Iniciando sistema...');
-    
-    // Tu código normal de inicialización
-    window.supabase = initSupabase();
-    
-    if (!window.supabase) {
-        updateProgress(100, 'Error de conexión...');
-        setTimeout(() => mostrarErrorCritico('No se pudo conectar con la base de datos'), 1000);
-        return;
-    }
-    
-    updateProgress(50, 'Conectando a base de datos...');
-    
-    const { data: { session } } = await window.supabase.auth.getSession();
-    
-    if (session) {
-        updateProgress(70, 'Cargando escudería...');
-        window.f1Manager = new F1Manager(session.user);
-        await window.f1Manager.init();
-        updateProgress(100, '¡Listo!');
-        
-        // Quitar pantalla después de que TODO esté cargado
-        setTimeout(() => {
-            const loadingScreen = document.getElementById('f1-loading-screen');
-            if (loadingScreen) loadingScreen.remove();
-        }, 500);
-    } else {
-        updateProgress(100, 'Redirigiendo al login...');
-        setTimeout(() => {
-            const loadingScreen = document.getElementById('f1-loading-screen');
-            if (loadingScreen) loadingScreen.remove();
-            mostrarPantallaLogin();
-        }, 1000);
-    }
+    setTimeout(() => updateProgress(70, 'Conectando...'), 1000);   // 1 segundo
+    setTimeout(() => updateProgress(100, 'Completando...'), 2000); // 2 segundos
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('f1-loading-screen');
+        if (loadingScreen) loadingScreen.remove();
+    }, 3000);  // 3 segundos total
     // ============ FIN DEL CÓDIGO A AÑADIR ============
     
     // Inicializar Supabase
