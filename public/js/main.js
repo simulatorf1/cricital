@@ -3162,13 +3162,20 @@ class F1Manager {
                             }
                             
                             try {
-                                // Calcular aciertos simulados (en tutorial son siempre 2 de 3)
+                                // Calcular aciertos simulados (siempre 2 de 3 en el tutorial)
                                 const aciertosSimulados = 2;
                                 
-                                // Guardar datos del tutorial
+                                // Guardar datos del tutorial SOLO EN MEMORIA - igual que el original
                                 if (window.tutorialData) {
                                     window.tutorialData.aciertosPronosticos = aciertosSimulados;
-                                    window.tutorialData.puntosBaseCalculados = aciertosSimulados * 10;
+                                    window.tutorialData.puntosBaseCalculados = aciertosSimulados * 10; // 10 pts por acierto
+                                    
+                                    // También guardar los pronósticos específicos para mostrarlos después
+                                    window.tutorialData.pronosticosSeleccionados = {
+                                        bandera: window.tutorialPronosticos.bandera,
+                                        abandonos: window.tutorialPronosticos.abandonos,
+                                        diferencia: window.tutorialPronosticos.diferencia
+                                    };
                                 }
                                 
                                 // Avanzar al siguiente paso
