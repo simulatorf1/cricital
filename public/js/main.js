@@ -2807,119 +2807,54 @@ class F1Manager {
             {
                 title: "🎮 SIMULACIÓN SEMANAL",
                 content: `
-                    <div class="simulacion-intro" style="display: none;">
-                        <!-- Todo el contenido inicial se oculta -->
-                    </div>
-                    
                     <div class="simulacion-dia">
                         <div class="dia-titulo-simulacion">CONTRATA TU PRIMER ESTRATEGA</div>
                         <p class="dia-descripcion">Selecciona tu primer estratega. Cada uno te da bonificaciones diferentes:</p>
                     </div>
                     
-                    <!-- Mantener solo el grid de estrategas -->
                     <div class="grid-3-columns">
-                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(1)" data-estratega-id="1">
+                        <div class="estratega-tutorial-card seleccionable" onclick="seleccionarEstrategaTutorial(1)" data-estratega-id="1">
                             <div class="estratega-icon-tut">⏱️</div>
                             <div class="estratega-nombre-tut">ANALISTA DE TIEMPOS</div>
                             <div class="estratega-especialidad">Diferencias entre pilotos</div>
                             <div class="estratega-bono">Bono: <span class="bono-valor">+15% puntos</span></div>
                         </div>
                         
-                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(2)" data-estratega-id="2">
+                        <div class="estratega-tutorial-card seleccionable" onclick="seleccionarEstrategaTutorial(2)" data-estratega-id="2">
                             <div class="estratega-icon-tut">🌧️</div>
                             <div class="estratega-nombre-tut">METEORÓLOGO</div>
                             <div class="estratega-especialidad">Condiciones climáticas</div>
                             <div class="estratega-bono">Bono: <span class="bono-valor">+20% puntos</span></div>
                         </div>
                         
-                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(3)" data-estratega-id="3">
+                        <div class="estratega-tutorial-card seleccionable" onclick="seleccionarEstrategaTutorial(3)" data-estratega-id="3">
                             <div class="estratega-icon-tut">🔧</div>
                             <div class="estratega-nombre-tut">EXPERTO FIABILIDAD</div>
                             <div class="estratega-especialidad">Abandonos y fallos</div>
                             <div class="estratega-bono">Bono: <span class="bono-valor">+18% puntos</span></div>
                         </div>
                     </div>
-                    
-                    <div class="tutorial-accion-practica" id="accion-contratar-tut" style="display: none;">
-                        <button class="btn-tutorial-accion-grande" id="btn-contratar-estratega-tut" onclick="tutorialContratarEstratega()">
-                            <i class="fas fa-user-plus"></i>
-                            CONTRATAR ESTRATEGA SELECCIONADO
-                        </button>
-                    </div>
-                    
-                    <!-- BOTÓN SIGUIENTE OCULTO INICIALMENTE -->
-                    <div style="margin-top: 20px; display: none;" id="contenedor-boton-siguiente-paso5">
-                        <button class="btn-tutorial-next-large" onclick="avanzarDesdePaso5()">
-                            SIGUIENTE
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
                 `,
-                action: null,
+                action: 'siguientePaso',
                 onLoad: function() {
-                    // Ocultar botón siguiente principal
                     const nextBtn = document.getElementById('btn-tutorial-next-large');
                     if (nextBtn) {
                         nextBtn.style.display = 'none';
                     }
-                    // Inicializar selección de estratega
-                    window.tutorialEstrategaSeleccionado = null;
                     
-                    // FUNCIÓN PARA SELECCIONAR ESTRATEGA
-                    window.tutorialSeleccionarEstrategaPractico = function(id) {
-                        window.tutorialEstrategaSeleccionado = id;
-                        
-                        // Marcar como seleccionado visualmente
+                    window.seleccionarEstrategaTutorial = function(id) {
                         document.querySelectorAll('.estratega-tutorial-card').forEach(card => {
                             card.classList.remove('seleccionado');
                         });
-                        const card = document.querySelector(`[data-estratega-id="${id}"]`);
-                        if (card) card.classList.add('seleccionado');
+                        document.querySelector(`[data-estratega-id="${id}"]`).classList.add('seleccionado');
                         
-                        // Mostrar botón de acción
-                        const accionDiv = document.getElementById('accion-contratar-tut');
-                        if (accionDiv) {
-                            accionDiv.style.display = 'block';
+                        const nextBtn = document.getElementById('btn-tutorial-next-large');
+                        if (nextBtn) {
+                            nextBtn.style.display = 'flex';
                         }
-                    };
-                    
-                    // FUNCIÓN PARA CONTRATAR ESTRATEGA
-                    window.tutorialContratarEstratega = function() {
-                        if (!window.tutorialEstrategaSeleccionado) return;
                         
-                        // Simular contratación
-                        const nombres = {
-                            1: "ANALISTA DE TIEMPOS",
-                            2: "METEORÓLOGO", 
-                            3: "EXPERTO FIABILIDAD"
-                        };
-                        
-                        // Guardar datos del tutorial
                         if (window.tutorialData) {
                             window.tutorialData.estrategaContratado = true;
-                            window.tutorialData.nombreEstratega = nombres[window.tutorialEstrategaSeleccionado];
-                            window.tutorialData.bonoEstratega = window.tutorialEstrategaSeleccionado === 1 ? 15 : 
-                                                               window.tutorialEstrategaSeleccionado === 2 ? 20 : 18;
-                        }
-                        
-                        // Ocultar botón de contratar
-                        const accionDiv = document.getElementById('accion-contratar-tut');
-                        if (accionDiv) {
-                            accionDiv.style.display = 'none';
-                        }
-                        
-                        // Mostrar botón siguiente personalizado
-                        const contenedorSiguiente = document.getElementById('contenedor-boton-siguiente-paso5');
-                        if (contenedorSiguiente) {
-                            contenedorSiguiente.style.display = 'block';
-                        }
-                    };
-                    
-                    // FUNCIÓN PARA AVANZAR DESDE PASO 5
-                    window.avanzarDesdePaso5 = function() {
-                        if (window.tutorialManager && window.tutorialManager.tutorialStep < 11) {
-                            window.tutorialManager.tutorialStep++;
-                            window.tutorialManager.mostrarTutorialStep();
                         }
                     };
                 }
@@ -3458,9 +3393,8 @@ class F1Manager {
                             </button>
                         ` : '<div class="spacer"></div>'}
                         
-                        ${step.action ? `
-                            <button class="btn-tutorial-next-large" id="btn-tutorial-next-large" style="display: none;">
-                            
+                         ${step.action ? `
+                            <button class="btn-tutorial-next-large" id="btn-tutorial-next-large">
                                 ${step.action === 'comenzarJuegoReal' ? '¡EMPEZAR A COMPETIR!' : 'SIGUIENTE'}
                                 <i class="fas fa-arrow-right"></i>
                             </button>
