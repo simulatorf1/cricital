@@ -108,6 +108,28 @@ async function iniciarAplicacion() {
             }
         </style>
     `;
+
+    // ============ AÑADE ESTO JUSTO AQUÍ ============
+    // Función para actualizar progreso (copiada del tutorial)
+    const updateProgress = (percentage, message) => {
+        const progressBar = document.getElementById('f1-progress-bar');
+        const progressText = document.getElementById('f1-progress-text');
+        const loadingMessage = document.getElementById('f1-loading-message');
+        
+        if (progressBar) progressBar.style.width = `${percentage}%`;
+        if (progressText) progressText.textContent = `${percentage}%`;
+        if (loadingMessage && message) loadingMessage.textContent = message;
+    };
+    
+    // Fuerza un progreso rápido
+    updateProgress(50, 'Iniciando sistema...');
+    setTimeout(() => updateProgress(100, 'Completando...'), 800);
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('f1-loading-screen');
+        if (loadingScreen) loadingScreen.remove();
+    }, 1500);
+    // ============ FIN DEL CÓDIGO A AÑADIR ============
+    
     // Inicializar Supabase
     window.supabase = initSupabase();
     
@@ -6146,6 +6168,8 @@ class F1Manager {
                 }
             </style>
         `;
+
+        
         
         try {
             // 2. Animar la barra de progreso
