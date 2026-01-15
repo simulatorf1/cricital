@@ -3667,7 +3667,6 @@ class F1Manager {
                 title: "🏁 ¡TUTORIAL COMPLETADO!",
                 content: `
                     <div class="completado-celebracion">
-                        <div class="celebracion-icon">🎉</div>
                         <p class="celebracion-sub">Has completado el tutorial con éxito</p>
                     </div>
 
