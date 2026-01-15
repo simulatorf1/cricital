@@ -2711,7 +2711,7 @@ class F1Manager {
                             <div class="area-grid-content">
                                 <div class="area-grid-name">MOTOR</div>
                                 <div class="area-grid-desc">Potencia</div>
-                                <div class="area-grid-stats">+15 pts</div>
+                                
                             </div>
                         </div>
                         
@@ -2720,7 +2720,7 @@ class F1Manager {
                             <div class="area-grid-content">
                                 <div class="area-grid-name">CHASIS</div>
                                 <div class="area-grid-desc">Estructura</div>
-                                <div class="area-grid-stats">+12 pts</div>
+                                
                             </div>
                         </div>
                         
@@ -2729,7 +2729,7 @@ class F1Manager {
                             <div class="area-grid-content">
                                 <div class="area-grid-name">AERO</div>
                                 <div class="area-grid-desc">Flujo de aire</div>
-                                <div class="area-grid-stats">+10 pts</div>
+                                
                             </div>
                         </div>
                         
@@ -2738,7 +2738,7 @@ class F1Manager {
                             <div class="area-grid-content">
                                 <div class="area-grid-name">SUSPENSIÓN</div>
                                 <div class="area-grid-desc">Estabilidad</div>
-                                <div class="area-grid-stats">+9 pts</div>
+                                
                             </div>
                         </div>
                         
@@ -2747,7 +2747,7 @@ class F1Manager {
                             <div class="area-grid-content">
                                 <div class="area-grid-name">TRANSMISIÓN</div>
                                 <div class="area-grid-desc">Cambios</div>
-                                <div class="area-grid-stats">+11 pts</div>
+                                
                             </div>
                         </div>
                         
@@ -2756,7 +2756,7 @@ class F1Manager {
                             <div class="area-grid-content">
                                 <div class="area-grid-name">FRENOS</div>
                                 <div class="area-grid-desc">Detención</div>
-                                <div class="area-grid-stats">+8 pts</div>
+                                
                             </div>
                         </div>
                         
@@ -2765,7 +2765,7 @@ class F1Manager {
                             <div class="area-grid-content">
                                 <div class="area-grid-name">ELECTRÓNICA</div>
                                 <div class="area-grid-desc">Sistemas</div>
-                                <div class="area-grid-stats">+14 pts</div>
+                                
                             </div>
                         </div>
                         
@@ -2774,7 +2774,7 @@ class F1Manager {
                             <div class="area-grid-content">
                                 <div class="area-grid-name">CONTROL</div>
                                 <div class="area-grid-desc">Manejo</div>
-                                <div class="area-grid-stats">+9 pts</div>
+                                
                             </div>
                         </div>
                     </div>
@@ -3083,7 +3083,12 @@ class F1Manager {
                         <div class="dia-titulo-simulacion">PRONÓSTICOS DE CARRERA</div>
                         <p class="dia-descripcion">Selecciona tus predicciones (marca una opción en cada categoría):</p>
                     </div>
-                    
+                    // Después de .dia-descripcion y antes de .grid-3-columns, añade:
+                    <div class="simulacion-intro">
+                        <div class="intro-icon">🎮</div>
+                        <p>Vamos a simular una carrera (en el juego habrá más pronósticos diferentes):</p>
+                        <p class="simulacion-nota">En el juego real, tendrás más opciones de pronóstico por carrera.</p>
+                    </div>
                     <div class="grid-3-columns">
                         <div class="pronostico-tutorial-card">
                             <div class="pronostico-icon-tut">🚩</div>
@@ -3664,87 +3669,9 @@ class F1Manager {
                 content: `
                     <div class="completado-celebracion">
                         <div class="celebracion-icon">🎉</div>
-                        <h3>¡FELICIDADES DIRECTOR!</h3>
                         <p class="celebracion-sub">Has completado el tutorial con éxito</p>
                     </div>
-                    
-                    <div class="resumen-final">
-                        ${window.tutorialData?.estrategaContratado ? `
-                        <div class="resumen-item">
-                            <div class="resumen-icon">👥</div>
-                            <div class="resumen-text">
-                                <strong>Estratega contratado</strong><br>
-                                ${window.tutorialData.nombreEstratega || 'Analista de Tiempos'}
-                            </div>
-                        </div>
-                        ` : ''}
-                        
-                        ${window.tutorialData?.piezaFabricando ? `
-                        <div class="resumen-item">
-                            <div class="resumen-icon">🔧</div>
-                            <div class="resumen-text">
-                                <strong>Pieza en producción</strong><br>
-                                ${window.tutorialData.nombrePieza || 'Motor'} (+${window.tutorialData.puntosPieza || '15'} pts)
-                            </div>
-                        </div>
-                        ` : ''}
-                        
-                        <div class="resumen-item">
-                            <div class="resumen-icon">💰</div>
-                            <div class="resumen-text">
-                                <strong>Ganancias obtenidas</strong><br>
-                                ${(() => {
-                                    // Calcular ganancias reales
-                                    const puntosBase = window.tutorialData?.puntosBaseCalculados || 0;
-                                    let puntosBono = 0;
-                                    
-                                    if (window.tutorialData?.estrategaContratado && puntosBase > 0) {
-                                        const bono = window.tutorialData?.bonoEstratega || 15;
-                                        puntosBono = Math.round(puntosBase * (bono / 100));
-                                    }
-                                    
-                                    const puntosPieza = window.tutorialData?.piezaFabricando ? 
-                                        (window.tutorialData?.puntosPieza || 15) : 0;
-                                    
-                                    const totalPuntos = puntosBase + puntosBono + puntosPieza;
-                                    const ganancias = totalPuntos * 100;
-                                    return ganancias.toLocaleString() + '€ primera semana';
-                                })()}
-                            </div>
-                        </div>
-                        
-                        <div class="resumen-item">
-                            <div class="resumen-icon">🏆</div>
-                            <div class="resumen-text">
-                                <strong>Posición inicial estimada</strong><br>
-                                ${(() => {
-                                    // Estimar ranking basado en puntos
-                                    const puntosBase = window.tutorialData?.puntosBaseCalculados || 0;
-                                    let puntosBono = 0;
-                                    
-                                    if (window.tutorialData?.estrategaContratado && puntosBase > 0) {
-                                        const bono = window.tutorialData?.bonoEstratega || 15;
-                                        puntosBono = Math.round(puntosBase * (bono / 100));
-                                    }
-                                    
-                                    const puntosPieza = window.tutorialData?.piezaFabricando ? 
-                                        (window.tutorialData?.puntosPieza || 15) : 0;
-                                    
-                                    const totalPuntos = puntosBase + puntosBono + puntosPieza;
-                                    
-                                    // Estimación de ranking (menos puntos = mejor ranking)
-                                    let rankingEstimado;
-                                    if (totalPuntos >= 500) rankingEstimado = "#800-1,000";
-                                    else if (totalPuntos >= 300) rankingEstimado = "#1,000-1,500";
-                                    else if (totalPuntos >= 200) rankingEstimado = "#1,500-2,000";
-                                    else if (totalPuntos >= 100) rankingEstimado = "#2,000-2,500";
-                                    else rankingEstimado = "#2,500-3,000";
-                                    
-                                    return `Ranking ${rankingEstimado} global`;
-                                })()}
-                            </div>
-                        </div>
-                    </div>
+
                     
                     <div class="primeros-pasos-reales">
                         <h4>🚀 AHORA COMENZARÁS A COMPETIR DE VERDAD:</h4>
@@ -3757,7 +3684,6 @@ class F1Manager {
                     </div>
                     
                     <div class="despedida-final">
-                        <p>El mundo del motorsport estratégico te espera.</p>
                         <p class="equipo-nombre-final">¡Buena suerte al mando de <strong>${this.escuderia?.nombre || "tu escudería"}!</strong></p>
                     </div>
                 `,
@@ -4031,14 +3957,7 @@ class F1Manager {
             }
             
             .area-grid-stats {
-                background: rgba(0, 210, 190, 0.1);
-                color: #00d2be;
-                padding: 2px 6px !important;
-                border-radius: 10px;
-                font-size: 0.65rem; /* Más pequeño */
-                font-weight: bold;
-                margin-left: 8px !important; /* Separar de la descripción */
-                display: inline-block !important; /* Cambiar a inline */
+                display: none !important; /* Oculta los puntos */
             }
             
             .area-grid-sub {
@@ -7911,7 +7830,6 @@ class F1Manager {
                 <div class="estratega-nombre-tut">${e.nombre}</div>
                 <div class="estratega-especialidad">${e.especialidad}</div>
                 <div class="estratega-bono">Bono: <span class="bono-valor">${e.bono}</span></div>
-                <div class="estratega-sueldo">Sueldo: <span class="sueldo-valor">${e.sueldo}/mes</span></div>
                 <div class="estratega-ejemplo">Ej: "${e.ejemplo}"</div>
             </div>
         `).join('');
