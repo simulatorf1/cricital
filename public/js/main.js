@@ -2818,21 +2818,21 @@ class F1Manager {
                     
                     <!-- Mantener solo el grid de estrategas -->
                     <div class="grid-3-columns">
-                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(1)">
+                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(1)" data-estratega-id="1">
                             <div class="estratega-icon-tut">⏱️</div>
                             <div class="estratega-nombre-tut">ANALISTA DE TIEMPOS</div>
                             <div class="estratega-especialidad">Diferencias entre pilotos</div>
                             <div class="estratega-bono">Bono: <span class="bono-valor">+15% puntos</span></div>
                         </div>
                         
-                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(2)">
+                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(2)" data-estratega-id="2">
                             <div class="estratega-icon-tut">🌧️</div>
                             <div class="estratega-nombre-tut">METEORÓLOGO</div>
                             <div class="estratega-especialidad">Condiciones climáticas</div>
                             <div class="estratega-bono">Bono: <span class="bono-valor">+20% puntos</span></div>
                         </div>
                         
-                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(3)">
+                        <div class="estratega-tutorial-card seleccionable" onclick="tutorialSeleccionarEstrategaPractico(3)" data-estratega-id="3">
                             <div class="estratega-icon-tut">🔧</div>
                             <div class="estratega-nombre-tut">EXPERTO FIABILIDAD</div>
                             <div class="estratega-especialidad">Abandonos y fallos</div>
@@ -2841,15 +2841,26 @@ class F1Manager {
                     </div>
                     
                     <div class="tutorial-accion-practica" id="accion-contratar-tut" style="display: none;">
-                        <!-- Botón aparecerá aquí cuando seleccione -->
+                        <button class="btn-tutorial-accion-grande" id="btn-contratar-estratega-tut" onclick="tutorialContratarEstratega()">
+                            <i class="fas fa-user-plus"></i>
+                            CONTRATAR ESTRATEGA SELECCIONADO
+                        </button>
                     </div>
                 `,
-                action: null
+                action: null,
+                onLoad: function() {
+                    // Ocultar botón siguiente al cargar este paso
+                    const nextBtn = document.getElementById('btn-tutorial-next-large');
+                    if (nextBtn) {
+                        nextBtn.style.display = 'none';
+                    }
+                    // Inicializar selección de estratega
+                    window.tutorialEstrategaSeleccionado = null;
+                }
             },
             
-             // PASO 6: DÍA 2 - Fabricación
+            // PASO 6: DÍA 2 - Fabricación
             {
-          
                 title: "🔧 FABRICAR PIEZA",
                 content: `
                     <div class="simulacion-dia">
@@ -2858,21 +2869,21 @@ class F1Manager {
                     </div>
                     
                     <div class="grid-3-columns">
-                        <div class="fabricacion-tutorial-card seleccionable" onclick="tutorialSeleccionarFabricacionPractica('motor')">
+                        <div class="fabricacion-tutorial-card seleccionable" onclick="tutorialSeleccionarFabricacionPractica('motor')" data-area="motor">
                             <div class="fab-icon-tut">🏎️</div>
                             <div class="fab-nombre-tut">MOTOR</div>
                             <div class="fab-desc-tut">Aumenta potencia</div>
                             <div class="fab-puntos-tut">⭐ +15 puntos</div>
                         </div>
                         
-                        <div class="fabricacion-tutorial-card seleccionable" onclick="tutorialSeleccionarFabricacionPractica('chasis')">
+                        <div class="fabricacion-tutorial-card seleccionable" onclick="tutorialSeleccionarFabricacionPractica('chasis')" data-area="chasis">
                             <div class="fab-icon-tut">📊</div>
                             <div class="fab-nombre-tut">CHASIS</div>
                             <div class="fab-desc-tut">Mejora estructura</div>
                             <div class="fab-puntos-tut">⭐ +12 puntos</div>
                         </div>
                         
-                        <div class="fabricacion-tutorial-card seleccionable" onclick="tutorialSeleccionarFabricacionPractica('aerodinamica')">
+                        <div class="fabricacion-tutorial-card seleccionable" onclick="tutorialSeleccionarFabricacionPractica('aerodinamica')" data-area="aerodinamica">
                             <div class="fab-icon-tut">🌀</div>
                             <div class="fab-nombre-tut">AERO</div>
                             <div class="fab-desc-tut">Optimiza flujo aire</div>
@@ -2884,8 +2895,16 @@ class F1Manager {
                         <!-- Botón aparecerá aquí cuando seleccione -->
                     </div>
                 `,
-                action: null
-
+                action: null,
+                onLoad: function() {
+                    // Ocultar botón siguiente
+                    const nextBtn = document.getElementById('btn-tutorial-next-large');
+                    if (nextBtn) {
+                        nextBtn.style.display = 'none';
+                    }
+                    // Inicializar selección de fabricación
+                    window.tutorialFabricacionSeleccionada = null;
+                }
             },
             
             // PASO 7: DÍA 3-4 - Pronósticos
@@ -2935,9 +2954,17 @@ class F1Manager {
                         <!-- Botón aparecerá aquí cuando seleccione -->
                     </div>
                 `,
-                action: null
+                action: null,
+                onLoad: function() {
+                    // Ocultar botón siguiente
+                    const nextBtn = document.getElementById('btn-tutorial-next-large');
+                    if (nextBtn) {
+                        nextBtn.style.display = 'none';
+                    }
+                    // Inicializar pronósticos
+                    window.tutorialPronosticos = {};
+                }
             },
-            
             // PASO 9: FIN DE SEMANA - Simulación carrera
             {
                 title: "📅 FIN DE SEMANA: CARRERA",
@@ -4490,6 +4517,12 @@ class F1Manager {
             
             if (nextBtn) {
                 nextBtn.onclick = async () => {
+                    // PASOS 5, 6 y 7: Verificar que se haya completado la acción
+                    if ([5, 6, 7].includes(window.tutorialManager.tutorialStep)) {
+                        // En estos pasos, el botón siguiente debe estar oculto
+                        // y solo avanzar mediante los botones de acción específicos
+                        return;
+                    }
                     if (step.action === 'finalizarTutorial') {
                         await this.finalizarTutorial();
                     } else if (step.action === 'siguientePaso') {
