@@ -2912,7 +2912,7 @@ class F1Manager {
                         }
                     };
                 }
-            }
+            },
             
             // PASO 6: DÍA 2 - Fabricación
             {
@@ -2998,7 +2998,7 @@ class F1Manager {
                         alert(`✅ ¡Pieza de ${nombres[area]} en fabricación!`);
                     };
                 }
-            }
+            },
             
             // PASO 7: DÍA 3-4 - Pronósticos
             {
@@ -3094,7 +3094,7 @@ class F1Manager {
                         }
                     };
                 }
-            }
+            },
             // PASO 9: FIN DE SEMANA - Simulación carrera
             {
                 title: "📅 FIN DE SEMANA: CARRERA",
