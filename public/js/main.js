@@ -46,6 +46,41 @@ function initSupabase() {
 // ========================
 async function iniciarAplicacion() {
     console.log('🚀 Iniciando aplicación F1 Manager...');
+    // AÑADE ESTO JUSTO AQUÍ
+    // Desactivar zoom y gestos en móviles
+    if (!document.querySelector('meta[name="viewport"][content*="user-scalable=no"]')) {
+        const viewportMeta = document.createElement('meta');
+        viewportMeta.name = 'viewport';
+        viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+        document.head.appendChild(viewportMeta);
+    }
+    
+    // Añadir estilos para prevenir gestos no deseados
+    const preventZoomStyles = document.createElement('style');
+    preventZoomStyles.id = 'prevent-zoom-styles';
+    preventZoomStyles.textContent = `
+        html, body {
+            touch-action: manipulation;
+            overscroll-behavior: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+    `;
+    if (!document.getElementById('prevent-zoom-styles')) {
+        document.head.appendChild(preventZoomStyles);
+    }
+    // FIN DEL CÓDIGO A AÑADIR
+
+    
     
     // MOSTRAR PANTALLA DE CARGA F1 INMEDIATAMENTE
     // Copia EXACTAMENTE el mismo código HTML del finalizarTutorial()
