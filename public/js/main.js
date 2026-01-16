@@ -6574,11 +6574,7 @@ class F1Manager {
             `;
             document.head.appendChild(forceLandscapeCSS);
         }
-        
-        // Resto del código SIN CAMBIOS...
-        // ... el HTML normal del dashboard
-    }
-        
+    
         if (!this.escuderia) {
             console.error('❌ No hay escudería para cargar dashboard');
             return;
