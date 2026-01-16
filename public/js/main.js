@@ -6537,13 +6537,13 @@ class F1Manager {
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
         if (isMobile) {
-            // FORZAR LANDSCAPE CON CSS SIMPLE
+            // FORZAR LANDSCAPE FIJO EN MÓVILES (SIEMPRE)
             const forceLandscapeCSS = document.createElement('style');
             forceLandscapeCSS.id = 'force-landscape-css';
             forceLandscapeCSS.textContent = `
-                /* Forzar landscape en móviles portrait */
-                @media screen and (orientation: portrait) {
-                    body {
+                /* Forzar landscape FIJO en móviles - SIEMPRE */
+                @media screen and (max-width: 1024px) {
+                    html, body {
                         transform: rotate(90deg);
                         transform-origin: 50% 50%;
                         width: 100vh;
@@ -6553,10 +6553,16 @@ class F1Manager {
                         left: 50%;
                         margin-top: -50vw;
                         margin-left: -50vh;
+                        overflow: hidden;
+                    }
+                    
+                    /* Prevenir que el navegador reaccione a cambios de orientación */
+                    body {
+                        transition: none !important;
                     }
                 }
                 
-                /* Ajustar contenido para que se vea bien */
+                /* Ajustar contenido del dashboard */
                 @media screen and (max-width: 1024px) {
                     #app {
                         width: 100vw;
@@ -6565,10 +6571,18 @@ class F1Manager {
                     
                     .dashboard-content {
                         padding: 10px;
+                        height: calc(100vh - 120px);
+                        overflow-y: auto;
                     }
                     
                     .three-columns-layout {
-                        height: 35vh;
+                        height: 30vh;
+                        min-height: 180px;
+                    }
+                    
+                    .grid-11-columns {
+                        grid-template-columns: repeat(11, 1fr);
+                        height: 80px;
                     }
                 }
             `;
