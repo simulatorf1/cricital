@@ -1,0 +1,9 @@
+{
+  "appId": "com.miweb.app",
+  "appName": "NombreDeMiApp",
+  "webDir": "out",
+  "server": {
+    "url": "https://f1-manager-game.vercel.app/",
+    "cleartext": true
+  }
+}
