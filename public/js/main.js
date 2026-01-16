@@ -3933,7 +3933,7 @@ class F1Manager {
                 margin: 10px 0;
             }
             
-            .grid-6-columns { grid-template-columns: repeat(3, 1fr); }
+            .grid-6-columns { grid-template-columns: repeat(2, 1fr); }
             .grid-4-columns { grid-template-columns: repeat(2, 1fr); } /* 2 columnas en vez de 4 - MODIFICADO */
             .grid-3-columns { grid-template-columns: repeat(3, 1fr); }
             
