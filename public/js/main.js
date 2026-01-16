@@ -55,65 +55,86 @@ async function iniciarAplicacion() {
         document.head.appendChild(viewportMeta);
     }
     
-    // Añadir estilos para forzar contenido horizontal en móviles
+    // Añadir estilos para forzar orientación horizontal CON MÁRGENES
     const horizontalStyles = document.createElement('style');
     horizontalStyles.id = 'horizontal-styles';
     horizontalStyles.textContent = `
         /* =========================================== */
-        /* FORZAR CONTENIDO HORIZONTAL EN MÓVILES/TABLETS */
+        /* CONTENEDOR HORIZONTAL CON MÁRGENES */
         /* =========================================== */
         
         @media (max-width: 1024px) and (orientation: portrait) {
-            /* Rotar todo el body para simular landscape */
+            /* Contenedor principal que mantiene todo dentro */
             body {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                overflow: hidden !important;
+                background: #0a0a0f !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                padding: 15px !important; /* MARGENES ALREDEDOR */
+            }
+            
+            /* Contenedor horizontal con márgenes */
+            #app, .tutorial-container, .login-screen, .register-screen {
                 transform: rotate(90deg);
-                transform-origin: left top;
-                width: 100vh;
-                height: 100vw;
-                overflow-x: hidden;
-                position: fixed;
-                top: 0;
-                left: 100vw;
+                transform-origin: center center;
+                width: calc(100vh - 30px) !important; /* Resta márgenes */
+                height: calc(100vw - 30px) !important; /* Resta márgenes */
+                max-width: calc(100vh - 30px) !important;
+                max-height: calc(100vw - 30px) !important;
+                position: relative !important;
+                margin: 0 auto !important;
+                overflow: hidden !important;
+                border-radius: 10px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
             }
             
-            /* Ajustar el contenedor principal */
-            #app {
-                width: 100vh;
-                height: 100vw;
-                position: absolute;
-                top: 0;
-                left: 0;
-                transform: rotate(0deg);
-            }
-            
-            /* Asegurar que todo el contenido sea visible */
-            .dashboard-content, .tutorial-container, .login-screen, .register-screen {
+            /* Asegurar que el contenido interno no se rote */
+            #app > *, .tutorial-container > *, .login-container, .register-container {
+                transform: rotate(-90deg);
+                transform-origin: center center;
                 width: 100% !important;
                 height: 100% !important;
-                max-width: none !important;
-                max-height: none !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
             }
             
-            /* Ajustar grids para orientación horizontal */
-            .three-columns-layout {
-                flex-direction: row !important;
-                flex-wrap: nowrap !important;
-                overflow-x: auto !important;
-            }
-            
-            .grid-6-columns, .grid-4-columns, .grid-3-columns {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+            /* Mensaje para recordar orientación */
+            body::before {
+                content: "Modo horizontal activado";
+                position: fixed;
+                bottom: 5px;
+                left: 50%;
+                transform: translateX(-50%) rotate(90deg);
+                background: rgba(0, 210, 190, 0.2);
+                color: #00d2be;
+                padding: 5px 15px;
+                border-radius: 15px;
+                font-size: 0.7rem;
+                font-family: 'Orbitron', sans-serif;
+                z-index: 10000;
+                pointer-events: none;
+                opacity: 0.7;
             }
         }
         
+        /* Ya está en landscape - solo ajustar márgenes */
         @media (max-width: 1024px) and (orientation: landscape) {
-            /* Ya está en landscape, solo ajustar */
             body {
-                overflow-x: auto !important;
+                padding: 10px !important;
+                overflow: auto !important;
             }
             
-            .dashboard-content {
-                min-width: 1024px !important;
+            #app, .tutorial-container, .login-screen, .register-screen {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
             }
         }
         
@@ -124,16 +145,18 @@ async function iniciarAplicacion() {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
-            min-height: 100vh;
+            margin: 0;
+            padding: 0;
         }
         
         * {
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* Asegurar que los contenedores sean responsivos */
-        .dashboard-content {
-            min-height: 600px;
+        /* Scroll suave solo en contenido principal */
+        .dashboard-content, .tutorial-content-wrapper {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
         /* Ajustar tabs para móviles */
@@ -141,18 +164,51 @@ async function iniciarAplicacion() {
             .tabs-navigation {
                 overflow-x: auto !important;
                 white-space: nowrap !important;
+                -webkit-overflow-scrolling: touch;
             }
             
             .tab-btn {
-                min-width: 100px !important;
-                padding: 10px 15px !important;
+                min-width: 90px !important;
+                padding: 8px 12px !important;
+                font-size: 0.8rem !important;
+            }
+            
+            /* Aumentar área táctil en móviles */
+            button, .btn, [onclick] {
+                min-height: 44px !important;
+                min-width: 44px !important;
+            }
+        }
+        
+        /* Márgenes específicos para diferentes pantallas */
+        @media (max-height: 600px) and (max-width: 1024px) {
+            /* Pantallas muy cortas */
+            body {
+                padding: 8px !important;
+            }
+            
+            #app, .tutorial-container {
+                width: calc(100vh - 16px) !important;
+                height: calc(100vw - 16px) !important;
+            }
+        }
+        
+        @media (min-height: 800px) and (max-width: 1024px) {
+            /* Tablets grandes */
+            body {
+                padding: 20px !important;
+            }
+            
+            #app, .tutorial-container {
+                width: calc(100vh - 40px) !important;
+                height: calc(100vw - 40px) !important;
             }
         }
     `;
     if (!document.getElementById('horizontal-styles')) {
         document.head.appendChild(horizontalStyles);
     }
-    // FIN DEL CÓDIGO A AÑADIR    
+    // FIN DEL CÓDIGO A AÑADIR
 
     // ============ AÑADE ESTO JUSTO AQUÍ ============
     // Estilos para móvil en horizontal
