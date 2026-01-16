@@ -6531,77 +6531,53 @@ class F1Manager {
     
     async cargarDashboardCompleto() {
         console.log('📊 Cargando dashboard COMPLETO con CSS...');
+
+        
         // DETECTAR MÓVIL
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
         if (isMobile) {
-            // FORZAR LANDSCAPE CON CSS (CORREGIDO)
+            // FORZAR LANDSCAPE CON CSS SIMPLE
             const forceLandscapeCSS = document.createElement('style');
             forceLandscapeCSS.id = 'force-landscape-css';
             forceLandscapeCSS.textContent = `
-                /* Forzar landscape en móviles - SOLO para portrait */
-                @media screen and (orientation: portrait) and (max-width: 1024px) {
-                    html {
-                        transform: rotate(-90deg) !important;
-                        transform-origin: left top !important;
-                        width: 100vh !important;
-                        height: 100vw !important;
-                        overflow-x: hidden !important;
-                        position: absolute !important;
-                        top: 100% !important;
-                        left: 0 !important;
-                    }
-                    
+                /* Forzar landscape en móviles portrait */
+                @media screen and (orientation: portrait) {
                     body {
-                        width: 100vw !important;
-                        height: 100vh !important;
-                        transform: rotate(90deg) !important;
-                        transform-origin: center center !important;
-                        position: fixed !important;
-                    }
-                    
-                    #app {
-                        width: 100vw !important;
-                        height: 100vh !important;
+                        transform: rotate(90deg);
+                        transform-origin: 50% 50%;
+                        width: 100vh;
+                        height: 100vw;
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        margin-top: -50vw;
+                        margin-left: -50vh;
                     }
                 }
                 
-                /* Ajustar contenido para landscape */
-                @media screen and (max-width: 1024px) and (orientation: landscape),
-                       screen and (max-width: 1024px) and (orientation: portrait) {
+                /* Ajustar contenido para que se vea bien */
+                @media screen and (max-width: 1024px) {
+                    #app {
+                        width: 100vw;
+                        height: 100vh;
+                    }
+                    
+                    .dashboard-content {
+                        padding: 10px;
+                    }
+                    
                     .three-columns-layout {
-                        height: 30vh !important;
-                        min-height: 180px !important;
-                    }
-                    
-                    .grid-11-columns {
-                        grid-template-columns: repeat(11, 1fr) !important;
-                        height: 80px !important;
-                        gap: 5px !important;
-                    }
-                    
-                    .boton-area-montada, .boton-area-vacia {
-                        height: 70px !important;
-                        min-height: 70px !important;
-                        padding: 5px 3px !important;
-                    }
-                    
-                    .nombre-area {
-                        font-size: 0.7rem !important;
+                        height: 35vh;
                     }
                 }
             `;
             document.head.appendChild(forceLandscapeCSS);
-            
-            // También intentar con API
-            if (screen.orientation && screen.orientation.lock) {
-                try {
-                    await screen.orientation.lock('landscape');
-                } catch (err) {
-                    console.log('API de orientación no disponible');
-                }
-            }
         }
+        
+        // Resto del código SIN CAMBIOS...
+        // ... el HTML normal del dashboard
+    }
         
         if (!this.escuderia) {
             console.error('❌ No hay escudería para cargar dashboard');
