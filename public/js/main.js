@@ -46,6 +46,7 @@ function initSupabase() {
 // ========================
 async function iniciarAplicacion() {
     console.log('🚀 Iniciando aplicación F1 Manager...');
+    
     // AÑADE ESTO JUSTO AQUÍ
     // Desactivar zoom y gestos en móviles
     if (!document.querySelector('meta[name="viewport"][content*="user-scalable=no"]')) {
@@ -55,7 +56,130 @@ async function iniciarAplicacion() {
         document.head.appendChild(viewportMeta);
     }
     
-    // Añadir estilos para prevenir gestos no deseados
+    // ============ FORZAR ORIENTACIÓN HORIZONTAL EN MÓVILES ============
+    // Detectar si es dispositivo móvil
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        console.log('📱 Dispositivo móvil detectado - Forzando orientación horizontal');
+        
+        // Crear estilo para forzar orientación horizontal
+        const landscapeStyles = document.createElement('style');
+        landscapeStyles.id = 'landscape-styles';
+        landscapeStyles.textContent = `
+            /* Forzar orientación horizontal */
+            html, body {
+                width: 100vh !important;
+                height: 100vw !important;
+                transform: rotate(90deg) !important;
+                transform-origin: 0 0 !important;
+                position: fixed !important;
+                top: 100% !important;
+                left: 0 !important;
+                overflow: hidden !important;
+            }
+            
+            /* Ajustar viewport para pantalla girada */
+            @media screen and (orientation: portrait) {
+                html, body {
+                    width: 100vh !important;
+                    height: 100vw !important;
+                    top: 100% !important;
+                    left: 0 !important;
+                }
+            }
+            
+            @media screen and (orientation: landscape) {
+                html, body {
+                    width: 100vh !important;
+                    height: 100vw !important;
+                    top: 100% !important;
+                    left: 0 !important;
+                }
+            }
+            
+            /* Asegurar que todo el contenido se ajuste */
+            #app, .tutorial-screen, .login-screen, .register-screen {
+                width: 100vh !important;
+                height: 100vw !important;
+                transform: rotate(-90deg) !important;
+                transform-origin: center !important;
+                position: fixed !important;
+                top: -100% !important;
+                left: 0 !important;
+                overflow: hidden !important;
+            }
+            
+            /* Prevenir scroll y ajustes del navegador */
+            body > * {
+                max-width: 100vh !important;
+                max-height: 100vw !important;
+            }
+        `;
+        document.head.appendChild(landscapeStyles);
+        
+        // Bloquear API de orientación si está disponible
+        if (screen.orientation && screen.orientation.lock) {
+            try {
+                await screen.orientation.lock('landscape');
+                console.log('✅ Orientación bloqueada en landscape');
+            } catch (err) {
+                console.log('⚠️ No se pudo bloquear orientación:', err);
+            }
+        }
+        
+        // Escuchar cambios de orientación y mantener forzada
+        window.addEventListener('orientationchange', function() {
+            console.log('📱 Cambio de orientación detectado - Manteniendo horizontal');
+            setTimeout(() => {
+                // Forzar rotación visual
+                document.body.style.transform = 'rotate(90deg)';
+                document.body.style.transformOrigin = '0 0';
+                document.body.style.width = '100vh';
+                document.body.style.height = '100vw';
+                document.body.style.top = '100%';
+                document.body.style.left = '0';
+                document.body.style.position = 'fixed';
+                
+                // Ajustar el contenedor principal
+                const app = document.getElementById('app');
+                if (app) {
+                    app.style.width = '100vh';
+                    app.style.height = '100vw';
+                    app.style.transform = 'rotate(-90deg)';
+                    app.style.transformOrigin = 'center';
+                    app.style.position = 'fixed';
+                    app.style.top = '-100%';
+                    app.style.left = '0';
+                }
+            }, 100);
+        });
+        
+        // También forzar al cargar
+        setTimeout(() => {
+            document.body.style.transform = 'rotate(90deg)';
+            document.body.style.transformOrigin = '0 0';
+            document.body.style.width = '100vh';
+            document.body.style.height = '100vw';
+            document.body.style.top = '100%';
+            document.body.style.left = '0';
+            document.body.style.position = 'fixed';
+            
+            const app = document.getElementById('app');
+            if (app) {
+                app.style.width = '100vh';
+                app.style.height = '100vw';
+                app.style.transform = 'rotate(-90deg)';
+                app.style.transformOrigin = 'center';
+                app.style.position = 'fixed';
+                app.style.top = '-100%';
+                app.style.left = '0';
+            }
+        }, 500);
+    }
+    // ============ FIN DEL CÓDIGO DE ORIENTACIÓN ============
+    
+    // Añadir estilos para prevenir gestos no deseados (tu código existente)
     const preventZoomStyles = document.createElement('style');
     preventZoomStyles.id = 'prevent-zoom-styles';
     preventZoomStyles.textContent = `
@@ -78,9 +202,6 @@ async function iniciarAplicacion() {
     if (!document.getElementById('prevent-zoom-styles')) {
         document.head.appendChild(preventZoomStyles);
     }
-    // FIN DEL CÓDIGO A AÑADIR
-
-    
     
     // MOSTRAR PANTALLA DE CARGA F1 INMEDIATAMENTE
     // Copia EXACTAMENTE el mismo código HTML del finalizarTutorial()
@@ -9202,5 +9323,106 @@ iniciarAplicacion();
             }
         }
     };
+    // ============ AÑADE AQUÍ EL CÓDIGO DE ORIENTACIÓN ============
+    // ========================
+    // MANEJADOR DE ORIENTACIÓN PARA TODO EL JUEGO
+    // ========================
+    function configurarOrientacionHorizontal() {
+        // Verificar si ya está configurado
+        if (document.getElementById('landscape-styles')) return;
+        
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            console.log('📱 Configurando orientación horizontal para juego completo');
+            
+            // Crear contenedor de rotación
+            if (!document.getElementById('rotation-container')) {
+                const rotationContainer = document.createElement('div');
+                rotationContainer.id = 'rotation-container';
+                rotationContainer.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100vh;
+                    height: 100vw;
+                    transform: rotate(90deg) translateY(-100%);
+                    transform-origin: top left;
+                    overflow: hidden;
+                    z-index: 999999;
+                    background: #0a0a0f;
+                `;
+                
+                // Mover todo el body dentro del contenedor
+                const bodyContent = document.body.innerHTML;
+                document.body.innerHTML = '';
+                rotationContainer.innerHTML = bodyContent;
+                document.body.appendChild(rotationContainer);
+                
+                // Ajustar el contenido interno para que esté derecho
+                const app = document.getElementById('app');
+                if (app) {
+                    app.style.transform = 'rotate(-90deg)';
+                    app.style.transformOrigin = 'center';
+                    app.style.width = '100vh';
+                    app.style.height = '100vw';
+                    app.style.position = 'absolute';
+                    app.style.top = '0';
+                    app.style.left = '0';
+                }
+            }
+            
+            // Forzar dimensiones
+            document.documentElement.style.height = '100vw';
+            document.documentElement.style.width = '100vh';
+            document.body.style.height = '100vw';
+            document.body.style.width = '100vh';
+            
+            // Actualizar en redimensionamiento
+            window.addEventListener('resize', function() {
+                const rotationContainer = document.getElementById('rotation-container');
+                if (rotationContainer) {
+                    rotationContainer.style.width = window.innerHeight + 'px';
+                    rotationContainer.style.height = window.innerWidth + 'px';
+                }
+            });
+            
+            // Intentar bloquear orientación
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(function(error) {
+                    console.log('⚠️ No se pudo bloquear orientación:', error);
+                });
+            }
+        }
+    }
     
+    // Ejecutar cuando se cargue el DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', configurarOrientacionHorizontal);
+    } else {
+        configurarOrientacionHorizontal();
+    }
+    
+    // También ejecutar cuando cambie la visibilidad (al volver de segundo plano)
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            setTimeout(configurarOrientacionHorizontal, 100);
+        }
+    });
+    
+    // ========================
+    // INICIALIZACIÓN CUANDO SE CARGA LA PÁGINA
+    // ========================
+    window.onload = function() {
+        console.log('🏁 Página completamente cargada');
+        
+        // Configurar orientación si es móvil
+        configurarOrientacionHorizontal();
+        
+        // Tu código de inicialización existente
+        if (typeof iniciarAplicacion === 'function') {
+            iniciarAplicacion();
+        }
+    };
+    // ============ FIN DEL CÓDIGO DE ORIENTACIÓN ============    
 })();
