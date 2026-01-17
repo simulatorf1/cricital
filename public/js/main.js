@@ -1538,57 +1538,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Añadir los estilos al DOM cuando se cargue la página
-document.addEventListener('DOMContentLoaded', function() {
-    if (!document.getElementById('estilos-produccion')) {
-        const style = document.createElement('style');
-        style.id = 'estilos-produccion';
-        style.innerHTML = produccionStyles;
-        document.head.appendChild(style);
-    }
-});
-
-// ========================
-// ESTILOS PARA NOTIFICACIÓN DE PIEZAS
-// ========================
-const estilosNotificacion = `
-    /* Notificación de piezas listas */
-    #notificacion-piezas-listas {
-        animation: slideInRight 0.3s ease-out;
-    }
-    
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    .btn-recoger-pieza:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
-    }
-    
-    .btn-recoger-pieza:disabled {
-        cursor: not-allowed;
-        opacity: 0.7;
-    }
-`;
-
-// Añadir los estilos al DOM
-if (!document.getElementById('estilos-notificacion-piezas')) {
-    const style = document.createElement('style');
-    style.id = 'estilos-notificacion-piezas';
-    style.innerHTML = estilosNotificacion;
-    document.head.appendChild(style);
-}
-
-
-
 // ========================
 // 4. CLASE F1Manager PRINCIPAL CON TUTORIAL
 // ========================
@@ -2588,424 +2537,6 @@ class F1Manager {
         
         this.iniciarTimersAutomaticos();
     }
-
-    // ========================
-    // MÉTODO PARA VERIFICAR Y RECOGER PIEZAS
-    // ========================
-    async verificarFabricacionesCompletadas() {
-        if (!this.escuderia || !this.escuderia.id) {
-            console.log('❌ No hay escudería para verificar fabricaciones');
-            return;
-        }
-    
-        try {
-            console.log('🔍 Verificando fabricaciones completadas...');
-            
-            // 1. Obtener fabricaciones que han finalizado (tiempo_fin <= ahora)
-            const ahora = new Date().toISOString();
-            
-            const { data: fabricacionesCompletadas, error: fetchError } = await this.supabase
-                .from('fabricacion_actual')
-                .select('*')
-                .eq('escuderia_id', this.escuderia.id)
-                .eq('completada', false)
-                .lte('tiempo_fin', ahora);
-            
-            if (fetchError) {
-                console.error('❌ Error obteniendo fabricaciones:', fetchError);
-                return;
-            }
-            
-            console.log(`📊 ${fabricacionesCompletadas?.length || 0} fabricaciones listas para recoger`);
-            
-            // 3. Mostrar notificación si hay piezas listas
-            if (fabricacionesCompletadas && fabricacionesCompletadas.length > 0) {
-                this.mostrarNotificacionPiezasListas(fabricacionesCompletadas);
-            }
-            
-        } catch (error) {
-            console.error('❌ Error verificando fabricaciones:', error);
-        }
-    }
-    // ========================
-    // MÉTODO PARA MOSTRAR NOTIFICACIÓN DE PIEZAS LISTAS
-    // ========================
-    mostrarNotificacionPiezasListas(fabricaciones) {
-        console.log('🔔 Mostrando notificación de piezas listas:', fabricaciones.length);
-        
-        // Verificar si ya existe la notificación
-        if (document.getElementById('notificacion-piezas-listas')) {
-            console.log('⚠️ Notificación ya existe, actualizando...');
-            // Actualizar la existente
-            this.actualizarNotificacionPiezas(fabricaciones);
-            return;
-        }
-        
-        // Crear notificación
-        const notificacion = document.createElement('div');
-        notificacion.id = 'notificacion-piezas-listas';
-        notificacion.style.cssText = `
-            position: fixed;
-            top: 70px;
-            right: 20px;
-            background: rgba(21, 21, 30, 0.95);
-            border: 2px solid #00d2be;
-            border-radius: 10px;
-            padding: 15px;
-            color: white;
-            z-index: 10000;
-            max-width: 350px;
-            box-shadow: 0 5px 20px rgba(0, 210, 190, 0.4);
-            font-family: 'Roboto', sans-serif;
-            display: ${fabricaciones.length > 0 ? 'block' : 'none'};
-        `;
-        
-        let html = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="margin: 0; color: #00d2be; font-size: 1.1rem;">
-                    <i class="fas fa-check-circle"></i> Piezas listas
-                </h3>
-                <button id="cerrar-notificacion" style="
-                    background: transparent;
-                    border: none;
-                    color: #aaa;
-                    cursor: pointer;
-                    font-size: 1rem;
-                ">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-        
-        // Añadir cada pieza con botón para recoger
-        fabricaciones.forEach((fab, index) => {
-            const areaNombre = this.getNombreArea(fab.area);
-            const tiempoRestante = Math.max(0, Math.round((new Date(fab.tiempo_fin) - new Date()) / 1000));
-            const minutos = Math.floor(tiempoRestante / 60);
-            const segundos = tiempoRestante % 60;
-            
-            html += `
-                <div class="pieza-lista-item" data-fabricacion-id="${fab.id}" style="
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 6px;
-                    padding: 10px;
-                    margin-bottom: 8px;
-                    border-left: 3px solid #4CAF50;
-                ">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-weight: bold; color: white;">${areaNombre} Nivel ${fab.nivel}</div>
-                            <div style="font-size: 0.8rem; color: #aaa;">
-                                <i class="far fa-clock"></i> Finalizada
-                            </div>
-                        </div>
-                        <button class="btn-recoger-pieza" data-fabricacion-id="${fab.id}" style="
-                            background: linear-gradient(135deg, #4CAF50, #388E3C);
-                            border: none;
-                            border-radius: 5px;
-                            color: white;
-                            padding: 6px 12px;
-                            font-size: 0.8rem;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            gap: 5px;
-                        ">
-                            <i class="fas fa-box-open"></i> Recoger
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-        
-        notificacion.innerHTML = html;
-        document.body.appendChild(notificacion);
-        
-        // Evento para cerrar notificación
-        document.getElementById('cerrar-notificacion').addEventListener('click', () => {
-            notificacion.style.display = 'none';
-        });
-        
-        // Eventos para botones de recoger
-        document.querySelectorAll('.btn-recoger-pieza').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const fabricacionId = e.target.closest('.btn-recoger-pieza').dataset.fabricacionId;
-                await this.recogerPiezaIndividual(fabricacionId);
-            });
-        });
-    }
-    // ========================
-    // MÉTODO PARA ACTUALIZAR NOTIFICACIÓN
-    // ========================
-    actualizarNotificacionPiezas(fabricaciones) {
-        const notificacion = document.getElementById('notificacion-piezas-listas');
-        if (!notificacion) return;
-        
-        // Si no hay fabricaciones, ocultar notificación
-        if (!fabricaciones || fabricaciones.length === 0) {
-            notificacion.style.display = 'none';
-            return;
-        }
-        
-        // Actualizar contenido
-        let html = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="margin: 0; color: #00d2be; font-size: 1.1rem;">
-                    <i class="fas fa-check-circle"></i> Piezas listas
-                </h3>
-                <button id="cerrar-notificacion" style="
-                    background: transparent;
-                    border: none;
-                    color: #aaa;
-                    cursor: pointer;
-                    font-size: 1rem;
-                ">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-        
-        fabricaciones.forEach((fab) => {
-            const areaNombre = this.getNombreArea(fab.area);
-            
-            html += `
-                <div class="pieza-lista-item" data-fabricacion-id="${fab.id}" style="
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 6px;
-                    padding: 10px;
-                    margin-bottom: 8px;
-                    border-left: 3px solid #4CAF50;
-                ">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-weight: bold; color: white;">${areaNombre} Nivel ${fab.nivel}</div>
-                            <div style="font-size: 0.8rem; color: #aaa;">
-                                <i class="far fa-clock"></i> Finalizada
-                            </div>
-                        </div>
-                        <button class="btn-recoger-pieza" data-fabricacion-id="${fab.id}" style="
-                            background: linear-gradient(135deg, #4CAF50, #388E3C);
-                            border: none;
-                            border-radius: 5px;
-                            color: white;
-                            padding: 6px 12px;
-                            font-size: 0.8rem;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            gap: 5px;
-                        ">
-                            <i class="fas fa-box-open"></i> Recoger
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-        
-        notificacion.innerHTML = html;
-        notificacion.style.display = 'block';
-        
-        // Re-asignar eventos
-        document.getElementById('cerrar-notificacion').addEventListener('click', () => {
-            notificacion.style.display = 'none';
-        });
-        
-        document.querySelectorAll('.btn-recoger-pieza').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const fabricacionId = e.target.closest('.btn-recoger-pieza').dataset.fabricacionId;
-                await this.recogerPiezaIndividual(fabricacionId);
-            });
-        });
-    }  
-    // ========================
-    // MÉTODO PRINCIPAL: RECOGER PIEZA INDIVIDUAL
-    // ========================
-    async recogerPiezaIndividual(fabricacionId) {
-        console.log('📦 Recogiendo pieza:', fabricacionId);
-        
-        if (!this.escuderia || !this.escuderia.id) {
-            this.showNotification('❌ Error: No tienes escudería', 'error');
-            return false;
-        }
-        
-        try {
-            // 1. Obtener los datos de la fabricación
-            const { data: fabricacion, error: fetchError } = await this.supabase
-                .from('fabricacion_actual')
-                .select('*')
-                .eq('id', fabricacionId)
-                .eq('escuderia_id', this.escuderia.id)
-                .single();
-            
-            if (fetchError) throw fetchError;
-            if (!fabricacion) {
-                this.showNotification('❌ No se encontró la fabricación', 'error');
-                return false;
-            }
-            
-            // 2. Verificar que realmente está completada
-            const ahora = new Date();
-            const tiempoFin = new Date(fabricacion.tiempo_fin);
-            
-            if (tiempoFin > ahora && !fabricacion.completada) {
-                const minutosRestantes = Math.ceil((tiempoFin - ahora) / (1000 * 60));
-                this.showNotification(`⏳ La pieza aún no está lista (${minutosRestantes} minutos restantes)`, 'warning');
-                return false;
-            }
-            
-            // 3. Calcular calidad y puntos base de la pieza
-            const calidad = this.calcularCalidadPieza();
-            const puntosBase = this.calcularPuntosBase(fabricacion.nivel, calidad);
-            
-            console.log(`🎯 Pieza generada: ${fabricacion.area} Nivel ${fabricacion.nivel}, Calidad: ${calidad}, Puntos: ${puntosBase}`);
-            
-            // 4. CREAR LA PIEZA EN ALMACEN_PIEZAS (tabla real)
-            const { data: piezaCreada, error: piezaError } = await this.supabase
-                .from('almacen_piezas')
-                .insert([{
-                    escuderia_id: this.escuderia.id,
-                    area: fabricacion.area,
-                    nivel: fabricacion.nivel,
-                    puntos_base: puntosBase,
-                    calidad: calidad,
-                    equipada: false,
-                    fabricada_en: new Date().toISOString(),
-                    creada_en: new Date().toISOString()
-                }])
-                .select()
-                .single();
-            
-            if (piezaError) {
-                console.error('❌ Error creando pieza en almacén:', piezaError);
-                
-                // Si el error es por duplicado, intentar actualizar la existente
-                if (piezaError.message.includes('duplicate') || piezaError.message.includes('unique')) {
-                    this.showNotification('⚠️ Esta pieza ya existe en tu almacén', 'warning');
-                    // Marcar como completada igualmente
-                } else {
-                    throw piezaError;
-                }
-            } else {
-                console.log('✅ Pieza creada en almacén:', piezaCreada.id);
-            }
-            
-            // 5. MARCAR LA FABRICACIÓN COMO COMPLETADA
-            const { error: updateError } = await this.supabase
-                .from('fabricacion_actual')
-                .update({
-                    completada: true,
-                    pieza_id: piezaCreada?.id || null
-                })
-                .eq('id', fabricacionId);
-            
-            if (updateError) throw updateError;
-            
-            console.log('✅ Fabricación marcada como completada');
-            
-            // 6. Mostrar notificación de éxito
-            const areaNombre = this.getNombreArea(fabricacion.area);
-            this.showNotification(
-                `✅ ${areaNombre} Nivel ${fabricacion.nivel} recogida! (${calidad}, +${puntosBase} pts)`,
-                'success'
-            );
-            
-            // 7. Actualizar la UI
-            // Remover esta pieza específica de la notificación
-            const itemPieza = document.querySelector(`[data-fabricacion-id="${fabricacionId}"]`);
-            if (itemPieza) {
-                itemPieza.style.opacity = '0.5';
-                itemPieza.style.textDecoration = 'line-through';
-                
-                // Deshabilitar botón
-                const btn = itemPieza.querySelector('.btn-recoger-pieza');
-                if (btn) {
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-check"></i> Recogida';
-                    btn.style.background = '#666';
-                }
-                
-                // Ocultar notificación después de 2 segundos si no hay más piezas
-                setTimeout(() => {
-                    itemPieza.remove();
-                    const itemsRestantes = document.querySelectorAll('.pieza-lista-item');
-                    if (itemsRestantes.length === 0) {
-                        const notificacion = document.getElementById('notificacion-piezas-listas');
-                        if (notificacion) notificacion.style.display = 'none';
-                    }
-                }, 2000);
-            }
-            
-            // 8. Actualizar el monitor de producción en dashboard
-            setTimeout(() => {
-                if (this.updateProductionMonitor) {
-                    this.updateProductionMonitor();
-                }
-            }, 1000);
-            
-            return true;
-            
-        } catch (error) {
-            console.error('❌ Error recogiendo pieza:', error);
-            this.showNotification(`❌ Error: ${error.message || 'No se pudo recoger la pieza'}`, 'error');
-            return false;
-        }
-    }
-
-    // ========================
-    // MÉTODOS AUXILIARES
-    // ========================
-    
-    // Calcular calidad aleatoria de la pieza
-    calcularCalidadPieza() {
-        const calidades = ['Común', 'Buena', 'Excelente', 'Legendaria'];
-        const pesos = [40, 35, 20, 5]; // Porcentajes
-        
-        let random = Math.random() * 100;
-        let acumulado = 0;
-        
-        for (let i = 0; i < calidades.length; i++) {
-            acumulado += pesos[i];
-            if (random <= acumulado) {
-                return calidades[i];
-            }
-        }
-        
-        return 'Común';
-    }
-    
-    // Calcular puntos base según nivel y calidad
-    calcularPuntosBase(nivel, calidad) {
-        const puntosBase = 10 * nivel; // 10 puntos por nivel
-        
-        const multiplicadores = {
-            'Común': 1.0,
-            'Buena': 1.2,
-            'Excelente': 1.5,
-            'Legendaria': 2.0
-        };
-        
-        const multiplicador = multiplicadores[calidad] || 1.0;
-        return Math.round(puntosBase * multiplicador);
-    }
-    
-    // Obtener nombre del área (ya deberías tener este método, pero por si acaso)
-    getNombreArea(areaId) {
-        const areas = {
-            'suelo': 'Suelo',
-            'motor': 'Motor',
-            'aleron_delantero': 'Alerón Delantero',
-            'caja_cambios': 'Caja Cambios',
-            'pontones': 'Pontones',
-            'suspension': 'Suspensión',
-            'aleron_trasero': 'Alerón Trasero',
-            'chasis': 'Chasis',
-            'frenos': 'Frenos',
-            'volante': 'Volante',
-            'electronica': 'Electrónica'
-        };
-        return areas[areaId] || areaId;
-    }
-
     
     iniciarTimersAutomaticos() {
         if (this.timersAutomaticos) {
@@ -3013,32 +2544,22 @@ class F1Manager {
                 clearInterval(timer);
             });
         }
-        
         // CORRECCIÓN: Añadir llave y nombre de propiedad
         this.timersAutomaticos = {
-            // Timer para verificar fabricaciones completadas (cada 30 segundos)
-            verificarFabricaciones: setInterval(() => {
-                this.verificarFabricacionesCompletadas();
-            }, 30000), // 30 segundos
-            
             produccion: setInterval(() => {
                 if (window.fabricacionManager && window.fabricacionManager.actualizarUIProduccion) {
                     window.fabricacionManager.actualizarUIProduccion(true); // true = solo contador
                 }
             }, 1000), // Cada segundo para contador fluido 
+
             
             dashboard: setInterval(() => {
                 this.updateProductionMonitor();
-            }, 3000) // Cada 3 segundos para dashboard
+            }, 3000)
         };
         
-        console.log('⏱️ Timers automáticos iniciados (incluye verificador de fabricaciones)');
-        
-        // Verificar inmediatamente si hay piezas listas
-        setTimeout(() => {
-            this.verificarFabricacionesCompletadas();
-        }, 2000);
-    }
+        console.log('⏱️ Timers automáticos iniciados');
+    };
 
     async cargarPiezasMontadas() {
         console.log('🎯 Cargando piezas montadas...');
@@ -8541,60 +8062,20 @@ class F1Manager {
         
         return resultado;
     }
-    // ========================
-    // MÉTODO PARA MOSTRAR NOTIFICACIONES
-    // ========================
-    showNotification(mensaje, tipo = 'info') {
-        const tipos = {
-            'success': { color: '#4CAF50', icon: 'fas fa-check-circle' },
-            'error': { color: '#f44336', icon: 'fas fa-exclamation-circle' },
-            'warning': { color: '#ff9800', icon: 'fas fa-exclamation-triangle' },
-            'info': { color: '#2196F3', icon: 'fas fa-info-circle' }
-        };
-        
-        const config = tipos[tipo] || tipos.info;
-        
-        // Crear notificación
+    showNotification(mensaje, tipo = 'success') {
         const notification = document.createElement('div');
         notification.className = `notification ${tipo}`;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #1a1a2e;
-            border-left: 4px solid ${config.color};
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            z-index: 10000;
-            transform: translateX(120%);
-            transition: transform 0.3s ease;
-            max-width: 300px;
-        `;
-        
         notification.innerHTML = `
-            <div class="notification-content">
-                <i class="${config.icon}" style="color: ${config.color};"></i>
-                <span>${mensaje}</span>
-            </div>
+            <i class="fas fa-${tipo === 'success' ? 'check-circle' : 
+                             tipo === 'error' ? 'exclamation-circle' : 
+                             'info-circle'}"></i>
+            <span>${mensaje}</span>
         `;
         
         document.body.appendChild(notification);
         
-        // Mostrar
         setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-        }, 10);
-        
-        // Ocultar después de 5 segundos
-        setTimeout(() => {
-            notification.style.transform = 'translateX(120%)';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
+            notification.remove();
         }, 5000);
     }
     
@@ -8662,75 +8143,138 @@ class F1Manager {
     }
     
     // En el método updateProductionMonitor() de la clase F1Manager
-    // ========================
-    // ACTUALIZAR MONITOR DE PRODUCCIÓN
-    // ========================
     async updateProductionMonitor() {
-        console.log('📊 Actualizando monitor de producción...');
+        if (!this.escuderia || !this.escuderia.id || !this.supabase) {
+            console.log('❌ No hay escudería para monitor de producción');
+            return;
+        }
         
-        if (!this.escuderia || !this.escuderia.id) {
+        const container = document.getElementById('produccion-actual');
+        if (!container) {
+            console.log('❌ No se encontró #produccion-actual');
             return;
         }
         
         try {
-            // 1. Obtener fabricaciones activas
-            const { data: fabricacionesActivas, error } = await this.supabase
+            // Cargar fabricaciones activas
+            const { data: fabricaciones, error } = await this.supabase
                 .from('fabricacion_actual')
-                .select('area, nivel, tiempo_fin, completada')
+                .select('*')
                 .eq('escuderia_id', this.escuderia.id)
-                .eq('completada', false);
+                .eq('completada', false)
+                .order('tiempo_inicio', { ascending: true });
             
-            if (error) {
-                console.error('Error obteniendo fabricaciones:', error);
-                return;
-            }
+            if (error) throw error;
             
-            const contadorFabricaciones = fabricacionesActivas?.length || 0;
+            console.log('📊 Fabricaciones activas encontradas:', fabricaciones?.length || 0);
             
-            // 2. Actualizar el badge en el header si existe
-            const badgeFabricacion = document.querySelector('.badge-fabricacion, [data-fabricaciones-count]');
-            if (badgeFabricacion) {
-                badgeFabricacion.textContent = `${contadorFabricaciones}/4 fabricando`;
-            }
+            // Verificar tiempos REALES de cada fabricación
             
-            // 3. Actualizar los slots de producción en el dashboard
-            const slots = document.querySelectorAll('.slot-produccion-compacto, .produccion-slot');
-            if (slots.length >= 4) {
-                slots.forEach((slot, index) => {
-                    if (index < contadorFabricaciones) {
-                        // Slot ocupado con fabricación activa
-                        const fabricacion = fabricacionesActivas[index];
-                        const areaNombre = this.getNombreArea(fabricacion.area);
-                        
-                        // Calcular tiempo restante
-                        const tiempoRestante = Math.max(0, new Date(fabricacion.tiempo_fin) - new Date());
-                        const minutos = Math.floor(tiempoRestante / (1000 * 60));
-                        const segundos = Math.floor((tiempoRestante % (1000 * 60)) / 1000);
-                        
-                        slot.classList.add('slot-activo-compacto');
-                        slot.innerHTML = `
-                            <div class="slot-icono-compacto"><i class="fas fa-spinner fa-spin"></i></div>
-                            <div class="slot-texto-compacto" style="color: #00d2be; font-weight: bold;">
-                                ${areaNombre}
-                            </div>
-                            <div class="slot-texto-compacto" style="font-size: 0.6rem;">
-                                ${minutos}:${segundos.toString().padStart(2, '0')}
-                            </div>
-                        `;
-                    } else {
-                        // Slot vacío
-                        slot.classList.remove('slot-activo-compacto');
-                        slot.innerHTML = `
-                            <div class="slot-icono-compacto">+</div>
-                            <div class="slot-texto-compacto">Vacío</div>
-                            <div class="slot-texto-compacto" style="font-size: 0.6rem;">Click para fabricar</div>
-                        `;
-                    }
+            const ahoraUTC = Date.now(); // UTC en milisegundos
+            const fabricacionesConEstado = (fabricaciones || []).map(f => {
+                // Asegurar que se interpreta como UTC
+                const tiempoFinStr = f.tiempo_fin.endsWith('Z') ? f.tiempo_fin : f.tiempo_fin + 'Z';
+                const tiempoFinUTC = new Date(tiempoFinStr).getTime();
+                
+                const tiempoRestante = tiempoFinUTC - ahoraUTC;
+                const lista = tiempoRestante <= 0;
+                
+                return {
+                    ...f,
+                    tiempoRestante,
+                    lista
+                };
+            });
+            
+            console.log('⏱️ Estado fabricaciones:', fabricacionesConEstado.map(f => ({
+                area: f.area,
+                tiempoFin: f.tiempo_fin,
+                tiempoRestante: f.tiempoRestante,
+                lista: f.lista
+            })));
+            
+            // Para cada fabricación, calcular su número de pieza
+            const fabricacionesConNumero = [];
+            for (const fabricacion of fabricacionesConEstado) {
+                // Calcular número de pieza basado en cuántas ya hay fabricadas
+                const { data: piezasExistentes } = await this.supabase
+                    .from('almacen_piezas')
+                    .select('id')
+                    .eq('escuderia_id', this.escuderia.id)
+                    .eq('area', fabricacion.area)
+                    .eq('nivel', fabricacion.nivel);
+                
+                const numeroPieza = (piezasExistentes?.length || 0) + 1;
+                fabricacionesConNumero.push({
+                    ...fabricacion,
+                    numero_pieza: numeroPieza
                 });
             }
             
+            // Asegurar estilos
+            this.cargarEstilosProduccion();
+            
+            let html = `
+                <div class="produccion-slots">
+            `;
+            
+            // Crear 4 slots
+            for (let i = 0; i < 4; i++) {
+                const fabricacion = fabricacionesConNumero[i];
+                
+                if (fabricacion) {
+                    const tiempoRestante = fabricacion.tiempoRestante;
+                    const lista = fabricacion.lista;
+                    
+                    const nombreArea = this.getNombreArea(fabricacion.area);
+                    const tiempoFormateado = this.formatTime(tiempoRestante);
+                    const numeroPieza = fabricacion.numero_pieza || 1;
+                    
+                    html += `
+                        <div class="produccion-slot ${lista ? 'produccion-lista' : 'produccion-activa'}" 
+                             onclick="recogerPiezaSiLista('${fabricacion.id}', ${lista}, ${i})"
+                             title="${nombreArea} - Pieza ${numeroPieza} de nivel ${fabricacion.nivel}">
+                            <div class="produccion-icon">
+                                ${lista ? '✅' : '🔄'}
+                            </div>
+                            <div class="produccion-info">
+                                <span class="produccion-nombre">${nombreArea}</span>
+                                <span class="produccion-pieza-num">Pieza ${numeroPieza}</span>
+                                ${lista ? 
+                                    `<span class="produccion-lista-text">¡LISTA!</span>` :
+                                    `<span class="produccion-tiempo">${tiempoFormateado}</span>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Slot vacío
+                    html += `
+                        <div class="produccion-slot" data-slot="${i}" onclick="irAlTallerDesdeProduccion()">
+                            <div class="slot-content">
+                                <i class="fas fa-plus"></i>
+                                <span>Slot ${i + 1}</span>
+                                <span class="slot-disponible">Disponible</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            html += `</div>`;
+            container.innerHTML = html;
+            
+            // Iniciar timer para actualización en tiempo real
+            this.iniciarTimerProduccion();
+            
         } catch (error) {
-            console.error('Error en updateProductionMonitor:', error);
+            console.error("Error en updateProductionMonitor:", error);
+            container.innerHTML = `
+                <div class="produccion-error">
+                    <p>❌ Error cargando producción</p>
+                    <button onclick="window.f1Manager.updateProductionMonitor()">Reintentar</button>
+                </div>
+            `;
         }
     }
     
