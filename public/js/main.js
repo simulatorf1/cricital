@@ -9347,119 +9347,163 @@ iniciarAplicacion();
         }
     };
     // ============ AÑADE AQUÍ EL CÓDIGO DE ORIENTACIÓN ============
-    // FORZAR HORIZONTAL EN MÓVILES
+    // ========================
+    // ESTO GIRA TODO EN MÓVILES
     // ========================
     
-    // Verificar si es móvil
-    function esDispositivoMovil() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-               (window.innerWidth <= 768);
+    function esMovil() {
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        return /android|iphone|ipad|ipod|blackberry|windows phone|mobile|tablet/i.test(userAgent.toLowerCase());
     }
     
-    // Función principal para forzar orientación horizontal
-    function forzarOrientacionHorizontal() {
-        if (!esDispositivoMovil()) {
-            console.log('💻 No es móvil, no se aplica rotación');
+    function aplicarRotacionMovil() {
+        if (!esMovil()) {
+            console.log('💻 No es móvil, sin rotación');
             return;
         }
         
-        console.log('📱 Móvil detectado - Forzando horizontal');
+        console.log('📱 MÓVIL DETECTADO - APLICANDO ROTACIÓN 90°');
         
-        // 1. Asegurar viewport correcto
-        let viewportMeta = document.querySelector('meta[name="viewport"]');
-        if (!viewportMeta) {
-            viewportMeta = document.createElement('meta');
-            viewportMeta.name = 'viewport';
-            document.head.appendChild(viewportMeta);
-        }
-        viewportMeta.content = 'width=device-width, initial-scale=0.5, minimum-scale=0.5, maximum-scale=0.5, user-scalable=no';
+        // 1. ELIMINAR cualquier viewport existente y crear uno fijo
+        const metasViewport = document.querySelectorAll('meta[name="viewport"]');
+        metasViewport.forEach(meta => meta.remove());
         
-        // 2. Crear estilos CSS
-        const estilo = document.createElement('style');
-        estilo.id = 'horizontal-forzado';
-        estilo.textContent = `
-            /* SOLO para móviles */
-            @media (max-width: 768px) {
-                /* Rotar todo el HTML 90 grados */
-                html {
-                    transform: rotate(90deg) !important;
-                    transform-origin: left top !important;
+        const nuevoViewport = document.createElement('meta');
+        nuevoViewport.name = 'viewport';
+        nuevoViewport.content = 'width=1024, height=768, initial-scale=0.8, maximum-scale=0.8, user-scalable=no, viewport-fit=cover';
+        document.head.appendChild(nuevoViewport);
+        
+        // 2. Crear un DIV CONTENEDOR que rote TODO
+        if (!document.getElementById('contenedor-rotado-movil')) {
+            const contenedorRotado = document.createElement('div');
+            contenedorRotado.id = 'contenedor-rotado-movil';
+            
+            // Mover TODO el contenido del body al contenedor
+            contenedorRotado.innerHTML = document.body.innerHTML;
+            document.body.innerHTML = '';
+            document.body.appendChild(contenedorRotado);
+            
+            // Estilos para el contenedor rotado
+            contenedorRotado.style.cssText = `
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100vh !important;
+                height: 100vw !important;
+                transform: rotate(90deg) translateY(-100%) !important;
+                transform-origin: top left !important;
+                overflow: hidden !important;
+                background: #0a0a0f !important;
+                z-index: 999999 !important;
+            `;
+            
+            // Ajustar el contenido interno para que se vea derecho
+            const appElement = document.getElementById('app');
+            if (appElement) {
+                appElement.style.cssText = `
+                    transform: rotate(-90deg) !important;
+                    transform-origin: center !important;
                     width: 100vh !important;
                     height: 100vw !important;
                     position: absolute !important;
                     top: 0 !important;
-                    left: 100vw !important;
-                    overflow: hidden !important;
-                }
-                
-                /* El body compensa la rotación */
-                body {
-                    width: 100vh !important;
-                    height: 100vw !important;
-                    transform: rotate(-90deg) !important;
-                    transform-origin: left top !important;
-                    position: fixed !important;
-                    top: 0 !important;
                     left: 0 !important;
-                    overflow: hidden !important;
-                }
-                
-                /* Todos los contenedores principales */
-                #app, .tutorial-screen, .login-screen, .register-screen,
-                #f1-loading-screen {
-                    width: 100vh !important;
-                    min-height: 100vw !important;
-                    max-width: 100vh !important;
-                    overflow: hidden !important;
-                }
-                
-                /* Prevenir zoom */
-                * {
-                    touch-action: manipulation !important;
-                    -webkit-touch-callout: none !important;
-                    -webkit-user-select: none !important;
-                    user-select: none !important;
-                }
+                    overflow: auto !important;
+                `;
             }
-        `;
-        
-        // Solo añadir si no existe
-        if (!document.getElementById('horizontal-forzado')) {
-            document.head.appendChild(estilo);
-        }
-        
-        // 3. Aplicar estilos inline inmediatamente
-        document.documentElement.style.width = '100vh';
-        document.documentElement.style.height = '100vw';
-        document.body.style.width = '100vh';
-        document.body.style.height = '100vw';
-        
-        // 4. Bloquear orientación si es posible
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(e => {
-                console.log('⚠️ No se pudo bloquear API de orientación:', e);
+            
+            // Ajustar también otros contenedores importantes
+            ['#f1-loading-screen', '.tutorial-screen', '.login-screen', '.register-screen'].forEach(selector => {
+                const el = document.querySelector(selector);
+                if (el) {
+                    el.style.cssText = `
+                        width: 100vh !important;
+                        height: 100vw !important;
+                        transform: rotate(-90deg) !important;
+                        transform-origin: center !important;
+                        position: fixed !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        overflow: auto !important;
+                    `;
+                }
             });
         }
         
-        console.log('✅ Rotación aplicada');
+        // 3. Forzar dimensiones del HTML y Body
+        document.documentElement.style.cssText = `
+            width: 100vw !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            background: #0a0a0f !important;
+        `;
+        
+        document.body.style.cssText = `
+            width: 100vw !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #0a0a0f !important;
+        `;
+        
+        // 4. Bloquear API de orientación si está disponible
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(e => {
+                console.log('⚠️ API de orientación no disponible:', e);
+            });
+        }
+        
+        console.log('✅ ROTACIÓN APLICADA - Todo el juego está en horizontal');
     }
     
-    // 5. Ejecutar cuando sea posible
+    // 5. EJECUTAR INMEDIATAMENTE si ya está cargado
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(forzarOrientacionHorizontal, 100);
+            setTimeout(aplicarRotacionMovil, 10);
         });
     } else {
-        setTimeout(forzarOrientacionHorizontal, 100);
+        setTimeout(aplicarRotacionMovil, 10);
     }
     
-    // 6. También cuando cambie el tamaño
+    // 6. También ejecutar cuando la ventana cambie de tamaño
     window.addEventListener('resize', function() {
-        setTimeout(forzarOrientacionHorizontal, 50);
+        setTimeout(aplicarRotacionMovil, 50);
     });
     
-    // 7. Forzar también al cargar la aplicación
+    // 7. Forzar al cargar completamente
     window.addEventListener('load', function() {
-        setTimeout(forzarOrientacionHorizontal, 200);
-    });  
+        setTimeout(aplicarRotacionMovil, 100);
+    });
+    
+    // 8. OPCIÓN NUCLEAR: Si nada funciona, redirigir a versión forzada
+    function opcionNuclearSiNoFunciona() {
+        if (!esMovil()) return;
+        
+        setTimeout(function() {
+            const contenedor = document.getElementById('contenedor-rotado-movil');
+            if (!contenedor) {
+                console.log('⚡ OPCIÓN NUCLEAR: Aplicando rotación extrema');
+                aplicarRotacionMovil();
+                
+                // Forzar aún más
+                document.body.style.transform = 'rotate(90deg)';
+                document.body.style.transformOrigin = 'center';
+                document.body.style.width = '100vh';
+                document.body.style.height = '100vw';
+                document.body.style.position = 'fixed';
+                document.body.style.top = '0';
+                document.body.style.left = '0';
+            }
+        }, 500);
+    }
+    
+    // Ejecutar opción nuclear después de 1 segundo
+    setTimeout(opcionNuclearSiNoFunciona, 1000);
 })();
