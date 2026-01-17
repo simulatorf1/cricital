@@ -6528,7 +6528,6 @@ class F1Manager {
     // ========================
     // DASHBOARD COMPLETO (igual que antes)
     // ========================
-
     
     async cargarDashboardCompleto() {
         console.log('📊 Cargando dashboard COMPLETO con CSS...');
@@ -6650,677 +6649,6 @@ class F1Manager {
                     align-items: center;
                     gap: 5px;
                 }
-                
-                /* ==================== */
-                /* HEADER COMPACTO MODIFICADO */
-                /* ==================== */
-                .dashboard-header {
-                    background: rgba(21, 21, 30, 0.95);
-                    padding: 5px 15px !important;
-                    border-bottom: 2px solid rgba(0, 210, 190, 0.3);
-                    display: flex !important;
-                    flex-direction: column !important;
-                    gap: 8px !important;
-                    height: auto !important;
-                    min-height: unset !important;
-                }
-                
-                .header-compacto {
-                    display: flex !important;
-                    justify-content: space-between !important;
-                    align-items: center !important;
-                    width: 100% !important;
-                    gap: 15px !important;
-                }
-                
-                .logo-section {
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 10px !important;
-                    flex: 0 0 auto !important;
-                }
-                
-                .logo {
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 8px !important;
-                }
-                
-                .logo i {
-                    color: #00d2be;
-                    font-size: 1.2rem !important;
-                }
-                
-                #escuderia-nombre {
-                    color: white;
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 1.1rem !important;
-                    font-weight: bold;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    max-width: 180px;
-                }
-                
-                .team-tag {
-                    display: none !important;
-                }
-                
-                .stats-compactas {
-                    display: flex !important;
-                    gap: 15px !important;
-                    flex: 1 !important;
-                    justify-content: center !important;
-                }
-                
-                .stat-card-compact {
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 6px !important;
-                    padding: 6px 12px !important;
-                    background: rgba(255, 255, 255, 0.05) !important;
-                    border-radius: 8px !important;
-                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                    min-width: 100px !important;
-                    justify-content: center !important;
-                }
-                
-                .stat-card-compact i {
-                    font-size: 0.9rem !important;
-                    color: #00d2be;
-                }
-                
-                .stat-content-compact {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2px;
-                }
-                
-                .stat-label-compact {
-                    font-size: 0.7rem !important;
-                    color: #aaa;
-                    white-space: nowrap;
-                }
-                
-                .stat-value-compact {
-                    font-size: 0.9rem !important;
-                    font-weight: bold;
-                    color: white;
-                    font-family: 'Orbitron', sans-serif;
-                }
-                
-                .user-menu-compact {
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 10px !important;
-                    flex: 0 0 auto !important;
-                }
-                
-                .logout-btn-compact {
-                    background: transparent !important;
-                    border: 1px solid rgba(225, 6, 0, 0.4) !important;
-                    color: #e10600 !important;
-                    padding: 5px 10px !important;
-                    border-radius: 5px !important;
-                    font-size: 0.8rem !important;
-                    cursor: pointer !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 5px !important;
-                    transition: all 0.3s !important;
-                    white-space: nowrap !important;
-                }
-                
-                .logout-btn-compact:hover {
-                    background: rgba(225, 6, 0, 0.1) !important;
-                }
-                
-                /* ==================== */
-                /* TABS COMPACTAS */
-                /* ==================== */
-                .tabs-navigation {
-                    display: flex !important;
-                    gap: 3px !important;
-                    width: 100% !important;
-                    justify-content: center !important;
-                    padding: 0 !important;
-                    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-                    padding-top: 8px !important;
-                }
-                
-                .tab-btn {
-                    padding: 6px 12px !important;
-                    font-size: 0.8rem !important;
-                    min-height: 32px !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    gap: 6px !important;
-                    flex: 1 !important;
-                    max-width: 120px !important;
-                }
-                
-                .tab-btn i {
-                    font-size: 0.9rem !important;
-                }
-                
-                /* ==================== */
-                /* COLUMNAS COMPACTAS */
-                /* ==================== */
-                .three-columns-layout {
-                    display: flex !important;
-                    flex-direction: row !important;
-                    gap: 10px !important;
-                    margin: 10px 0 !important;
-                    width: 100% !important;
-                    height: 280px !important; /* REDUCIDO */
-                    align-items: stretch !important;
-                }
-                
-                .col-estrategas {
-                    flex: 0 0 300px !important;
-                    height: 100% !important;
-                    background: rgba(30,30,40,0.8) !important;
-                    border-radius: 8px !important;
-                    border: 1px solid rgba(0,210,190,0.2) !important;
-                    padding: 8px !important;
-                }
-                
-                .col-countdown {
-                    flex: 1 !important;
-                    min-width: 0 !important;
-                    height: 100% !important;
-                    background: rgba(30,30,40,0.8) !important;
-                    border-radius: 8px !important;
-                    border: 1px solid rgba(0,210,190,0.2) !important;
-                    padding: 10px !important;
-                }
-                
-                .col-fabrica {
-                    flex: 1 !important;
-                    min-width: 0 !important;
-                    height: 100% !important;
-                    background: rgba(30,30,40,0.8) !important;
-                    border-radius: 8px !important;
-                    border: 1px solid rgba(0,210,190,0.2) !important;
-                    padding: 10px !important;
-                }
-                
-                .panel-pilotos.compacto {
-                    height: 100% !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                }
-                
-                .section-header {
-                    padding-bottom: 6px !important;
-                    margin-bottom: 6px !important;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-                }
-                
-                .section-header h2 {
-                    margin: 0 !important;
-                    font-size: 1rem !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 6px !important;
-                }
-                
-                .badge {
-                    background: rgba(0, 210, 190, 0.2) !important;
-                    color: #00d2be !important;
-                    padding: 2px 8px !important;
-                    border-radius: 10px !important;
-                    font-size: 0.7rem !important;
-                    font-weight: bold !important;
-                }
-                
-                .pilotos-container {
-                    flex: 1 !important;
-                    overflow-y: auto !important;
-                    max-height: 200px !important;
-                    padding-right: 3px !important;
-                }
-                
-                /* ==================== */
-                /* ESTRATEGAS SUPER COMPACTOS */
-                /* ==================== */
-                .estratega-card-compact {
-                    background: rgba(255, 255, 255, 0.03) !important;
-                    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-                    border-radius: 6px !important;
-                    padding: 6px !important;
-                    margin-bottom: 5px !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 8px !important;
-                    min-height: 45px !important;
-                }
-                
-                .estratega-avatar-compact {
-                    width: 30px !important;
-                    height: 30px !important;
-                    border-radius: 50% !important;
-                    background: rgba(0, 210, 190, 0.2) !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    font-size: 0.9rem !important;
-                    color: #00d2be !important;
-                    flex-shrink: 0 !important;
-                }
-                
-                .estratega-info-compact {
-                    flex: 1 !important;
-                    min-width: 0 !important;
-                }
-                
-                .estratega-nombre-compact {
-                    font-size: 0.8rem !important;
-                    font-weight: bold !important;
-                    color: white !important;
-                    margin-bottom: 2px !important;
-                    white-space: nowrap !important;
-                    overflow: hidden !important;
-                    text-overflow: ellipsis !important;
-                }
-                
-                .estratega-especialidad-compact {
-                    font-size: 0.7rem !important;
-                    color: #aaa !important;
-                    white-space: nowrap !important;
-                    overflow: hidden !important;
-                    text-overflow: ellipsis !important;
-                }
-                
-                .estratega-bono-compact {
-                    font-size: 0.65rem !important;
-                    color: #4CAF50 !important;
-                    font-weight: bold !important;
-                    background: rgba(76, 175, 80, 0.1) !important;
-                    padding: 1px 4px !important;
-                    border-radius: 3px !important;
-                    white-space: nowrap !important;
-                }
-                
-                /* ==================== */
-                /* COUNTDOWN COMPACTO */
-                /* ==================== */
-                .countdown-section {
-                    height: 100% !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                }
-                
-                #countdown-container {
-                    flex: 1 !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                    justify-content: center !important;
-                    align-items: center !important;
-                    gap: 10px !important;
-                }
-                
-                .countdown-timer {
-                    display: flex !important;
-                    gap: 5px !important;
-                    justify-content: center !important;
-                    align-items: center !important;
-                }
-                
-                .time-block {
-                    display: flex !important;
-                    flex-direction: column !important;
-                    align-items: center !important;
-                    min-width: 50px !important;
-                }
-                
-                .time-number {
-                    font-size: 1.5rem !important;
-                    font-family: 'Orbitron', sans-serif !important;
-                    font-weight: bold !important;
-                    color: #00d2be !important;
-                    background: rgba(0, 210, 190, 0.1) !important;
-                    padding: 5px !important;
-                    border-radius: 5px !important;
-                    min-width: 40px !important;
-                    text-align: center !important;
-                }
-                
-                .time-label {
-                    font-size: 0.6rem !important;
-                    color: #aaa !important;
-                    margin-top: 2px !important;
-                }
-                
-                .time-separator {
-                    color: #00d2be !important;
-                    font-size: 1.2rem !important;
-                    font-weight: bold !important;
-                    margin: 0 2px !important;
-                }
-                
-                .proximo-gp {
-                    text-align: center !important;
-                    width: 100% !important;
-                }
-                
-                .proximo-gp h3 {
-                    font-size: 0.9rem !important;
-                    color: white !important;
-                    margin: 5px 0 !important;
-                    white-space: nowrap !important;
-                    overflow: hidden !important;
-                    text-overflow: ellipsis !important;
-                }
-                
-                .gp-info {
-                    display: flex !important;
-                    flex-direction: column !important;
-                    gap: 4px !important;
-                    margin-bottom: 8px !important;
-                }
-                
-                .gp-date, .gp-circuit {
-                    font-size: 0.75rem !important;
-                    color: #aaa !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    gap: 5px !important;
-                }
-                
-                #btn-apostar {
-                    padding: 6px 12px !important;
-                    font-size: 0.8rem !important;
-                    min-height: 32px !important;
-                    width: 100% !important;
-                    max-width: 150px !important;
-                }
-                
-                /* ==================== */
-                /* PRODUCCIÓN COMPACTA */
-                /* ==================== */
-                .monitor-fabrica {
-                    height: 100% !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                }
-                
-                .produccion-actual {
-                    flex: 1 !important;
-                    overflow-y: auto !important;
-                    padding-right: 3px !important;
-                }
-                
-                .produccion-slots {
-                    display: grid !important;
-                    grid-template-columns: repeat(2, 1fr) !important;
-                    grid-template-rows: repeat(2, 1fr) !important;
-                    gap: 6px !important;
-                    height: 100% !important;
-                    padding: 2px !important;
-                }
-                
-                .produccion-slot {
-                    background: rgba(255, 255, 255, 0.03) !important;
-                    border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
-                    border-radius: 6px !important;
-                    padding: 8px 6px !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    cursor: pointer !important;
-                    transition: all 0.2s ease !important;
-                    height: 85px !important;
-                    min-height: 85px !important;
-                }
-                
-                .produccion-slot:hover {
-                    border-color: rgba(0, 210, 190, 0.4) !important;
-                    background: rgba(0, 210, 190, 0.05) !important;
-                    transform: translateY(-1px) !important;
-                }
-                
-                .slot-content {
-                    text-align: center !important;
-                    width: 100% !important;
-                }
-                
-                .slot-content i {
-                    font-size: 1.1rem !important;
-                    color: #00d2be !important;
-                    margin-bottom: 5px !important;
-                }
-                
-                .slot-content span {
-                    display: block !important;
-                    font-size: 0.75rem !important;
-                    color: #888 !important;
-                    line-height: 1.1 !important;
-                }
-                
-                .produccion-activa {
-                    border-color: rgba(0, 210, 190, 0.25) !important;
-                    background: rgba(0, 210, 190, 0.04) !important;
-                }
-                
-                .produccion-lista {
-                    border-color: #4CAF50 !important;
-                    background: rgba(76, 175, 80, 0.15) !important;
-                    animation: pulse-green 2s infinite !important;
-                }
-                
-                .produccion-info {
-                    width: 100% !important;
-                    text-align: center !important;
-                }
-                
-                .produccion-nombre {
-                    display: block !important;
-                    font-weight: bold !important;
-                    font-size: 0.75rem !important;
-                    color: white !important;
-                    margin-bottom: 2px !important;
-                    white-space: nowrap !important;
-                    overflow: hidden !important;
-                    text-overflow: ellipsis !important;
-                }
-                
-                .produccion-tiempo {
-                    display: block !important;
-                    font-size: 0.65rem !important;
-                    color: #00d2be !important;
-                    margin-bottom: 1px !important;
-                    line-height: 1 !important;
-                }
-                
-                .produccion-lista-text {
-                    color: #4CAF50 !important;
-                    font-weight: bold !important;
-                    animation: blink 1s infinite !important;
-                }
-                
-                .produccion-icon {
-                    font-size: 1.1rem !important;
-                    margin-bottom: 5px !important;
-                    height: 22px !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                }
-                
-                /* ==================== */
-                /* PIEZAS MONTADAS */
-                /* ==================== */
-                .piezas-montadas {
-                    margin-top: 15px !important;
-                    padding: 10px !important;
-                    background: rgba(30,30,40,0.8) !important;
-                    border-radius: 8px !important;
-                    border: 1px solid rgba(0,210,190,0.2) !important;
-                }
-                
-                /* ==================== */
-                /* BOTÓN GESTIONAR ESTRATEGAS COMPACTO */
-                /* ==================== */
-                .btn-contratar-todos {
-                    margin-top: 6px !important;
-                    padding: 5px 8px !important;
-                    background: rgba(0,210,190,0.1) !important;
-                    border: 1px solid rgba(0,210,190,0.4) !important;
-                    color: #00d2be !important;
-                    border-radius: 5px !important;
-                    font-size: 0.7rem !important;
-                    cursor: pointer !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    gap: 4px !important;
-                    width: 100% !important;
-                    min-height: 28px !important;
-                }
-                
-                /* ==================== */
-                /* FOOTER CON LOGOUT */
-                /* ==================== */
-                .dashboard-footer {
-                    margin-top: 10px !important;
-                    padding: 8px 15px !important;
-                    background: rgba(21, 21, 30, 0.95) !important;
-                    border-top: 2px solid rgba(0, 210, 190, 0.3) !important;
-                    display: flex !important;
-                    justify-content: flex-end !important;
-                }
-                
-                .footer-logout-btn {
-                    background: transparent !important;
-                    border: 1px solid rgba(225, 6, 0, 0.4) !important;
-                    color: #e10600 !important;
-                    padding: 6px 12px !important;
-                    border-radius: 5px !important;
-                    font-size: 0.8rem !important;
-                    cursor: pointer !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 5px !important;
-                    transition: all 0.3s !important;
-                }
-                
-                .footer-logout-btn:hover {
-                    background: rgba(225, 6, 0, 0.1) !important;
-                }
-                
-                /* ==================== */
-                /* RESPONSIVE */
-                /* ==================== */
-                @media (max-width: 1200px) {
-                    .three-columns-layout {
-                        height: 320px !important;
-                    }
-                    
-                    .col-estrategas {
-                        flex: 0 0 250px !important;
-                    }
-                    
-                    #escuderia-nombre {
-                        max-width: 150px;
-                    }
-                }
-                
-                @media (max-width: 900px) {
-                    .header-compacto {
-                        flex-wrap: wrap;
-                        gap: 10px;
-                    }
-                    
-                    .stats-compactas {
-                        order: 3;
-                        width: 100%;
-                        justify-content: space-between;
-                    }
-                    
-                    .three-columns-layout {
-                        flex-direction: column;
-                        height: auto;
-                    }
-                    
-                    .col-estrategas, .col-countdown, .col-fabrica {
-                        width: 100%;
-                        flex: none;
-                        height: 250px;
-                    }
-                }
-                
-                @media (max-width: 600px) {
-                    .stats-compactas {
-                        gap: 8px;
-                    }
-                    
-                    .stat-card-compact {
-                        padding: 4px 8px;
-                        min-width: 80px;
-                    }
-                    
-                    .stat-value-compact {
-                        font-size: 0.8rem;
-                    }
-                    
-                    .tabs-navigation {
-                        overflow-x: auto;
-                        justify-content: flex-start;
-                    }
-                    
-                    .tab-btn {
-                        min-width: 100px;
-                        flex: 0 0 auto;
-                    }
-                    
-                    .grid-11-columns {
-                        grid-template-columns: repeat(6, 1fr) !important;
-                        height: auto !important;
-                    }
-                    
-                    .boton-area-montada, .boton-area-vacia {
-                        height: 70px !important;
-                        min-height: 70px !important;
-                    }
-                }
-                
-                @media (max-width: 480px) {
-                    .grid-11-columns {
-                        grid-template-columns: repeat(4, 1fr) !important;
-                    }
-                    
-                    .tab-btn {
-                        min-width: 90px;
-                        font-size: 0.75rem;
-                        padding: 5px 8px;
-                    }
-                    
-                    .stat-label-compact {
-                        font-size: 0.6rem;
-                    }
-                    
-                    .stat-value-compact {
-                        font-size: 0.75rem;
-                    }
-                }
-                
-                /* ==================== */
-                /* ANIMACIONES */
-                /* ==================== */
-                @keyframes pulse-green {
-                    0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
-                    70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
-                }
-                
-                @keyframes blink {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.7; }
-                }
             `;
             document.head.appendChild(style);
         }
@@ -7328,45 +6656,53 @@ class F1Manager {
         // 1. Crear el HTML COMPLETO
         document.body.innerHTML = `
             <div id="app">
-                <!-- Header Compacto -->
+                <!-- Header -->
                 <header class="dashboard-header">
-                    <!-- Fila 1: Todo en una sola línea -->
-                    <div class="header-compacto">
-                        <!-- Logo y nombre de escudería -->
+                    <div class="header-top">
                         <div class="logo-section">
                             <div class="logo">
                                 <i class="fas fa-flag-checkered"></i>
                                 <span id="escuderia-nombre">${this.escuderia.nombre}</span>
                             </div>
+                            <span class="team-tag">#F1MANAGER</span>
                         </div>
                         
-                        <!-- Stats compactas -->
-                        <div class="stats-compactas">
-                            <div class="stat-card-compact money">
+                        <div class="stats-header">
+                            <div class="stat-card money">
                                 <i class="fas fa-coins"></i>
-                                <div class="stat-content-compact">
-                                    <span class="stat-label-compact">FONDOS</span>
-                                    <span class="stat-value-compact" id="money-value">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
+                                <div>
+                                    <span class="stat-label">FONDOS</span>
+                                    <span class="stat-value" id="money-value">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
                                 </div>
                             </div>
-                            <div class="stat-card-compact points">
+                            <div class="stat-card points">
                                 <i class="fas fa-trophy"></i>
-                                <div class="stat-content-compact">
-                                    <span class="stat-label-compact">PUNTOS</span>
-                                    <span class="stat-value-compact" id="points-value">${this.escuderia.puntos || 0}</span>
+                                <div>
+                                    <span class="stat-label">PUNTOS</span>
+                                    <span class="stat-value" id="points-value">${this.escuderia.puntos || 0}</span>
                                 </div>
                             </div>
-                            <div class="stat-card-compact ranking">
+                            <div class="stat-card ranking">
                                 <i class="fas fa-medal"></i>
-                                <div class="stat-content-compact">
-                                    <span class="stat-label-compact">RANKING</span>
-                                    <span class="stat-value-compact" id="ranking-value">#${this.escuderia.ranking || '-'}</span>
+                                <div>
+                                    <span class="stat-label">RANKING</span>
+                                    <span class="stat-value" id="ranking-value">#${this.escuderia.ranking || '-'}</span>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div class="user-menu">
+                            <button class="user-btn" id="user-btn">
+                                <i class="fas fa-user"></i>
+                                <span>${this.user.email?.split('@')[0] || 'Usuario'}</span>
+                            </button>
+                            <button class="logout-btn-visible" id="logout-btn-visible" title="Cerrar sesión" onclick="console.log('DEBUG: Botón clickeado'); testLogout()">
+                                <i class="fas fa-sign-out-alt"></i> Salir
+                            </button>
                         </div>
                     </div>
                     
-                    <!-- Tabs Navigation (misma fila) -->
+                    <!-- Tabs Navigation -->
                     <nav class="tabs-navigation">
                         <button class="tab-btn active" data-tab="principal">
                             <i class="fas fa-home"></i> Principal
@@ -7393,32 +6729,46 @@ class F1Manager {
                 <main class="dashboard-content">
                     <!-- Tab Principal -->
                     <div id="tab-principal" class="tab-content active">
-                        <!-- Three Columns Layout Compacto -->
-                        <div class="three-columns-layout">
+                        <!-- Three Columns Layout -->
+                        <div class="three-columns-layout" style="display: flex; flex-direction: row; gap: 20px; margin: 20px 0; width: 100%; height: 380px; align-items: stretch;">
                             
-                            <!-- Columna 1: Estrategas Super Compactos -->
-                            <div class="col-estrategas">
-                                <section class="panel-pilotos compacto">
-                                    <div class="section-header">
-                                        <h2><i class="fas fa-users"></i> ESTRATEGAS</h2>
+                            <!-- Columna 1: Estrategas Compactos -->
+                            <div class="col-estrategas" style="flex: 0 0 320px; height: 100%; background: rgba(30,30,40,0.8); border-radius: 10px; border: 1px solid rgba(0,210,190,0.3); padding: 10px;">
+                                <section class="panel-pilotos compacto" style="height: 100%; display: flex; flex-direction: column;">
+                                    <div class="section-header" style="padding-bottom: 8px;">
+                                        <h2 style="margin: 0; font-size: 1.1rem;"><i class="fas fa-users"></i> ESTRATEGAS</h2>
                                         <span class="badge" id="contador-estrategas">0/4</span>
                                     </div>
-                                    <div id="pilotos-container" class="pilotos-container">
+                                    <div id="pilotos-container" class="pilotos-container" style="flex: 1; overflow: hidden;">
                                         <!-- Contenido dinámico -->
                                     </div>
-                                    <button class="btn-contratar-todos" onclick="gestionarEstrategas()">
+                                    <button class="btn-contratar-todos" onclick="gestionarEstrategas()" style="
+                                        margin-top: 8px;
+                                        padding: 6px 10px;
+                                        background: rgba(0,210,190,0.1);
+                                        border: 1px solid rgba(0,210,190,0.4);
+                                        color: #00d2be;
+                                        border-radius: 5px;
+                                        font-size: 0.75rem;
+                                        cursor: pointer;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        gap: 5px;
+                                    ">
                                         <i class="fas fa-plus"></i> GESTIONAR ESTRATEGAS
                                     </button>
                                 </section>
                             </div>
                             
-                            <!-- Columna 2: Countdown Compacto -->
-                            <div class="col-countdown">
-                                <div class="countdown-section">
+                            <!-- Columna 2: Countdown y GP -->
+                            <div class="col-countdown" style="flex: 1; min-width: 0; height: 100%; background: rgba(30,30,40,0.8); border-radius: 10px; border: 1px solid rgba(0,210,190,0.3); padding: 15px;">
+                                <div class="countdown-section" style="height: 100%; display: flex; flex-direction: column;">
                                     <div class="section-header">
                                         <h2><i class="fas fa-clock"></i> PRÓXIMA CARRERA</h2>
+                                        <span class="tag upcoming">EN VIVO</span>
                                     </div>
-                                    <div id="countdown-container">
+                                    <div id="countdown-container" style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                                         <div class="countdown-timer">
                                             <div class="time-block">
                                                 <span class="time-number" id="hours">00</span>
@@ -7455,14 +6805,18 @@ class F1Manager {
                                 </div>
                             </div>
                             
-                            <!-- Columna 3: Monitor de Fábrica Compacto -->
-                            <div class="col-fabrica">
-                                <div class="monitor-fabrica">
+                            <!-- Columna 3: Monitor de Fábrica -->
+                            <div class="col-fabrica" style="flex: 1; min-width: 0; height: 100%; background: rgba(30,30,40,0.8); border-radius: 10px; border: 1px solid rgba(0,210,190,0.3); padding: 15px;">
+                                <div class="monitor-fabrica" style="height: 100%; display: flex; flex-direction: column;">
                                     <div class="section-header">
                                         <h2><i class="fas fa-industry"></i> PRODUCCIÓN</h2>
+                                        <div id="alerta-almacen" class="alerta-almacen" style="display: none;">
+                                            <i class="fas fa-bell"></i>
+                                            <span>¡Piezas nuevas en almacén!</span>
+                                        </div>
                                     </div>
-                                    <div id="produccion-actual" class="produccion-actual">
-                                        <!-- Grid de 4 slots -->
+                                    <div id="produccion-actual" class="produccion-actual" style="flex: 1; overflow-y: auto; padding-right: 5px;">
+                                        <!-- Grid de 4 slots como estrategas -->
                                         <div id="produccion-slots" class="produccion-slots">
                                             <div class="produccion-slot" data-slot="0" onclick="irAlTallerDesdeProduccion()">
                                                 <div class="slot-content">
@@ -7518,54 +6872,60 @@ class F1Manager {
                     <div id="tab-clasificacion" class="tab-content"></div>
                 </main>
                 
-                <!-- Footer con botón de logout -->
+                <!-- Footer -->
                 <footer class="dashboard-footer">
-                    <button class="footer-logout-btn" onclick="logoutUser()">
-                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-                    </button>
+                    <div class="footer-content">
+                    </div>
                 </footer>
             </div>
             
             <!-- Scripts -->
             <script>
-                // Función para logout
-                async function logoutUser() {
+                // Ocultar loading screen después de 1 segundo
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                }, 1000);
+                
+                // Configurar eventos del usuario
+                document.getElementById('user-menu-btn').addEventListener('click', () => {
+                    document.getElementById('user-dropdown').classList.toggle('show');
+                });
+                
+                document.getElementById('logout-btn').addEventListener('click', async (e) => {
+                    e.preventDefault();
                     try {
+                        // Usar window.supabase que es la instancia global
                         const supabaseClient = window.supabase;
                         if (supabaseClient) {
                             await supabaseClient.auth.signOut();
                             console.log('✅ Sesión cerrada');
                         }
+                        // Forzar recarga completa para volver al login
                         window.location.href = window.location.origin;
                     } catch (error) {
                         console.error('❌ Error cerrando sesión:', error);
+                        // Si falla, recargar de todas formas para limpiar
                         window.location.href = window.location.origin;
                     }
-                }
-                
-                // Tabs functionality
-                document.querySelectorAll('.tab-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        // Remove active class from all tabs
-                        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                        
-                        // Add active class to clicked tab
-                        btn.classList.add('active');
-                        const tabId = btn.dataset.tab;
-                        document.getElementById('tab-' + tabId).classList.add('active');
-                        
-                        // Load content for specific tabs
-                        if (tabId === 'principal' && window.cargarContenidoPrincipal) {
-                            window.cargarContenidoPrincipal();
-                        }
-                        if (tabId === 'taller' && window.f1Manager && window.f1Manager.cargarTabTaller) {
-                            window.f1Manager.cargarTabTaller();
-                        }
-                    });
                 });
                 
-                // Función para cargar contenido principal
+                document.getElementById('refresh-btn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    location.reload();
+                });
+
+
+                
+                // Cerrar dropdown al hacer clic fuera
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.user-menu')) {
+                        document.getElementById('user-dropdown').classList.remove('show');
+                    }
+                });
+                
+                // =============================================
+                // ¡¡IMPORTANTE!! Esta función se debe llamar al cambiar a la pestaña principal
+                // =============================================
                 window.cargarContenidoPrincipal = async function() {
                     if (window.f1Manager) {
                         // Cargar piezas montadas
@@ -7589,57 +6949,94 @@ class F1Manager {
                         window.cargarContenidoPrincipal();
                     }
                     
-                    // Configurar botón de apuesta
-                    const apostarBtn = document.getElementById('btn-apostar');
-                    if (apostarBtn) {
-                        apostarBtn.addEventListener('click', () => {
-                            // Implementar lógica de apuestas
-                            console.log('Abriendo sistema de apuestas...');
+                    // ===== AÑADE ESTO DENTRO DEL TIMEOUT =====
+                    // Configurar evento para botón de cerrar sesión visible
+                    const logoutBtn = document.getElementById('logout-btn-visible');
+                    if (logoutBtn) {
+                        logoutBtn.addEventListener('click', async (e) => {
+                            e.preventDefault();
+                            try {
+                                const supabaseClient = window.supabase;
+                                if (supabaseClient) {
+                                    await supabaseClient.auth.signOut();
+                                    console.log('✅ Sesión cerrada');
+                                    // Forzar recarga completa para ir al login
+                                    window.location.href = window.location.origin;
+                                }
+                            } catch (error) {
+                                console.error('❌ Error cerrando sesión:', error);
+                                // Si falla, recargar de todas formas
+                                window.location.href = window.location.origin;
+                            }
                         });
+                    } else {
+                        console.error('❌ No se encontró el botón logout-btn-visible');
                     }
+                    // ===== FIN DE LO QUE AÑADES =====
                     
-                    // Iniciar countdown
-                    iniciarCountdown();
-                }, 100);
-                
-                // Función de countdown simple
-                function iniciarCountdown() {
-                    const hoursEl = document.getElementById('hours');
-                    const minutesEl = document.getElementById('minutes');
-                    const secondsEl = document.getElementById('seconds');
-                    
-                    // Simular próximo GP en 24 horas
-                    const targetTime = new Date();
-                    targetTime.setHours(targetTime.getHours() + 24);
-                    
-                    function updateCountdown() {
-                        const now = new Date();
-                        const diff = targetTime - now;
-                        
-                        if (diff <= 0) {
-                            hoursEl.textContent = '00';
-                            minutesEl.textContent = '00';
-                            secondsEl.textContent = '00';
-                            return;
-                        }
-                        
-                        const hours = Math.floor(diff / (1000 * 60 * 60));
-                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                        
-                        hoursEl.textContent = hours.toString().padStart(2, '0');
-                        minutesEl.textContent = minutes.toString().padStart(2, '0');
-                        secondsEl.textContent = seconds.toString().padStart(2, '0');
-                    }
-                    
-                    updateCountdown();
-                    setInterval(updateCountdown, 1000);
-                }
+                }, 1500);
             </script>
         `;
         
-        // 2. Inicializar sistemas
-        this.inicializarDashboard();
+        // 2. INICIALIZAR SISTEMAS CRÍTICOS INMEDIATAMENTE
+        setTimeout(async () => {
+            console.log('🔧 Inicializando sistemas críticos del dashboard...');
+            
+            // A. Asegurar que fabricacionManager existe
+            if (!window.fabricacionManager && window.FabricacionManager) {
+                window.fabricacionManager = new window.FabricacionManager();
+                if (this.escuderia) {
+                    await window.fabricacionManager.inicializar(this.escuderia.id);
+                }
+            }
+            
+            // B. Configurar sistema de pestañas CON LA FUNCIÓN DE RECARGA
+            setTimeout(() => {
+                if (window.tabManager && window.tabManager.setup) {
+                    // Guardar el switchTab original
+                    const originalSwitchTab = window.tabManager.switchTab;
+                    
+                    // Sobrescribir para que recargue contenido al volver a principal
+                    window.tabManager.switchTab = function(tabId) {
+                        // Llamar al original
+                        originalSwitchTab.call(this, tabId);
+                        
+                        // Si es la pestaña principal, recargar contenido
+                        if (tabId === 'principal') {
+                            setTimeout(() => {
+                                if (window.cargarContenidoPrincipal) {
+                                    window.cargarContenidoPrincipal();
+                                }
+                            }, 100);
+                        }
+                    };
+                    
+                    window.tabManager.setup();
+                }
+            }, 400);
+            
+            // 3. Cargar datos iniciales
+            const supabase = await this.esperarSupabase();
+            if (supabase) {
+                await this.loadCarStatus();
+                await this.loadPilotosContratados();
+                await this.loadProximoGP();
+                
+                // 4. Cargar piezas montadas INMEDIATAMENTE
+                setTimeout(async () => {
+                    await this.cargarPiezasMontadas();
+                }, 500);
+            }
+            
+            console.log('✅ Dashboard cargado correctamente con CSS');
+            // QUITAR LA PANTALLA DE CARGA
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('f1-loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.remove();
+                }
+            }, 500);
+        }, 1000);
     }
         
     async loadProximoGP() {
