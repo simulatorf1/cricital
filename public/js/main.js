@@ -6546,10 +6546,12 @@ class F1Manager {
                 /* ESTILOS COMPACTOS CON FUNCIONALIDAD ORIGINAL */
                 /* ==================== */
                 #app {
-                    display: flex;
+
                     flex-direction: column;
                     min-height: 100vh; /* ← CAMBIAR height por min-height */
                     overflow: visible; /* ← CAMBIAR hidden por visible o auto */
+                    display: block !important; /* Cambiar flex por block */
+                    position: relative !important;
                 }
                 
                 html, body {
@@ -6567,6 +6569,9 @@ class F1Manager {
                     padding: 8px 15px;
                     height: 50px;
                     flex-shrink: 0;
+                    position: sticky;
+                    top: 0;
+                    z-index: 100;
                 }
                 
                 /* Contenedor izquierdo: Logo y dinero */
@@ -6674,10 +6679,11 @@ class F1Manager {
                 .dashboard-content {
                     padding: 10px;
                     flex: 1;
-                    overflow-y: auto;
-                    min-height: 0;
-                    /* Añade esto: */
                     position: relative;
+                    height: auto !important;
+                    min-height: calc(100vh - 150px) !important; /* Resta header y footer */
+                    overflow: visible !important;
+                    padding-bottom: 20px;
                 }
                 
                 /* Grid de 3 columnas MÁS COMPACTO */
@@ -6854,6 +6860,10 @@ class F1Manager {
                     justify-content: space-between; /* ← Esto pone usuario a la izq, botón a la der */
                     align-items: center;
                     flex-shrink: 0;
+                    position: relative !important;
+                    bottom: 0 !important;
+                    width: 100%;
+                    z-index: 99;
                 }
                 
                 .user-info-compacto {
@@ -6879,6 +6889,9 @@ class F1Manager {
                         height: auto;
                         padding: 8px 10px; /* ← Reducir padding */
                         gap: 8px; /* ← Reducir gap */
+                        position: sticky;
+                        top: 0;
+                        z-index: 100;
                         padding-bottom: 10px; /* ← REDUCIR A 10px (era 40px) */
                     }
                     
