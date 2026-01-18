@@ -1196,12 +1196,13 @@ const produccionStyles = `
     .produccion-slots {
         display: grid;
         grid-template-columns: repeat(2, 1fr) !important;
-        grid-template-rows: 60px 60px !important;
-
+        grid-template-rows: 80px 80px !important;
+        row-gap: 10px !important;          /* ← AÑADIR espacio vertical */
+        align-content: start !important;   /* ← AÑADIR alineación */
         padding: 5px;     
 
         gap: 5px !important;
-        height: 150px !important; /* ← La altura que elegiste */
+        height: 170px !important; /* ← La altura que elegiste */
         min-width: 300px !important; /* ← NUEVO: ancho mínimo */
     }
     
