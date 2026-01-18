@@ -6673,9 +6673,11 @@ class F1Manager {
                 /* ==================== */
                 .dashboard-content {
                     padding: 10px;
-                    flex: 1; /* ← AÑADE ESTO */
-                    overflow-y: auto; /* ← Esto SÍ aquí */
-                    min-height: 0; /* ← IMPORTANTE para que funcione flex:1 */
+                    flex: 1;
+                    overflow-y: auto;
+                    min-height: 0;
+                    /* Añade esto: */
+                    position: relative;
                 }
                 
                 /* Grid de 3 columnas MÁS COMPACTO */
