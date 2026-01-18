@@ -7062,20 +7062,7 @@ class F1Manager {
                                             </div>
                                         </div>
                                         <div class="proximo-gp">
-                                            <h3 id="gp-nombre">Cargando próximo GP...</h3>
-                                            <div class="gp-info">
-                                                <div class="gp-date">
-                                                    <i class="far fa-calendar"></i>
-                                                    <span id="gp-fecha">Fecha por confirmar</span>
-                                                </div>
-                                                <div class="gp-circuit">
-                                                    <i class="fas fa-map-marker-alt"></i>
-                                                    <span id="gp-circuito">Circuito por confirmar</span>
-                                                </div>
-                                            </div>
-                                            <button class="btn-primary" id="btn-apostar">
-                                                <i class="fas fa-coins"></i> HACER APUESTA
-                                            </button>
+               
                                         </div>
                                     </div>
                                 </div>
