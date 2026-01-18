@@ -1195,13 +1195,12 @@ const produccionStyles = `
     /* Grid de producción como estrategas */
     .produccion-slots {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-
+        grid-template-rows: 65px 65px !important;  /* ← CAMBIA ESTO */
         gap: 8px;
-
-        height: 90px !important;
+        height: 150px !important;  /* ← CAMBIA ESTO */
         grid-template-rows: 45px 45px !important;
-        padding: 2px;
+        padding: 2px;     
+        min-height: 150px !important;  /* ← AÑADE ESTO */      
     }
     
     .produccion-slot {
@@ -1215,12 +1214,8 @@ const produccionStyles = `
         justify-content: center;
         cursor: pointer;
         transition: all 0.2s ease;
-        height: 40px !important;
-        min-height: 85px;
-
-        min-height: 40px !important;
-    
-    
+        height:  60px !important;
+        min-height: 60px !important;   
     }
     
     .produccion-slot:hover {
@@ -6692,8 +6687,8 @@ class F1Manager {
                     grid-template-columns: 280px 1fr 1fr; /* ← Más estrecho */
                     gap: 10px; /* ← Menos gap */
                     margin: 10px 0; /* ← Menos margen */
-                    height: 150px !important;
-                    align-items: stretch;
+                    height: 280px !important;
+                    align-items: flex-start !important;  /* ← AÑADE ESTO */
                 }
                 
                 /* Estilos para las columnas (manteniendo IDs originales) */
@@ -6702,9 +6697,12 @@ class F1Manager {
                     border: 1px solid rgba(0, 210, 190, 0.3);
                     border-radius: 8px; /* ← Reducir un poco */
                     padding: 8px; /* ← MUCHO MENOS PADDING */
-                    height: 140px !important;
+                    height: 270px !important;  /* ← CAMBIA ESTO */
                     display: flex;
                     flex-direction: column;
+                    
+                    min-height: 270px !important;  /* ← AÑADE ESTO */
+                    overflow: hidden !important;  /* ← AÑADE ESTO (opcional) */
                 }
                 
                 /* Encabezado de sección */
