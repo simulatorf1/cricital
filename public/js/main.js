@@ -1196,9 +1196,11 @@ const produccionStyles = `
     .produccion-slots {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(2, 1fr);
+
         gap: 8px;
-        height: 100%;
+
+        height: 90px !important;
+        grid-template-rows: 45px 45px !important;
         padding: 2px;
     }
     
@@ -1206,15 +1208,19 @@ const produccionStyles = `
         background: rgba(255, 255, 255, 0.03);
         border: 1.5px solid rgba(255, 255, 255, 0.08);
         border-radius: 6px;
-        padding: 8px 6px;
+        padding: 2px 1px !important;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.2s ease;
-        height: 85px;
+        height: 40px !important;
         min-height: 85px;
+
+        min-height: 40px !important;
+    
+    
     }
     
     .produccion-slot:hover {
@@ -6686,7 +6692,7 @@ class F1Manager {
                     grid-template-columns: 280px 1fr 1fr; /* ← Más estrecho */
                     gap: 10px; /* ← Menos gap */
                     margin: 10px 0; /* ← Menos margen */
-                    height: 150px; /* ← MUCHO MÁS BAJO */
+                    height: 150px !important;
                     align-items: stretch;
                 }
                 
@@ -6696,7 +6702,7 @@ class F1Manager {
                     border: 1px solid rgba(0, 210, 190, 0.3);
                     border-radius: 8px; /* ← Reducir un poco */
                     padding: 8px; /* ← MUCHO MENOS PADDING */
-                    height: 140px;
+                    height: 140px !important;
                     display: flex;
                     flex-direction: column;
                 }
