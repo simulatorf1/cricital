@@ -1216,8 +1216,8 @@ const produccionStyles = `
         justify-content: center;
         cursor: pointer;
         transition: all 0.2s ease;
-        height:  60px !important;
-        min-height: 60px !important;   
+        height:  90px !important;
+        min-height: 90px !important;   
     }
     
     .produccion-slot:hover {
