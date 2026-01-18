@@ -6684,11 +6684,10 @@ class F1Manager {
                 /* Grid de 3 columnas MÁS COMPACTO */
                 .three-columns-layout {
                     display: grid;
-                    grid-template-columns: 280px 1fr 1fr; /* ← Más estrecho */
-                    gap: 10px; /* ← Menos gap */
-                    margin: 10px 0; /* ← Menos margen */
-                    height: 280px !important;
-                    align-items: flex-start !important;  /* ← AÑADE ESTO */
+                    grid-template-columns: 1fr 1fr 1fr; /* ← TODAS IGUALES */
+                    gap: 10px;
+                    margin: 10px 0;
+                    height: 280px;
                 }
                 
                 /* Estilos para las columnas (manteniendo IDs originales) */
