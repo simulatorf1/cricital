@@ -1,6 +1,6 @@
 {
   "appId": "com.miweb.app",
-  "appName": "NombreDeMiApp",
+  "appName": "Manager Motorsport",
   "webDir": "out",
   "server": {
     "url": "https://f1-manager-game.vercel.app/",
