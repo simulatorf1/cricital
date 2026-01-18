@@ -26,78 +26,17 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Configure APK naming
+      - name: Download and setup icon
         run: |
-          # Añadir configuración para renombrar el APK en build.gradle
-          echo "" >> android/app/build.gradle
-          echo "android {" >> android/app/build.gradle
-          echo "    applicationVariants.all { variant ->" >> android/app/build.gradle
-          echo "        variant.outputs.all {" >> android/app/build.gradle
-          echo '            outputFileName = "ManagerMotorsport.apk"' >> android/app/build.gradle
-          echo "        }" >> android/app/build.gradle
-          echo "    }" >> android/app/build.gradle
-          echo "}" >> android/app/build.gradle
-
-      - name: Update app name in strings.xml
-        run: |
-          # Cambiar el nombre de la app que aparece al instalar
-          if [ -f "android/app/src/main/res/values/strings.xml" ]; then
-            sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Manager Motorsport<\/string>/' android/app/src/main/res/values/strings.xml
-            echo "Nombre de la app actualizado a: Manager Motorsport"
-          else
-            # Crear el archivo strings.xml si no existe
-            mkdir -p android/app/src/main/res/values/
-            echo '<?xml version="1.0" encoding="utf-8"?>
-            <resources>
-                <string name="app_name">Manager Motorsport</string>
-            </resources>' > android/app/src/main/res/values/strings.xml
-            echo "Archivo strings.xml creado con nombre: Manager Motorsport"
-          fi
-
-      - name: Install ImageMagick for icon resizing
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y imagemagick
-
-      - name: Setup custom icon properly
-        run: |
+          # Descargar el icono desde GitHub
+          echo "Descargando icono desde GitHub..."
+          wget -q https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/icon.png -O icon.png
+          
           if [ -f "icon.png" ]; then
-            echo "Procesando icon.png para Android..."
-            
-            # Crear todas las densidades requeridas por Android
-            mkdir -p android/app/src/main/res/mipmap-hdpi/
-            mkdir -p android/app/src/main/res/mipmap-mdpi/
-            mkdir -p android/app/src/main/res/mipmap-xhdpi/
-            mkdir -p android/app/src/main/res/mipmap-xxhdpi/
-            mkdir -p android/app/src/main/res/mipmap-xxxhdpi/
-            
-            # Redimensionar a los tamaños correctos de Android
-            # mdpi: 48x48, hdpi: 72x72, xhdpi: 96x96, xxhdpi: 144x144, xxxhdpi: 192x192
-            convert icon.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-            convert icon.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-            convert icon.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-            convert icon.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-            convert icon.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-            
-            # También crear el icono round si es necesario
-            convert icon.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
-            convert icon.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
-            convert icon.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
-            convert icon.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
-            convert icon.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
-            
-            # Configurar el AndroidManifest.xml para usar nuestro icono
-            if [ -f "android/app/src/main/AndroidManifest.xml" ]; then
-              # Buscar y reemplazar la línea del icono
-              sed -i 's/android:icon="[^"]*"/android:icon="@mipmap\/ic_launcher"/' android/app/src/main/AndroidManifest.xml
-              sed -i 's/android:roundIcon="[^"]*"/android:roundIcon="@mipmap\/ic_launcher_round"/' android/app/src/main/AndroidManifest.xml
-              echo "AndroidManifest.xml actualizado para usar el icono personalizado"
-            fi
-            
-            echo "Icono personalizado configurado correctamente en todas las densidades"
+            echo "Icono descargado correctamente"
+            ls -la icon.png
           else
-            echo "ADVERTENCIA: icon.png no encontrado en la raíz. La app usará el icono por defecto."
-            echo "Coloca un archivo icon.png en la raíz del repositorio para tener un icono personalizado."
+            echo "ERROR: No se pudo descargar el icono"
           fi
 
       - name: Sync Capacitor
@@ -105,7 +44,6 @@ jobs:
 
       - name: Force Fix Kotlin Duplicates
         run: |
-          # Creamos un script de configuración global para Gradle que elimina los duplicados de raíz
           mkdir -p android/app/gradle/
           echo "configurations.all {
               resolutionStrategy.eachDependency { DependencyResolveDetails details ->
@@ -115,7 +53,6 @@ jobs:
               }
           }" >> android/app/build.gradle
           
-          # Habilitamos Jetifier para compatibilidad de librerías antiguas
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
@@ -125,23 +62,16 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Compress APK before upload
+      - name: Rename and compress APK
         run: |
           cd android/app/build/outputs/apk/debug
-          # El APK ahora se llamará ManagerMotorsport.apk
-          if [ -f "ManagerMotorsport.apk" ]; then
-            gzip -c ManagerMotorsport.apk > ManagerMotorsport.apk.gz
-            echo "APK generado: ManagerMotorsport.apk"
-            echo "Original APK size: $(du -h ManagerMotorsport.apk | cut -f1)"
-            echo "Compressed APK size: $(du -h ManagerMotorsport.apk.gz | cut -f1)"
-          else
-            # Fallback por si el renombrado no funcionó
-            APK_FILE=$(find . -name "*.apk" -type f | head -1)
-            gzip -c "$APK_FILE" > ManagerMotorsport.apk.gz
-            mv "$APK_FILE" ManagerMotorsport.apk 2>/dev/null || true
-            echo "APK encontrado: $APK_FILE"
-            echo "Renombrado a: ManagerMotorsport.apk"
-          fi
+          # Renombrar APK
+          mv app-debug.apk ManagerMotorsport.apk
+          # Comprimir
+          gzip -c ManagerMotorsport.apk > ManagerMotorsport.apk.gz
+          echo "APK renombrado: ManagerMotorsport.apk"
+          echo "Tamaño original: $(du -h ManagerMotorsport.apk | cut -f1)"
+          echo "Tamaño comprimido: $(du -h ManagerMotorsport.apk.gz | cut -f1)"
 
       - name: Upload APK (Compressed)
         uses: actions/upload-artifact@v4
@@ -149,24 +79,23 @@ jobs:
           name: ManagerMotorsport-APK
           path: android/app/build/outputs/apk/debug/ManagerMotorsport.apk.gz
           retention-days: 7
-          if-no-files-found: warn
+          if-no-files-found: error
           overwrite: true
           compression-level: 0
 
       - name: Upload APK (Original) como fallback
-        if: failure()  # Solo si falla la versión comprimida
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ManagerMotorsport-APK-Raw
           path: android/app/build/outputs/apk/debug/ManagerMotorsport.apk
           retention-days: 1
-          if-no-files-found: warn
+          if-no-files-found: error
 
       - name: Display APK info
         run: |
           cd android/app/build/outputs/apk/debug
-          echo "=== INFORMACIÓN DEL APK ==="
-          echo "Nombre del archivo: ManagerMotorsport.apk"
-          echo "Nombre de la app: Manager Motorsport"
-          echo "Icono personalizado: $(if [ -f "icon.png" ]; then echo "SÍ (icon.png encontrado)"; else echo "NO (usando icono por defecto)"; fi)"
-          echo "Para descargar: ve a la pestaña 'Artifacts' en esta ejecución de Actions"
+          echo "✅ APK generado: ManagerMotorsport.apk"
+          echo "📱 Nombre de la app: Manager Motorsport"
+          echo "🎯 Icono: Descargado desde GitHub"
+          echo "📥 Para descargar: Ve a 'Artifacts' → 'ManagerMotorsport-APK'"
