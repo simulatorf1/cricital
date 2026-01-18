@@ -6530,20 +6530,20 @@ class F1Manager {
     // DASHBOARD COMPLETO (VERSIÓN OPTIMIZADA - UNA SOLA FILA)
     // ========================
     async cargarDashboardCompleto() {
-        console.log('📊 Cargando dashboard COMPLETO con diseño COMPACTO...');
+        console.log('📊 Cargando dashboard COMPLETO con estilo compacto...');
         
         if (!this.escuderia) {
             console.error('❌ No hay escudería para cargar dashboard');
             return;
         }
         
-        // PRIMERO: Inyectar estilos del DISEÑO NUEVO (Compacto)
-        if (!document.getElementById('dashboard-styles')) {
+        // PRIMERO: Inyectar estilos compactos en el HEAD si no existen
+        if (!document.getElementById('dashboard-styles-compacto')) {
             const style = document.createElement('style');
-            style.id = 'dashboard-styles';
+            style.id = 'dashboard-styles-compacto';
             style.innerHTML = `
                 /* ==================== */
-                /* ESTILOS OPTIMIZADOS - UNA SOLA FILA (Del Source 2) */
+                /* ESTILOS COMPACTOS - UNA SOLA FILA */
                 /* ==================== */
                 .dashboard-header-compacto {
                     display: flex;
@@ -6556,7 +6556,6 @@ class F1Manager {
                     flex-shrink: 0;
                 }
                 
-                /* Contenedor izquierdo: Logo y dinero */
                 .header-left-compacto {
                     display: flex;
                     align-items: center;
@@ -6590,7 +6589,6 @@ class F1Manager {
                     white-space: nowrap;
                 }
                 
-                /* Contenedor central: Tabs */
                 .tabs-compactas {
                     display: flex;
                     gap: 5px;
@@ -6628,7 +6626,6 @@ class F1Manager {
                     border-color: rgba(255, 255, 255, 0.2);
                 }
                 
-                /* Contenedor derecho: Botón salir */
                 .header-right-compacto {
                     flex: 1;
                     display: flex;
@@ -6656,24 +6653,22 @@ class F1Manager {
                 }
                 
                 /* ==================== */
-                /* CONTENIDO PRINCIPAL OPTIMIZADO */
+                /* CONTENIDO PRINCIPAL COMPACTO */
                 /* ==================== */
                 .contenido-principal-compacto {
                     padding: 15px;
-                    height: calc(100vh - 50px - 30px); /* Altura total menos header y footer */
+                    height: calc(100vh - 50px - 30px);
                     overflow-y: auto;
                 }
                 
-                /* Grid de 3 columnas ultra compacto */
                 .grid-3-compacto {
                     display: grid;
                     grid-template-columns: 320px 1fr 1fr;
                     gap: 15px;
                     margin-bottom: 15px;
-                    height: 280px; /* Altura reducida */
+                    height: 280px;
                 }
                 
-                /* Tarjetas ultra compactas */
                 .tarjeta-compacta {
                     background: rgba(30, 30, 40, 0.8);
                     border: 1px solid rgba(0, 210, 190, 0.3);
@@ -6713,14 +6708,21 @@ class F1Manager {
                     font-weight: bold;
                 }
                 
-                /* Contenedor de estrategas ultra compacto */
-                .estrategas-container-compacto {
+                /* ESTOS SON LOS CONTENEDORES ORIGINALES - MANTENGO LOS MISMOS IDs */
+                #pilotos-container {
                     flex: 1;
                     overflow-y: auto;
                     padding-right: 5px;
                     max-height: 200px;
                 }
                 
+                #produccion-actual {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding-right: 5px;
+                }
+                
+                /* Estilos para estrategas */
                 .estratega-item-compacto {
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -6779,7 +6781,6 @@ class F1Manager {
                     flex-shrink: 0;
                 }
                 
-                /* Countdown compacto */
                 .countdown-compacto {
                     display: flex;
                     flex-direction: column;
@@ -6850,8 +6851,8 @@ class F1Manager {
                     width: 100%;
                 }
                 
-                /* Producción compacta */
-                .produccion-grid-compacto {
+                /* Producción - MANTENGO EL ID ORIGINAL */
+                #produccion-slots {
                     display: grid;
                     grid-template-columns: repeat(2, 1fr);
                     grid-template-rows: repeat(2, 1fr);
@@ -6896,7 +6897,6 @@ class F1Manager {
                     background: rgba(76, 175, 80, 0.1);
                 }
                 
-                /* Piezas montadas compactas */
                 .piezas-montadas-compacto {
                     margin-top: 15px;
                 }
@@ -6930,61 +6930,112 @@ class F1Manager {
                     gap: 5px;
                 }
                 
-                .grid-piezas-compacto {
-                    display: grid;
-                    grid-template-columns: repeat(11, 1fr);
-                    gap: 6px;
+                /* MANTENGO EL GRID ORIGINAL DE PIEZAS */
+                .grid-11-columns {
+                    display: grid !important;
+                    grid-template-columns: repeat(11, 1fr) !important;
+                    gap: 8px !important;
+                    margin-top: 10px !important;
+                    height: 100px !important;
+                    align-items: stretch !important;
+                    width: 100% !important;
                 }
                 
-                .pieza-boton-compacto {
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1.5px solid rgba(255, 255, 255, 0.08);
-                    border-radius: 6px;
-                    padding: 6px 4px;
+                .boton-area-montada, .boton-area-vacia {
+                    background: rgba(255, 255, 255, 0.03) !important;
+                    border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+                    border-radius: 6px !important;
+                    padding: 8px 6px !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    cursor: pointer !important;
+                    transition: all 0.2s ease !important;
+                    height: 85px !important;
+                    min-height: 85px !important;
+                }
+                
+                .boton-area-montada {
+                    border-color: rgba(0, 210, 190, 0.25) !important;
+                    background: rgba(0, 210, 190, 0.04) !important;
+                }
+                
+                .boton-area-montada:hover {
+                    border-color: rgba(0, 210, 190, 0.5) !important;
+                    background: rgba(0, 210, 190, 0.08) !important;
+                    transform: translateY(-1px) !important;
+                }
+                
+                .boton-area-vacia {
+                    border-style: dashed !important;
+                    border-color: rgba(255, 255, 255, 0.1) !important;
+                    background: rgba(255, 255, 255, 0.015) !important;
+                }
+                
+                .boton-area-vacia:hover {
+                    border-color: rgba(0, 210, 190, 0.4) !important;
+                    background: rgba(0, 210, 190, 0.05) !important;
+                }
+                
+                .icono-area {
+                    font-size: 1.1rem !important;
+                    margin-bottom: 5px !important;
+                    color: #00d2be;
+                    height: 22px;
                     display: flex;
-                    flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    min-height: 65px;
                 }
                 
-                .pieza-boton-compacto:hover {
-                    border-color: rgba(0, 210, 190, 0.4);
-                    background: rgba(0, 210, 190, 0.05);
+                .boton-area-vacia .icono-area {
+                    color: #666;
+                    font-size: 1rem !important;
                 }
                 
-                .pieza-montada-compacto {
-                    border-color: rgba(0, 210, 190, 0.25);
-                    background: rgba(0, 210, 190, 0.04);
-                }
-                
-                .pieza-icono-compacto {
-                    font-size: 0.9rem;
-                    color: #00d2be;
-                    margin-bottom: 3px;
-                }
-                
-                .pieza-nombre-compacto {
+                .nombre-area {
+                    display: block;
                     font-weight: bold;
-                    font-size: 0.65rem;
+                    font-size: 0.75rem !important;
                     color: white;
                     margin-bottom: 2px;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
+                    line-height: 1.1;
                     text-align: center;
                     width: 100%;
                 }
                 
-                .pieza-nivel-compacto {
-                    font-size: 0.6rem;
+                .nivel-pieza {
+                    display: block;
+                    font-size: 0.65rem !important;
                     color: #4CAF50;
+                    margin-bottom: 1px;
+                    line-height: 1;
                     font-weight: bold;
                 }
                 
-                /* Footer compacto */
+                .puntos-pieza {
+                    display: block;
+                    font-size: 0.6rem !important;
+                    color: #FFD700;
+                    font-weight: bold;
+                    line-height: 1;
+                }
+                
+                .total-puntos-montadas {
+                    background: rgba(255, 215, 0, 0.1);
+                    border: 1px solid #FFD700;
+                    border-radius: 20px;
+                    padding: 5px 15px;
+                    color: #FFD700;
+                    font-weight: bold;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                }
+                
                 .footer-compacto {
                     background: rgba(21, 21, 30, 0.95);
                     border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -7022,55 +7073,20 @@ class F1Manager {
                 ::-webkit-scrollbar-thumb:hover {
                     background: rgba(0, 210, 190, 0.5);
                 }
-                
-                /* Responsive */
-                @media (max-width: 1200px) {
-                    .grid-3-compacto {
-                        grid-template-columns: 280px 1fr 1fr;
-                        height: 250px;
-                    }
-                    
-                    .grid-piezas-compacto {
-                        grid-template-columns: repeat(5, 1fr);
-                    }
-                }
-                
-                @media (max-width: 768px) {
-                    .dashboard-header-compacto {
-                        flex-direction: column;
-                        height: auto;
-                        padding: 10px;
-                        gap: 10px;
-                    }
-                    
-                    .header-left-compacto,
-                    .tabs-compactas,
-                    .header-right-compacto {
-                        width: 100%;
-                        justify-content: center;
-                    }
-                    
-                    .grid-3-compacto {
-                        grid-template-columns: 1fr;
-                        height: auto;
-                    }
-                    
-                    .tarjeta-compacta {
-                        height: 200px;
-                    }
-                }
             `;
             document.head.appendChild(style);
         }
         
-        // 1. Crear el HTML COMPACTO (Source 2) pero con los IDs de LÓGICA del Source 1
+        // 1. Crear el HTML con estructura compacta pero manteniendo TODOS los IDs ORIGINALES
         document.body.innerHTML = `
-            <div id="app-compacto">
+            <div id="app">
+                <!-- Header compacto (una fila) -->
                 <header class="dashboard-header-compacto">
+                    <!-- Izquierda: Logo y dinero -->
                     <div class="header-left-compacto">
                         <div class="logo-compacto">
                             <i class="fas fa-flag-checkered"></i>
-                            <span id="escuderia-nombre-compacto">${this.escuderia.nombre}</span>
+                            <span id="escuderia-nombre">${this.escuderia.nombre}</span>
                         </div>
                         <div class="money-display-compacto">
                             <i class="fas fa-coins"></i>
@@ -7078,6 +7094,7 @@ class F1Manager {
                         </div>
                     </div>
                     
+                    <!-- Centro: Tabs -->
                     <nav class="tabs-compactas">
                         <button class="tab-btn-compacto active" data-tab="principal">
                             <i class="fas fa-home"></i> Principal
@@ -7099,6 +7116,7 @@ class F1Manager {
                         </button>
                     </nav>
                     
+                    <!-- Derecha: Botón salir (MISMO ID que el original) -->
                     <div class="header-right-compacto">
                         <button class="logout-btn-compacto" id="logout-btn-visible" title="Cerrar sesión">
                             <i class="fas fa-sign-out-alt"></i> Salir
@@ -7106,25 +7124,30 @@ class F1Manager {
                     </div>
                 </header>
                 
+                <!-- Main Content (estructura compacta pero con IDs originales) -->
                 <main class="contenido-principal-compacto">
+                    <!-- Tab Principal -->
                     <div id="tab-principal" class="tab-content active">
+                        <!-- Grid de 3 columnas compacto -->
                         <div class="grid-3-compacto">
-                            
+                            <!-- Columna 1: Estrategas - MANTENGO EL ID #pilotos-container -->
                             <div class="tarjeta-compacta">
                                 <div class="tarjeta-header-compacto">
                                     <h3><i class="fas fa-users"></i> ESTRATEGAS</h3>
                                     <div class="badge-compacto" id="contador-estrategas">0/4</div>
                                 </div>
-                                <div class="estrategas-container-compacto" id="pilotos-container">
+                                <div id="pilotos-container" class="estrategas-container">
+                                    <!-- Contenido dinámico (MISMO ID que original) -->
                                     <div class="estratega-item-compacto" style="justify-content: center; color: #888; font-size: 0.8rem;">
                                         <i class="fas fa-spinner fa-spin"></i> Cargando...
                                     </div>
                                 </div>
                                 <button class="btn-contratar-compacto" onclick="gestionarEstrategas()" style="margin-top: 8px;">
-                                    <i class="fas fa-plus"></i> Gestionar
+                                    <i class="fas fa-plus"></i> Gestionar Estrategas
                                 </button>
                             </div>
                             
+                            <!-- Columna 2: Countdown compacto -->
                             <div class="tarjeta-compacta">
                                 <div class="tarjeta-header-compacto">
                                     <h3><i class="fas fa-clock"></i> PRÓXIMA CARRERA</h3>
@@ -7147,7 +7170,7 @@ class F1Manager {
                                     </div>
                                     <div class="gp-info-compacto">
                                         <div class="gp-nombre-compacto" id="gp-nombre">Cargando próximo GP...</div>
-                                        <div class="gp-datos-compacto" id="gp-fecha">Fecha por confirmar</div>
+                                        <div class="gp-datos-compacto" id="gp-datos">Fecha por confirmar</div>
                                         <button class="btn-apostar-compacto" id="btn-apostar">
                                             <i class="fas fa-coins"></i> HACER APUESTA
                                         </button>
@@ -7155,45 +7178,53 @@ class F1Manager {
                                 </div>
                             </div>
                             
+                            <!-- Columna 3: Producción - MANTENGO LOS IDs ORIGINALES -->
                             <div class="tarjeta-compacta">
                                 <div class="tarjeta-header-compacto">
                                     <h3><i class="fas fa-industry"></i> PRODUCCIÓN</h3>
-                                    <div class="badge-compacto" id="alerta-almacen" style="display:none;">!</div>
+                                    <div class="badge-compacto" id="alerta-almacen" style="display: none;">
+                                        <i class="fas fa-bell"></i> Nuevas
+                                    </div>
                                 </div>
-                                <div class="produccion-grid-compacto" id="produccion-slots">
-                                    <div class="slot-produccion-compacto" data-slot="0" onclick="irAlTallerDesdeProduccion()">
-                                        <div class="slot-icono-compacto"><i class="fas fa-plus"></i></div>
-                                        <div class="slot-texto-compacto">Slot 1</div>
-                                    </div>
-                                    <div class="slot-produccion-compacto" data-slot="1" onclick="irAlTallerDesdeProduccion()">
-                                        <div class="slot-icono-compacto"><i class="fas fa-plus"></i></div>
-                                        <div class="slot-texto-compacto">Slot 2</div>
-                                    </div>
-                                    <div class="slot-produccion-compacto" data-slot="2" onclick="irAlTallerDesdeProduccion()">
-                                        <div class="slot-icono-compacto"><i class="fas fa-plus"></i></div>
-                                        <div class="slot-texto-compacto">Slot 3</div>
-                                    </div>
-                                    <div class="slot-produccion-compacto" data-slot="3" onclick="irAlTallerDesdeProduccion()">
-                                        <div class="slot-icono-compacto"><i class="fas fa-plus"></i></div>
-                                        <div class="slot-texto-compacto">Slot 4</div>
+                                <div id="produccion-actual" class="produccion-actual">
+                                    <div id="produccion-slots" class="produccion-slots">
+                                        <div class="slot-produccion-compacto" data-slot="0" onclick="irAlTallerDesdeProduccion()">
+                                            <div class="slot-icono-compacto"><i class="fas fa-plus"></i></div>
+                                            <div class="slot-texto-compacto">Slot 1</div>
+                                        </div>
+                                        <div class="slot-produccion-compacto" data-slot="1" onclick="irAlTallerDesdeProduccion()">
+                                            <div class="slot-icono-compacto"><i class="fas fa-plus"></i></div>
+                                            <div class="slot-texto-compacto">Slot 2</div>
+                                        </div>
+                                        <div class="slot-produccion-compacto" data-slot="2" onclick="irAlTallerDesdeProduccion()">
+                                            <div class="slot-icono-compacto"><i class="fas fa-plus"></i></div>
+                                            <div class="slot-texto-compacto">Slot 3</div>
+                                        </div>
+                                        <div class="slot-produccion-compacto" data-slot="3" onclick="irAlTallerDesdeProduccion()">
+                                            <div class="slot-icono-compacto"><i class="fas fa-plus"></i></div>
+                                            <div class="slot-texto-compacto">Slot 4</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="piezas-montadas-compacto">
+                        <!-- Piezas Montadas (EXACTAMENTE IGUAL que el original) -->
+                        <section class="piezas-montadas-compacto">
                             <div class="piezas-header-compacto">
-                                <h3><i class="fas fa-car"></i> PIEZAS MONTADAS</h3>
+                                <h3><i class="fas fa-car"></i> PIEZAS MONTADAS EN EL COCHE</h3>
                                 <div class="puntos-totales-compacto">
                                     <i class="fas fa-star"></i>
-                                    <span id="puntos-totales-montadas">0 pts</span>
+                                    <span>Puntos totales: <strong id="puntos-totales-montadas">0</strong></span>
                                 </div>
                             </div>
-                            <div class="grid-piezas-compacto" id="grid-piezas-montadas">
-                                </div>
-                        </div>
+                            <div id="grid-piezas-montadas" class="grid-11-columns">
+                                <!-- Se generarán dinámicamente 11 botones (igual que original) -->
+                            </div>
+                        </section>
                     </div>
                     
+                    <!-- Otras pestañas (VACÍAS - se cargarán dinámicamente como en el original) -->
                     <div id="tab-taller" class="tab-content"></div>
                     <div id="tab-almacen" class="tab-content"></div>
                     <div id="tab-mercado" class="tab-content"></div>
@@ -7201,6 +7232,7 @@ class F1Manager {
                     <div id="tab-clasificacion" class="tab-content"></div>
                 </main>
                 
+                <!-- Footer compacto -->
                 <footer class="footer-compacto">
                     <div class="user-info-compacto">
                         <i class="fas fa-user-circle"></i>
@@ -7211,80 +7243,13 @@ class F1Manager {
                     </div>
                 </footer>
             </div>
-            
-            <script>
-                // Ocultar loading screen después de 1 segundo
-                setTimeout(() => {
-                    document.getElementById('loading-screen').style.display = 'none';
-                }, 1000);
-    
-                // =============================================
-                // ¡¡IMPORTANTE!! FUNCIÓN DE RECARGA DEL SOURCE 1
-                // =============================================
-                window.cargarContenidoPrincipal = async function() {
-                    if (window.f1Manager) {
-                        // Cargar piezas montadas (Buscará #grid-piezas-montadas)
-                        if (window.f1Manager.cargarPiezasMontadas) {
-                            await window.f1Manager.cargarPiezasMontadas();
-                        }
-                        // Cargar estrategas (Buscará #pilotos-container)
-                        if (window.f1Manager.loadPilotosContratados) {
-                            await window.f1Manager.loadPilotosContratados();
-                        }
-                        // Cargar producción (Buscará #produccion-slots)
-                        if (window.f1Manager.updateProductionMonitor) {
-                            window.f1Manager.updateProductionMonitor();
-                        }
-                    }
-                };
-    
-                // Ejecutar al cargar por primera vez
-                setTimeout(() => {
-                    if (window.cargarContenidoPrincipal) {
-                        window.cargarContenidoPrincipal();
-                    }
-                    
-                    // Configurar evento para botón de cerrar sesión
-                    const logoutBtn = document.getElementById('logout-btn-visible');
-                    if (logoutBtn) {
-                        logoutBtn.addEventListener('click', async (e) => {
-                            e.preventDefault();
-                            try {
-                                const supabaseClient = window.supabase;
-                                if (supabaseClient) {
-                                    await supabaseClient.auth.signOut();
-                                    console.log('✅ Sesión cerrada');
-                                    window.location.href = window.location.origin;
-                                }
-                            } catch (error) {
-                                console.error('❌ Error cerrando sesión:', error);
-                                window.location.href = window.location.origin;
-                            }
-                        });
-                    } else {
-                        console.error('❌ No se encontró el botón logout-btn-visible');
-                    }
-                }, 1500);
-                
-                // Funciones auxiliares para navegación
-                window.irAlTallerDesdeProduccion = function() {
-                    const tallerTab = document.querySelector('[data-tab="taller"]');
-                    if(tallerTab) tallerTab.click();
-                };
-                
-                window.gestionarEstrategas = function() {
-                    if (window.f1Manager && window.f1Manager.mostrarModalContratacion) {
-                        window.f1Manager.mostrarModalContratacion();
-                    }
-                };
-            </script>
         `;
         
-        // 2. INICIALIZAR SISTEMAS CRÍTICOS (Del Source 1 - para mantener funcionalidad)
+        // 2. INICIALIZAR SISTEMAS CRÍTICOS INMEDIATAMENTE (MISMA LÓGICA DEL ORIGINAL)
         setTimeout(async () => {
             console.log('🔧 Inicializando sistemas críticos del dashboard...');
             
-            // A. Asegurar que fabricacionManager existe
+            // A. Asegurar que fabricacionManager existe (IGUAL QUE ORIGINAL)
             if (!window.fabricacionManager && window.FabricacionManager) {
                 window.fabricacionManager = new window.FabricacionManager();
                 if (this.escuderia) {
@@ -7292,64 +7257,101 @@ class F1Manager {
                 }
             }
             
-            // B. Configurar sistema de pestañas CON LA FUNCIÓN DE RECARGA (Del Source 1)
+            // B. Configurar sistema de pestañas CON LA FUNCIÓN DE RECARGA (IGUAL QUE ORIGINAL)
             setTimeout(() => {
-                if (window.tabManager && window.tabManager.setup) {
-                    // Guardar el switchTab original
-                    const originalSwitchTab = window.tabManager.switchTab;
-                    
-                    // Sobrescribir para que recargue contenido al volver a principal
-                    window.tabManager.switchTab = function(tabId) {
-                        // Llamar al original (Esto gestiona clases active y ocultar/mostrar divs)
-                        originalSwitchTab.call(this, tabId);
-    
-                        // Si es la pestaña principal, recargar contenido
-                        if (tabId === 'principal') {
-                            setTimeout(() => {
-                                if (window.cargarContenidoPrincipal) {
+                // Configurar eventos de tabs para cambiar completamente la página
+                document.querySelectorAll('.tab-btn-compacto').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const tabId = e.currentTarget.dataset.tab;
+                        
+                        // Remover activo de todos
+                        document.querySelectorAll('.tab-btn-compacto').forEach(b => b.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                        
+                        // Activar tab seleccionado
+                        e.currentTarget.classList.add('active');
+                        const tabElement = document.getElementById(`tab-${tabId}`);
+                        if (tabElement) {
+                            tabElement.classList.add('active');
+                        }
+                        
+                        // Cargar contenido específico de cada tab (IGUAL QUE ORIGINAL)
+                        switch(tabId) {
+                            case 'principal':
+                                if (window.f1Manager && window.cargarContenidoPrincipal) {
                                     window.cargarContenidoPrincipal();
                                 }
-                            }, 100);
+                                break;
+                            case 'taller':
+                                if (window.f1Manager && window.f1Manager.cargarTabTaller) {
+                                    window.f1Manager.cargarTabTaller();
+                                }
+                                break;
+                            case 'almacen':
+                                if (window.almacenManager && window.almacenManager.cargarTabAlmacen) {
+                                    window.almacenManager.cargarTabAlmacen();
+                                }
+                                break;
+                            case 'mercado':
+                                // Implementar si existe
+                                break;
+                            case 'presupuesto':
+                                // Implementar si existe
+                                break;
+                            case 'clasificacion':
+                                // Implementar si existe
+                                break;
                         }
-                    };
-                    
-                    // Configurar tabs usando la lógica robusta del Source 1
-                    // Nota: tabManager.setup normalmente busca .tab-btn, pero aquí tenemos .tab-btn-compacto
-                    // Si tabManager usa selectores fijos, podríamos necesitar un puente manual.
-                    // Como precaución, añadimos los listeners aquí manualmente si tabManager falla con las clases nuevas:
-                    
-                    document.querySelectorAll('.tab-btn-compacto').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            const tabId = e.currentTarget.dataset.tab;
-                            // Usamos la lógica de tabManager si existe, o manual si no
-                            if(window.tabManager) {
-                                window.tabManager.switchTab(tabId);
-                                // Actualizar visualmente la clase activa en los botones compactos
-                                document.querySelectorAll('.tab-btn-compacto').forEach(b => b.classList.remove('active'));
-                                e.currentTarget.classList.add('active');
-                            }
-                        });
                     });
-                    
-                    window.tabManager.setup();
-                }
+                });
+                
+                // Configurar funciones globales (IGUAL QUE ORIGINAL)
+                window.irAlTallerDesdeProduccion = function() {
+                    document.querySelector('[data-tab="taller"]').click();
+                };
+                
+                window.gestionarEstrategas = function() {
+                    if (window.f1Manager && window.f1Manager.mostrarModalContratacion) {
+                        window.f1Manager.mostrarModalContratacion();
+                    }
+                };
+                
             }, 400);
-    
-            // 3. Cargar datos iniciales
+            
+            // 3. Configurar eventos (IGUAL QUE ORIGINAL)
+            // Configurar evento para botón de cerrar sesión visible
+            const logoutBtn = document.getElementById('logout-btn-visible');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        const supabaseClient = window.supabase;
+                        if (supabaseClient) {
+                            await supabaseClient.auth.signOut();
+                            console.log('✅ Sesión cerrada');
+                            window.location.href = window.location.origin;
+                        }
+                    } catch (error) {
+                        console.error('❌ Error cerrando sesión:', error);
+                        window.location.href = window.location.origin;
+                    }
+                });
+            }
+            
+            // Cargar datos iniciales (IGUAL QUE ORIGINAL)
             const supabase = await this.esperarSupabase();
             if (supabase) {
                 await this.loadCarStatus();
                 await this.loadPilotosContratados();
                 await this.loadProximoGP();
                 
-                // 4. Cargar piezas montadas INMEDIATAMENTE
+                // Cargar piezas montadas INMEDIATAMENTE
                 setTimeout(async () => {
                     await this.cargarPiezasMontadas();
                 }, 500);
             }
             
-            console.log('✅ Dashboard cargado correctamente con CSS COMPACTO');
-            
+            console.log('✅ Dashboard cargado correctamente con estilo compacto');
             // QUITAR LA PANTALLA DE CARGA
             setTimeout(() => {
                 const loadingScreen = document.getElementById('f1-loading-screen');
@@ -7358,6 +7360,33 @@ class F1Manager {
                 }
             }, 500);
         }, 1000);
+        
+        // =============================================
+        // ¡¡IMPORTANTE!! Esta función se debe mantener IGUAL
+        // =============================================
+        setTimeout(() => {
+            window.cargarContenidoPrincipal = async function() {
+                if (window.f1Manager) {
+                    // Cargar piezas montadas
+                    if (window.f1Manager.cargarPiezasMontadas) {
+                        await window.f1Manager.cargarPiezasMontadas();
+                    }
+                    // Cargar estrategas
+                    if (window.f1Manager.loadPilotosContratados) {
+                        await window.f1Manager.loadPilotosContratados();
+                    }
+                    // Cargar producción
+                    if (window.f1Manager.updateProductionMonitor) {
+                        window.f1Manager.updateProductionMonitor();
+                    }
+                }
+            };
+            
+            // Ejecutar al cargar por primera vez
+            if (window.cargarContenidoPrincipal) {
+                window.cargarContenidoPrincipal();
+            }
+        }, 1500);
     }
     
     // ========================
