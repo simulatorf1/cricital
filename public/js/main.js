@@ -1198,7 +1198,7 @@ const produccionStyles = `
         grid-template-columns: repeat(2, 1fr) !important;
         grid-template-rows: 60px 60px !important;
 
-        padding: 2px;     
+        padding: 5px;     
 
         gap: 5px !important;
         height: 150px !important; /* ← La altura que elegiste */
