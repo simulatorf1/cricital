@@ -7317,6 +7317,28 @@ class F1Manager {
                 }, 1500);
             </script>
         `;
+
+        // ========================
+        // CONFIGURAR EVENTOS DEL DASHBOARD
+        // ========================
+        
+        // 1. Evento para cerrar sesión
+        document.getElementById('logout-btn-visible').addEventListener('click', async () => {
+            try {
+                console.log('🔒 Cerrando sesión...');
+                const { error } = await this.supabase.auth.signOut();
+                if (error) {
+                    console.error('❌ Error al cerrar sesión:', error);
+                    this.showNotification('Error al cerrar sesión', 'error');
+                } else {
+                    console.log('✅ Sesión cerrada, recargando...');
+                    location.reload(); // Esto llevará al login
+                }
+            } catch (error) {
+                console.error('❌ Error inesperado:', error);
+                this.showNotification('Error inesperado', 'error');
+            }
+        });
         
         // 2. INICIALIZAR SISTEMAS CRÍTICOS INMEDIATAMENTE (MISMA FUNCIONALIDAD ORIGINAL)
         setTimeout(async () => {
