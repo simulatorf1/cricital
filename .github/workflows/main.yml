@@ -26,12 +26,83 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
+      - name: Update Gradle for APK naming
+        run: |
+          # Añadir configuración de renombrado de APK en build.gradle
+          echo "
+          android {
+              applicationVariants.all { variant ->
+                  variant.outputs.all {
+                      outputFileName = 'ManagerMotorsport-${variant.buildType.name}.apk'
+                  }
+              }
+          }
+          " >> android/app/build.gradle
+
+      - name: Create Racing Icon
+        run: |
+          # Crear directorio de iconos si no existe
+          mkdir -p android/app/src/main/res/drawable/
+          
+          # Crear un icono SVG simple de carreras (bandera a cuadros)
+          echo '<?xml version="1.0" encoding="utf-8"?>
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+            <path
+                android:fillColor="#FF000000"
+                android:pathData="M3,5h18v2H3z M3,9h18v2H3z M3,13h18v2H3z M3,17h18v2H3z"/>
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:pathData="M3,5h2v2H3z M7,5h2v2H7z M11,5h2v2h-2z M15,5h2v2h-2z M19,5h2v2h-2z"/>
+            <path
+                android:fillColor="#FF000000"
+                android:pathData="M5,9h2v2H5z M9,9h2v2H9z M13,9h2v2h-2z M17,9h2v2h-2z"/>
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:pathData="M5,13h2v2H5z M9,13h2v2H9z M13,13h2v2h-2z M17,13h2v2h-2z"/>
+            <path
+                android:fillColor="#FF000000"
+                android:pathData="M7,17h2v2H7z M11,17h2v2h-2z M15,17h2v2h-2z"/>
+            <circle
+                android:fillColor="#FFE53935"
+                android:cx="6"
+                android:cy="6"
+                android:r="1"/>
+            <circle
+                android:fillColor="#FF1E88E5"
+                android:cx="12"
+                android:cy="12"
+                android:r="1"/>
+            <circle
+                android:fillColor="#FF43A047"
+                android:cx="18"
+                android:cy="18"
+                android:r="1"/>
+          </vector>' > android/app/src/main/res/drawable/ic_racing.xml
+          
+          # Crear icono launcher
+          echo '<?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/ic_launcher_background"/>
+              <foreground android:drawable="@drawable/ic_racing"/>
+          </adaptive-icon>' > android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          
+          # Crear color de fondo para el icono
+          mkdir -p android/app/src/main/res/values/
+          echo '<?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="ic_launcher_background">#FF2196F3</color>
+          </resources>' > android/app/src/main/res/values/colors.xml
+
       - name: Sync Capacitor
         run: npx cap sync android
 
       - name: Force Fix Kotlin Duplicates
         run: |
-          # Creamos un script de configuraciÃ³n global para Gradle que elimina los duplicados de raÃ­z
+          # Creamos un script de configuración global para Gradle que elimina los duplicados de raíz
           mkdir -p android/app/gradle/
           echo "configurations.all {
               resolutionStrategy.eachDependency { DependencyResolveDetails details ->
@@ -41,7 +112,7 @@ jobs:
               }
           }" >> android/app/build.gradle
           
-          # Habilitamos Jetifier para compatibilidad de librerÃ­as antiguas
+          # Habilitamos Jetifier para compatibilidad de librerías antiguas
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
@@ -51,36 +122,38 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Compress APK before upload
+      - name: Rename and Compress APK
         run: |
           cd android/app/build/outputs/apk/debug
-          # Comprimir el APK para reducir tamaÃ±o y mejorar upload
-          gzip -c app-debug.apk > app-debug.apk.gz
-          echo "Original APK size: $(du -h app-debug.apk | cut -f1)"
-          echo "Compressed APK size: $(du -h app-debug.apk.gz | cut -f1)"
+          # Comprimir el APK
+          gzip -c ManagerMotorsport-debug.apk > ManagerMotorsport.apk.gz
+          echo "APK generado: ManagerMotorsport-debug.apk"
+          echo "Original APK size: $(du -h ManagerMotorsport-debug.apk | cut -f1)"
+          echo "Compressed APK size: $(du -h ManagerMotorsport.apk.gz | cut -f1)"
 
       - name: Upload APK (Compressed)
         uses: actions/upload-artifact@v4
         with:
-          name: F1-Manager-App-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk.gz
+          name: ManagerMotorsport-APK
+          path: android/app/build/outputs/apk/debug/ManagerMotorsport.apk.gz
           retention-days: 7
           if-no-files-found: error
           overwrite: true
-          compression-level: 0  # Ya estÃ¡ comprimido con gzip
+          compression-level: 0
 
-      - name: Upload APK (Original) como fallback
-        if: failure()  # Solo si falla la versiÃ³n comprimida
+      - name: Upload APK (Original) as fallback
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: F1-Manager-App-APK-Raw
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: ManagerMotorsport-APK-Raw
+          path: android/app/build/outputs/apk/debug/ManagerMotorsport-debug.apk
           retention-days: 1
           if-no-files-found: error
 
       - name: Display APK info
         run: |
           cd android/app/build/outputs/apk/debug
-          echo "APK generado: $(pwd)/app-debug.apk"
-          echo "TamaÃ±o: $(du -h app-debug.apk | cut -f1)"
-          echo "Para descargar: ve a la pestaÃ±a 'Artifacts' en esta ejecuciÃ³n de Actions"
+          echo "APK generado: $(pwd)/ManagerMotorsport-debug.apk"
+          echo "Tamaño: $(du -h ManagerMotorsport-debug.apk | cut -f1)"
+          echo "Compressed: ManagerMotorsport.apk.gz"
+          echo "Para descargar: ve a la pestaña 'Artifacts' en esta ejecución de Actions"
