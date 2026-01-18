@@ -33,23 +33,31 @@ jobs:
           echo "android {" >> android/app/build.gradle
           echo "    applicationVariants.all { variant ->" >> android/app/build.gradle
           echo "        variant.outputs.all {" >> android/app/build.gradle
-          echo '            outputFileName = "ManagerMotorsport-${variant.name}.apk"' >> android/app/build.gradle
+          echo '            outputFileName = "ManagerMotorsport.apk"' >> android/app/build.gradle
           echo "        }" >> android/app/build.gradle
           echo "    }" >> android/app/build.gradle
           echo "}" >> android/app/build.gradle
 
-      - name: Create Racing Icon
+      - name: Copy custom icon
         run: |
-          # Crear icono simple de bandera a cuadros
-          mkdir -p android/app/src/main/res/drawable/
-          echo '<vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path android:fillColor="#000000" android:pathData="M0,0h24v24H0z"/>
-              <path android:fillColor="#FFFFFF" android:pathData="M0,0h8v8H0zM8,8h8v8H8zM16,0h8v8h-8zM8,16h8v8H8z"/>
-          </vector>' > android/app/src/main/res/drawable/ic_launcher_foreground.xml
+          # Verificar si existe el icono en la raíz
+          if [ -f "icon.png" ]; then
+            echo "Copiando icon.png personalizado..."
+            # Copiar el icono a todas las densidades necesarias
+            mkdir -p android/app/src/main/res/drawable-hdpi/
+            mkdir -p android/app/src/main/res/drawable-mdpi/
+            mkdir -p android/app/src/main/res/drawable-xhdpi/
+            mkdir -p android/app/src/main/res/drawable-xxhdpi/
+            mkdir -p android/app/src/main/res/drawable-xxxhdpi/
+            
+            cp icon.png android/app/src/main/res/drawable-hdpi/ic_launcher.png
+            cp icon.png android/app/src/main/res/drawable-mdpi/ic_launcher.png
+            cp icon.png android/app/src/main/res/drawable-xhdpi/ic_launcher.png
+            cp icon.png android/app/src/main/res/drawable-xxhdpi/ic_launcher.png
+            cp icon.png android/app/src/main/res/drawable-xxxhdpi/ic_launcher.png
+          else
+            echo "icon.png no encontrado en la raíz, usando icono por defecto"
+          fi
 
       - name: Sync Capacitor
         run: npx cap sync android
@@ -79,12 +87,10 @@ jobs:
       - name: Compress APK before upload
         run: |
           cd android/app/build/outputs/apk/debug
-          # Buscar el APK con el nuevo nombre
-          APK_FILE=$(find . -name "ManagerMotorsport-*.apk" -type f | head -1)
-          echo "APK encontrado: $APK_FILE"
-          # Comprimir el APK
-          gzip -c "$APK_FILE" > ManagerMotorsport.apk.gz
-          echo "Original APK size: $(du -h "$APK_FILE" | cut -f1)"
+          # El APK ahora se llamará ManagerMotorsport.apk
+          gzip -c ManagerMotorsport.apk > ManagerMotorsport.apk.gz
+          echo "APK generado: ManagerMotorsport.apk"
+          echo "Original APK size: $(du -h ManagerMotorsport.apk | cut -f1)"
           echo "Compressed APK size: $(du -h ManagerMotorsport.apk.gz | cut -f1)"
 
       - name: Upload APK (Compressed)
@@ -98,18 +104,18 @@ jobs:
           compression-level: 0
 
       - name: Upload APK (Original) como fallback
-        if: failure()
+        if: failure()  # Solo si falla la versión comprimida
         uses: actions/upload-artifact@v4
         with:
           name: ManagerMotorsport-APK-Raw
-          path: android/app/build/outputs/apk/debug/ManagerMotorsport-*.apk
+          path: android/app/build/outputs/apk/debug/ManagerMotorsport.apk
           retention-days: 1
           if-no-files-found: error
 
       - name: Display APK info
         run: |
           cd android/app/build/outputs/apk/debug
-          APK_FILE=$(find . -name "ManagerMotorsport-*.apk" -type f | head -1)
-          echo "APK generado: $(pwd)/$APK_FILE"
-          echo "Tamaño: $(du -h "$APK_FILE" | cut -f1)"
+          echo "APK generado: $(pwd)/ManagerMotorsport.apk"
+          echo "Tamaño: $(du -h ManagerMotorsport.apk | cut -f1)"
+          echo "Compressed: ManagerMotorsport.apk.gz"
           echo "Para descargar: ve a la pestaña 'Artifacts' en esta ejecución de Actions"
