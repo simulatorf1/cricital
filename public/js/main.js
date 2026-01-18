@@ -6702,8 +6702,9 @@ class F1Manager {
                     border: 1px solid rgba(0, 210, 190, 0.3);
                     border-radius: 8px; /* ← Reducir un poco */
                     padding: 8px; /* ← MUCHO MENOS PADDING */
-                    height: 100%;
+                    height: auto;
                     display: flex;
+                    min-height: 180px;
                     flex-direction: column;
                 }
                 
