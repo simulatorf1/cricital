@@ -126,9 +126,6 @@ async function iniciarAplicacion() {
                 Preparando tu escudería para la competición...
             </div>
             
-            <div style="margin-top: 30px; color: #e10600; font-size: 1.5rem; animation: spin 1.5s linear infinite;">
-                🏎️
-            </div>
         </div>
         
         <style>
