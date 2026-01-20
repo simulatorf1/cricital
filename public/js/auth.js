@@ -42,7 +42,7 @@ class AuthManager {
             if (authData.user) {
 
 
-                this.showNotification('✅ ¡Registro exitoso! Revisa tu email para confirmar.', 'success');
+                this.showNotification('✅ ¡Registro exitoso!', 'success');
                 return true;
             }
 
