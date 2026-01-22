@@ -6886,15 +6886,15 @@ class F1Manager {
                         padding-bottom: 40px; /* ← ESPACIO PARA FOOTER */
                     }
                     .produccion-slots {
-                        grid-template-columns: repeat(2, 1fr) !important; /* ← Mantener 2 columnas */
-                        grid-template-rows: 80px 80px !important; /* ← Mantener 2 filas */
-                        height: 170px !important; /* ← Altura fija igual que desktop */
-                        min-height: 170px !important; /* ← Mínima igual */
+                        grid-template-columns: repeat(2, 1fr) !important; /* Mantener 2 columnas o cambiar a 1 si prefieres */
+                        height: auto !important; /* Altura automática */
+                        min-width: auto !important; /* Ancho automático */
+                        padding: 10px; /* Más padding en móvil */
                     }
                     
                     .produccion-slot {
-                        height: 80px !important; /* ← Altura fija */
-                        min-height: 80px !important;
+                        height: 70px !important; /* Más bajo en móvil */
+                        min-height: 70px !important;
                     }
                     
                     .header-left-compacto,
