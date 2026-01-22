@@ -6553,14 +6553,12 @@ class F1Manager {
             if (!fechaStr) return 'Fecha no definida';
             const fecha = new Date(fechaStr);
             const opciones = { 
-                weekday: 'long', 
                 day: 'numeric', 
-                month: 'long', 
-                year: 'numeric' 
+                month: 'short'  // Solo día y mes abreviado
             };
             return fecha.toLocaleDateString('es-ES', opciones);
         }
-        
+                
         // ============================================
         // 3. AHORA SÍ: Definir countdownHTML
         // ============================================
@@ -6585,15 +6583,12 @@ class F1Manager {
                         <i class="fas fa-trophy"></i>
                         <span id="nombre-carrera">${this.proximoGP?.nombre || 'No hay carreras programadas'}</span>
                     </div>
-                    <div class="carrera-detalles-f1">
-                        <div class="detalle-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>${this.proximoGP?.circuito || 'Circuito no definido'}</span>
-                        </div>
-                        <div class="detalle-item">
-                            <i class="fas fa-calendar-day"></i>
-                            <span id="fecha-carrera">${this.proximoGP ? formatearFecha(this.proximoGP.fecha_inicio) : 'Fecha no definida'}</span>
-                        </div>
+                    <div class="carrera-detalles-f1" style="display: flex; align-items: center; gap: 10px; margin: 5px 0;">
+                        <i class="fas fa-map-marker-alt" style="color: #00d2be;"></i>
+                        <span style="color: #aaa; font-size: 0.75rem;">${this.proximoGP?.circuito || 'Circuito'}</span>
+                        <span style="color: #666; margin: 0 5px;">•</span>
+                        <i class="fas fa-calendar-day" style="color: #00d2be;"></i>
+                        <span id="fecha-carrera" style="color: #aaa; font-size: 0.75rem;">${this.proximoGP ? formatearFecha(this.proximoGP.fecha_inicio) : 'Fecha'}</span>
                     </div>
                 </div>
                 
@@ -6791,9 +6786,9 @@ class F1Manager {
                     background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
                     border: 3px solid #e10600;
                     border-radius: 15px;
-                    padding: 15px;
+                    padding: 10px;
                     box-shadow: 0 10px 30px rgba(225, 6, 0, 0.3);
-                    height: 270px;
+                    height: 220px;
                     display: flex;
                     flex-direction: column;
                 }
@@ -6803,8 +6798,8 @@ class F1Manager {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 15px;
-                    padding-bottom: 10px;
+                    margin-bottom: 8px;
+                    padding-bottom: 6px;
                     border-bottom: 2px solid rgba(255, 255, 255, 0.1);
                 }
                 
@@ -6870,7 +6865,7 @@ class F1Manager {
                     display: flex;
                     align-items: center;
                     gap: 10px;
-                    margin-bottom: 8px;
+                    margin-bottom: 4px;
                 }
                 
                 .carrera-nombre-f1 i {
@@ -6908,7 +6903,7 @@ class F1Manager {
                 /* Countdown principal */
                 .countdown-main-f1 {
                     text-align: center;
-                    margin: 10px 0;
+                    margin: 5px 0;
                 }
                 
                 .countdown-label {
@@ -6937,9 +6932,9 @@ class F1Manager {
                     background: linear-gradient(135deg, #e10600, #ff4444);
                     color: white;
                     font-family: 'Orbitron', sans-serif;
-                    font-size: 1.8rem;
+                    font-size: 1.4rem;
                     font-weight: bold;
-                    padding: 8px 5px;
+                    padding: 5px 3px;
                     border-radius: 8px;
                     box-shadow: 0 5px 15px rgba(225, 6, 0, 0.4);
                     margin-bottom: 3px;
@@ -6949,7 +6944,7 @@ class F1Manager {
                 .time-label-f1 {
                     color: #aaa;
                     font-family: 'Orbitron', sans-serif;
-                    font-size: 0.6rem;
+                    font-size: 0.5rem;
                     text-transform: uppercase;
                     letter-spacing: 1px;
                 }
