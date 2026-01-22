@@ -6578,15 +6578,12 @@ class F1Manager {
                 </div>
                 
                 <!-- Información de la carrera -->
-                <div class="carrera-info-f1">
-                    <div class="carrera-nombre-f1">
-                        <i class="fas fa-trophy"></i>
-                        <span id="nombre-carrera">${this.proximoGP?.nombre || 'No hay carreras programadas'}</span>
-                    </div>
-                    <div class="carrera-detalles-f1" style="display: flex; align-items: center; gap: 5px; margin: 3px 0; color: #aaa; font-size: 0.7rem;">
-                        <span>${this.proximoGP?.circuito || 'Circuito'}</span>
-                        <span style="color: #666;">•</span>
-                        <span id="fecha-carrera">${this.proximoGP ? formatearFecha(this.proximoGP.fecha_inicio) : 'Fecha'}</span>
+                <div class="carrera-info-f1" style="margin-bottom: 5px;">
+                    <div class="carrera-nombre-f1" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0;">
+                        <i class="fas fa-trophy" style="color: #FFD700;"></i>
+                        <span id="nombre-carrera" style="color: white; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: bold;">
+                            ${this.proximoGP?.nombre || 'No hay carreras'}
+                        </span>
                     </div>
                 </div>
                 
