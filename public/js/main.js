@@ -8244,14 +8244,7 @@ class F1Manager {
     }
     
     // Añadir este método auxiliar
-    cargarEstilosProduccion() {
-        if (!document.getElementById('estilos-produccion')) {
-            const style = document.createElement('style');
-            style.id = 'estilos-produccion';
-            style.innerHTML = produccionStyles; // Usa los estilos definidos arriba
-            document.head.appendChild(style);
-        }
-    }
+
     
     getNombreArea(areaId) {
         const areas = {
