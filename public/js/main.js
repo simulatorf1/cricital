@@ -10250,7 +10250,7 @@ iniciarAplicacion();
         } else {
             console.log('⚠️ Botón calendario NO encontrado');
         }
-    }
+    });
     // Función para recoger piezas y actualizar almacén
     window.recogerPiezaYActualizarAlmacen = async function(fabricacionId) {
         try {
