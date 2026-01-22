@@ -7077,7 +7077,19 @@ class F1Manager {
                                             <span>¡Piezas nuevas en almacén!</span>
                                         </div>
                                     </div>
+                                    <div id="produccion-actual" class="produccion-actual">
+                                        <!-- Grid de 4 slots - MANTENIENDO estructura original -->
+                                        <div id="produccion-slots" class="produccion-slots" style="
+                                            display: grid;
+                                            grid-template-columns: repeat(2, 1fr);
+                                            grid-template-rows: repeat(2, 1fr);
+                                            gap: 8px;
+                                            height: 100%;
+                                            padding: 5px;
+                                        ">
 
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
