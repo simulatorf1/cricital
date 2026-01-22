@@ -7009,31 +7009,36 @@ class F1Manager {
                             
                             <!-- Columna 1: Estrategas Compactos - MANTENIENDO IDs ORIGINALES -->
                             <div class="col-estrategas">
-                                <section class="panel-pilotos compacto">
-                                    <div class="section-header">
+                                <!-- Encabezado con título y botón "Gestionar" al lado -->
+                                <div class="section-header">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
                                         <h2><i class="fas fa-users"></i> ESTRATEGAS</h2>
-                                        <span class="badge" id="contador-estrategas">0/4</span>
+                                        <button class="btn-gestionar-estrategas" onclick="gestionarEstrategas()" style="
+                                            background: rgba(0,210,190,0.1);
+                                            border: 1px solid rgba(0,210,190,0.4);
+                                            color: #00d2be;
+                                            border-radius: 4px;
+                                            font-size: 0.7rem;
+                                            padding: 2px 6px;
+                                            cursor: pointer;
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 3px;
+                                            white-space: nowrap;
+                                        ">
+                                            <i class="fas fa-cog"></i> GESTIONAR
+                                        </button>
                                     </div>
-                                    <div id="pilotos-container" class="pilotos-container">
-                                        <!-- Contenido dinámico -->
-                                    </div>
-                                    <button class="btn-contratar-todos" onclick="gestionarEstrategas()" style="
-                                        margin-top: 5px; /* ← Menos margen arriba */
-                                        padding: 4px 8px; /* ← Menos padding */
-                                        background: rgba(0,210,190,0.1);
-                                        border: 1px solid rgba(0,210,190,0.4);
-                                        color: #00d2be;
-                                        border-radius: 4px; /* ← Radio más pequeño */
-                                        font-size: 0.7rem; /* ← Texto más pequeño */
-                                        cursor: pointer;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        gap: 4px; /* ← Menos espacio entre icono y texto */
-                                    ">
-                                        <i class="fas fa-plus"></i> GESTIONAR ESTRATEGAS
-                                    </button>
-                                </section>
+                                    <span class="badge" id="contador-estrategas">0/4</span>
+                                </div>
+                                
+                                <!-- Grid 2x2 IGUAL QUE PRODUCCIÓN -->
+                                <div id="pilotos-container" class="produccion-slots">
+                                    <!-- El contenido dinámico se cargará aquí -->
+                                    <!-- Se mantendrá la misma funcionalidad, solo cambia el aspecto -->
+                                </div>
+                                
+                                <!-- ELIMINAMOS el botón de abajo, ya está arriba -->
                             </div>
                             
                             <!-- Columna 2: Countdown y GP - MANTENIENDO IDs ORIGINALES -->
