@@ -1199,8 +1199,8 @@ const produccionStyles = `
         padding: 5px;     
 
         gap: 5px !important;
-        height: 170px !important; /* ← La altura que elegiste */
-        min-width: 300px !important; /* ← NUEVO: ancho mínimo */
+        height: 160px !important; /* ← La altura que elegiste */
+        
     }
     
     .produccion-slot {
@@ -6886,15 +6886,19 @@ class F1Manager {
                         padding-bottom: 40px; /* ← ESPACIO PARA FOOTER */
                     }
                     .produccion-slots {
-                        grid-template-columns: repeat(2, 1fr) !important; /* Mantener 2 columnas o cambiar a 1 si prefieres */
-                        height: auto !important; /* Altura automática */
-                        min-width: auto !important; /* Ancho automático */
-                        padding: 10px; /* Más padding en móvil */
+                        grid-template-columns: repeat(2, 1fr); /* Mantener 2 columnas en móvil */
+                        grid-template-rows: repeat(2, 1fr);
+                        height: 140px; /* Un poco más bajo en móvil */
+                        padding: 6px;
+                        gap: 6px;
+                        /* Asegurar que se ajusta al contenedor */
+                        width: 100%;
+                        box-sizing: border-box;
                     }
                     
                     .produccion-slot {
-                        height: 70px !important; /* Más bajo en móvil */
-                        min-height: 70px !important;
+                        min-height: 65px !important; /* Más bajo en móvil */
+                        padding: 6px !important;
                     }
                     
                     .header-left-compacto,
