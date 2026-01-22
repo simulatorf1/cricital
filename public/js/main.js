@@ -6569,7 +6569,6 @@ class F1Manager {
                     <div class="countdown-title">
                         <i class="fas fa-flag-checkered"></i>
                         <h2>PRÓXIMA CARRERA</h2>
-                        <div class="badge-gp">GP ${this.proximoGP?.pais || ''}</div>
                     </div>
                     <button class="btn-calendario-mini" id="btn-calendario" title="Ver calendario completo">
                         <i class="fas fa-calendar-alt"></i>
@@ -6960,9 +6959,9 @@ class F1Manager {
                     align-items: center;
                     justify-content: center;
                     gap: 8px;
-                    padding: 8px;
+                    padding: 5px;
                     border-radius: 10px;
-                    margin: 10px 0;
+                    margin: 5px 0;
                     font-size: 0.8rem;
                     font-family: 'Orbitron', sans-serif;
                     font-weight: bold;
@@ -6989,7 +6988,7 @@ class F1Manager {
                     background: linear-gradient(135deg, #00d2be, #009688);
                     border: none;
                     color: white;
-                    padding: 12px;
+                    padding: 8x;
                     border-radius: 10px;
                     font-family: 'Orbitron', sans-serif;
                     font-size: 0.9rem;
@@ -6999,7 +6998,7 @@ class F1Manager {
                     align-items: center;
                     justify-content: center;
                     gap: 10px;
-                    margin: 10px 0;
+                    margin: 5px 0;
                     transition: all 0.3s;
                     letter-spacing: 1px;
                     text-transform: uppercase;
@@ -7990,7 +7989,7 @@ class F1Manager {
                 if (estadoApuestasElem) {
                     estadoApuestasElem.innerHTML = `
                         <i class="fas fa-lock-open"></i>
-                        <span>APUESTAS ABIERTAS • Cierre en ${dias}d ${horas}h</span>
+                        <span>APUESTAS ABIERTAS</span>
                     `;
                     estadoApuestasElem.className = 'estado-apuestas abierto';
                 }
@@ -8012,7 +8011,7 @@ class F1Manager {
                 if (estadoApuestasElem) {
                     estadoApuestasElem.innerHTML = `
                         <i class="fas fa-lock"></i>
-                        <span>APUESTAS CERRADAS • Esperando resultados</span>
+                        <span>APUESTAS CERRADAS</span>
                     `;
                     estadoApuestasElem.className = 'estado-apuestas cerrado';
                 }
