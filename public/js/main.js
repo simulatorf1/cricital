@@ -7099,34 +7099,7 @@ class F1Manager {
                                                 padding: 8px 5px;
                                             ">
 
-                                            </div>
 
-      
-                                            </div>
-                                            <div class="produccion-slot" data-slot="2" onclick="irAlTallerDesdeProduccion()" style="
-                                                background: rgba(255, 255, 255, 0.03);
-                                                border: 1.5px solid rgba(255, 255, 255, 0.08);
-                                                border-radius: 6px;
-                                                display: flex;
-                                                flex-direction: column;
-                                                align-items: center;
-                                                justify-content: center;
-                                                cursor: pointer;
-                                                padding: 8px 5px;
-                                            ">
-   
-                                            </div>
-                                            <div class="produccion-slot" data-slot="3" onclick="irAlTallerDesdeProduccion()" style="
-                                                background: rgba(255, 255, 255, 0.03);
-                                                border: 1.5px solid rgba(255, 255, 255, 0.08);
-                                                border-radius: 6px;
-                                                display: flex;
-                                                flex-direction: column;
-                                                align-items: center;
-                                                justify-content: center;
-                                                cursor: pointer;
-                                                padding: 8px 5px;
-                                            ">
 
                                             </div>
                                         </div>
