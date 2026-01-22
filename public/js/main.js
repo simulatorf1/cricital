@@ -7008,6 +7008,7 @@ class F1Manager {
                         <div class="three-columns-layout">
                             
                             <!-- Columna 1: Estrategas Compactos - MANTENIENDO IDs ORIGINALES -->
+
                             <div class="col-estrategas">
                                 <!-- Encabezado con título y botón "Gestionar" al lado -->
                                 <div class="section-header">
