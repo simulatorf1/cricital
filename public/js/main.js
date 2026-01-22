@@ -7316,7 +7316,11 @@ class F1Manager {
             if (supabase) {
                 await this.loadCarStatus();
                 await this.loadPilotosContratados();
-                await this.loadProximoGP();
+                await this.cargarProximoGP();
+                // Iniciar countdown con datos reales
+                setTimeout(() => {
+                    this.iniciarCountdownCompacto();
+                }, 500);
                 
                 // 4. Cargar piezas montadas INMEDIATAMENTE
                 setTimeout(async () => {
@@ -7527,24 +7531,54 @@ class F1Manager {
     }
     
     // ========================
-    // MÉTODO PARA COUNTDOWN (COMPACTO)
     // ========================
-    iniciarCountdownCompacto() {
-        // Misma lógica que antes, pero con IDs compactos
+    // MÉTODO PARA COUNTDOWN (COMPACTO) CON DATOS REALES
+    // ========================
+    async iniciarCountdownCompacto() {
+        console.log('⏱️ Iniciando countdown con datos reales...');
+        
+        // Primero cargar el próximo GP si no está cargado
+        if (!this.proximoGP) {
+            await this.cargarProximoGP();
+        }
+        
+        // Obtener elementos del DOM
         const horasElem = document.getElementById('hours-compacto');
         const minutosElem = document.getElementById('minutes-compacto');
         const segundosElem = document.getElementById('seconds-compacto');
         
-        if (!horasElem || !minutosElem || !segundosElem) return;
+        // Si no hay elementos o no hay próximo GP, salir
+        if (!horasElem || !minutosElem || !segundosElem) {
+            console.error('❌ Elementos del countdown no encontrados');
+            return;
+        }
         
-        // Simulación de countdown (en producción usarías datos reales)
+        if (!this.proximoGP) {
+            // No hay próximas carreras
+            horasElem.textContent = '--';
+            minutosElem.textContent = '--';
+            segundosElem.textContent = '--';
+            
+            // También puedes actualizar otros elementos
+            const gpNombreElem = document.getElementById('gp-nombre-compacto');
+            const gpPaisElem = document.getElementById('gp-pais-compacto');
+            
+            if (gpNombreElem) gpNombreElem.textContent = 'Sin carreras';
+            if (gpPaisElem) gpPaisElem.textContent = '';
+            
+            return;
+        }
+        
+        // Función para actualizar el countdown
         const actualizarCountdown = () => {
             const ahora = new Date();
-            const proximoGP = new Date();
-            proximoGP.setDate(proximoGP.getDate() + 2); // 2 días desde ahora
-            proximoGP.setHours(14, 0, 0, 0); // 14:00
             
-            const diferencia = proximoGP - ahora;
+            // Convertir fecha_inicio (string) a objeto Date
+            // fecha_inicio es tipo "YYYY-MM-DD"
+            const fechaCarreraStr = this.proximoGP.fecha_inicio;
+            const fechaCarrera = new Date(fechaCarreraStr + 'T14:00:00'); // Asumir 14:00 como hora de carrera
+            
+            const diferencia = fechaCarrera - ahora;
             
             if (diferencia > 0) {
                 const horas = Math.floor(diferencia / (1000 * 60 * 60));
@@ -7554,15 +7588,47 @@ class F1Manager {
                 horasElem.textContent = horas.toString().padStart(2, '0');
                 minutosElem.textContent = minutos.toString().padStart(2, '0');
                 segundosElem.textContent = segundos.toString().padStart(2, '0');
+                
+                // Opcional: Actualizar otros elementos
+                const gpNombreElem = document.getElementById('gp-nombre-compacto');
+                const gpPaisElem = document.getElementById('gp-pais-compacto');
+                const apuestasStatusElem = document.getElementById('apuestas-status-compacto');
+                
+                if (gpNombreElem) gpNombreElem.textContent = this.proximoGP.nombre;
+                if (gpPaisElem) gpPaisElem.textContent = this.proximoGP.pais || '';
+                
+                // Mostrar estado de apuestas
+                if (apuestasStatusElem) {
+                    if (this.proximoGP.cerrado_apuestas) {
+                        apuestasStatusElem.innerHTML = '<i class="fas fa-lock"></i> Cerradas';
+                        apuestasStatusElem.className = 'apuestas-status cerrado';
+                    } else {
+                        apuestasStatusElem.innerHTML = '<i class="fas fa-lock-open"></i> Abiertas';
+                        apuestasStatusElem.className = 'apuestas-status abierto';
+                    }
+                }
+                
             } else {
+                // La carrera ya empezó o terminó
                 horasElem.textContent = '00';
                 minutosElem.textContent = '00';
                 segundosElem.textContent = '00';
+                
+                // Marcar como cerrado
+                const apuestasStatusElem = document.getElementById('apuestas-status-compacto');
+                if (apuestasStatusElem) {
+                    apuestasStatusElem.innerHTML = '<i class="fas fa-flag-checkered"></i> En curso';
+                    apuestasStatusElem.className = 'apuestas-status en-curso';
+                }
             }
         };
         
+        // Iniciar el countdown
         actualizarCountdown();
-        setInterval(actualizarCountdown, 1000);
+        const intervalId = setInterval(actualizarCountdown, 1000);
+        
+        // Guardar el ID del intervalo por si necesitas limpiarlo después
+        this.countdownInterval = intervalId;
     }
     
     // ========================
@@ -7679,6 +7745,44 @@ class F1Manager {
             }
         } catch (error) {
             console.error('Error cargando pilotos:', error);
+        }
+    }
+    // ========================
+    // MÉTODO PARA CARGAR PRÓXIMO GP DESDE BD
+    // ========================
+    async cargarProximoGP() {
+        console.log('📅 Cargando próximo GP desde BD...');
+        
+        if (!this.escuderia || !this.supabase) {
+            console.error('❌ No hay escudería o supabase');
+            return null;
+        }
+        
+        try {
+            // Buscar la próxima carrera (fecha_inicio >= hoy)
+            const { data: proximosGPs, error } = await this.supabase
+                .from('calendario_gp')
+                .select('*')
+                .gte('fecha_inicio', new Date().toISOString().split('T')[0]) // Fecha >= hoy
+                .order('fecha_inicio', { ascending: true })
+                .limit(1);
+            
+            if (error) throw error;
+            
+            if (proximosGPs && proximosGPs.length > 0) {
+                this.proximoGP = proximosGPs[0];
+                console.log('✅ Próximo GP cargado:', this.proximoGP.nombre);
+                return this.proximoGP;
+            } else {
+                console.log('ℹ️ No hay próximos GP programados');
+                this.proximoGP = null;
+                return null;
+            }
+            
+        } catch (error) {
+            console.error('❌ Error cargando próximo GP:', error);
+            this.proximoGP = null;
+            return null;
         }
     }
     
