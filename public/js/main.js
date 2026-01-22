@@ -1520,25 +1520,7 @@ const tallerStyles = `
     }
 `;
 
-// Añadir los estilos al DOM cuando se cargue la página
-document.addEventListener('DOMContentLoaded', function() {
-    if (!document.getElementById('estilos-taller')) {
-        const style = document.createElement('style');
-        style.id = 'estilos-taller';
-        style.innerHTML = tallerStyles;
-        document.head.appendChild(style);
-    }
-});
 
-// Añadir los estilos al DOM cuando se cargue la página
-document.addEventListener('DOMContentLoaded', function() {
-    if (!document.getElementById('estilos-produccion')) {
-        const style = document.createElement('style');
-        style.id = 'estilos-produccion';
-        style.innerHTML = produccionStyles;
-        document.head.appendChild(style);
-    }
-});
 
 // ========================
 // 4. CLASE F1Manager PRINCIPAL CON TUTORIAL
