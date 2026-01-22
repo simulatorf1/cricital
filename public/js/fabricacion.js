@@ -400,46 +400,7 @@ class FabricacionManager {
         }
     }
 
-    actualizarUIProduccion(soloContador = false) {
-        const container = document.getElementById('produccion-actual');
-        if (!container) return;
-        
-        // Si no hay producciones, mostrar mensaje estático
-        if (this.produccionesActivas.length === 0) {
-            if (!soloContador) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-industry"></i>
-                        <p>No hay producción en curso</p>
-                        <p class="small-text">Ve al Taller para iniciar fabricaciones</p>
-                    </div>
-                `;
-            }
-            return;
-        }
-        
-        // SOLO si no es soloContador, actualizar toda la UI
-        if (!soloContador) {
-            let html = `
-                <div class="produccion-header">
-                    <h3><i class="fas fa-industry"></i> Producción en curso</h3>
-                    <span class="badge">${this.produccionesActivas.length} activa(s)</span>
-                </div>
-                <div class="fabricaciones-lista">
-            `;
-            
-            this.produccionesActivas.forEach(fab => {
-                html += this.generarHTMLFabricacion(fab);
-            });
-            
-            html += `</div>`;
-            container.innerHTML = html;
-        } 
-        // Si es soloContador, solo actualizar los tiempos
-        else {
-            this.actualizarContadoresTiempo();
-        }
-    }
+
 
     // NUEVA FUNCIÓN: Solo actualiza contadores
     actualizarContadoresTiempo() {
@@ -534,9 +495,7 @@ class FabricacionManager {
         }
     }
 
-    getProduccionesEnCurso() {
-        return this.produccionesActivas;
-    }
+
 
     async cancelarFabricacion(fabricacionId) {
         try {
