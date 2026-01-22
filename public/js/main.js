@@ -6669,7 +6669,111 @@ class F1Manager {
                     background: rgba(225, 6, 0, 0.2);
                     border-color: #e10600;
                 }
+                /* ==================== */
+                /* ESTILOS ESPECÍFICOS PARA ESTRATEGAS */
+                /* ==================== */
+                #pilotos-container {
+                    display: grid !important;
+                    grid-template-columns: repeat(2, 1fr) !important;
+                    grid-template-rows: repeat(2, 1fr) !important;
+                    row-gap: 10px !important;
+                    align-content: start !important;
+                    padding: 5px !important;
+                    gap: 5px !important;
+                    height: 170px !important;
+                    min-width: 300px !important;
+                }
                 
+                /* Slots de estrategas */
+                #pilotos-container > div {
+                    background: rgba(255, 255, 255, 0.03) !important;
+                    border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+                    border-radius: 6px !important;
+                    padding: 8px 8px !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    cursor: pointer !important;
+                    transition: all 0.2s ease !important;
+                    height: 80px !important;
+                    min-height: 80px !important;
+                    margin-bottom: 2px !important;
+                }
+                
+                #pilotos-container > div:hover {
+                    border-color: rgba(0, 210, 190, 0.4) !important;
+                    background: rgba(0, 210, 190, 0.05) !important;
+                    transform: translateY(-1px) !important;
+                }
+                
+                /* Slot vacío */
+                #pilotos-container > div.vacio {
+                    border-style: dashed !important;
+                    border-color: rgba(255, 255, 255, 0.15) !important;
+                    background: rgba(255, 255, 255, 0.015) !important;
+                }
+                
+                #pilotos-container > div.vacio:hover {
+                    border-color: rgba(0, 210, 190, 0.5) !important;
+                    background: rgba(0, 210, 190, 0.08) !important;
+                }
+                
+                /* Slot ocupado */
+                #pilotos-container > div.ocupado {
+                    border-color: rgba(0, 210, 190, 0.25) !important;
+                    background: rgba(0, 210, 190, 0.04) !important;
+                }
+                
+                /* Contenido del slot */
+                #pilotos-container .slot-content {
+                    text-align: center;
+                    width: 100%;
+                }
+                
+                #pilotos-container .slot-content i {
+                    font-size: 1.1rem;
+                    color: #00d2be;
+                    margin-bottom: 5px;
+                }
+                
+                #pilotos-container .slot-content span {
+                    display: block;
+                    font-size: 0.75rem;
+                    color: #888;
+                    line-height: 1.1;
+                }
+                
+                /* Info adicional dentro del slot (para estrategas con nombre) */
+                #pilotos-container .estratega-info {
+                    width: 100%;
+                    text-align: center;
+                }
+                
+                #pilotos-container .estratega-nombre {
+                    display: block;
+                    font-weight: bold;
+                    font-size: 0.75rem;
+                    color: white;
+                    margin-bottom: 2px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                
+                #pilotos-container .estratega-especialidad {
+                    display: block;
+                    font-size: 0.65rem;
+                    color: #00d2be;
+                    margin-bottom: 1px;
+                    line-height: 1;
+                }
+                
+                #pilotos-container .estratega-salario {
+                    display: block;
+                    font-size: 0.6rem;
+                    color: #FFD700;
+                }                
                 /* ==================== */
                 /* CONTENIDO PRINCIPAL - Manteniendo IDs originales */
                 /* ==================== */
