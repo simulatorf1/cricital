@@ -1589,14 +1589,7 @@ class F1Manager {
     async init() {
         console.log('🔧 Inicializando juego...');
         
-        // Inicializar Supabase
-        this.supabase = await this.esperarSupabase();
-        if (!this.supabase) {
-            mostrarErrorCritico('No se pudo conectar con la base de datos');
-            return;
-        }
-        
-        // 1. CARGAR DATOS BÁSICOS (una sola vez)
+        // 1. Cargar datos básicos PRIMERO
         console.log('📥 Cargando datos del usuario...');
         await this.loadUserData();
         
@@ -1606,47 +1599,30 @@ class F1Manager {
         console.log('🚗 Cargando stats del coche...');
         await this.cargarCarStats();
         
-        console.log('📅 Cargando próximo GP...');
-        await this.loadProximoGP();
+        // 2. Generar HTML con estilos COMPLETOS (una sola vez)
+        console.log('📊 Generando dashboard estable...');
+        await this.cargarDashboardCompleto(); // ← Esta nueva versión
         
-        // 2. GENERAR HTML (una sola vez)
-        console.log('📊 Generando dashboard...');
-        await this.cargarDashboardCompleto(); // ← SOLO HTML
-        
-        // 3. CONFIGURAR EVENT LISTENERS BÁSICOS (una sola vez)
-        console.log('🔗 Configurando eventos básicos...');
-        this.configurarEventosBasicos();
-        
-        // 4. INICIALIZAR SISTEMAS (una sola vez)
-        console.log('🔧 Inicializando sistemas integrados...');
-        await this.inicializarSistemasIntegrados();
-        
-        // 5. CONFIGURAR SISTEMA DE PESTAÑAS (una sola vez)
-        console.log('📑 Configurando sistema de pestañas...');
+        // 3. Configurar pestañas (solo una vez)
         if (window.tabManager && window.tabManager.setup) {
             window.tabManager.setup();
         }
         
-        // 6. ACTUALIZAR UI CON DATOS (una sola vez)
+        // 4. Actualizar UI con datos (una sola vez, después de todo)
         console.log('🎨 Actualizando UI con datos...');
         if (this.updatePilotosUI) this.updatePilotosUI();
         if (this.cargarPiezasMontadas) await this.cargarPiezasMontadas();
-        if (this.updateProductionMonitor) await this.updateProductionMonitor();
         
-        // 7. INICIAR TIMERS (al final)
-        console.log('⏱️ Iniciando timers automáticos...');
-        this.iniciarTimersAutomaticos();
+        // 5. Inicializar otros sistemas
+        await this.inicializarSistemasIntegrados();
         
-        // 8. QUITAR PANTALLA DE CARGA
+        // 6. Quitar pantalla de carga
         setTimeout(() => {
             const loadingScreen = document.getElementById('f1-loading-screen');
-            if (loadingScreen) {
-                loadingScreen.remove();
-                console.log('🎬 Pantalla de carga eliminada');
-            }
+            if (loadingScreen) loadingScreen.remove();
         }, 500);
         
-        console.log('✅ Juego completamente inicializado - SIN FLASHING');
+        console.log('✅ Juego inicializado - Sin flashing');
     }
     
     // Añade este método nuevo:
@@ -6566,27 +6542,388 @@ class F1Manager {
     // DASHBOARD COMPLETO (VERSIÓN OPTIMIZADA - UNA SOLA FILA)
     // ========================
     async cargarDashboardCompleto() {
-        console.log('📊 Generando HTML del dashboard (SOLO HTML, sin inicializaciones)...');
+        console.log('📊 Generando HTML del dashboard (VERSIÓN ESTABLE SIN FLASHING)...');
         
         if (!this.escuderia) {
             console.error('❌ No hay escudería para cargar dashboard');
             return;
         }
         
-        // AÑADIR estilos compactos si no existen (pero solo CSS, sin JS)
-        if (!document.getElementById('dashboard-styles')) {
-            const style = document.createElement('style');
-            style.id = 'dashboard-styles';
-            style.innerHTML = `
-                /* SOLO CSS aquí - el mismo que ya tienes */
-                .dashboard-header-compacto { ... }
-                .produccion-slots { ... }
-                /* etc... */
-            `;
-            document.head.appendChild(style);
-        }
+        // PRIMERO: Inyectar TODOS los estilos DE UNA VEZ
+        const estilosCompletos = `
+            /* ==================== */
+            /* ESTILOS COMPLETOS - TODOS JUNTOS PARA EVITAR FLASHING */
+            /* ==================== */
+            
+            /* RESET Y BASES */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            body {
+                background: #0a0a0f;
+                color: white;
+                font-family: 'Roboto', sans-serif;
+                overflow-x: hidden;
+                min-height: 100vh;
+            }
+            
+            #app {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            /* HEADER COMPACTO */
+            .dashboard-header-compacto {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: rgba(21, 21, 30, 0.95);
+                border-bottom: 2px solid rgba(0, 210, 190, 0.3);
+                padding: 8px 15px;
+                height: 50px;
+                flex-shrink: 0;
+            }
+            
+            .header-left-compacto {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                flex: 1;
+            }
+            
+            .logo-compacto {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-family: 'Orbitron', sans-serif;
+                font-weight: bold;
+                color: #00d2be;
+                font-size: 1rem;
+                white-space: nowrap;
+            }
+            
+            .money-display-compacto {
+                background: rgba(255, 215, 0, 0.1);
+                border: 1px solid rgba(255, 215, 0, 0.3);
+                border-radius: 15px;
+                padding: 5px 12px;
+                font-family: 'Orbitron', sans-serif;
+                font-weight: bold;
+                color: #FFD700;
+                font-size: 0.9rem;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                white-space: nowrap;
+            }
+            
+            /* TABS */
+            .tabs-compactas {
+                display: flex;
+                gap: 5px;
+                flex: 2;
+                justify-content: center;
+                min-width: 0;
+            }
+            
+            .tab-btn-compacto {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                padding: 6px 12px;
+                color: #aaa;
+                font-family: 'Roboto', sans-serif;
+                font-size: 0.8rem;
+                cursor: pointer;
+                transition: all 0.2s;
+                white-space: nowrap;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                flex-shrink: 0;
+            }
+            
+            .tab-btn-compacto.active {
+                background: rgba(0, 210, 190, 0.2);
+                border-color: #00d2be;
+                color: white;
+                font-weight: bold;
+            }
+            
+            /* BOTÓN SALIR */
+            .logout-btn-compacto {
+                background: rgba(225, 6, 0, 0.1);
+                border: 1px solid rgba(225, 6, 0, 0.3);
+                color: #e10600;
+                padding: 6px 12px;
+                border-radius: 8px;
+                font-size: 0.8rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                transition: all 0.2s;
+                white-space: nowrap;
+            }
+            
+            /* CONTENIDO PRINCIPAL */
+            .dashboard-content {
+                padding: 10px;
+                flex: 1;
+                overflow-y: auto;
+                min-height: 0;
+            }
+            
+            /* GRID DE 3 COLUMNAS */
+            .three-columns-layout {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 10px;
+                margin: 10px 0;
+                height: 280px;
+            }
+            
+            /* COLUMNAS */
+            .col-estrategas, .col-countdown, .col-fabrica {
+                background: rgba(30, 30, 40, 0.8);
+                border: 1px solid rgba(0, 210, 190, 0.3);
+                border-radius: 8px;
+                padding: 8px;
+                height: 270px !important;
+                display: flex;
+                flex-direction: column;
+                min-height: 270px !important;
+                overflow: hidden !important;
+            }
+            
+            /* ENCABEZADOS */
+            .section-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .section-header h2 {
+                margin: 0;
+                font-size: 1rem;
+                color: white;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .badge {
+                background: rgba(0, 210, 190, 0.2);
+                color: #00d2be;
+                padding: 3px 10px;
+                border-radius: 12px;
+                font-size: 0.8rem;
+                font-weight: bold;
+            }
+            
+            /* PRODUCCIÓN/ESTRATEGAS - EL DISEÑO QUE QUERÍAS */
+            .produccion-slots {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(2, 1fr);
+                gap: 8px;
+                padding: 8px;
+                height: 160px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .produccion-slot {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1.5px solid rgba(255, 255, 255, 0.08);
+                border-radius: 6px;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-height: 70px;
+            }
+            
+            .produccion-slot:hover {
+                border-color: rgba(0, 210, 190, 0.4);
+                background: rgba(0, 210, 190, 0.05);
+                transform: translateY(-1px);
+            }
+            
+            .slot-content {
+                text-align: center;
+                width: 100%;
+            }
+            
+            .produccion-icon {
+                font-size: 1.1rem;
+                margin-bottom: 5px;
+                color: #00d2be;
+                height: 22px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .produccion-info {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .produccion-nombre {
+                display: block;
+                font-weight: bold;
+                font-size: 0.75rem;
+                color: white;
+                margin-bottom: 2px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .produccion-tiempo {
+                display: block;
+                font-size: 0.65rem;
+                color: #00d2be;
+                margin-bottom: 1px;
+                line-height: 1;
+            }
+            
+            /* PIEZAS MONTADAS */
+            .grid-11-columns {
+                display: grid !important;
+                grid-template-columns: repeat(11, 1fr) !important;
+                gap: 4px !important;
+                margin-top: 8px !important;
+                height: 70px !important;
+                align-items: stretch !important;
+                width: 100% !important;
+            }
+            
+            .boton-area-montada, .boton-area-vacia {
+                background: rgba(255, 255, 255, 0.03) !important;
+                border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+                border-radius: 6px !important;
+                padding: 4px 3px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                cursor: pointer !important;
+                transition: all 0.2s ease !important;
+                height: 60px !important;
+                min-height: 60px !important;
+            }
+            
+            .boton-area-montada {
+                border-color: rgba(0, 210, 190, 0.25) !important;
+                background: rgba(0, 210, 190, 0.04) !important;
+            }
+            
+            /* FOOTER */
+            .dashboard-footer {
+                background: rgba(21, 21, 30, 0.95);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 8px 15px;
+                height: 30px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-shrink: 0;
+            }
+            
+            .user-info-compacto {
+                font-size: 0.8rem;
+                color: #aaa;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            /* MEDIA QUERIES - TODAS JUNTAS */
+            @media (max-width: 768px) {
+                .dashboard-header-compacto {
+                    flex-direction: column;
+                    height: auto;
+                    padding: 10px;
+                    gap: 10px;
+                }
+                
+                .three-columns-layout {
+                    grid-template-columns: 1fr !important;
+                    height: auto !important;
+                    gap: 15px !important;
+                }
+                
+                .col-estrategas, .col-countdown, .col-fabrica {
+                    height: 220px !important;
+                }
+                
+                .produccion-slots {
+                    height: 140px;
+                    padding: 6px;
+                    gap: 6px;
+                }
+                
+                .produccion-slot {
+                    min-height: 65px;
+                    padding: 8px;
+                }
+                
+                .grid-11-columns {
+                    grid-template-columns: repeat(5, 1fr) !important;
+                    height: auto !important;
+                    min-height: 140px !important;
+                }
+            }
+            
+            /* ANIMACIONES */
+            @keyframes pulse-green {
+                0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+                70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+            }
+            
+            .produccion-lista {
+                border-color: #4CAF50 !important;
+                background: rgba(76, 175, 80, 0.15) !important;
+                animation: pulse-green 2s infinite;
+            }
+            
+            /* SCROLLBAR */
+            ::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            ::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 3px;
+            }
+            
+            ::-webkit-scrollbar-thumb {
+                background: rgba(0, 210, 190, 0.3);
+                border-radius: 3px;
+            }
+        `;
         
-        // GENERAR HTML - SOLO ESTRUCTURA
+        // Inyectar estilos UNA sola vez
+        const style = document.createElement('style');
+        style.id = 'estilos-completos-dashboard';
+        style.textContent = estilosCompletos;
+        document.head.appendChild(style);
+        
+        // SEGUNDO: Generar el HTML
         document.body.innerHTML = `
             <div id="app">
                 <!-- Header compacto -->
@@ -6632,9 +6969,8 @@ class F1Manager {
                     </div>
                 </header>
                 
-                <!-- Main Content - ESTRUCTURA VACÍA -->
+                <!-- Main Content -->
                 <main class="dashboard-content">
-                    <!-- Las pestañas se llenarán después -->
                     <div id="tab-principal" class="tab-content active">
                         <div class="three-columns-layout">
                             <div class="col-estrategas">
@@ -6643,7 +6979,7 @@ class F1Manager {
                                     <span class="badge" id="contador-estrategas">0/4</span>
                                 </div>
                                 <div class="pilotos-container" id="pilotos-container">
-                                    <!-- Se llenará con updatePilotosUI() -->
+                                    <!-- Aquí va updatePilotosUI() -->
                                 </div>
                             </div>
                             
@@ -6652,7 +6988,7 @@ class F1Manager {
                                     <h2><i class="fas fa-clock"></i> PRÓXIMO GP</h2>
                                 </div>
                                 <div id="countdown-container">
-                                    <!-- Se llenará después -->
+                                    <!-- Countdown -->
                                 </div>
                             </div>
                             
@@ -6662,7 +6998,7 @@ class F1Manager {
                                     <span class="badge" id="contador-fabricaciones">0/4</span>
                                 </div>
                                 <div id="produccion-monitor">
-                                    <!-- Se llenará después -->
+                                    <!-- Monitor de fabricación -->
                                 </div>
                             </div>
                         </div>
@@ -6676,11 +7012,11 @@ class F1Manager {
                             </div>
                         </div>
                         <div class="grid-11-columns" id="grid-piezas-montadas">
-                            <!-- Se llenará con cargarPiezasMontadas() -->
+                            <!-- Aquí va cargarPiezasMontadas() -->
                         </div>
                     </div>
                     
-                    <!-- Otras pestañas (vacías por ahora) -->
+                    <!-- Otras pestañas -->
                     <div id="tab-taller" class="tab-content"></div>
                     <div id="tab-almacen" class="tab-content"></div>
                     <div id="tab-mercado" class="tab-content"></div>
@@ -6694,20 +7030,27 @@ class F1Manager {
                         <i class="fas fa-user"></i>
                         <span>${this.user?.email || 'Usuario'}</span>
                     </div>
-                    <div class="footer-right">
-                        <!-- Puedes añadir algo aquí si quieres -->
-                    </div>
+                    <div class="footer-right"></div>
                 </footer>
             </div>
         `;
         
-        console.log('✅ HTML del dashboard generado (estructura limpia)');
+        console.log('✅ Dashboard generado con estilos estables (sin flashing)');
         
-        // ¡IMPORTANTE! NO añadir event listeners aquí
-        // ¡IMPORTANTE! NO hacer inicializaciones aquí
-        // ¡IMPORTANTE! NO llamar a otras funciones aquí
-        
-        // TODO eso se hará en init() después
+        // TERCERO: Configurar el botón de logout (solo esto aquí)
+        const logoutBtn = document.getElementById('logout-btn-visible');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    console.log('🔒 Cerrando sesión...');
+                    const { error } = await this.supabase.auth.signOut();
+                    if (error) throw error;
+                    location.reload();
+                } catch (error) {
+                    console.error('❌ Error al cerrar sesión:', error);
+                }
+            });
+        }
     }
     
 
