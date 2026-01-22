@@ -6623,23 +6623,13 @@ class F1Manager {
                     </div>
                 </div>
                 
-                <!-- Estado de apuestas -->
-                <div class="estado-apuestas" id="estado-apuestas">
+                <!-- Botón único para estado/apuestas -->
+                <button class="btn-pronostico-f1" id="btn-estado-apuestas">
                     <i class="fas fa-spinner fa-spin"></i>
-                    <span>Cargando estado...</span>
-                </div>
-                
-                <!-- Botón Enviar Pronóstico -->
-                <button class="btn-pronostico-f1" id="btn-enviar-pronostico">
-                    <i class="fas fa-paper-plane"></i>
-                    ENVIAR PRONÓSTICO
+                    <span>Cargando...</span>
                 </button>
                 
-                <!-- Nota informativa -->
-                <div class="countdown-nota">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Las apuestas cierran 48 horas antes del inicio de la carrera</span>
-                </div>
+
             </div>
         `;
         // PRIMERO: Inyectar estilos COMPACTOS en el HEAD si no existen
@@ -7979,19 +7969,20 @@ class F1Manager {
                 if (minutosElem) minutosElem.textContent = minutos.toString().padStart(2, '0');
                 if (segundosElem) segundosElem.textContent = segundos.toString().padStart(2, '0');
                 
-                // Botón activado
-                if (btnPronostico) {
-                    btnPronostico.disabled = false;
-                    btnPronostico.innerHTML = '<i class="fas fa-paper-plane"></i> ENVIAR PRONÓSTICO';
-                }
-                
-                // Estado apuestas
-                if (estadoApuestasElem) {
-                    estadoApuestasElem.innerHTML = `
-                        <i class="fas fa-lock-open"></i>
-                        <span>APUESTAS ABIERTAS</span>
-                    `;
-                    estadoApuestasElem.className = 'estado-apuestas abierto';
+                // UN SOLO BOTÓN
+                const btnApuestas = document.getElementById('btn-estado-apuestas');
+                if (btnApuestas) {
+                    if (diferencia > 0) {
+                        // Apuestas abiertas
+                        btnApuestas.disabled = false;
+                        btnApuestas.innerHTML = '<i class="fas fa-paper-plane"></i> ENVIAR PRONÓSTICO';
+                        btnApuestas.className = 'btn-pronostico-f1 abierto';
+                    } else {
+                        // Apuestas cerradas
+                        btnApuestas.disabled = true;
+                        btnApuestas.innerHTML = '<i class="fas fa-lock"></i> APUESTAS CERRADAS';
+                        btnApuestas.className = 'btn-pronostico-f1 cerrado';
+                    }
                 }
                 
             } else {
