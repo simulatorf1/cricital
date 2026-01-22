@@ -7034,7 +7034,7 @@ class F1Manager {
                                 </div>
                                 
                                 <!-- Grid 2x2 IGUAL QUE PRODUCCIÓN -->
-                                <div id="pilotos-container" class="produccion-slots">
+                                <div id="pilotos-container" class="pilotos-container">
                                     <!-- El contenido dinámico se cargará aquí -->
                                     <!-- Se mantendrá la misma funcionalidad, solo cambia el aspecto -->
                                 </div>
