@@ -6539,10 +6539,12 @@ class F1Manager {
             return;
         }
         
-        // PRIMERO: Inyectar estilos COMPACTOS en el HEAD si no existen
-        if (!document.getElementById('dashboard-styles')) {
+        // ====================
+        // INYECTAR TODOS LOS ESTILOS DE UNA VEZ (EVITA PARPADEO)
+        // ====================
+        if (!document.getElementById('all-dashboard-styles')) {
             const style = document.createElement('style');
-            style.id = 'dashboard-styles';
+            style.id = 'all-dashboard-styles';
             style.innerHTML = `
                 /* ==================== */
                 /* ESTILOS COMPACTOS CON FUNCIONALIDAD ORIGINAL */
@@ -6550,8 +6552,8 @@ class F1Manager {
                 #app {
                     display: flex;
                     flex-direction: column;
-                    height: 100vh; /* ← Usa height, NO min-height */
-                    overflow: hidden; /* ← hidden aquí, el scroll estará en dashboard-content */
+                    height: 100vh;
+                    overflow: hidden;
                 }
                 
                 html, body {
@@ -6560,6 +6562,8 @@ class F1Manager {
                     margin: 0;
                     padding: 0;
                 }
+                
+                /* Header */
                 .dashboard-header-compacto {
                     display: flex;
                     align-items: center;
@@ -6571,41 +6575,7 @@ class F1Manager {
                     flex-shrink: 0;
                 }
                 
-                /* Contenedor izquierdo: Logo y dinero */
-                .header-left-compacto {
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                    flex: 1;
-                }
-                
-                .logo-compacto {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-family: 'Orbitron', sans-serif;
-                    font-weight: bold;
-                    color: #00d2be;
-                    font-size: 1rem;
-                    white-space: nowrap;
-                }
-                
-                .money-display-compacto {
-                    background: rgba(255, 215, 0, 0.1);
-                    border: 1px solid rgba(255, 215, 0, 0.3);
-                    border-radius: 15px;
-                    padding: 5px 12px;
-                    font-family: 'Orbitron', sans-serif;
-                    font-weight: bold;
-                    color: #FFD700;
-                    font-size: 0.9rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                    white-space: nowrap;
-                }
-                
-                /* Contenedor central: Tabs */
+                /* Tabs */
                 .tabs-compactas {
                     display: flex;
                     gap: 5px;
@@ -6638,116 +6608,127 @@ class F1Manager {
                     font-weight: bold;
                 }
                 
-                .tab-btn-compacto:hover:not(.active) {
-                    background: rgba(255, 255, 255, 0.1);
-                    border-color: rgba(255, 255, 255, 0.2);
-                }
-                
-                /* Contenedor derecho: Botón salir */
-                .header-right-compacto {
-                    flex: 1;
-                    display: flex;
-                    justify-content: flex-end;
-                }
-                
-                .logout-btn-compacto {
-                    background: rgba(225, 6, 0, 0.1);
-                    border: 1px solid rgba(225, 6, 0, 0.3);
-                    color: #e10600;
-                    padding: 6px 12px;
-                    border-radius: 8px;
-                    font-size: 0.8rem;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                    transition: all 0.2s;
-                    white-space: nowrap;
-                }
-                
-                .logout-btn-compacto:hover {
-                    background: rgba(225, 6, 0, 0.2);
-                    border-color: #e10600;
-                }
-                
-                /* ==================== */
-                /* CONTENIDO PRINCIPAL - Manteniendo IDs originales */
-                /* ==================== */
+                /* Contenido principal */
                 .dashboard-content {
                     padding: 10px;
                     flex: 1;
                     overflow-y: auto;
                     min-height: 0;
-                    /* Añade esto: */
                     position: relative;
                 }
                 
-                /* Grid de 3 columnas MÁS COMPACTO */
+                /* Grid de 3 columnas */
                 .three-columns-layout {
                     display: grid;
-                    grid-template-columns: 1fr 1fr 1fr; /* ← TODAS IGUALES */
+                    grid-template-columns: 1fr 1fr 1fr;
                     gap: 10px;
                     margin: 10px 0;
                     height: 280px;
                 }
                 
-                /* Estilos para las columnas (manteniendo IDs originales) */
+                /* Columnas */
                 .col-estrategas, .col-countdown, .col-fabrica {
                     background: rgba(30, 30, 40, 0.8);
                     border: 1px solid rgba(0, 210, 190, 0.3);
-                    border-radius: 8px; /* ← Reducir un poco */
-                    padding: 8px; /* ← MUCHO MENOS PADDING */
-                    height: 270px !important;  /* ← CAMBIA ESTO */
+                    border-radius: 8px;
+                    padding: 8px;
+                    height: 270px !important;
                     display: flex;
                     flex-direction: column;
-                    
-                    min-height: 270px !important;  /* ← AÑADE ESTO */
-                    overflow: hidden !important;  /* ← AÑADE ESTO (opcional) */
+                    min-height: 270px !important;
+                    overflow: hidden !important;
                 }
                 
-                /* Encabezado de sección */
-                .section-header {
+                /* ==================== */
+                /* ESTILOS DE PRODUCCIÓN (SISTEMA ORIGINAL) */
+                /* ==================== */
+                .produccion-slots {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr) !important;
+                    grid-template-rows: 80px 80px !important;
+                    row-gap: 10px !important;
+                    align-content: start !important;
+                    padding: 5px;
+                    gap: 5px !important;
+                    height: 170px !important;
+                    min-width: 300px !important;
+                }
+                
+                .produccion-slot {
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1.5px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 6px;
+                    padding: 8px 8px !important;
                     display: flex;
-                    justify-content: space-between;
+                    flex-direction: column;
                     align-items: center;
-                    margin-bottom: 10px;
-                    padding-bottom: 8px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    height: 80px !important;
+                    min-height: 80px !important;
+                    margin-bottom: 2px !important;
                 }
                 
-                .section-header h2 {
-                    margin: 0;
-                    font-size: 1rem;
-                    color: white;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
+                .produccion-slot:hover {
+                    border-color: rgba(0, 210, 190, 0.4);
+                    background: rgba(0, 210, 190, 0.05);
+                    transform: translateY(-1px);
                 }
                 
-                /* Badge (contador) */
-                .badge {
-                    background: rgba(0, 210, 190, 0.2);
+                .slot-content {
+                    text-align: center;
+                    width: 100%;
+                }
+                
+                .slot-content i {
+                    font-size: 1.1rem;
                     color: #00d2be;
-                    padding: 3px 10px;
-                    border-radius: 12px;
-                    font-size: 0.8rem;
-                    font-weight: bold;
+                    margin-bottom: 5px;
                 }
                 
-                /* Contenedor de estrategas - MANTENIENDO ID original "pilotos-container" */
+                .slot-content span {
+                    display: block;
+                    font-size: 0.75rem;
+                    color: #888;
+                    line-height: 1.1;
+                }
+                
+                .produccion-activa {
+                    border-color: rgba(0, 210, 190, 0.25);
+                    background: rgba(0, 210, 190, 0.04);
+                }
+                
+                .produccion-lista {
+                    border-color: #4CAF50 !important;
+                    background: rgba(76, 175, 80, 0.15) !important;
+                    animation: pulse-green 2s infinite;
+                }
+                
+                @keyframes pulse-green {
+                    0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+                }
+                
+                /* ==================== */
+                /* ESTILOS DE ESTRATEGAS (INGENIEROS) */
+                /* ==================== */
                 .pilotos-container {
                     flex: 1;
                     overflow-y: auto;
                     padding-right: 5px;
                 }
                 
-                /* Estilos para piezas montadas - MANTENIENDO IDs originales */
+                /* ==================== */
+                /* ESTILOS DE PIEZAS MONTADAS */
+                /* ==================== */
                 .grid-11-columns {
                     display: grid !important;
                     grid-template-columns: repeat(11, 1fr) !important;
-                    gap: 4px !important; /* ← Menos espacio entre botones */
-                    margin-top: 8px !important; /* ← Menos margen arriba */
-                    height: 70px !important; /* ← Altura reducida */
+                    gap: 4px !important;
+                    margin-top: 8px !important;
+                    height: 70px !important;
                     align-items: stretch !important;
                     width: 100% !important;
                 }
@@ -6756,15 +6737,15 @@ class F1Manager {
                     background: rgba(255, 255, 255, 0.03) !important;
                     border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
                     border-radius: 6px !important;
-                    padding: 4px 3px !important; /* ← Menos padding */
+                    padding: 4px 3px !important;
                     display: flex !important;
                     flex-direction: column !important;
                     align-items: center !important;
                     justify-content: center !important;
                     cursor: pointer !important;
                     transition: all 0.2s ease !important;
-                    height: 60px !important; /* ← MUCHO MÁS BAJO */
-                    min-height: 60px !important; /* ← MUCHO MÁS BAJO */
+                    height: 60px !important;
+                    min-height: 60px !important;
                 }
                 
                 .boton-area-montada {
@@ -6789,168 +6770,55 @@ class F1Manager {
                     background: rgba(0, 210, 190, 0.05) !important;
                 }
                 
-                .icono-area {
-                    font-size: 0.8rem !important; /* ← Más pequeño */
-                    margin-bottom: 3px !important; /* ← Menos espacio abajo */
-                    color: #00d2be;
-                    height: 16px; /* ← Más bajo */
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                .boton-area-vacia .icono-area {
-                    color: #666;
-                    font-size: 0.9rem !important;
-                }
-                
-                .nombre-area {
-                    display: block;
-                    font-weight: bold;
-                    font-size: 0.6rem !important; /* ← Más pequeño */
-                    color: white;
-                    margin-bottom: 1px; /* ← Menos margen */
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    line-height: 1; /* ← Menos interlineado */
-                    text-align: center;
-                    width: 100%;
-                }
-                
-                .nivel-pieza {
-                    display: block;
-                    font-size: 0.55rem !important; /* ← Más pequeño */
-                    color: #4CAF50;
-                    margin-bottom: 1px;
-                    line-height: 1;
-                    font-weight: bold;
-                }
-                
-                .puntos-pieza {
-                    display: block;
-                    font-size: 0.55rem !important;
-                    color: #FFD700;
-                    font-weight: bold;
-                    line-height: 1;
-                }
-                
-                .total-puntos-montadas {
-                    background: rgba(255, 215, 0, 0.1);
-                    border: 1px solid #FFD700;
-                    border-radius: 15px;
-                    padding: 4px 12px;
-                    color: #FFD700;
-                    font-weight: bold;
-                    font-size: 0.8rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                }
-                
-                /* Footer compacto */
-                .dashboard-footer {
-                    background: rgba(21, 21, 30, 0.95);
-                    border-top: 1px solid rgba(255, 255, 255, 0.1);
-                    padding: 8px 15px;
-                    height: 30px;
-                    display: flex;
-                    justify-content: space-between; /* ← Esto pone usuario a la izq, botón a la der */
-                    align-items: center;
-                    flex-shrink: 0;
-                }
-                
-                .user-info-compacto {
-                    font-size: 0.8rem;
-                    color: #aaa;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-                
-                /* Tab content */
-                .tab-content {
-                    display: none;
-                }
-                
-                .tab-content.active {
-                    display: block;
-                }
-                /* Responsive - PARA MÓVIL */
+                /* ==================== */
+                /* ESTILOS RESPONSIVE */
+                /* ==================== */
                 @media (max-width: 768px) {
                     .dashboard-header-compacto {
-                        flex-direction: column; /* ← Pone logo, tabs y logout en columna */
-                        height: auto; /* ← Altura automática */
+                        flex-direction: column;
+                        height: auto;
                         padding: 10px;
                         gap: 10px;
-                        padding-bottom: 40px; /* ← ESPACIO PARA FOOTER */
+                        padding-bottom: 40px;
                     }
+                    
                     .produccion-slots {
-                        grid-template-columns: repeat(2, 1fr) !important; /* ← Mantener 2 columnas */
-                        grid-template-rows: 80px 80px !important; /* ← Mantener 2 filas */
-                        height: 170px !important; /* ← Altura fija igual que desktop */
-                        min-height: 170px !important; /* ← Mínima igual */
+                        grid-template-columns: repeat(2, 1fr) !important;
+                        grid-template-rows: 80px 80px !important;
+                        height: 170px !important;
+                        min-height: 170px !important;
                     }
                     
                     .produccion-slot {
-                        height: 80px !important; /* ← Altura fija */
+                        height: 80px !important;
                         min-height: 80px !important;
                     }
                     
-                    .header-left-compacto,
-                    .tabs-compactas,
-                    .header-right-compacto {
-                        width: 100%;
-                        justify-content: center;
-                    }
-                    
-                    /* El grid de 3 columnas pasa a 1 columna en móvil */
                     .three-columns-layout {
-                        grid-template-columns: 1fr !important; /* ← 1 columna en móvil */
-                        height: auto !important; /* ← Altura automática */
+                        grid-template-columns: 1fr !important;
+                        height: auto !important;
                         gap: 15px !important;
                     }
                     
-                    /* Cada columna ocupa todo el ancho */
                     .col-estrategas, .col-countdown, .col-fabrica {
-                        height: 220px !important; /* ← Altura fija para cada bloque */
+                        height: 220px !important;
                     }
                     
-                    /* Las piezas montadas en 5 columnas en móvil */
                     .grid-11-columns {
-                        grid-template-columns: repeat(5, 1fr) !important; /* ← 5 columnas en móvil */
-                        height: auto !important; /* ← Altura automática */
-                        min-height: 140px !important; /* ← Mínimo para que se vea bien */
+                        grid-template-columns: repeat(5, 1fr) !important;
+                        height: auto !important;
+                        min-height: 140px !important;
                     }
                     
                     .boton-area-montada, .boton-area-vacia {
-                        height: 70px !important; /* ← Un poco más alto en móvil */
+                        height: 70px !important;
                         min-height: 70px !important;
                     }
-                    
-                    /* Tabs en móvil: scroll horizontal si no caben */
-                    .tabs-compactas {
-                        overflow-x: auto;
-                        justify-content: flex-start;
-                        padding-bottom: 5px;
-                    }
-                    
-                    .tab-btn-compacto {
-                        flex-shrink: 0; /* ← Evita que los botones se encojan */
-                    }
                 }
-                /* Para tablets y pantallas medianas */
-                @media (max-width: 1200px) {
-                    .three-columns-layout {
-                        grid-template-columns: 280px 1fr 1fr; /* ← Columnas un poco más estrechas */
-                        height: 250px; /* ← Un poco más bajo en tablet */
-                    }
-                    
-                    .grid-11-columns {
-                        grid-template-columns: repeat(6, 1fr) !important; /* ← 6 columnas en tablet */
-                    }
-                }
-                /* Scrollbar */
+                
+                /* ==================== */
+                /* ESTILOS DE SCROLLBAR */
+                /* ==================== */
                 ::-webkit-scrollbar {
                     width: 6px;
                 }
@@ -6968,10 +6836,10 @@ class F1Manager {
             document.head.appendChild(style);
         }
         
-        // 1. Crear el HTML con diseño compacto pero manteniendo IDs ORIGINALES
+        // 1. Crear el HTML con diseño compacto
         document.body.innerHTML = `
             <div id="app">
-                <!-- Header compacto (UNA SOLA FILA) -->
+                <!-- Header compacto -->
                 <header class="dashboard-header-compacto">
                     <!-- Izquierda: Logo y dinero -->
                     <div class="header-left-compacto">
@@ -7007,184 +6875,88 @@ class F1Manager {
                         </button>
                     </nav>
                     
-                    <!-- Derecha: Botón salir (manteniendo ID original) -->
-
+                    <!-- Derecha: Botón salir -->
+                    <div class="header-right-compacto">
+                        <button class="logout-btn-compacto" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i> Salir
+                        </button>
+                    </div>
                 </header>
                 
-                <!-- Main Content - MANTENIENDO ESTRUCTURA ORIGINAL -->
-                <main class="dashboard-content">
-                    <!-- Tab Principal -->
+                <!-- Contenido principal -->
+                <main class="dashboard-content" id="dashboard-content">
+                    <!-- Pestaña Principal (activa por defecto) -->
                     <div id="tab-principal" class="tab-content active">
-                        <!-- Three Columns Layout - MANTENIENDO IDs ORIGINALES -->
+                        <!-- Grid de 3 columnas (ESTRATEGAS + COUNTDOWN + FABRICACIÓN) -->
                         <div class="three-columns-layout">
-                            
-                            <!-- Columna 1: Estrategas Compactos - MANTENIENDO IDs ORIGINALES -->
+                            <!-- Columna 1: ESTRATEGAS -->
                             <div class="col-estrategas">
-                                <section class="panel-pilotos compacto">
-                                    <div class="section-header">
-                                        <h2><i class="fas fa-users"></i> ESTRATEGAS</h2>
-                                        <span class="badge" id="contador-estrategas">0/4</span>
-                                    </div>
-                                    <div id="pilotos-container" class="pilotos-container">
-                                        <!-- Contenido dinámico -->
-                                    </div>
-                                    <button class="btn-contratar-todos" onclick="gestionarEstrategas()" style="
-                                        margin-top: 5px; /* ← Menos margen arriba */
-                                        padding: 4px 8px; /* ← Menos padding */
-                                        background: rgba(0,210,190,0.1);
-                                        border: 1px solid rgba(0,210,190,0.4);
-                                        color: #00d2be;
-                                        border-radius: 4px; /* ← Radio más pequeño */
-                                        font-size: 0.7rem; /* ← Texto más pequeño */
-                                        cursor: pointer;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        gap: 4px; /* ← Menos espacio entre icono y texto */
-                                    ">
-                                        <i class="fas fa-plus"></i> GESTIONAR ESTRATEGAS
-                                    </button>
-                                </section>
+                                <div class="section-header">
+                                    <h2><i class="fas fa-users"></i> Estrategas</h2>
+                                    <span class="badge" id="estrategas-count">0/4</span>
+                                </div>
+                                <div class="pilotos-container" id="pilotos-container">
+                                    <!-- Los estrategas se cargarán aquí dinámicamente -->
+                                    <div class="loading">Cargando estrategas...</div>
+                                </div>
                             </div>
                             
-                            <!-- Columna 2: Countdown y GP - MANTENIENDO IDs ORIGINALES -->
+                            <!-- Columna 2: COUNTDOWN -->
                             <div class="col-countdown">
-                                <div class="countdown-section">
-                                    <div class="section-header">
-                                        <h2><i class="fas fa-clock"></i> PRÓXIMA CARRERA</h2>
-                                        <span class="badge" id="estado-carrera">EN VIVO</span>
+                                <div class="section-header">
+                                    <h2><i class="fas fa-clock"></i> Próximo GP</h2>
+                                    <span class="badge">Próximamente</span>
+                                </div>
+                                <div id="countdown-container" style="
+                                    flex: 1;
+                                    display: flex;
+                                    flex-direction: column;
+                                    justify-content: center;
+                                    align-items: center;
+                                    text-align: center;
+                                ">
+                                    <div style="font-size: 2rem; color: #00d2be; margin-bottom: 10px;">
+                                        <i class="fas fa-flag-checkered"></i>
                                     </div>
-                                    <div id="countdown-container" style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                        <div class="countdown-timer">
-                                            <div class="time-block">
-                                                <span class="time-number" id="hours">00</span>
-                                                <span class="time-label">Horas</span>
-                                            </div>
-                                            <div class="time-separator">:</div>
-                                            <div class="time-block">
-                                                <span class="time-number" id="minutes">00</span>
-                                                <span class="time-label">Minutos</span>
-                                            </div>
-                                            <div class="time-separator">:</div>
-                                            <div class="time-block">
-                                                <span class="time-number" id="seconds">00</span>
-                                                <span class="time-label">Segundos</span>
-                                            </div>
-                                        </div>
-                                        <div class="proximo-gp">
-               
-                                        </div>
+                                    <div style="color: white; font-size: 1.1rem; margin-bottom: 5px;">
+                                        Próxima carrera
+                                    </div>
+                                    <div style="color: #aaa; font-size: 0.9rem;">
+                                        Se anunciará pronto
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Columna 3: Monitor de Fábrica - MANTENIENDO IDs ORIGINALES -->
+                            <!-- Columna 3: FABRICACIÓN -->
                             <div class="col-fabrica">
-                                <div class="monitor-fabrica">
-                                    <div class="section-header">
-                                        <h2><i class="fas fa-industry"></i> PRODUCCIÓN</h2>
-                                        <div id="alerta-almacen" class="alerta-almacen" style="display: none;">
-                                            <i class="fas fa-bell"></i>
-                                            <span>¡Piezas nuevas en almacén!</span>
-                                        </div>
-                                    </div>
-                                    <div id="produccion-actual" class="produccion-actual">
-                                        <!-- Grid de 4 slots - MANTENIENDO estructura original -->
-                                        <div id="produccion-slots" class="produccion-slots" style="
-                                            display: grid;
-                                            grid-template-columns: repeat(2, 1fr);
-                                            grid-template-rows: repeat(2, 1fr);
-                                            gap: 8px;
-                                            height: 100%;
-                                            padding: 5px;
-                                        ">
-                                            <div class="produccion-slot" data-slot="0" onclick="irAlTallerDesdeProduccion()" style="
-                                                background: rgba(255, 255, 255, 0.03);
-                                                border: 1.5px solid rgba(255, 255, 255, 0.08);
-                                                border-radius: 6px;
-                                                display: flex;
-                                                flex-direction: column;
-                                                align-items: center;
-                                                justify-content: center;
-                                                cursor: pointer;
-                                                padding: 8px 5px;
-                                            ">
-                                                <div class="slot-content">
-                                                    <i class="fas fa-plus" style="color: #00d2be; margin-bottom: 3px;"></i>
-                                                    <span style="font-size: 0.7rem; color: #888;">Slot 1</span>
-                                                </div>
-                                            </div>
-                                            <div class="produccion-slot" data-slot="1" onclick="irAlTallerDesdeProduccion()" style="
-                                                background: rgba(255, 255, 255, 0.03);
-                                                border: 1.5px solid rgba(255, 255, 255, 0.08);
-                                                border-radius: 6px;
-                                                display: flex;
-                                                flex-direction: column;
-                                                align-items: center;
-                                                justify-content: center;
-                                                cursor: pointer;
-                                                padding: 8px 5px;
-                                            ">
-                                                <div class="slot-content">
-                                                    <i class="fas fa-plus" style="color: #00d2be; margin-bottom: 3px;"></i>
-                                                    <span style="font-size: 0.7rem; color: #888;">Slot 2</span>
-                                                </div>
-                                            </div>
-                                            <div class="produccion-slot" data-slot="2" onclick="irAlTallerDesdeProduccion()" style="
-                                                background: rgba(255, 255, 255, 0.03);
-                                                border: 1.5px solid rgba(255, 255, 255, 0.08);
-                                                border-radius: 6px;
-                                                display: flex;
-                                                flex-direction: column;
-                                                align-items: center;
-                                                justify-content: center;
-                                                cursor: pointer;
-                                                padding: 8px 5px;
-                                            ">
-                                                <div class="slot-content">
-                                                    <i class="fas fa-plus" style="color: #00d2be; margin-bottom: 3px;"></i>
-                                                    <span style="font-size: 0.7rem; color: #888;">Slot 3</span>
-                                                </div>
-                                            </div>
-                                            <div class="produccion-slot" data-slot="3" onclick="irAlTallerDesdeProduccion()" style="
-                                                background: rgba(255, 255, 255, 0.03);
-                                                border: 1.5px solid rgba(255, 255, 255, 0.08);
-                                                border-radius: 6px;
-                                                display: flex;
-                                                flex-direction: column;
-                                                align-items: center;
-                                                justify-content: center;
-                                                cursor: pointer;
-                                                padding: 8px 5px;
-                                            ">
-                                                <div class="slot-content">
-                                                    <i class="fas fa-plus" style="color: #00d2be; margin-bottom: 3px;"></i>
-                                                    <span style="font-size: 0.7rem; color: #888;">Slot 4</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="section-header">
+                                    <h2><i class="fas fa-industry"></i> Producción</h2>
+                                    <span class="badge" id="produccion-count">0/4</span>
+                                </div>
+                                <div class="produccion-slots" id="produccion-slots">
+                                    <!-- Slots de producción se cargarán aquí -->
+                                    <div class="loading">Cargando producción...</div>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Piezas Montadas en el Coche - MANTENIENDO IDs ORIGINALES -->
-                        <section class="piezas-montadas">
+                        <!-- Piezas montadas (11 áreas) -->
+                        <div style="margin-top: 20px;">
                             <div class="section-header">
-                                <h2><i class="fas fa-car"></i> PIEZAS MONTADAS EN EL COCHE</h2>
+                                <h2><i class="fas fa-car"></i> Piezas Montadas</h2>
                                 <div class="total-puntos-montadas">
                                     <i class="fas fa-star"></i>
-                                    <span>Puntos totales: <strong id="puntos-totales-montadas">0</strong></span>
+                                    <span id="puntos-totales-montadas">0</span> pts
                                 </div>
                             </div>
-                            
-                            <div id="grid-piezas-montadas" class="grid-11-columns">
-                                <!-- Se generarán dinámicamente 11 botones -->
+                            <div class="grid-11-columns" id="grid-piezas-montadas">
+                                <!-- Las 11 áreas se cargarán aquí -->
+                                <div class="loading">Cargando piezas...</div>
                             </div>
-                        </section>
+                        </div>
                     </div>
                     
-                    <!-- Otras pestañas - MANTENIENDO IDs ORIGINALES -->
+                    <!-- Otras pestañas (inicialmente ocultas) -->
                     <div id="tab-taller" class="tab-content"></div>
                     <div id="tab-almacen" class="tab-content"></div>
                     <div id="tab-mercado" class="tab-content"></div>
@@ -7195,258 +6967,26 @@ class F1Manager {
                 <!-- Footer -->
                 <footer class="dashboard-footer">
                     <div class="user-info-compacto">
-                        <i class="fas fa-user-circle"></i>
-                        <span>${this.user.email?.split('@')[0] || 'Usuario'}</span>
+                        <i class="fas fa-user"></i>
+                        <span>${this.user?.email || 'Usuario'}</span>
                     </div>
-                    <!-- AÑADE EL BOTÓN AQUÍ -->
-                    <button class="logout-btn-compacto" id="logout-btn-visible" title="Cerrar sesión" style="
-                        background: rgba(225, 6, 0, 0.1);
-                        border: 1px solid rgba(225, 6, 0, 0.3);
-                        color: #e10600;
-                        padding: 4px 10px;
-                        border-radius: 8px;
-                        font-size: 0.8rem;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        gap: 5px;
-                    ">
-                        <i class="fas fa-sign-out-alt"></i> Salir
+                    <button class="logout-btn-compacto" onclick="f1Manager.logout()">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
                     </button>
-                    <div style="font-size: 0.7rem; color: #666;">
-                        F1 Manager v1.0
-                    </div>
                 </footer>
             </div>
-            
-            <!-- Scripts - MANTENIENDO CÓDIGO JAVASCRIPT ORIGINAL -->
-            <script>
-                // Ocultar loading screen después de 1 segundo
-                setTimeout(() => {
-                    const loadingScreen = document.getElementById('loading-screen');
-                    if (loadingScreen) {
-                        loadingScreen.style.display = 'none';
-                    }
-                }, 1000);
-                
-                // Configurar sistema de pestañas con la funcionalidad ORIGINAL
-                document.querySelectorAll('.tab-btn-compacto').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const tabId = e.currentTarget.dataset.tab;
-                        
-                        // Remover activo de todos (MISMA LÓGICA ORIGINAL)
-                        document.querySelectorAll('.tab-btn-compacto').forEach(b => b.classList.remove('active'));
-                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                        
-                        // Activar tab seleccionado
-                        e.currentTarget.classList.add('active');
-                        document.getElementById(\`tab-\${tabId}\`).classList.add('active');
-                        
-                        // Cargar contenido específico de cada tab (MISMA FUNCIONALIDAD ORIGINAL)
-                        if (window.tabManager && window.tabManager.switchTab) {
-                            window.tabManager.switchTab(tabId);
-                        }
-                        
-                        // Si es la pestaña principal, recargar contenido (MISMA LÓGICA ORIGINAL)
-                        if (tabId === 'principal') {
-                            setTimeout(() => {
-                                if (window.cargarContenidoPrincipal) {
-                                    window.cargarContenidoPrincipal();
-                                }
-                            }, 100);
-                        }
-                    });
-                });
-                
-                // Configurar logout button (MISMA FUNCIONALIDAD ORIGINAL)
-                const logoutBtn = document.getElementById('logout-btn-visible');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        try {
-                            const supabaseClient = window.supabase;
-                            if (supabaseClient) {
-                                await supabaseClient.auth.signOut();
-                                console.log('✅ Sesión cerrada');
-                                // Forzar recarga completa para ir al login
-                                window.location.href = window.location.origin;
-                            }
-                        } catch (error) {
-                            console.error('❌ Error cerrando sesión:', error);
-                            // Si falla, recargar de todas formas
-                            window.location.href = window.location.origin;
-                        }
-                    });
-                }
-                
-                // Función global para ir al taller (MISMA FUNCIONALIDAD ORIGINAL)
-                window.irAlTallerDesdeProduccion = function() {
-                    document.querySelector('[data-tab="taller"]').click();
-                };
-                
-                window.gestionarEstrategas = function() {
-                    // Misma funcionalidad que antes
-                    if (window.f1Manager && window.f1Manager.mostrarModalContratacion) {
-                        window.f1Manager.mostrarModalContratacion();
-                    }
-                };
-                
-                // =============================================
-                // ¡¡MANTENIENDO FUNCIÓN ORIGINAL!!
-                // =============================================
-                window.cargarContenidoPrincipal = async function() {
-                    if (window.f1Manager) {
-                        // Cargar piezas montadas
-                        if (window.f1Manager.cargarPiezasMontadas) {
-                            await window.f1Manager.cargarPiezasMontadas();
-                        }
-                        // Cargar estrategas
-                        if (window.f1Manager.loadPilotosContratados) {
-                            await window.f1Manager.loadPilotosContratados();
-                        }
-                        // Cargar producción
-                        if (window.f1Manager.updateProductionMonitor) {
-                            window.f1Manager.updateProductionMonitor();
-                        }
-                    }
-                };
-                
-                // Ejecutar al cargar por primera vez (MISMA LÓGICA ORIGINAL)
-                setTimeout(() => {
-                    if (window.cargarContenidoPrincipal) {
-                        window.cargarContenidoPrincipal();
-                    }
-                }, 1500);
-            </script>
         `;
-
-        // ========================
-        // CONFIGURAR EVENTOS DEL DASHBOARD
-        // ========================
         
-        // 1. Evento para cerrar sesión
-        document.getElementById('logout-btn-visible').addEventListener('click', async () => {
-            try {
-                console.log('🔒 Cerrando sesión...');
-                const { error } = await this.supabase.auth.signOut();
-                if (error) {
-                    console.error('❌ Error al cerrar sesión:', error);
-                    this.showNotification('Error al cerrar sesión', 'error');
-                } else {
-                    console.log('✅ Sesión cerrada, recargando...');
-                    location.reload(); // Esto llevará al login
-                }
-            } catch (error) {
-                console.error('❌ Error inesperado:', error);
-                this.showNotification('Error inesperado', 'error');
-            }
-        });
+        // 2. Configurar eventos de pestañas
+        this.configurarTabs();
         
-        // 2. INICIALIZAR SISTEMAS CRÍTICOS INMEDIATAMENTE (MISMA FUNCIONALIDAD ORIGINAL)
-        setTimeout(async () => {
-            console.log('🔧 Inicializando sistemas críticos del dashboard...');
-            
-            // A. Asegurar que fabricacionManager existe
-            if (!window.fabricacionManager && window.FabricacionManager) {
-                window.fabricacionManager = new window.FabricacionManager();
-                if (this.escuderia) {
-                    await window.fabricacionManager.inicializar(this.escuderia.id);
-                }
-            }
-            
-            // B. Configurar sistema de pestañas CON LA FUNCIÓN DE RECARGA (MISMA LÓGICA ORIGINAL)
-            setTimeout(() => {
-                if (window.tabManager && window.tabManager.setup) {
-                    // Guardar el switchTab original
-                    const originalSwitchTab = window.tabManager.switchTab;
-                    
-                    // Sobrescribir para que recargue contenido al volver a principal
-                    window.tabManager.switchTab = function(tabId) {
-                        // Llamar al original
-                        originalSwitchTab.call(this, tabId);
-                        
-                        // Si es la pestaña principal, recargar contenido
-                        if (tabId === 'principal') {
-                            setTimeout(() => {
-                                if (window.cargarContenidoPrincipal) {
-                                    window.cargarContenidoPrincipal();
-                                }
-                            }, 100);
-                        }
-                    };
-                    
-                    window.tabManager.setup();
-                }
-            }, 400);
-            
-            // 3. Cargar datos iniciales (MISMA FUNCIONALIDAD ORIGINAL)
-            const supabase = await this.esperarSupabase();
-            if (supabase) {
-                await this.loadCarStatus();
-                await this.loadPilotosContratados();
-                await this.loadProximoGP();
-                
-                // 4. Cargar piezas montadas INMEDIATAMENTE
-                setTimeout(async () => {
-                    await this.cargarPiezasMontadas();
-                }, 500);
-            }
-            
-            console.log('✅ Dashboard compacto cargado correctamente con toda la funcionalidad');
-            // QUITAR LA PANTALLA DE CARGA
-            setTimeout(() => {
-                const loadingScreen = document.getElementById('f1-loading-screen');
-                if (loadingScreen) {
-                    loadingScreen.remove();
-                }
-            }, 500);
-        }, 1000);
-    }
-    
-    // ========================
-    // MÉTODO PARA ACTUALIZAR UI DE ESTRATEGAS (COMPACTO)
-    // ========================
-    updatePilotosUICompacto() {
-        const container = document.getElementById('estrategas-container-compacto');
-        const contador = document.getElementById('contador-estrategas-compacto');
+        // 3. Cargar datos dinámicos
+        await this.cargarDatosDashboard();
         
-        if (!container) return;
+        // 4. Inicializar monitor de producción
+        this.updateProductionMonitor();
         
-        if (!this.pilotos || this.pilotos.length === 0) {
-            container.innerHTML = `
-                <div class="estratega-item-compacto" style="justify-content: center; color: #888; font-size: 0.8rem;">
-                    <i class="fas fa-user-plus"></i> Sin estrategas
-                </div>
-            `;
-            if (contador) contador.textContent = '0/4';
-            return;
-        }
-        
-        // Mostrar hasta 4 estrategas (scroll si hay más)
-        let html = '';
-        this.pilotos.slice(0, 6).forEach(piloto => {
-            html += `
-                <div class="estratega-item-compacto">
-                    <div class="estratega-icono-compacto">
-                        ${this.getIconoEspecialidad(piloto.especialidad)}
-                    </div>
-                    <div class="estratega-info-compacto">
-                        <div class="estratega-nombre-compacto" title="${piloto.nombre}">
-                            ${piloto.nombre}
-                        </div>
-                        <div class="estratega-especialidad-compacto" title="${piloto.especialidad || 'General'}">
-                            ${piloto.especialidad || 'General'}
-                        </div>
-                    </div>
-                    <div style="font-size: 0.7rem; color: #FFD700; font-weight: bold; flex-shrink: 0;">
-                        ${piloto.bonificacion_valor || 0}%
-                    </div>
-                </div>
-            `;
-        });
-        
-        container.innerHTML = html;
-        if (contador) contador.textContent = `${this.pilotos.length}/4`;
+        console.log('✅ Dashboard cargado completamente');
     }
     
     getIconoEspecialidad(especialidad) {
