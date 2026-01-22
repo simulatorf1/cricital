@@ -1192,37 +1192,67 @@ const produccionStyles = `
     /* Grid de producción como estrategas */
     .produccion-slots {
         display: grid;
-        grid-template-columns: repeat(2, 1fr) !important;
-        grid-template-rows: 80px 80px !important;
-        row-gap: 10px !important;          /* ← AÑADIR espacio vertical */
-        align-content: start !important;   /* ← AÑADIR alineación */
-        padding: 5px;     
-
-        gap: 5px !important;
-        height: 160px !important; /* ← La altura que elegiste */
-        
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);  /* Usar 1fr, no medidas fijas */
+        gap: 8px;
+        padding: 8px;
+        height: 160px;
+        width: 100%;
+        box-sizing: border-box;
     }
     
     .produccion-slot {
         background: rgba(255, 255, 255, 0.03);
         border: 1.5px solid rgba(255, 255, 255, 0.08);
         border-radius: 6px;
-        padding: 8px 8px !important;
+        padding: 10px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.2s ease;
-        height:  80px !important;
-        min-height: 80px !important;  
-        margin-bottom: 2px !important; 
+        min-height: 70px;
     }
     
     .produccion-slot:hover {
         border-color: rgba(0, 210, 190, 0.4);
         background: rgba(0, 210, 190, 0.05);
         transform: translateY(-1px);
+    }
+    
+    /* Estilo cuando hay producción activa */
+    .produccion-activa {
+        border-color: rgba(0, 210, 190, 0.25);
+        background: rgba(0, 210, 190, 0.04);
+    }
+    
+    .produccion-lista {
+        border-color: #4CAF50;
+        background: rgba(76, 175, 80, 0.15);
+        animation: pulse-green 2s infinite;
+    }
+    
+    @keyframes pulse-green {
+        0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+    }
+    
+    /* Media query para móvil - CONSISTENTE con lo de arriba */
+    @media (max-width: 768px) {
+        .produccion-slots {
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            height: 140px;
+            padding: 6px;
+            gap: 6px;
+        }
+        
+        .produccion-slot {
+            min-height: 65px;
+            padding: 8px;
+        }
     }
     
     .slot-content {
