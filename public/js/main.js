@@ -9083,26 +9083,40 @@ class F1Manager {
                     clearInterval(window.f1Manager.productionUpdateTimer);
                 }
                 
-                // Actualizar producción
+                // ✅ SOLO actualizar el slot específico
                 setTimeout(() => {
-                    window.f1Manager.updateProductionMonitor();
-                }, 500);
+                    // Buscar el slot por su data-fabricacion-id
+                    const slot = document.querySelector(`.produccion-slot[data-fabricacion-id="${fabricacionId}"]`);
+                    if (slot) {
+                        // Vaciar el slot
+                        slot.classList.remove('produccion-activa', 'produccion-lista');
+                        slot.innerHTML = `
+                            <div class="slot-content">
+                                <i class="fas fa-plus"></i>
+                                <span>VACÍO</span>
+                            </div>
+                        `;
+                        // Limpiar atributos
+                        slot.removeAttribute('data-fabricacion-id');
+                        slot.removeAttribute('onclick');
+                    }
+                }, 100);
                 
-                // Actualizar almacén si está abierto
+                // ✅ Actualizar almacén si está abierto
                 if (window.tabManager && window.tabManager.currentTab === 'almacen') {
                     setTimeout(() => {
                         if (window.tabManager.loadAlmacenPiezas) {
                             window.tabManager.loadAlmacenPiezas();
                         }
-                    }, 1000);
+                    }, 500);
                 }
                 
-                // Actualizar piezas montadas
+                // ✅ Actualizar piezas montadas
                 setTimeout(() => {
                     if (window.f1Manager.cargarPiezasMontadas) {
                         window.f1Manager.cargarPiezasMontadas();
                     }
-                }, 1500);
+                }, 500);
             }
             
         } catch (error) {
