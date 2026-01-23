@@ -1822,7 +1822,7 @@ class F1Manager {
                     <div class="taller-info-mini">
                         <p><i class="fas fa-info-circle"></i> Fabricaciones activas: <strong>${fabricacionesCount}/4</strong></p>
                         <p><i class="fas fa-info-circle"></i> Necesitas 5 piezas del mismo nivel para subir de nivel</p>
-                        <p><i class="fas fa-info-circle"></i> Cada pieza cuesta €10,000 y tarda 30 minutos</p>
+                        
                     </div>
                 </div>
                 
