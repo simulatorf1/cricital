@@ -1821,7 +1821,7 @@ class F1Manager {
                     
                     <div class="taller-info-mini">
                         <p><i class="fas fa-info-circle"></i> Fabricaciones activas: <strong>${fabricacionesCount}/4</strong></p>
-                        <p><i class="fas fa-info-circle"></i> Necesitas 5 piezas del mismo nivel para subir de nivel</p>
+                        <p><i class="fas fa-info-circle"></i> Necesitas 5 evoluciones del mismo nivel para subir de nivel</p>
                         
                     </div>
                 </div>
@@ -7765,7 +7765,7 @@ class F1Manager {
                     slot.innerHTML = `
                         <div class="slot-icono-compacto"><i class="fas fa-cog fa-spin"></i></div>
                         <div class="slot-texto-compacto">
-                            <div style="color: #4CAF50; font-weight: bold; font-size: 0.7rem;">${fabricacion.area || 'Pieza'}</div>
+                            <div style="color: #4CAF50; font-weight: bold; font-size: 0.7rem;">${fabricacion.area || 'Evolución'}</div>
                             <div style="color: #FF9800; font-size: 0.65rem;">${tiempoTexto}</div>
                         </div>
                     `;
@@ -8709,13 +8709,13 @@ class F1Manager {
                     html += `
                         <div class="produccion-slot ${lista ? 'produccion-lista' : 'produccion-activa'}" 
                              onclick="recogerPiezaSiLista('${fabricacion.id}', ${lista}, ${i})"
-                             title="${nombreArea} - Pieza ${numeroPieza} de nivel ${fabricacion.nivel}">
+                             title="${nombreArea} - Evolución ${numeroPieza} de nivel ${fabricacion.nivel}">
                             <div class="produccion-icon">
                                 ${lista ? '✅' : ''}
                             </div>
                             <div class="produccion-info">
                                 <span class="produccion-nombre">${nombreArea}</span>
-                                <span class="produccion-pieza-num">Pieza ${numeroPieza}</span>
+                                <span class="produccion-pieza-num">Evolución ${numeroPieza}</span>
                                 ${lista ? 
                                     `<span class="produccion-lista-text">¡LISTA!</span>` :
                                     `<span class="produccion-tiempo">${tiempoFormateado}</span>`
@@ -8806,7 +8806,7 @@ class F1Manager {
                         <div class="produccion-icon">✅</div>
                         <div class="produccion-info">
                             <span class="produccion-nombre">${this.getNombreArea(fabricacion.area)}</span>
-                            <span class="produccion-pieza-num">Pieza ${fabricacion.nivel || 1}</span>
+                            <span class="produccion-pieza-num">Evolución ${fabricacion.nivel || 1}</span>
                             <span class="produccion-lista-text">¡LISTA!</span>
                         </div>
                     `;
