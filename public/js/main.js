@@ -2556,7 +2556,7 @@ class F1Manager {
 
             
             dashboard: setInterval(() => {
-                this.updateProductionMonitor();
+                // this.updateProductionMonitor(); // ❌ COMENTADO
             }, 3000)
         };
         
