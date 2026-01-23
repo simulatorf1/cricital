@@ -1681,7 +1681,7 @@ class F1Manager {
             // 3. Cargar fabricaciones activas desde fabricacion_actual
             const { data: fabricacionesActivas, error: errorFabricaciones } = await this.supabase
                 .from('fabricacion_actual')
-                .select('area, nivel, tiempo_fin, completada, numero_evolucion')  // ← AÑADE numero_evolucion
+                .select('area, nivel, tiempo_fin, completada')
                 .eq('escuderia_id', this.escuderia.id)
                 .eq('completada', false);
             
@@ -1743,8 +1743,7 @@ class F1Manager {
                 const fabricacionActiva = fabricacionesActivas?.find(f => {
                     const areaCoincide = f.area === area.id || f.area === area.nombre;
                     const nivelCoincide = f.nivel === nivelAFabricar;
-                    const evolucionCoincide = f.numero_evolucion === piezaNum;  // ← NUEVA CONDICIÓN
-                    return areaCoincide && nivelCoincide && evolucionCoincide && !f.completada;
+                    return areaCoincide && nivelCoincide && !f.completada;
                 });
                 
                 // Añadir nombre del área como título
@@ -1772,7 +1771,7 @@ class F1Manager {
                                 <span class="pieza-num">${piezaNum}</span>
                             </button>
                         `;
-                    } else if (fabricacionActiva?.numero_evolucion === piezaNum) {
+                    } else if (fabricacionActiva && piezaNum === piezasAreaNivel.length + 1) {
                         // Botón en FABRICACIÓN (la siguiente pieza a fabricar está en proceso)
                         const tiempoRestante = new Date(fabricacionActiva.tiempo_fin) - new Date();
                         const minutos = Math.ceil(tiempoRestante / (1000 * 60));
@@ -2127,9 +2126,8 @@ class F1Manager {
                     escuderia_id: this.escuderia.id,
                     area: areaId,
                     nivel: nivel,
-                    numero_evolucion: numeroPieza,  // ← AÑADE ESTA LÍNEA
                     tiempo_inicio: ahora.toISOString(),
-                    tiempo_fin: tiempoFin.toISOString(),
+                    tiempo_fin: tiempoFin.toISOString(), // ← DEJA LA 'Z' INTACTA
                     completada: false,
                     costo: costo,
                     creada_en: ahora.toISOString()
@@ -3172,13 +3170,12 @@ class F1Manager {
                                 const ahora = new Date();
                                 const tiempoFin = new Date(ahora.getTime() + tiempoMilisegundos);
                                 
-                                const { data: fabricacion, error: errorCrear } = await this.supabase
+                                const { data: fabricacion, error: errorCrear } = await supabase
                                     .from('fabricacion_actual')
                                     .insert([{
-                                        escuderia_id: this.escuderia.id,
-                                        area: areaId,
-                                        nivel: nivel,
-                                        numero_evolucion: numeroPieza,  // ← AÑADE ESTA LÍNEA
+                                        escuderia_id: window.tutorialManager.escuderia.id,
+                                        area: areaSeleccionada,
+                                        nivel: nivelAFabricar,
                                         tiempo_inicio: ahora.toISOString(),
                                         tiempo_fin: tiempoFin.toISOString(),
                                         completada: false,
@@ -9080,47 +9077,32 @@ class F1Manager {
             }
             
             // 6. Actualizar UI
-
             if (window.f1Manager) {
                 // Parar timer de actualización
                 if (window.f1Manager.productionUpdateTimer) {
                     clearInterval(window.f1Manager.productionUpdateTimer);
                 }
                 
-                // ✅ ACTUALIZAR SOLO EL SLOT ESPECÍFICO usando slotIndex
+                // Actualizar producción
                 setTimeout(() => {
-                    // Obtener todos los slots
-                    const slots = document.querySelectorAll('.produccion-slot');
-                    if (slots[slotIndex]) {
-                        // Vaciar el slot específico
-                        slots[slotIndex].classList.remove('produccion-activa', 'produccion-lista');
-                        slots[slotIndex].innerHTML = `
-                            <div class="slot-content">
-                                <i class="fas fa-plus"></i>
-                                <span>Departamento ${slotIndex + 1}</span>
-                                <span class="slot-disponible">Disponible</span>
-                            </div>
-                        `;
-                        // Restaurar onclick para ir al taller
-                        slots[slotIndex].setAttribute('onclick', 'irAlTallerDesdeProduccion()');
-                    }
-                }, 100);
+                    window.f1Manager.updateProductionMonitor();
+                }, 500);
                 
-                // ✅ Actualizar almacén si está abierto
+                // Actualizar almacén si está abierto
                 if (window.tabManager && window.tabManager.currentTab === 'almacen') {
                     setTimeout(() => {
                         if (window.tabManager.loadAlmacenPiezas) {
                             window.tabManager.loadAlmacenPiezas();
                         }
-                    }, 500);
+                    }, 1000);
                 }
                 
-                // ✅ Actualizar piezas montadas
+                // Actualizar piezas montadas
                 setTimeout(() => {
                     if (window.f1Manager.cargarPiezasMontadas) {
                         window.f1Manager.cargarPiezasMontadas();
                     }
-                }, 500);
+                }, 1500);
             }
             
         } catch (error) {
