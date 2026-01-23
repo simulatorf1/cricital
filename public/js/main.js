@@ -8711,7 +8711,7 @@ class F1Manager {
                              onclick="recogerPiezaSiLista('${fabricacion.id}', ${lista}, ${i})"
                              title="${nombreArea} - Pieza ${numeroPieza} de nivel ${fabricacion.nivel}">
                             <div class="produccion-icon">
-                                ${lista ? '✅' : '🔄'}
+                                ${lista ? '✅' : ''}
                             </div>
                             <div class="produccion-info">
                                 <span class="produccion-nombre">${nombreArea}</span>
