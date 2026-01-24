@@ -187,7 +187,8 @@ function cargarEstilosExternos() {
             document.head.appendChild(styleTag);
         }
     }, 5000);
-}  // ← ESTA es la llave de cierre de la función
+}
+
 
 // ========================
 // 1. SISTEMA DE CARGA SEGURA DE SUPABASE
