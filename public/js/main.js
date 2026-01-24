@@ -134,7 +134,10 @@ function initSupabase() {
 // ========================
 async function iniciarAplicacion() {
     console.log('🚀 Iniciando aplicación F1 Manager...');
-
+   // AÑADE ESTO: ESPERAR a que el CSS se cargue
+    console.log('⏳ Esperando carga de CSS...');
+    await esperarCSS();
+    console.log('✅ CSS listo, continuando...');
 
     // AÑADE ESTO JUSTO AQUÍ
     // Desactivar zoom y gestos en móviles
