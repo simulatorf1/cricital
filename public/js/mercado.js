@@ -1057,6 +1057,66 @@ class MercadoManager {
 }
 
 // ========================
+// 9. FUNCIÓN PARA VENDER DESDE ALMACÉN
+// ========================
+async venderPiezaDesdeAlmacen(piezaId) {
+    console.log('🛒 Iniciando venta desde almacén para pieza:', piezaId);
+    
+    if (!this.escuderia || !this.escuderia.id) {
+        this.mostrarNotificacion('❌ No se encontró tu escudería', 'error');
+        return;
+    }
+    
+    try {
+        // 1. Obtener datos de la pieza desde la BD
+        const { data: pieza, error } = await this.supabase
+            .from('almacen_piezas')
+            .select('*')
+            .eq('id', piezaId)
+            .eq('escuderia_id', this.escuderia.id)
+            .eq('equipada', false)
+            .single();
+        
+        if (error) throw error;
+        
+        if (!pieza) {
+            this.mostrarNotificacion('❌ Pieza no encontrada o ya equipada', 'error');
+            return;
+        }
+        
+        // 2. Verificar si ya está en venta
+        const { data: yaEnVenta } = await this.supabase
+            .from('mercado')
+            .select('id')
+            .eq('pieza_id', piezaId)
+            .eq('estado', 'disponible')
+            .single();
+        
+        if (yaEnVenta) {
+            this.mostrarNotificacion('⚠️ Esta pieza ya está en venta', 'warning');
+            return;
+        }
+        
+        // 3. Mostrar modal de venta
+        await this.mostrarModalVenta(pieza);
+        
+    } catch (error) {
+        console.error('❌ Error obteniendo pieza para vender:', error);
+        this.mostrarNotificacion('❌ Error al obtener datos de la pieza', 'error');
+    }
+}
+
+// Hacer la función global para que pueda ser llamada desde main.js
+window.venderPiezaDesdeAlmacen = function(piezaId) {
+    if (window.mercadoManager) {
+        window.mercadoManager.venderPiezaDesdeAlmacen(piezaId);
+    } else {
+        console.error('❌ mercadoManager no disponible');
+        alert('El sistema de mercado no está disponible. Recarga la página.');
+    }
+};
+
+// ========================
 // 8. INICIALIZACIÓN GLOBAL
 // ========================
 window.MercadoManager = MercadoManager;
