@@ -7541,11 +7541,43 @@ class F1Manager {
                         
                         // Activar tab seleccionado
                         e.currentTarget.classList.add('active');
-                        document.getElementById(\`tab-\${tabId}\`).classList.add('active');
+                        document.getElementById(`tab-${tabId}`).classList.add('active');
                         
                         // Cargar contenido específico de cada tab (MISMA FUNCIONALIDAD ORIGINAL)
                         if (window.tabManager && window.tabManager.switchTab) {
                             window.tabManager.switchTab(tabId);
+                        }
+                        
+                        // NUEVO: Añadir carga específica para mercado
+                        if (tabId === 'mercado') {
+                            // Cargar mercado usando mercadoManager
+                            if (window.mercadoManager && typeof window.mercadoManager.cargarTabMercado === 'function') {
+                                // Pequeño delay para asegurar que el DOM está listo
+                                setTimeout(() => {
+                                    window.mercadoManager.cargarTabMercado();
+                                }, 100);
+                            } else {
+                                console.error('❌ mercadoManager no disponible');
+                                // Mostrar mensaje de error
+                                const mercadoTab = document.getElementById('tab-mercado');
+                                if (mercadoTab) {
+                                    mercadoTab.innerHTML = `
+                                        <div style="padding: 40px; text-align: center; color: #ff4444;">
+                                            <h3>❌ Error cargando el mercado</h3>
+                                            <p>El sistema de mercado no está disponible.</p>
+                                            <button onclick="location.reload()" style="
+                                                padding: 10px 20px;
+                                                background: #e10600;
+                                                color: white;
+                                                border: none;
+                                                border-radius: 5px;
+                                                cursor: pointer;
+                                                margin-top: 20px;
+                                            ">Reintentar</button>
+                                        </div>
+                                    `;
+                                }
+                            }
                         }
                         
                         // Si es la pestaña principal, recargar contenido (MISMA LÓGICA ORIGINAL)
