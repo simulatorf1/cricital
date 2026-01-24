@@ -4,6 +4,7 @@
 console.log('🏎️ F1 Manager - Sistema principal cargado');
 
 // ========================
+// ========================
 // 0. INICIALIZAR DOCUMENTO Y CARGAR ESTILOS
 // ========================
 function inicializarDocumento() {
@@ -48,48 +49,89 @@ function inicializarDocumento() {
         
         console.log('✅ Estructura HTML básica creada');
     }
+    
+    // FORZAR CARGA DE CSS INMEDIATAMENTE
+    cargarEstilosExternos();
 }
 
 function cargarEstilosExternos() {
     console.log('🎨 Cargando estilos externos...');
     
-    // Verificar si ya existe el enlace CSS
-    if (document.querySelector('link[href="styles.css"]')) {
-        console.log('✅ Estilos CSS ya cargados');
-        return;
-    }
-    
-    // Crear enlace al archivo CSS
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'styles.css';
-    link.type = 'text/css';
-    
-    // Cargar también Font Awesome y Google Fonts si no existen
+    // 1. Font Awesome (siempre primero)
     if (!document.querySelector('link[href*="font-awesome"]')) {
         const faLink = document.createElement('link');
         faLink.rel = 'stylesheet';
         faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
         document.head.appendChild(faLink);
+        console.log('✅ Font Awesome cargado');
     }
     
+    // 2. Google Fonts
     if (!document.querySelector('link[href*="fonts.googleapis.com"]')) {
         const fontLink = document.createElement('link');
         fontLink.rel = 'stylesheet';
         fontLink.href = 'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&display=swap';
         document.head.appendChild(fontLink);
+        console.log('✅ Google Fonts cargado');
     }
     
-    // Añadir el CSS principal
-    document.head.appendChild(link);
+    // 3. TU CSS principal - CARGA FORZADA
+    // Primero eliminar cualquier CSS existente (por si hay duplicados)
+    const existingCSS = document.querySelectorAll('link[href*="styles.css"]');
+    existingCSS.forEach(css => css.remove());
     
-    console.log('✅ Estilos CSS externos cargados');
+    // Crear nuevo enlace CSS con URL absoluta
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.id = 'main-css-styles';
+    
+    // Usar URL absoluta para GitHub Pages
+    const isGithub = window.location.hostname.includes('github.io');
+    if (isGithub) {
+        // Para GitHub Pages, usar ruta relativa a la raíz del repo
+        link.href = './styles.css';
+    } else {
+        // Para local, usar ruta relativa
+        link.href = 'styles.css';
+    }
+    
+    // Forzar carga y prevenir caché
+    link.href = link.href + '?v=' + Date.now();
+    
+    console.log('📤 Cargando CSS desde:', link.href);
+    
+    // Evento de error - si falla, intentar rutas alternativas
+    link.onerror = function() {
+        console.error('❌ Error cargando CSS, intentando alternativas...');
+        
+        // Intentar rutas alternativas
+        const alternativePaths = [
+            '/styles.css',
+            './styles.css',
+            'styles.css',
+            window.location.origin + '/styles.css'
+        ];
+        
+        let currentTry = 0;
+        const tryNextPath = () => {
+            if (currentTry < alternativePaths.length) {
+                link.href = alternativePaths[currentTry] + '?v=' + Date.now();
+                console.log('🔄 Intentando ruta:', link.href);
+                currentTry++;
+            }
+        };
+        
+        tryNextPath();
+    };
+    
+    link.onload = function() {
+        console.log('✅ CSS cargado correctamente');
+    };
+    
+    // Insertar al INICIO del head para máxima prioridad
+    document.head.insertBefore(link, document.head.firstChild);
 }
-
-// Ejecutar inicialización
-inicializarDocumento();
-cargarEstilosExternos();
-
 // ========================
 // 1. SISTEMA DE CARGA SEGURA DE SUPABASE
 // ========================
@@ -133,6 +175,47 @@ function initSupabase() {
 // ========================
 async function iniciarAplicacion() {
     console.log('🚀 Iniciando aplicación F1 Manager...');
+
+    // ============================================
+    // ESPERAR A QUE EL CSS SE CARGUE COMPLETAMENTE
+    // ============================================
+    console.log('⏳ Esperando carga de CSS...');
+    
+    // Función para verificar si los estilos están cargados
+    const waitForCSS = () => {
+        return new Promise((resolve) => {
+            const checkCSS = () => {
+                // Verificar si algún estilo está aplicado
+                const tempDiv = document.createElement('div');
+                tempDiv.style.display = 'none';
+                document.body.appendChild(tempDiv);
+                
+                // Si los estilos están cargados, continuar
+                if (document.styleSheets.length > 2) { // FontAwesome + Google Fonts + tu CSS
+                    console.log('✅ CSS detectado, continuando...');
+                    tempDiv.remove();
+                    resolve(true);
+                } else {
+                    console.log('⏳ CSS aún no cargado, esperando...');
+                    setTimeout(checkCSS, 200);
+                }
+            };
+            
+            // Dar tiempo inicial para carga
+            setTimeout(checkCSS, 500);
+            
+            // Timeout después de 3 segundos
+            setTimeout(() => {
+                console.warn('⚠️ Timeout esperando CSS, continuando igual...');
+                resolve(false);
+            }, 3000);
+        });
+    };
+    
+    await waitForCSS();
+
+
+    
     // AÑADE ESTO JUSTO AQUÍ
     // Desactivar zoom y gestos en móviles
     if (!document.querySelector('meta[name="viewport"][content*="user-scalable=no"]')) {
