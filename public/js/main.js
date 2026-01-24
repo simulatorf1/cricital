@@ -1642,93 +1642,6 @@ class F1Manager {
             }
         }
     }
-
-    // ========================
-    // FUNCIÓN PARA VENDER PIEZAS DESDE EL ALMACÉN
-    // ========================
-    async function venderPiezaDesdeAlmacen(piezaId) {
-        console.log('🛒 Intentando vender pieza:', piezaId);
-        
-        if (!window.f1Manager || !window.f1Manager.escuderia) {
-            alert('❌ Error: No se encontró tu escudería');
-            return;
-        }
-        
-        try {
-            // Usar el mercadoManager si existe
-            if (window.mercadoManager && window.mercadoManager.venderPieza) {
-                const vendida = await window.mercadoManager.venderPieza(piezaId);
-                
-                if (vendida) {
-                    // Recargar el almacén si está visible
-                    if (window.almacenManager && window.almacenManager.cargarPiezas) {
-                        await window.almacenManager.cargarPiezas();
-                    }
-                    
-                    // Actualizar dinero en dashboard
-                    if (window.f1Manager && window.f1Manager.updateDashboardStats) {
-                        window.f1Manager.updateDashboardStats();
-                    }
-                }
-            } else {
-                // Si no existe mercadoManager, vender directamente
-                const confirmar = confirm('¿Vender esta pieza por 10,000€?');
-                
-                if (confirmar) {
-                    const supabase = window.supabase;
-                    if (!supabase) {
-                        alert('❌ Error de conexión');
-                        return;
-                    }
-                    
-                    // 1. Obtener la pieza
-                    const { data: pieza, error } = await supabase
-                        .from('almacen_piezas')
-                        .select('*')
-                        .eq('id', piezaId)
-                        .single();
-                    
-                    if (error) throw error;
-                    
-                    if (pieza.equipada) {
-                        alert('❌ No puedes vender una pieza equipada');
-                        return;
-                    }
-                    
-                    // 2. Eliminar la pieza
-                    await supabase
-                        .from('almacen_piezas')
-                        .delete()
-                        .eq('id', piezaId);
-                    
-                    // 3. Añadir dinero
-                    const nuevoDinero = window.f1Manager.escuderia.dinero + 10000;
-                    
-                    await supabase
-                        .from('escuderias')
-                        .update({ dinero: nuevoDinero })
-                        .eq('id', window.f1Manager.escuderia.id);
-                    
-                    // 4. Actualizar localmente
-                    window.f1Manager.escuderia.dinero = nuevoDinero;
-                    
-                    alert('✅ Pieza vendida por 10,000€');
-                    
-                    // Recargar almacén si está visible
-                    if (window.almacenManager && window.almacenManager.cargarPiezas) {
-                        setTimeout(() => window.almacenManager.cargarPiezas(), 500);
-                    }
-                }
-            }
-            
-        } catch (error) {
-            console.error('❌ Error vendiendo pieza:', error);
-            alert('❌ Error al vender la pieza: ' + error.message);
-        }
-    }
-    
-    // También añadir al objeto global para acceder desde HTML
-    window.venderPiezaDesdeAlmacen = venderPiezaDesdeAlmacen;
     // ========================
     // MÉTODO PARA CARGAR PESTAÑA TALLER
     // ========================
@@ -2555,6 +2468,7 @@ class F1Manager {
             console.log('✅ Sistema de fabricación inicializado');
         } else {
             console.error('❌ fabricacionManager no disponible - creando nueva instancia');
+            // Intentar crear de nuevo
             if (window.FabricacionManager) {
                 window.fabricacionManager = new window.FabricacionManager();
                 await window.fabricacionManager.inicializar(this.escuderia.id);
@@ -2562,9 +2476,10 @@ class F1Manager {
             }
         }
         
-        // 2. Crear almacenManager
+        // 2. Crear almacenManager - VERSIÓN A PRUEBA DE FALLOS
         console.log('🔧 FORZANDO creación de almacenManager...');
         
+        // SI la clase NO existe, créala AHORA MISMO
         if (!window.AlmacenManager) {
             console.log('⚠️ Clase AlmacenManager no existe, creando básica...');
             window.AlmacenManager = class AlmacenManagerBasico {
@@ -2599,11 +2514,13 @@ class F1Manager {
             };
         }
         
+        // CREAR la instancia SI O SÍ
         if (!window.almacenManager) {
             window.almacenManager = new window.AlmacenManager();
             console.log('✅ Instancia de almacenManager creada');
         }
         
+        // INICIALIZAR SI O SÍ
         if (window.almacenManager && this.escuderia && this.escuderia.id) {
             await window.almacenManager.inicializar(this.escuderia.id);
             console.log('✅ Sistema de almacén inicializado (GARANTIZADO)');
@@ -2611,26 +2528,7 @@ class F1Manager {
             console.error('❌ IMPOSIBLE inicializar almacén - falta escudería');
         }
         
-        // 3. NUEVO: Sistema de mercado
-        console.log('🛒 Inicializando sistema de mercado...');
-        
-        if (window.MercadoManager) {
-            if (!window.mercadoManager) {
-                window.mercadoManager = new window.MercadoManager();
-                console.log('✅ Instancia de mercadoManager creada');
-            }
-            
-            if (window.mercadoManager.inicializar) {
-                await window.mercadoManager.inicializar(this.escuderia);
-                console.log('✅ Sistema de mercado inicializado');
-            } else {
-                console.warn('⚠️ mercadoManager no tiene método inicializar');
-            }
-        } else {
-            console.warn('⚠️ Clase MercadoManager no está cargada');
-        }
-        
-        // 4. Integración (opcional)
+        // 3. Integración (opcional)
         if (window.IntegracionManager) {
             window.integracionManager = new window.IntegracionManager();
             await window.integracionManager.inicializar(this.escuderia.id);
@@ -7643,43 +7541,11 @@ class F1Manager {
                         
                         // Activar tab seleccionado
                         e.currentTarget.classList.add('active');
-                        document.getElementById(`tab-${tabId}`).classList.add('active');
+                        document.getElementById(\`tab-\${tabId}\`).classList.add('active');
                         
                         // Cargar contenido específico de cada tab (MISMA FUNCIONALIDAD ORIGINAL)
                         if (window.tabManager && window.tabManager.switchTab) {
                             window.tabManager.switchTab(tabId);
-                        }
-                        
-                        // NUEVO: Añadir carga específica para mercado
-                        if (tabId === 'mercado') {
-                            // Cargar mercado usando mercadoManager
-                            if (window.mercadoManager && typeof window.mercadoManager.cargarTabMercado === 'function') {
-                                // Pequeño delay para asegurar que el DOM está listo
-                                setTimeout(() => {
-                                    window.mercadoManager.cargarTabMercado();
-                                }, 100);
-                            } else {
-                                console.error('❌ mercadoManager no disponible');
-                                // Mostrar mensaje de error
-                                const mercadoTab = document.getElementById('tab-mercado');
-                                if (mercadoTab) {
-                                    mercadoTab.innerHTML = `
-                                        <div style="padding: 40px; text-align: center; color: #ff4444;">
-                                            <h3>❌ Error cargando el mercado</h3>
-                                            <p>El sistema de mercado no está disponible.</p>
-                                            <button onclick="location.reload()" style="
-                                                padding: 10px 20px;
-                                                background: #e10600;
-                                                color: white;
-                                                border: none;
-                                                border-radius: 5px;
-                                                cursor: pointer;
-                                                margin-top: 20px;
-                                            ">Reintentar</button>
-                                        </div>
-                                    `;
-                                }
-                            }
                         }
                         
                         // Si es la pestaña principal, recargar contenido (MISMA LÓGICA ORIGINAL)
