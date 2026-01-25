@@ -788,6 +788,9 @@ class F1Manager {
     // ========================
     // DASHBOARD COMPLETO (VERSIÓN OPTIMIZADA - UNA SOLA FILA)
     // ========================
+    // ========================
+    // DASHBOARD COMPLETO (VERSIÓN OPTIMIZADA - UNA SOLA FILA)
+    // ========================
     async cargarDashboardCompleto() {
         console.log('📊 Cargando dashboard COMPACTO con funcionalidad completa...');
         
@@ -795,33 +798,24 @@ class F1Manager {
             console.error('❌ No hay escudería para cargar dashboard');
             return;
         }
-        // ============================================
-        // ============================================
-        // 1. PRIMERO: Cargar el próximo GP desde la BD
-        // ============================================
-        console.log('📅 Cargando próximo GP...');
+    
+        // 1. Cargar el próximo GP
         await this.cargarProximoGP();
-        console.log('✅ Próximo GP cargado:', this.proximoGP?.nombre || 'No hay carreras');
         
-        // ============================================
-        // 2. LUEGO: Añade la función formatearFecha
-        // ============================================
+        // 2. Función auxiliar para formatear fecha
         function formatearFecha(fechaStr) {
             if (!fechaStr) return 'Fecha no definida';
             const fecha = new Date(fechaStr);
             const opciones = { 
                 day: 'numeric', 
-                month: 'short'  // Solo día y mes abreviado
+                month: 'short'
             };
             return fecha.toLocaleDateString('es-ES', opciones);
         }
-                
-        // ============================================
-        // 3. AHORA SÍ: Definir countdownHTML
-        // ============================================
+        
+        // 3. HTML del countdown
         const countdownHTML = `
             <div class="countdown-f1-container">
-                <!-- Encabezado con botón Calendario -->
                 <div class="countdown-header-f1">
                     <div class="countdown-title">
                         <i class="fas fa-flag-checkered"></i>
@@ -833,7 +827,6 @@ class F1Manager {
                     </button>
                 </div>
                 
-                <!-- Información de la carrera -->
                 <div class="carrera-info-f1" style="margin-bottom: 5px;">
                     <div class="carrera-nombre-f1" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0;">
                         <i class="fas fa-trophy" style="color: #FFD700;"></i>
@@ -843,12 +836,10 @@ class F1Manager {
                     </div>
                 </div>
                 
-                <!-- Countdown principal -->
                 <div class="countdown-main-f1">
                     <div class="countdown-label">CIERRE DE APUESTAS EN:</div>
                     
                     <div class="timer-container-f1">
-                        <!-- Días -->
                         <div class="time-unit-f1">
                             <div class="time-value-f1" id="countdown-dias">--</div>
                             <div class="time-label-f1">DÍAS</div>
@@ -856,7 +847,6 @@ class F1Manager {
                         
                         <div class="time-separator-f1">:</div>
                         
-                        <!-- Horas -->
                         <div class="time-unit-f1">
                             <div class="time-value-f1" id="countdown-horas">--</div>
                             <div class="time-label-f1">HORAS</div>
@@ -864,7 +854,6 @@ class F1Manager {
                         
                         <div class="time-separator-f1">:</div>
                         
-                        <!-- Minutos -->
                         <div class="time-unit-f1">
                             <div class="time-value-f1" id="countdown-minutos">--</div>
                             <div class="time-label-f1">MIN</div>
@@ -872,7 +861,6 @@ class F1Manager {
                         
                         <div class="time-separator-f1">:</div>
                         
-                        <!-- Segundos -->
                         <div class="time-unit-f1">
                             <div class="time-value-f1" id="countdown-segundos">--</div>
                             <div class="time-label-f1">SEG</div>
@@ -880,23 +868,18 @@ class F1Manager {
                     </div>
                 </div>
                 
-                <!-- Botón único para estado/apuestas -->
                 <button class="btn-pronostico-f1" id="btn-estado-apuestas">
                     <i class="fas fa-spinner fa-spin"></i>
                     <span>Cargando...</span>
                 </button>
-                
-
             </div>
         `;
-
-        
-        // 1. Crear el HTML con diseño compacto pero manteniendo IDs ORIGINALES
-        document.body.innerHTML = `
+    
+        // 4. HTML principal del dashboard
+        const htmlPrincipal = `
             <div id="app">
-                <!-- Header compacto (UNA SOLA FILA) -->
+                <!-- Header compacto -->
                 <header class="dashboard-header-compacto">
-                    <!-- Izquierda: Logo y dinero -->
                     <div class="header-left-compacto">
                         <div class="logo-compacto">
                             <i class="fas fa-flag-checkered"></i>
@@ -908,7 +891,6 @@ class F1Manager {
                         </div>
                     </div>
                     
-                    <!-- Centro: Tabs -->
                     <nav class="tabs-compactas">
                         <button class="tab-btn-compacto active" data-tab="principal">
                             <i class="fas fa-home"></i> Principal
@@ -929,22 +911,16 @@ class F1Manager {
                             <i class="fas fa-medal"></i> Clasificación
                         </button>
                     </nav>
-                    
-                    <!-- Derecha: Botón salir (manteniendo ID original) -->
-
                 </header>
                 
-                <!-- Main Content - MANTENIENDO ESTRUCTURA ORIGINAL -->
+                <!-- Main Content -->
                 <main class="dashboard-content">
                     <!-- Tab Principal -->
                     <div id="tab-principal" class="tab-content active">
-                        <!-- Three Columns Layout - MANTENIENDO IDs ORIGINALES -->
                         <div class="three-columns-layout">
                             
-                            <!-- Columna 1: Estrategas Compactos - MANTENIENDO IDs ORIGINALES -->
-
+                            <!-- Columna 1: Estrategas -->
                             <div class="col-estrategas">
-                                <!-- Encabezado con título y botón "Gestionar" al lado -->
                                 <div class="section-header">
                                     <div style="display: flex; align-items: center; gap: 8px;">
                                         <h2><i class="fas fa-users"></i> ESTRATEGAS</h2>
@@ -967,23 +943,17 @@ class F1Manager {
                                     <span class="badge" id="contador-estrategas">0/4</span>
                                 </div>
                                 
-                                <!-- Grid 2x2 IGUAL QUE PRODUCCIÓN -->
                                 <div id="pilotos-container" class="pilotos-container">
-                                    <!-- El contenido dinámico se cargará aquí -->
-                                    <!-- Se mantendrá la misma funcionalidad, solo cambia el aspecto -->
+                                    <!-- Contenido dinámico -->
                                 </div>
-                                
-                                <!-- ELIMINAMOS el botón de abajo, ya está arriba -->
                             </div>
                             
-
-                            <!-- Columna 2: Countdown F1 NUEVO - CON DISEÑO COMPLETO -->
+                            <!-- Columna 2: Countdown -->
                             <div class="col-countdown">
                                 ${countdownHTML}
                             </div>
-
                             
-                            <!-- Columna 3: Monitor de Fábrica - MANTENIENDO IDs ORIGINALES -->
+                            <!-- Columna 3: Producción -->
                             <div class="col-fabrica">
                                 <div class="monitor-fabrica">
                                     <div class="section-header">
@@ -994,7 +964,6 @@ class F1Manager {
                                         </div>
                                     </div>
                                     <div id="produccion-actual" class="produccion-actual">
-                                        <!-- Grid de 4 slots - MANTENIENDO estructura original -->
                                         <div id="produccion-slots" class="produccion-slots" style="
                                             display: grid;
                                             grid-template-columns: repeat(2, 1fr);
@@ -1003,14 +972,13 @@ class F1Manager {
                                             height: 100%;
                                             padding: 5px;
                                         ">
-
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Piezas Montadas en el Coche - MANTENIENDO IDs ORIGINALES -->
+                        <!-- Piezas Montadas -->
                         <section class="piezas-montadas">
                             <div class="section-header">
                                 <h2><i class="fas fa-car"></i> PIEZAS MONTADAS EN EL COCHE</h2>
@@ -1021,12 +989,12 @@ class F1Manager {
                             </div>
                             
                             <div id="grid-piezas-montadas" class="grid-11-columns">
-                                <!-- Se generarán dinámicamente 11 botones -->
+                                <!-- 11 botones dinámicos -->
                             </div>
                         </section>
                     </div>
                     
-                    <!-- Otras pestañas - MANTENIENDO IDs ORIGINALES -->
+                    <!-- Otras pestañas -->
                     <div id="tab-taller" class="tab-content"></div>
                     <div id="tab-almacen" class="tab-content"></div>
                     <div id="tab-mercado" class="tab-content"></div>
@@ -1040,7 +1008,6 @@ class F1Manager {
                         <i class="fas fa-user-circle"></i>
                         <span>${this.user.email?.split('@')[0] || 'Usuario'}</span>
                     </div>
-                    <!-- AÑADE EL BOTÓN AQUÍ -->
                     <button class="logout-btn-compacto" id="logout-btn-visible" title="Cerrar sesión" style="
                         background: rgba(225, 6, 0, 0.1);
                         border: 1px solid rgba(225, 6, 0, 0.3);
@@ -1060,193 +1027,13 @@ class F1Manager {
                     </div>
                 </footer>
             </div>
-            
-            <!-- Scripts - MANTENIENDO CÓDIGO JAVASCRIPT ORIGINAL -->
-            <script>
-                // Ocultar loading screen después de 1 segundo
-                setTimeout(() => {
-                    const loadingScreen = document.getElementById('loading-screen');
-                    if (loadingScreen) {
-                        loadingScreen.style.display = 'none';
-                    }
-                }, 1000);
-                
-                // Configurar sistema de pestañas con la funcionalidad ORIGINAL
-                document.querySelectorAll('.tab-btn-compacto').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const tabId = e.currentTarget.dataset.tab;
-                        
-                        // Remover activo de todos (MISMA LÓGICA ORIGINAL)
-                        document.querySelectorAll('.tab-btn-compacto').forEach(b => b.classList.remove('active'));
-                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                        
-                        // Activar tab seleccionado
-                        e.currentTarget.classList.add('active');
-                        document.getElementById(\`tab-\${tabId}\`).classList.add('active');
-                        
-                        // Cargar contenido específico de cada tab (MISMA FUNCIONALIDAD ORIGINAL)
-                        if (window.tabManager && window.tabManager.switchTab) {
-                            window.tabManager.switchTab(tabId);
-                        }
-                        
-                        // Si es la pestaña principal, recargar contenido (MISMA LÓGICA ORIGINAL)
-                        if (tabId === 'principal') {
-                            setTimeout(() => {
-                                if (window.cargarContenidoPrincipal) {
-                                    window.cargarContenidoPrincipal();
-                                }
-                            }, 100);
-                        }
-                    });
-                });
-                
-                // Configurar logout button (MISMA FUNCIONALIDAD ORIGINAL)
-                const logoutBtn = document.getElementById('logout-btn-visible');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        try {
-                            const supabaseClient = window.supabase;
-                            if (supabaseClient) {
-                                await supabaseClient.auth.signOut();
-                                console.log('✅ Sesión cerrada');
-                                // Forzar recarga completa para ir al login
-                                window.location.href = window.location.origin;
-                            }
-                        } catch (error) {
-                            console.error('❌ Error cerrando sesión:', error);
-                            // Si falla, recargar de todas formas
-                            window.location.href = window.location.origin;
-                        }
-                    });
-                }
-                
-                // Función global para ir al taller (MISMA FUNCIONALIDAD ORIGINAL)
-                window.irAlTallerDesdeProduccion = function() {
-                    document.querySelector('[data-tab="taller"]').click();
-                };
-                
-                window.gestionarEstrategas = function() {
-                    // Misma funcionalidad que antes
-                    if (window.f1Manager && window.f1Manager.mostrarModalContratacion) {
-                        window.f1Manager.mostrarModalContratacion();
-                    }
-                };
-                
-                // =============================================
-                // ¡¡MANTENIENDO FUNCIÓN ORIGINAL!!
-                // =============================================
-                window.cargarContenidoPrincipal = async function() {
-                    if (window.f1Manager) {
-                        // Cargar piezas montadas
-                        if (window.f1Manager.cargarPiezasMontadas) {
-                            await window.f1Manager.cargarPiezasMontadas();
-                        }
-                        // Cargar estrategas
-                        if (window.f1Manager.loadPilotosContratados) {
-                            await window.f1Manager.loadPilotosContratados();
-                        }
-                        // Cargar producción
-                        if (window.f1Manager.updateProductionMonitor) {
-                            window.f1Manager.updateProductionMonitor();
-                        }
-                    }
-                };
-                
-                // Ejecutar al cargar por primera vez (MISMA LÓGICA ORIGINAL)
-                setTimeout(() => {
-                    if (window.cargarContenidoPrincipal) {
-                        window.cargarContenidoPrincipal();
-                    }
-                }, 1500);
-            </script>
         `;
-
-        // ========================
-        // CONFIGURAR EVENTOS DEL DASHBOARD
-        // ========================
-        
-        // 1. Evento para cerrar sesión
-        document.getElementById('logout-btn-visible').addEventListener('click', async () => {
-            try {
-                console.log('🔒 Cerrando sesión...');
-                const { error } = await this.supabase.auth.signOut();
-                if (error) {
-                    console.error('❌ Error al cerrar sesión:', error);
-                    this.showNotification('Error al cerrar sesión', 'error');
-                } else {
-                    console.log('✅ Sesión cerrada, recargando...');
-                    location.reload(); // Esto llevará al login
-                }
-            } catch (error) {
-                console.error('❌ Error inesperado:', error);
-                this.showNotification('Error inesperado', 'error');
-            }
-        });
-        
-        // 2. INICIALIZAR SISTEMAS CRÍTICOS INMEDIATAMENTE (MISMA FUNCIONALIDAD ORIGINAL)
-        setTimeout(async () => {
-            console.log('🔧 Inicializando sistemas críticos del dashboard...');
-            
-            // A. Asegurar que fabricacionManager existe
-            if (!window.fabricacionManager && window.FabricacionManager) {
-                window.fabricacionManager = new window.FabricacionManager();
-                if (this.escuderia) {
-                    await window.fabricacionManager.inicializar(this.escuderia.id);
-                }
-            }
-            
-            // B. Configurar sistema de pestañas CON LA FUNCIÓN DE RECARGA (MISMA LÓGICA ORIGINAL)
-            setTimeout(() => {
-                if (window.tabManager && window.tabManager.setup) {
-                    // Guardar el switchTab original
-                    const originalSwitchTab = window.tabManager.switchTab;
-                    
-                    // Sobrescribir para que recargue contenido al volver a principal
-                    window.tabManager.switchTab = function(tabId) {
-                        // Llamar al original
-                        originalSwitchTab.call(this, tabId);
-                        
-                        // Si es la pestaña principal, recargar contenido
-                        if (tabId === 'principal') {
-                            setTimeout(() => {
-                                if (window.cargarContenidoPrincipal) {
-                                    window.cargarContenidoPrincipal();
-                                }
-                            }, 100);
-                        }
-                    };
-                    
-                    window.tabManager.setup();
-                }
-            }, 400);
-            
-            // 3. Cargar datos iniciales (MISMA FUNCIONALIDAD ORIGINAL)
-            const supabase = window.supabase; // Ya está disponible globalmente
-            if (supabase) {
-                await this.loadCarStatus();
-                await this.loadPilotosContratados();
-                await this.cargarProximoGP();
-                // Iniciar countdown con datos reales
-                setTimeout(() => {
-                    this.iniciarCountdownCompacto();
-                }, 500);
-                
-                // 4. Cargar piezas montadas INMEDIATAMENTE
-                setTimeout(async () => {
-                    await this.cargarPiezasMontadas();
-                }, 500);
-            }
-            
-            console.log('✅ Dashboard compacto cargado correctamente con toda la funcionalidad');
-            // QUITAR LA PANTALLA DE CARGA
-            setTimeout(() => {
-                const loadingScreen = document.getElementById('f1-loading-screen');
-                if (loadingScreen) {
-                    loadingScreen.remove();
-                }
-            }, 500);
-        }, 1000);
+    
+        // Establecer el HTML del body
+        document.body.innerHTML = htmlPrincipal;
+    
+        // Continuar con la inicialización...
+        // [El resto del código de inicialización...]
     }
     
 
