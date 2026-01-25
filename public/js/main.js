@@ -1835,6 +1835,7 @@ class F1Manager {
             this.showNotification(`❌ Fondos insuficientes. Necesitas €${falta.toLocaleString()} más`, 'error');
             return false;
         }
+    }
         
         // SI fabricacionManager no existe, CREARLO
         if (!window.fabricacionManager) {
