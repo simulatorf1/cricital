@@ -1952,7 +1952,7 @@ class F1Manager {
             if (!error) {
                 const moneyValue = document.getElementById('money-value');
                 if (moneyValue) {
-                    moneyValue.textContent = `€${this.escuderia.dinero.toLocaleString()}`;
+                    moneyValue.textContent = '€' + this.escuderia.dinero.toLocaleString();
                 }
             }
         } catch (error) {
