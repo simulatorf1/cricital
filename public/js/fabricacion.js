@@ -16,7 +16,19 @@ class FabricacionManager {
         await this.cargarProduccionesActivas();
         return true;
     }
-
+    actualizarUIProduccion(soloContador = false) {
+        console.log('🔧 [FABRICACION] actualizarUIProduccion llamado');
+        
+        if (soloContador) {
+            // Solo actualizar contador si es necesario
+            return;
+        }
+        
+        // Tu lógica para actualizar la UI de producción
+        if (window.f1Manager && window.f1Manager.updateProductionMonitor) {
+            window.f1Manager.updateProductionMonitor();
+        }
+    }
     async cargarProduccionesActivas() {
         try {
             const { data, error } = await supabase
