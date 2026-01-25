@@ -1638,11 +1638,7 @@ class F1Manager {
         return null;
     }
     
-    // ELIMINA esta segunda definición del método init() que tienes más abajo
-    // async init() {
-    //     console.log('🔧 Inicializando juego...');
-    //     ... resto del código duplicado ...
-    // }
+
     
     // ========================
     // SISTEMA DE TUTORIAL INTERACTIVO
