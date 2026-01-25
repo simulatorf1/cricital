@@ -82,78 +82,8 @@ async function iniciarAplicacion() {
 
     
     
-    // MOSTRAR PANTALLA DE CARGA F1 INMEDIATAMENTE
-    // Copia EXACTAMENTE el mismo código HTML del finalizarTutorial()
-    document.body.innerHTML = `
-        <div id="f1-loading-screen" style="
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999;
-            font-family: 'Orbitron', sans-serif;
-        ">
-            <div style="margin-bottom: 40px; text-align: center;">
-                <div style="color: #e10600; font-size: 4rem; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 20px rgba(225, 6, 0, 0.7); letter-spacing: 2px;">
-                    F1
-                </div>
-                <div style="color: #ffffff; font-size: 1.2rem; letter-spacing: 3px; font-weight: 300;">
-                    STRATEGY MANAGER
-                </div>
-            </div>
-            
-            <div style="color: #ffffff; font-size: 1.5rem; margin-bottom: 30px; text-align: center; font-weight: 500; letter-spacing: 1px;">
-                CARGANDO ESCUDERÍA
-            </div>
-            
-            <div style="width: 80%; max-width: 500px; background: rgba(255, 255, 255, 0.1); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 20px; position: relative;">
-                <div id="f1-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #e10600, #ff4444); border-radius: 4px; transition: width 1.5s ease; position: relative; box-shadow: 0 0 10px rgba(225, 6, 0, 0.5);">
-                    <div style="position: absolute; top: 0; left: 0; width: 20%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent); animation: shine 2s infinite; transform: skewX(-20deg);"></div>
-                </div>
-            </div>
-            
-            <div style="color: #00d2be; font-size: 1.2rem; font-weight: bold; margin-top: 15px; font-family: 'Orbitron', sans-serif;">
-                <span id="f1-progress-text">0%</span>
-            </div>
-            
-            <div id="f1-loading-message" style="color: #888; font-size: 0.9rem; margin-top: 25px; text-align: center; max-width: 500px; padding: 0 20px; font-family: 'Roboto', sans-serif;">
-                Preparando tu escudería para la competición...
-            </div>
-            
-        </div>
-        
-
-    `;
-
-    // ============ AÑADE ESTO JUSTO AQUÍ ============
-    // Función para actualizar progreso (copiada del tutorial)
-    const updateProgress = (percentage, message) => {
-        const progressBar = document.getElementById('f1-progress-bar');
-        const progressText = document.getElementById('f1-progress-text');
-        const loadingMessage = document.getElementById('f1-loading-message');
-        
-        if (progressBar) progressBar.style.width = `${percentage}%`;
-        if (progressText) progressText.textContent = `${percentage}%`;
-        if (loadingMessage && message) loadingMessage.textContent = message;
-    };
-    
-    // Fuerza un progreso rápido
-    updateProgress(20, 'Iniciando sistema...');
-    setTimeout(() => updateProgress(40, 'Cargando recursos...'), 1500);   // 1.5 segundos
-    setTimeout(() => updateProgress(60, 'Conectando con el servidor...'), 3000); // 3 segundos
-    setTimeout(() => updateProgress(80, 'Preparando interfaz...'), 4500); // 4.5 segundos
-    setTimeout(() => updateProgress(100, 'Completando...'), 6000); // 6 segundos
-    setTimeout(() => {
-        const loadingScreen = document.getElementById('f1-loading-screen');
-        if (loadingScreen) loadingScreen.remove();
-    }, 7000);  // 7 segundos total
-    // ============ FIN DEL CÓDIGO A AÑADIR ============
+    // Mostrar pantalla de carga simple
+    document.body.innerHTML = '<div id="f1-loading-screen">Cargando...</div>';
     
     // Inicializar Supabase
     window.supabase = initSupabase();
