@@ -2594,5 +2594,63 @@ setTimeout(() => {
         
         return resultado;
     };
+    // Función para redirigir al almacén desde las piezas montadas
+    window.irAlAlmacenDesdePiezas = function() {
+        console.log('📦 Redirigiendo al almacén desde piezas montadas...');
+        
+        // Método 1: Usar el tabManager si existe
+        if (window.tabManager && window.tabManager.switchTab) {
+            window.tabManager.switchTab('almacen');
+            console.log('✅ Redirigido usando tabManager');
+            return;
+        }
+        
+        // Método 2: Simular click en la pestaña de almacén
+        const tabAlmacen = document.querySelector('[data-tab="almacen"]');
+        if (tabAlmacen) {
+            tabAlmacen.click();
+            console.log('✅ Redirigido haciendo click en pestaña');
+            return;
+        }
+        
+        // Método 3: Alternativa directa
+        const almacenTab = document.getElementById('tab-almacen');
+        if (almacenTab) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Desactivar todos los botones
+            document.querySelectorAll('.tab-btn-compacto').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Activar pestaña de almacén
+            almacenTab.classList.add('active');
+            
+            // Activar botón correspondiente
+            const btnAlmacen = document.querySelector('[data-tab="almacen"]');
+            if (btnAlmacen) {
+                btnAlmacen.classList.add('active');
+            }
+            
+            console.log('✅ Redirigido activando pestaña manualmente');
+            
+            // Si hay cargador de almacén, ejecutarlo
+            setTimeout(() => {
+                if (window.tabManager && window.tabManager.loadAlmacenPiezas) {
+                    window.tabManager.loadAlmacenPiezas();
+                } else if (window.cargarContenidoAlmacen) {
+                    window.cargarContenidoAlmacen();
+                }
+            }, 100);
+        } else {
+            console.warn('⚠️ No se encontró la pestaña de almacén');
+            alert('Redirigiendo al almacén...');
+        }
+    };
     
+    // También puedes añadir una versión alternativa por si acaso
+    window.goToAlmacen = window.irAlAlmacenDesdePiezas;    
 })();
