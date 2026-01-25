@@ -1919,9 +1919,7 @@ class F1Manager {
             // Asegurar estilos
             this.cargarEstilosProduccion();
             
-            let html = `
-                <div class="produccion-slots">
-            `;
+            let html = '<div class="produccion-slots">';
             
             // Crear 4 slots
             for (let i = 0; i < 4; i++) {
