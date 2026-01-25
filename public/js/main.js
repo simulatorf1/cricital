@@ -5212,15 +5212,7 @@ class F1Manager {
             window.location.href = window.location.origin;
         }
     };
-    // Función auxiliar para formatear tiempo
-    function formatTime(milliseconds) {
-        if (milliseconds <= 0) return "00:00:00";
-        const seconds = Math.floor(milliseconds / 1000);
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const secs = seconds % 60;
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
+ 
     window.cargarEstrategasTutorial = function() {
         const container = document.getElementById('grid-estrategas-tutorial');
         if (!container) return;
