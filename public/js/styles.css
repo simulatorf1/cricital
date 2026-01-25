@@ -2572,9 +2572,11 @@ html, body {
   /* Fila superior: nombre de escudería y dinero */
   .header-left-compacto {
     width: 100% !important;
-    justify-content: space-between !important;
+    justify-content: center !important; /* CAMBIADO: de space-between a center */
     padding-bottom: 8px !important;
     border-bottom: 1px solid rgba(0, 210, 190, 0.2) !important;
+    position: relative !important;
+    padding-right: 45px !important; /* AÑADIDO: espacio para el botón de salir */
   }
 
   .logo-compacto {
