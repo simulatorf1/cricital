@@ -3091,6 +3091,7 @@ window.addEventListener('auth-completado', async (evento) => {
             console.log('✅ Tutorial ya completado, cargando dashboard...');
             await window.f1Manager.cargarDashboardCompleto();
         }
+    } 
 });
 
 // También verificar si ya hay datos almacenados
