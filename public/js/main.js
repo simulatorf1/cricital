@@ -1922,13 +1922,16 @@ class F1Manager {
     }
     showNotification(mensaje, tipo = 'success') {
         const notification = document.createElement('div');
-        notification.className = `notification ${tipo}`;
-        notification.innerHTML = `
-            <i class="fas fa-${tipo === 'success' ? 'check-circle' : 
-                             tipo === 'error' ? 'exclamation-circle' : 
-                             'info-circle'}"></i>
-            <span>${mensaje}</span>
-        `;
+        notification.className = 'notification ' + tipo;
+        
+        // Determinar icono
+        let icono = 'info-circle';
+        if (tipo === 'success') icono = 'check-circle';
+        if (tipo === 'error') icono = 'exclamation-circle';
+        
+        notification.innerHTML = 
+            '<i class="fas fa-' + icono + '"></i>' +
+            '<span>' + mensaje + '</span>';
         
         document.body.appendChild(notification);
         
