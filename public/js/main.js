@@ -3,25 +3,9 @@
 // ========================
 console.log('🏎️ F1 Manager - Sistema principal cargado');
 
-
-
-
-
-
-
-// ========================
-// ESTILOS CSS PARA PRODUCCIÓN (NUEVO DISEÑO)
-// ========================
 const produccionStyles = '';
 
-
-// ========================
-// ESTILOS PARA PESTAÑA FABRICACIÓN (TALLER)
-// ========================
 const tallerStyles = '';
-
-
-
 
 // ========================
 // 4. CLASE F1Manager PRINCIPAL CON TUTORIAL
@@ -42,9 +26,7 @@ class F1Manager {
     // ========================
     // MÉTODO PARA CARGAR PESTAÑA TALLER
     // ========================
-    // ========================
-    // MÉTODO PARA CARGAR PESTAÑA TALLER (VERSIÓN MINIMALISTA)
-    // ========================
+
     async cargarTabTaller() {
         console.log('🔧 Cargando pestaña taller minimalista...');
         
@@ -222,8 +204,6 @@ class F1Manager {
                         
                     </div>
                 </div>
-
-
             `;
             
             container.innerHTML = html;
@@ -240,9 +220,6 @@ class F1Manager {
         }
     }
     
-    // ========================
-    // MÉTODO PARA INICIAR FABRICACIÓN DESDE TALLER MINIMALISTA
-    // ========================
     // ========================
     // MÉTODO CORREGIDO PARA INICIAR FABRICACIÓN
     // ========================
@@ -757,9 +734,6 @@ class F1Manager {
         contenedor.innerHTML = html;
     }
     
-
-
-    
     // ========================
     // SISTEMA DE TUTORIAL INTERACTIVO
     // ========================
@@ -979,8 +953,7 @@ class F1Manager {
                 }
             },
             
-
-            
+   
             // PASO 5: DÍA 1 - Contratación (Tutorial práctico)
             {
                 title: "🎮 SIMULACIÓN SEMANAL",
@@ -1959,9 +1932,6 @@ class F1Manager {
     }
     
 
-    
-
-    
     async ejecutarAccionTutorial(accion) {
         console.log('🎯 Acción tutorial:', accion);
         
@@ -2134,13 +2104,7 @@ class F1Manager {
             }
         }
     }
-    
 
-    
-
-    
-
-    
     async finalizarTutorial() {
         console.log('✅ Finalizando tutorial...');
         
@@ -2266,11 +2230,8 @@ class F1Manager {
                 </div>
             </div>
             
-
         `;
 
-        
-        
         try {
             // 2. Animar la barra de progreso
             const progressBar = document.getElementById('f1-progress-bar');
@@ -3102,10 +3063,6 @@ class F1Manager {
         }
     }
     
-    // ========================
-    // ========================
-    // MÉTODO PARA COUNTDOWN (COMPACTO) CON DATOS REALES
-    // ========================
     // ========================
     // MÉTODO PARA COUNTDOWN COMPLETO CON DISEÑO F1
     // ========================
@@ -4454,11 +4411,6 @@ class F1Manager {
         return resultado;
     };
 
-    
-
-  
-
-    
 
     window.irAlAlmacenDesdePiezas = function() {
         if (window.tabManager && window.tabManager.switchTab) {
