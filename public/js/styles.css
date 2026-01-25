@@ -2661,7 +2661,7 @@ html, body {
 
   .produccion-slots {
       height: auto !important;
-      min-height: unset !important;
+      min-height: auto !important;
       gap: 3px !important;
       padding: 2px !important;
       margin: 0 !important;
