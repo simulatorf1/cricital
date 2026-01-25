@@ -1053,74 +1053,131 @@ class F1Manager {
     // ========================
     // MÉTODO PARA ACTUALIZAR MONITOR DE PRODUCCIÓN (COMPACTO)
     // ========================
-    async updateProductionMonitorCompacto() {
-        const container = document.getElementById('produccion-grid-compacto');
-        const contador = document.getElementById('contador-produccion');
+    async updateProductionMonitor() {
+        if (!this.escuderia || !this.escuderia.id || !this.supabase) {
+            console.log('❌ No hay escudería para monitor de producción');
+            return;
+        }
         
-        if (!container || !this.escuderia) return;
+        const container = document.getElementById('produccion-actual');
+        if (!container) {
+            console.log('❌ No se encontró #produccion-actual');
+            return;
+        }
         
         try {
+            // Cargar fabricaciones activas
             const { data: fabricaciones, error } = await this.supabase
                 .from('fabricacion_actual')
                 .select('*')
                 .eq('escuderia_id', this.escuderia.id)
                 .eq('completada', false)
-                .order('tiempo_fin', { ascending: true });
+                .order('tiempo_inicio', { ascending: true });
             
             if (error) throw error;
             
-            const slots = container.querySelectorAll('.slot-produccion-compacto');
-            slots.forEach((slot, index) => {
-                const fabricacion = fabricaciones && fabricaciones[index];
+            console.log('📊 Fabricaciones activas encontradas:', fabricaciones?.length || 0);
+            
+            // Verificar tiempos REALES de cada fabricación
+            const ahoraUTC = Date.now();
+            const fabricacionesConEstado = (fabricaciones || []).map(f => {
+                const tiempoFinStr = f.tiempo_fin.endsWith('Z') ? f.tiempo_fin : f.tiempo_fin + 'Z';
+                const tiempoFinUTC = new Date(tiempoFinStr).getTime();
+                const tiempoRestante = tiempoFinUTC - ahoraUTC;
+                const lista = tiempoRestante <= 0;
                 
-                if (fabricacion) {
-                    // Calcular tiempo restante
-                    const tiempoFin = new Date(fabricacion.tiempo_fin);
-                    const ahora = new Date();
-                    const diferencia = tiempoFin - ahora;
-                    
-                    let tiempoTexto = '';
-                    if (diferencia > 0) {
-                        const horas = Math.floor(diferencia / (1000 * 60 * 60));
-                        const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
-                        tiempoTexto = `${horas}h ${minutos}m`;
-                    } else {
-                        tiempoTexto = '¡Listo!';
-                    }
-                    
-                    // Actualizar slot
-                    slot.classList.add('slot-activo-compacto');
-                    slot.innerHTML = `
-                        <div class="slot-icono-compacto"><i class="fas fa-cog fa-spin"></i></div>
-                        <div class="slot-texto-compacto">
-                            <div style="color: #4CAF50; font-weight: bold; font-size: 0.7rem;">${fabricacion.area || 'Evolución'}</div>
-                            <div style="color: #FF9800; font-size: 0.65rem;">${tiempoTexto}</div>
-                        </div>
-                    `;
-                    
-                    // Actualizar evento onclick para ir al taller
-                    slot.onclick = () => {
-                        document.querySelector('[data-tab="taller"]').click();
-                    };
-                } else {
-                    // Slot vacío
-                    slot.classList.remove('slot-activo-compacto');
-                    slot.innerHTML = `
-                        <div class="slot-icono-compacto"><i class="fas fa-plus"></i></div>
-                        <div class="slot-texto-compacto">Slot ${index + 1}</div>
-                    `;
-                    slot.onclick = () => {
-                        document.querySelector('[data-tab="taller"]').click();
-                    };
-                }
+                return {
+                    ...f,
+                    tiempoRestante,
+                    lista
+                };
             });
             
-            if (contador) {
-                contador.textContent = `${fabricaciones?.length || 0}/4`;
+            console.log('⏱️ Estado fabricaciones:', fabricacionesConEstado.map(f => ({
+                area: f.area,
+                tiempoFin: f.tiempo_fin,
+                tiempoRestante: f.tiempoRestante,
+                lista: f.lista
+            })));
+            
+            // Para cada fabricación, calcular su número de pieza
+            const fabricacionesConNumero = [];
+            for (const fabricacion of fabricacionesConEstado) {
+                const { data: piezasExistentes } = await this.supabase
+                    .from('almacen_piezas')
+                    .select('id')
+                    .eq('escuderia_id', this.escuderia.id)
+                    .eq('area', fabricacion.area)
+                    .eq('nivel', fabricacion.nivel);
+                
+                const numeroPieza = (piezasExistentes?.length || 0) + 1;
+                fabricacionesConNumero.push({
+                    ...fabricacion,
+                    numero_pieza: numeroPieza
+                });
             }
             
+            // Asegurar estilos
+            this.cargarEstilosProduccion();
+            
+            let html = '<div class="produccion-slots">';
+            
+            // Crear 4 slots
+            for (let i = 0; i < 4; i++) {
+                const fabricacion = fabricacionesConNumero[i];
+                
+                if (fabricacion) {
+                    const tiempoRestante = fabricacion.tiempoRestante;
+                    const lista = fabricacion.lista;
+                    const nombreArea = this.getNombreArea(fabricacion.area);
+                    const tiempoFormateado = this.formatTime(tiempoRestante);
+                    const numeroPieza = fabricacion.numero_pieza || 1;
+                    
+                    html += `
+                        <div class="produccion-slot ${lista ? 'produccion-lista' : 'produccion-activa'}" 
+                             onclick="recogerPiezaSiLista('${fabricacion.id}', ${lista}, ${i})"
+                             title="${nombreArea} - Evolución ${numeroPieza} de nivel ${fabricacion.nivel}">
+                            <div class="produccion-icon">
+                                ${lista ? '✅' : ''}
+                            </div>
+                            <div class="produccion-info">
+                                <span class="produccion-nombre">${nombreArea}</span>
+                                <span class="produccion-pieza-num">Evolución ${numeroPieza}</span>
+                                ${lista ? 
+                                    '<span class="produccion-lista-text">¡LISTA!</span>' :
+                                    '<span class="produccion-tiempo">' + tiempoFormateado + '</span>'
+                                }
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Slot vacío
+                    html += `
+                        <div class="produccion-slot" data-slot="${i}" onclick="irAlTallerDesdeProduccion()">
+                            <div class="slot-content">
+                                <i class="fas fa-plus"></i>
+                                <span>Departamento ${i + 1}</span>
+                                <span class="slot-disponible">Disponible</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+            
+            // Iniciar timer para actualización en tiempo real
+            this.iniciarTimerProduccion();
+            
         } catch (error) {
-            console.error('Error actualizando producción:', error);
+            console.error("Error en updateProductionMonitor:", error);
+            container.innerHTML = `
+                <div class="produccion-error">
+                    <p>❌ Error cargando producción</p>
+                    <button onclick="window.f1Manager.updateProductionMonitor()">Reintentar</button>
+                </div>
+            `;
         }
     }
     
