@@ -1431,31 +1431,29 @@ class F1Manager {
             contadorElement.textContent = estrategasContratados.length + '/4';
         }
         
-        let html = '<div class="estrategas-grid-minimal">';
+        // USAR LA MISMA ESTRUCTURA QUE PRODUCCIÓN
+        let html = '<div class="produccion-slots" style="height: 170px !important; min-height: 170px !important;">';
         
         for (let i = 0; i < 4; i++) {
             const estratega = estrategasContratados[i];
             
             if (estratega) {
-                html += '<div class="estratega-btn contratado" onclick="mostrarInfoEstratega(' + i + ')">';
-                html += '<div class="estratega-icon">';
+                html += '<div class="produccion-slot estratega-slot" onclick="mostrarInfoEstratega(' + i + ')" style="height: 80px !important;">';
+                html += '<div class="slot-content">';
+                html += '<div class="estratega-icon" style="font-size: 1.1rem; color: #00d2be; margin-bottom: 5px;">';
                 html += '<i class="fas fa-user-tie"></i>';
                 html += '</div>';
-                html += '<div class="estratega-info">';
-                html += '<span class="estratega-nombre">' + (estratega.nombre || 'Estratega') + '</span>';
-                html += '<span class="estratega-salario">€' + (estratega.salario || 0).toLocaleString() + '/mes</span>';
-                html += '<span class="estratega-funcion">' + (estratega.especialidad || 'General') + '</span>';
+                html += '<span style="display: block; font-size: 0.75rem; color: white; font-weight: bold; margin-bottom: 2px;">' + (estratega.nombre || 'Estratega') + '</span>';
+                html += '<span style="display: block; font-size: 0.65rem; color: #FFD700;">€' + (estratega.salario || 0).toLocaleString() + '/mes</span>';
+                html += '<span style="display: block; font-size: 0.6rem; color: #aaa; margin-top: 2px;">' + (estratega.especialidad || 'General') + '</span>';
                 html += '</div>';
-                html += '<div class="estratega-bono">+' + (estratega.bonificacion_valor || 0) + '%</div>';
                 html += '</div>';
             } else {
-                html += '<div class="estratega-btn vacio" onclick="contratarNuevoEstratega(' + i + ')">';
-                html += '<div class="estratega-icon">';
-                html += '<i class="fas fa-plus"></i>';
-                html += '</div>';
-                html += '<div class="estratega-info">';
-                html += '<span class="estratega-nombre">Vacío</span>';
-                html += '<span class="estratega-funcion">Click para contratar</span>';
+                html += '<div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(' + i + ')" style="height: 80px !important;">';
+                html += '<div class="slot-content">';
+                html += '<i class="fas fa-plus" style="font-size: 1.1rem; color: #666; margin-bottom: 5px;"></i>';
+                html += '<span style="display: block; font-size: 0.75rem; color: #888;">Slot ' + (i + 1) + '</span>';
+                html += '<span style="display: block; font-size: 0.65rem; color: #aaa; margin-top: 2px;">Vacío</span>';
                 html += '</div>';
                 html += '</div>';
             }
