@@ -337,32 +337,34 @@ html, body {
    4. ESTILOS DE PRODUCCIÓN/TALLER
    ======================== */
 /* Grid de producción como estrategas */
+/* Grid de producción como estrategas */
 .produccion-slots {
     display: grid;
     grid-template-columns: repeat(2, 1fr) !important;
-    grid-template-rows: 80px 80px !important;
-    row-gap: 10px !important;
+    grid-template-rows: auto auto !important; /* CAMBIADO: auto en lugar de 80px */
+    row-gap: 8px !important;
     align-content: start !important;
-    padding: 5px;
-    gap: 5px !important;
-    height: 170px !important;
-    min-width: 300px !important;
+    padding: 4px;
+    gap: 4px !important;
+    height: auto !important; /* CAMBIADO: auto en lugar de 170px */
+    min-height: unset !important;
+    min-width: unset !important;
 }
 
 .produccion-slot {
     background: rgba(255, 255, 255, 0.03);
     border: 1.5px solid rgba(255, 255, 255, 0.08);
     border-radius: 6px;
-    padding: 8px 8px !important;
+    padding: 6px !important; /* REDUCIDO: de 8px a 6px */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    height: 80px !important;
-    min-height: 80px !important;
-    margin-bottom: 2px !important;
+    height: 70px !important; /* REDUCIDO: de 80px a 70px */
+    min-height: 70px !important;
+    margin-bottom: 0 !important;
 }
 
 .produccion-slot:hover {
@@ -1729,7 +1731,7 @@ html, body {
     .col-estrategas, .col-countdown, .col-fabrica {
         width: 100% !important;
         height: auto !important;
-        min-height: 250px !important;
+        min-height: unset !important; /* CAMBIADO: unset en lugar de 250px */
     }
     
     html, body {
@@ -2689,18 +2691,7 @@ html, body {
     font-size: 0.8rem !important;
     gap: 3px !important;
   }
-  .col-estrategas {
-      height: auto !important;
-      min-height: 190px !important;
-      padding: 5px !important;
-  }
 
-  .produccion-slots {
-      height: auto !important;
-      min-height: 170px !important;
-      gap: 8px !important;
-      padding: 8px !important;
-  }
   .logout-btn-compacto {
     top: 8px !important;
     right: 8px !important;
