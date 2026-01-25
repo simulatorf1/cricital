@@ -1832,7 +1832,7 @@ class F1Manager {
         // AÑADE ESTA VERIFICACIÓN AQUÍ:
         if (!this.escuderia || this.escuderia.dinero < window.CONFIG.PIECE_COST) {
             const falta = window.CONFIG.PIECE_COST - (this.escuderia?.dinero || 0);
-            this.showNotification(`❌ Fondos insuficientes. Necesitas €${falta.toLocaleString()} más`, 'error');
+            this.showNotification(`❌ Fondos insuficientes. Necesitas EUR ${falta.toLocaleString()} más`, 'error');
             return false;
         }
 
