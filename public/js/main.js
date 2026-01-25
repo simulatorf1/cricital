@@ -1431,14 +1431,15 @@ class F1Manager {
             contadorElement.textContent = estrategasContratados.length + '/4';
         }
         
-        // USAR LA MISMA ESTRUCTURA QUE PRODUCCIÓN
-        let html = '<div class="produccion-slots" style="height: 170px !important; min-height: 170px !important;">';
+        // QUITAR LOS ESTILOS INLINE CON !important
+        let html = '<div class="produccion-slots">';  // CAMBIADO: Sin style
         
         for (let i = 0; i < 4; i++) {
             const estratega = estrategasContratados[i];
             
             if (estratega) {
-                html += '<div class="produccion-slot estratega-slot" onclick="mostrarInfoEstratega(' + i + ')" style="height: 80px !important;">';
+                // CAMBIADO: Sin style="height: 80px !important;"
+                html += '<div class="produccion-slot estratega-slot" onclick="mostrarInfoEstratega(' + i + ')">';
                 html += '<div class="slot-content">';
                 html += '<div class="estratega-icon" style="font-size: 1.1rem; color: #00d2be; margin-bottom: 5px;">';
                 html += '<i class="fas fa-user-tie"></i>';
@@ -1449,7 +1450,8 @@ class F1Manager {
                 html += '</div>';
                 html += '</div>';
             } else {
-                html += '<div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(' + i + ')" style="height: 80px !important;">';
+                // CAMBIADO: Sin style="height: 80px !important;"
+                html += '<div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(' + i + ')">';
                 html += '<div class="slot-content">';
                 html += '<i class="fas fa-plus" style="font-size: 1.1rem; color: #666; margin-bottom: 5px;"></i>';
                 html += '<span style="display: block; font-size: 0.75rem; color: #888;">Slot ' + (i + 1) + '</span>';
@@ -1463,7 +1465,6 @@ class F1Manager {
         
         container.innerHTML = html;
     }
-
     getIniciales(nombre) {
         if (!nombre) return "??";
         return nombre.split(' ')
