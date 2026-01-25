@@ -1892,7 +1892,8 @@ class F1Manager {
             // 1. Mostrar notificación
             const area = window.CAR_AREAS.find(a => a.id === areaId);
             if (area) {
-                this.showNotification(`✅ Fabricación de ${area.name} iniciada (30 segundos)`, 'success');
+                const mensaje = '✅ Fabricación de ' + area.name + ' iniciada (30 segundos)';
+                this.showNotification(mensaje, 'success');
             }
             
             // 2. Actualizar el monitor de producción INMEDIATAMENTE
