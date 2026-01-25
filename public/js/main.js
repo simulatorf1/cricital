@@ -4736,41 +4736,45 @@ class F1Manager {
             alert("Error recogiendo pieza: " + error.message);
         }
     };
-
-
-// Iniciar aplicación
 // ========================
-// INICIAR JUEGO CUANDO AUTH ESTÉ LISTO
+// ESCUCHAR AUTENTICACIÓN EXITOSA
 // ========================
-console.log('🎮 Main.js listo - Esperando autenticación...');
 
-// Esperar a que authManager cargue el usuario
-function iniciarJuegoCuandoListo() {
-    // Verificar periódicamente si authManager tiene datos
-    const checkInterval = setInterval(() => {
-        if (window.authManager && window.authManager.user && window.authManager.escuderia) {
-            clearInterval(checkInterval);
-            console.log('✅ Usuario autenticado, iniciando juego...');
-            
-            // Crear instancia F1Manager
-            window.f1Manager = new F1Manager(
-                window.authManager.user, 
-                window.authManager.escuderia,
-                window.authManager.supabase
-            );
-            
-            // Iniciar juego
-            window.f1Manager.init();
+// Escuchar el evento de autenticación completada
+window.addEventListener('auth-completado', async (evento) => {
+    console.log('✅ Evento auth-completado recibido en main.js');
+    
+    const { user, escuderia, supabase } = evento.detail || window.authData || {};
+    
+    if (user && escuderia) {
+        console.log('🎮 Creando F1Manager con datos de autenticación...');
+        
+        // Crear instancia F1Manager
+        window.f1Manager = new F1Manager(user, escuderia, supabase);
+        
+        // Verificar si necesitas tutorial
+        if (!escuderia.tutorial_completado) {
+            console.log('📚 Mostrando tutorial...');
+            window.f1Manager.mostrarTutorialInicial();
+        } else {
+            console.log('✅ Tutorial ya completado, cargando dashboard...');
+            await window.f1Manager.cargarDashboardCompleto();
         }
-    }, 500);
-}
+    } else {
+        console.error('❌ Datos de autenticación incompletos');
+    }
+});
 
-// Iniciar verificación cuando el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', iniciarJuegoCuandoListo);
-} else {
-    iniciarJuegoCuandoListo();
-}
+// También verificar si ya hay datos almacenados
+setTimeout(() => {
+    if (window.authData && window.authData.user && window.authData.escuderia) {
+        console.log('📦 Usando datos de authData almacenados');
+        const evento = new CustomEvent('auth-completado', { detail: window.authData });
+        window.dispatchEvent(evento);
+    }
+}, 1000);
+
+
 // AL FINAL DE TU ARCHIVO JS, FUERA DE CUALQUIER CLASE/FUNCIÓN
 (function() {
     // Variable global para los datos del tutorial
