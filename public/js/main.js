@@ -826,8 +826,340 @@ function mostrarMensaje(mensaje, elemento) {
     }
 }
 
+// ========================
+// ESTILOS CSS PARA PRODUCCIÓN (NUEVO DISEÑO)
+// ========================
+const produccionStyles = `
+    /* Grid de producción como estrategas */
+    .produccion-slots {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-rows: 80px 80px !important;
+        row-gap: 10px !important;          /* ← AÑADIR espacio vertical */
+        align-content: start !important;   /* ← AÑADIR alineación */
+        padding: 5px;     
 
+        gap: 5px !important;
+        height: 170px !important; /* ← La altura que elegiste */
+        min-width: 300px !important; /* ← NUEVO: ancho mínimo */
+    }
+    
+    .produccion-slot {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1.5px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        padding: 8px 8px !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        height:  80px !important;
+        min-height: 80px !important;  
+        margin-bottom: 2px !important; 
+    }
+    
+    .produccion-slot:hover {
+        border-color: rgba(0, 210, 190, 0.4);
+        background: rgba(0, 210, 190, 0.05);
+        transform: translateY(-1px);
+    }
+    
+    .slot-content {
+        text-align: center;
+        width: 100%;
+    }
+    
+    .slot-content i {
+        font-size: 1.1rem;
+        color: #00d2be;
+        margin-bottom: 5px;
+    }
+    
+    .slot-content span {
+        display: block;
+        font-size: 0.75rem;
+        color: #888;
+        line-height: 1.1;
+    }
+    
+    /* Estilo cuando hay producción activa */
+    .produccion-activa {
+        border-color: rgba(0, 210, 190, 0.25);
+        background: rgba(0, 210, 190, 0.04);
+    }
+    
+    .produccion-lista {
+        border-color: #4CAF50 !important;
+        background: rgba(76, 175, 80, 0.15) !important;
+        animation: pulse-green 2s infinite;
+    }
+    
+    @keyframes pulse-green {
+        0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+    }
+    
+    .produccion-info {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .produccion-nombre {
+        display: block;
+        font-weight: bold;
+        font-size: 0.75rem;
+        color: white;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .produccion-tiempo {
+        display: block;
+        font-size: 0.65rem;
+        color: #00d2be;
+        margin-bottom: 1px;
+        line-height: 1;
+    }
+    
+    .produccion-lista-text {
+        color: #4CAF50;
+        font-weight: bold;
+        animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .produccion-icon {
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+`;
 
+// ========================
+// ESTILOS PARA PESTAÑA FABRICACIÓN (TALLER)
+// ========================
+const tallerStyles = `
+    /* Grid de fabricación con 8 áreas */
+    .grid-8-fabricacion {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .area-fabricacion {
+        background: rgba(42, 42, 56, 0.8);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        height: 220px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .area-fabricacion:hover {
+        border-color: #00d2be;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 210, 190, 0.2);
+    }
+    
+    .area-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 10px;
+    }
+    
+    .area-icon {
+        font-size: 2rem;
+        margin-right: 15px;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: rgba(0, 210, 190, 0.1);
+    }
+    
+    .area-info {
+        flex: 1;
+    }
+    
+    .area-nombre {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.2rem;
+        color: white;
+        margin-bottom: 5px;
+    }
+    
+    .area-nivel {
+        color: #00d2be;
+        font-size: 0.9rem;
+    }
+    
+    /* Grid de calidad 1x5 */
+    .calidad-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin: 15px 0;
+        flex: 1;
+    }
+    
+    .calidad-slot {
+        background: rgba(255, 255, 255, 0.03);
+        border: 2px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 10px 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 70px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .calidad-slot.vacio:hover {
+        border-color: rgba(0, 210, 190, 0.4);
+        background: rgba(0, 210, 190, 0.05);
+    }
+    
+    .calidad-slot.ocupado {
+        border-color: rgba(76, 175, 80, 0.3);
+        background: rgba(76, 175, 80, 0.1);
+    }
+    
+    .calidad-slot.ocupado:hover {
+        border-color: rgba(76, 175, 80, 0.6);
+        background: rgba(76, 175, 80, 0.15);
+    }
+    
+    .calidad-numero {
+        font-size: 0.8rem;
+        color: #888;
+        margin-bottom: 5px;
+    }
+    
+    .calidad-vacia {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+    
+    .calidad-pieza {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .pieza-icon {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+        color: #4CAF50;
+    }
+    
+    .pieza-nivel {
+        font-size: 0.9rem;
+        color: white;
+        font-weight: bold;
+        margin-bottom: 2px;
+    }
+    
+    .pieza-puntos {
+        font-size: 0.7rem;
+        color: #FFD700;
+    }
+    
+    .pieza-fabricando {
+        border-color: #FF9800 !important;
+        background: rgba(255, 152, 0, 0.1) !important;
+        animation: pulse-orange 2s infinite;
+    }
+    
+    @keyframes pulse-orange {
+        0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+    }
+    
+    .btn-fabricar-area {
+        margin-top: auto;
+        padding: 10px 15px;
+        background: linear-gradient(135deg, #00d2be, #009688);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-family: 'Orbitron', sans-serif;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    
+    .btn-fabricar-area:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 210, 190, 0.4);
+    }
+    
+    .btn-fabricar-area:disabled {
+        background: linear-gradient(135deg, #666, #888);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    .btn-fabricar-area.fabricando {
+        background: linear-gradient(135deg, #FF9800, #FF5722);
+        animation: pulse-btn 2s infinite;
+    }
+    
+    @keyframes pulse-btn {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .grid-8-fabricacion {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @media (max-width: 900px) {
+        .grid-8-fabricacion {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 600px) {
+        .grid-8-fabricacion {
+            grid-template-columns: 1fr;
+        }
+        
+        .area-fabricacion {
+            height: auto;
+            min-height: 220px;
+        }
+    }
+`;
 
 // Añadir los estilos al DOM cuando se cargue la página
 document.addEventListener('DOMContentLoaded', function() {
