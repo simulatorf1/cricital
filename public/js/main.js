@@ -1902,7 +1902,8 @@ class F1Manager {
             }, 1000);
             
             // 3. Deshabilitar temporalmente el botón
-            const boton = document.querySelector(`[data-area="${areaId}"]`);
+            const selector = '[data-area="' + areaId + '"]';
+            const boton = document.querySelector(selector);
             if (boton) {
                 boton.disabled = true;
                 boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fabricando...';
