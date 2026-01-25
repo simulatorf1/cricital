@@ -381,7 +381,7 @@ class TutorialManager {
                         if (nextBtn) nextBtn.style.display = 'flex';
                     };
                     
-                    const nextBtn = document.getElementById('btn-tutorial-next-large');
+
                     if (nextBtn) {
                         nextBtn.onclick = async () => {
                             if (!window.tutorialFabricacionSeleccionada) return;
