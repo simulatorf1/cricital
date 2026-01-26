@@ -784,7 +784,7 @@ html, body {
 
 .grid-11-columns {
     display: grid;
-    grid-template-columns: repeat(11, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 8px !important;
     margin-top: 10px !important;
     height: 100px;
