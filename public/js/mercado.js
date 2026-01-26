@@ -1266,9 +1266,6 @@ async function venderPiezaDesdeAlmacen(piezaId) {
     }
 }
 
-
-
-// Hacer la función global para que pueda ser llamada desde main.js
 window.venderPiezaDesdeAlmacen = async function(piezaId) {
     console.log('🛒 Botón VENDER clickeado para pieza:', piezaId);
     
@@ -1295,12 +1292,14 @@ window.venderPiezaDesdeAlmacen = async function(piezaId) {
         }
         
         // VERIFICA SI EL MÉTODO NUEVO EXISTE
-        if (window.mercadoManager.mostrarModalVentaBasico) {
-            // Usar el método NUEVO que crea modal automáticamente
-            await window.mercadoManager.mostrarModalVentaBasico(pieza);
-        } else {
+        if (typeof mostrarModalVentaBasico === 'function') {
+            // Usar la función global (no this)
+            await mostrarModalVentaBasico.call(window.mercadoManager, pieza);
+        } else if (window.mercadoManager.mostrarModalVenta) {
             // Fallback al método viejo
             await window.mercadoManager.mostrarModalVenta(pieza);
+        } else {
+            alert('Sistema de mercado no disponible');
         }
         
     } catch (error) {
@@ -1308,6 +1307,8 @@ window.venderPiezaDesdeAlmacen = async function(piezaId) {
         alert('Error al vender la pieza: ' + error.message);
     }
 };
+
+
 
 // ========================
 // 8. INICIALIZACIÓN GLOBAL
