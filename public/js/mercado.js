@@ -871,6 +871,9 @@ class MercadoManager {
     // 7. FUNCIONES PARA VENDER DESDE ALMACÉN
     // ========================
     async mostrarModalVenta(pieza) {
+        if (!document.getElementById('modal-venta')) {
+            return this.mostrarModalVentaBasico(pieza);
+        }
         const modal = document.getElementById('modal-venta');
         const modalBody = document.getElementById('modal-venta-body');
 
@@ -1057,6 +1060,163 @@ class MercadoManager {
 }
 
 // ========================
+// 10. MODAL BÁSICO PARA VENDER DESDE ALMACÉN
+// ========================
+async mostrarModalVentaBasico(pieza) {
+    console.log('🔧 Mostrando modal básico para venta desde almacén');
+    
+    // Crear modal simple
+    const modalHTML = `
+        <div id="modal-venta-rapido" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        ">
+            <div style="
+                background: #1a1a2e;
+                border-radius: 10px;
+                padding: 20px;
+                border: 3px solid #00d2be;
+                max-width: 450px;
+                width: 90%;
+                color: white;
+            ">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: #00d2be;">
+                        <i class="fas fa-tag"></i> VENDER PIEZA
+                    </h3>
+                    <button onclick="document.getElementById('modal-venta-rapido').remove()" style="
+                        background: none;
+                        border: none;
+                        color: white;
+                        font-size: 1.5rem;
+                        cursor: pointer;
+                    ">&times;</button>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <p><strong>Pieza:</strong> ${this.getAreaNombre(pieza.area)}</p>
+                    <p><strong>Nivel:</strong> ${pieza.nivel}</p>
+                    <p><strong>Calidad:</strong> ${pieza.calidad || 'Normal'}</p>
+                    <p><strong>Puntos:</strong> ${pieza.puntos_base || 10}</p>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #aaa;">
+                        <i class="fas fa-euro-sign"></i> Precio de venta:
+                    </label>
+                    <input type="number" 
+                           id="precio-rapido" 
+                           value="${this.calcularPrecioSugerido(pieza.nivel, pieza.calidad)}" 
+                           min="1000" 
+                           max="1000000" 
+                           step="1000"
+                           style="
+                                width: 100%;
+                                padding: 10px;
+                                background: rgba(255,255,255,0.1);
+                                border: 1px solid #00d2be;
+                                border-radius: 5px;
+                                color: white;
+                                font-size: 1rem;
+                           ">
+                    <p style="font-size: 0.8rem; color: #aaa; margin-top: 5px;">
+                        Precio sugerido: ${this.calcularPrecioSugerido(pieza.nivel, pieza.calidad).toLocaleString()}€
+                    </p>
+                </div>
+                
+                <button onclick="mercadoManager.procesarVentaRapida('${pieza.id}')" style="
+                    width: 100%;
+                    padding: 12px;
+                    background: linear-gradient(135deg, #00d2be, #009688);
+                    border: none;
+                    border-radius: 8px;
+                    color: white;
+                    font-weight: bold;
+                    cursor: pointer;
+                    font-size: 1rem;
+                ">
+                    <i class="fas fa-check"></i> PUBLICAR VENTA
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Añadir al body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+// ========================
+// 11. PROCESAR VENTA RÁPIDA
+// ========================
+async procesarVentaRapida(piezaId) {
+    const precioInput = document.getElementById('precio-rapido');
+    const precio = parseInt(precioInput.value);
+    const modal = document.getElementById('modal-venta-rapido');
+    
+    if (!precio || precio < 1000) {
+        alert('❌ Precio mínimo: 1,000€');
+        return;
+    }
+    
+    try {
+        // Obtener pieza
+        const { data: pieza, error } = await this.supabase
+            .from('almacen_piezas')
+            .select('*')
+            .eq('id', piezaId)
+            .single();
+        
+        if (error) throw error;
+        
+        // Crear orden en mercado
+        const { error: mercadoError } = await this.supabase
+            .from('mercado')
+            .insert([{
+                vendedor_id: this.escuderia.id,
+                vendedor_nombre: this.escuderia.nombre,
+                pieza_id: piezaId,
+                pieza_nombre: `${this.getAreaNombre(pieza.area)} Nivel ${pieza.nivel}`,
+                area: pieza.area,
+                nivel: pieza.nivel,
+                calidad: pieza.calidad,
+                precio: precio,
+                estado: 'disponible',
+                creada_en: new Date().toISOString()
+            }]);
+        
+        if (mercadoError) throw mercadoError;
+        
+        // Marcar pieza como en venta
+        await this.supabase
+            .from('almacen_piezas')
+            .update({ en_venta: true })
+            .eq('id', piezaId);
+        
+        // Cerrar modal
+        if (modal) modal.remove();
+        
+        // Mostrar confirmación
+        this.mostrarNotificacion(`✅ Pieza puesta en venta por ${precio.toLocaleString()}€`, 'success');
+        
+        // Si está en pestaña mercado, recargar
+        if (window.tabManager?.currentTab === 'mercado') {
+            await this.cargarTabMercado();
+        }
+        
+    } catch (error) {
+        console.error('❌ Error en venta rápida:', error);
+        alert('❌ Error: ' + error.message);
+    }
+}
+// ========================
 // 9. FUNCIÓN PARA VENDER DESDE ALMACÉN
 // ========================
 async function venderPiezaDesdeAlmacen(piezaId) {
@@ -1105,6 +1265,8 @@ async function venderPiezaDesdeAlmacen(piezaId) {
         this.mostrarNotificacion('❌ Error al obtener datos de la pieza', 'error');
     }
 }
+
+
 
 // Hacer la función global para que pueda ser llamada desde main.js
 window.venderPiezaDesdeAlmacen = async function(piezaId) {
