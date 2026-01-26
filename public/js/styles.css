@@ -2673,15 +2673,15 @@ html, body {
   .produccion-slots {
       height: auto !important;
       min-height: auto !important;
-      grid-template-rows: 55px 55px !important; /* Cambia auto auto por alturas fijas */
+      grid-template-rows: 60px 60px !important; /* Cambia auto auto por alturas fijas */
       gap: 3px !important;
       padding: 4px !important;
       margin: 0 !important;
   }
 
   .produccion-slot {
-      height: 48px !important;
-      min-height: 48px !important;
+      height: 53px !important;
+      min-height: 53px !important;
       padding: 3px !important;
       margin: 0 !important;
   }  
