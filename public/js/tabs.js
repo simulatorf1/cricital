@@ -117,7 +117,61 @@ class TabManager {
                 // SALIR del método - no hacer nada más para el taller
                 return;
             }
+            // ======================================================
+            // ¡¡PESTAÑA TALLER - NUEVO COMPORTAMIENTO!!
+            // ======================================================
+            if (tabId === 'taller') {
+                // ... código del taller ...
+                return;
+            }
             
+            // ======================================================
+            // ¡¡PESTAÑA MERCADO - NUEVO COMPORTAMIENTO!!
+            // ======================================================
+            if (tabId === 'mercado') {
+                // 1. SOLO marcar como activa
+                tabContent.classList.add('active');
+                this.currentTab = tabId;
+                
+                // 2. LIMPIAR contenido anterior
+                tabContent.innerHTML = '<div class="cargando-mercado"><i class="fas fa-spinner fa-spin"></i> Cargando mercado...</div>';
+                
+                // 3. Cargar el mercado directamente usando mercadoManager
+                setTimeout(async () => {
+                    try {
+                        if (window.mercadoManager && window.mercadoManager.cargarTabMercado) {
+                            console.log('🛒 Ejecutando cargarTabMercado()...');
+                            await window.mercadoManager.cargarTabMercado();
+                            console.log('✅ Mercado cargado exitosamente');
+                        } else {
+                            console.error('❌ mercadoManager no disponible');
+                            tabContent.innerHTML = `
+                                <div class="error-message">
+                                    <h3>❌ Error cargando el mercado</h3>
+                                    <p>El sistema de mercado no está disponible</p>
+                                    <button onclick="location.reload()">Reintentar</button>
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        console.error('❌ Error cargando mercado:', error);
+                        tabContent.innerHTML = `
+                            <div class="error-message">
+                                <h3>❌ Error cargando el mercado</h3>
+                                <p>${error.message || 'Error desconocido'}</p>
+                                <button onclick="location.reload()">Reintentar</button>
+                            </div>
+                        `;
+                    }
+                }, 300);
+                
+                // SALIR del método - no hacer nada más para el mercado
+                return;
+            }
+            
+            // ======================================================
+            // Para TODAS LAS OTRAS pestañas (principal, almacen, etc.)
+            // ======================================================           
             // ======================================================
             // Para TODAS LAS OTRAS pestañas (principal, almacen, etc.)
             // ======================================================
