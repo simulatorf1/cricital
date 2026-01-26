@@ -1171,13 +1171,23 @@ MercadoManager.prototype.procesarVentaRapida = async function(piezaId) {  // ←
     
     try {
         // Obtener pieza
-        const { data: pieza, error } = await this.supabase  // ← Ahora this es mercadoManager
+        const { data: pieza, error } = await this.supabase
             .from('almacen_piezas')
             .select('*')
             .eq('id', piezaId)
+            .eq('escuderia_id', this.escuderia.id)  // ← AÑADE ESTA LÍNEA
             .single();
         
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Error obteniendo pieza:', error);
+            alert('Error: No se pudo encontrar la pieza en tu inventario');
+            return;
+        }
+        
+        if (!pieza) {
+            alert('❌ Pieza no encontrada en tu inventario');
+            return;
+        }
         
         // Crear orden en mercado
         const { error: mercadoError } = await this.supabase
