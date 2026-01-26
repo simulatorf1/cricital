@@ -2326,7 +2326,17 @@ window.addEventListener('auth-completado', async (evento) => {
         console.log('🎮 Creando F1Manager con datos de autenticación...');
         
         window.f1Manager = new F1Manager(user, escuderia, supabase);
-        
+        if (window.MercadoManager) {
+            console.log('🔧 Inicializando mercadoManager con escudería:', escuderia.id);
+            if (!window.mercadoManager) {
+                window.mercadoManager = new window.MercadoManager();
+            }
+            // INICIALIZAR mercadoManager CON LA ESCUDERÍA
+            await window.mercadoManager.inicializar(escuderia);
+            console.log('✅ mercadoManager inicializado');
+        } else {
+            console.error('❌ MercadoManager no está disponible');
+        }        
         if (!escuderia.tutorial_completado) {
             console.log('📚 Mostrando tutorial...');
             window.tutorialManager = new TutorialManager(window.f1Manager);
