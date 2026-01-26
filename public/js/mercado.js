@@ -1156,7 +1156,10 @@ async function mostrarModalVentaBasico(pieza) {
 // ========================
 // 11. PROCESAR VENTA RÁPIDA
 // ========================
-async function procesarVentaRapida(piezaId) {
+// ========================
+// 11. PROCESAR VENTA RÁPIDA
+// ========================
+MercadoManager.prototype.procesarVentaRapida = async function(piezaId) {  // ← Cambiado
     const precioInput = document.getElementById('precio-rapido');
     const precio = parseInt(precioInput.value);
     const modal = document.getElementById('modal-venta-rapido');
@@ -1168,7 +1171,7 @@ async function procesarVentaRapida(piezaId) {
     
     try {
         // Obtener pieza
-        const { data: pieza, error } = await this.supabase
+        const { data: pieza, error } = await this.supabase  // ← Ahora this es mercadoManager
             .from('almacen_piezas')
             .select('*')
             .eq('id', piezaId)
@@ -1180,7 +1183,7 @@ async function procesarVentaRapida(piezaId) {
         const { error: mercadoError } = await this.supabase
             .from('mercado')
             .insert([{
-                vendedor_id: this.escuderia.id,
+                vendedor_id: this.escuderia.id,  // ← Ahora this.escuderia existe
                 vendedor_nombre: this.escuderia.nombre,
                 pieza_id: piezaId,
                 pieza_nombre: `${this.getAreaNombre(pieza.area)} Nivel ${pieza.nivel}`,
