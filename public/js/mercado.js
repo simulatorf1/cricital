@@ -70,6 +70,8 @@ class MercadoManager {
     // ========================
     // 3. GENERAR HTML DEL MERCADO
     // ========================
+
+    
     generarHTMLMercado() {
         return `
             <div class="mercado-container">
@@ -79,402 +81,401 @@ class MercadoManager {
                     <p class="subtitle">Compra y vende piezas con otros equipos</p>
                 </div>
                 
-                <!-- Stats rápidos -->
-                <div class="mercado-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-content">
-                            <div class="stat-value">${this.ordenesDisponibles.length}</div>
-                            <div class="stat-label">Órdenes disponibles</div>
+                <!-- Stats rápidos en horizontal -->
+                <div class="mercado-stats-horizontal">
+                    <div class="stat-card-horizontal">
+                        <div class="stat-icon-horizontal">💰</div>
+                        <div class="stat-content-horizontal">
+                            <div class="stat-value-horizontal">${this.ordenesDisponibles.length}</div>
+                            <div class="stat-label-horizontal">Órdenes disponibles</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🏎️</div>
-                        <div class="stat-content">
-                            <div class="stat-value">${this.misOrdenes.length}</div>
-                            <div class="stat-label">Mis órdenes activas</div>
+                    <div class="stat-card-horizontal">
+                        <div class="stat-icon-horizontal">🏎️</div>
+                        <div class="stat-content-horizontal">
+                            <div class="stat-value-horizontal">${this.misOrdenes.length}</div>
+                            <div class="stat-label-horizontal">Mis órdenes activas</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📈</div>
-                        <div class="stat-content">
-                            <div class="stat-value">${this.calcularPrecioPromedio()}€</div>
-                            <div class="stat-label">Precio promedio</div>
+                    <div class="stat-card-horizontal">
+                        <div class="stat-icon-horizontal">📈</div>
+                        <div class="stat-content-horizontal">
+                            <div class="stat-value-horizontal">${this.calcularPrecioPromedio()}€</div>
+                            <div class="stat-label-horizontal">Precio promedio</div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Pestañas -->
-                <div class="mercado-tabs">
-                    <button class="mercado-tab active" data-tab="comprar">
-                        <i class="fas fa-shopping-cart"></i> COMPRAR
-                    </button>
-                    <button class="mercado-tab" data-tab="vender">
-                        <i class="fas fa-tag"></i> VENDER
-                    </button>
-                    <button class="mercado-tab" data-tab="mis-ventas">
-                        <i class="fas fa-history"></i> MIS VENTAS
-                    </button>
+                <!-- Tabla de compras (siempre visible, sin pestañas) -->
+                <div class="mercado-tabla-container">
+                    <h3 class="tabla-titulo">Órdenes disponibles para comprar (${this.ordenesDisponibles.length})</h3>
+                    ${this.ordenesDisponibles.length === 0 ? 
+                        `<div class="sin-ordenes">
+                            <p>😔 No hay órdenes disponibles en este momento</p>
+                            <p class="small">Sé el primero en vender una pieza</p>
+                        </div>` : 
+                        `<div class="table-responsive">
+                            <table class="ordenes-table-compact">
+                                <thead>
+                                    <tr>
+                                        <th>Pieza</th>
+                                        <th>Nivel</th>
+                                        <th>Vendedor</th>
+                                        <th>Precio</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${this.ordenesDisponibles.map(orden => `
+                                        <tr>
+                                            <td class="pieza-nombre-col">${orden.pieza_nombre}</td>
+                                            <td class="nivel-col">${orden.nivel}</td>
+                                            <td class="vendedor-col">${orden.vendedor_nombre}</td>
+                                            <td class="precio-col">${orden.precio.toLocaleString()}€</td>
+                                            <td class="accion-col">
+                                                <button class="btn-comprar-compact" data-orden-id="${orden.id}">
+                                                    COMPRAR
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>`
+                    }
                 </div>
                 
-                <!-- Contenido de pestañas -->
-                <div class="mercado-content">
-                    <!-- TAB 1: COMPRAR -->
-                    <div id="tab-comprar-content" class="tab-content active">
-                        ${this.generarHTMLComprar()}
+                <!-- Modales (se mantienen igual) -->
+                <div id="modal-compra" class="modal-overlay" style="display: none;">
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <h3><i class="fas fa-cart-plus"></i> CONFIRMAR COMPRA</h3>
+                            <button class="btn-cerrar-modal">&times;</button>
+                        </div>
+                        <div class="modal-body" id="modal-compra-body"></div>
                     </div>
+                </div>
+                
+                <style>
+                    /* ==================== */
+                    /* ESTILOS MERCADO MEJORADO */
+                    /* ==================== */
+                    .mercado-container {
+                        padding: 15px;
+                        color: white;
+                        max-width: 1200px;
+                        margin: 0 auto;
+                    }
                     
-                    <!-- TAB 2: VENDER -->
-                    <div id="tab-vender-content" class="tab-content">
-                        ${this.generarHTMLVender()}
-                    </div>
+                    .mercado-header {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        padding-bottom: 15px;
+                        border-bottom: 2px solid rgba(0, 210, 190, 0.3);
+                    }
                     
-                    <!-- TAB 3: MIS VENTAS -->
-                    <div id="tab-mis-ventas-content" class="tab-content">
-                        ${this.generarHTMLMisVentas()}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- MODAL DE COMPRA -->
-            <div id="modal-compra" class="modal-overlay" style="display: none;">
-                <div class="modal-container">
-                    <div class="modal-header">
-                        <h3><i class="fas fa-cart-plus"></i> CONFIRMAR COMPRA</h3>
-                        <button class="btn-cerrar-modal">&times;</button>
-                    </div>
-                    <div class="modal-body" id="modal-compra-body">
-                        <!-- Contenido dinámico -->
-                    </div>
-                </div>
-            </div>
-            
-            <!-- MODAL DE VENTA -->
-            <div id="modal-venta" class="modal-overlay" style="display: none;">
-                <div class="modal-container">
-                    <div class="modal-header">
-                        <h3><i class="fas fa-tag"></i> VENDER PIEZA</h3>
-                        <button class="btn-cerrar-modal">&times;</button>
-                    </div>
-                    <div class="modal-body" id="modal-venta-body">
-                        <!-- Contenido dinámico -->
-                    </div>
-                </div>
-            </div>
-            
-            <style>
-                /* ==================== */
-                /* ESTILOS MERCADO */
-                /* ==================== */
-                .mercado-container {
-                    padding: 20px;
-                    color: white;
-                }
-                
-                .mercado-header {
-                    text-align: center;
-                    margin-bottom: 25px;
-                    padding-bottom: 15px;
-                    border-bottom: 2px solid rgba(0, 210, 190, 0.3);
-                }
-                
-                .mercado-header h1 {
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 1.8rem;
-                    color: white;
-                    margin-bottom: 8px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 10px;
-                }
-                
-                .subtitle {
-                    color: #aaa;
-                    font-size: 0.9rem;
-                }
-                
-                /* Stats */
-                .mercado-stats {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 15px;
-                    margin-bottom: 25px;
-                }
-                
-                .stat-card {
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 10px;
-                    padding: 15px;
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                }
-                
-                .stat-icon {
-                    font-size: 2rem;
-                    width: 50px;
-                    height: 50px;
-                    background: rgba(0, 210, 190, 0.1);
-                    border-radius: 10px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                .stat-value {
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 1.5rem;
-                    font-weight: bold;
-                    color: white;
-                    margin-bottom: 3px;
-                }
-                
-                .stat-label {
-                    color: #aaa;
-                    font-size: 0.8rem;
-                }
-                
-                /* Tabs */
-                .mercado-tabs {
-                    display: flex;
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 10px;
-                    padding: 5px;
-                    margin-bottom: 20px;
-                }
-                
-                .mercado-tab {
-                    flex: 1;
-                    padding: 12px;
-                    background: transparent;
-                    border: none;
-                    color: #aaa;
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 0.9rem;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                    border-radius: 8px;
-                    transition: all 0.3s;
-                }
-                
-                .mercado-tab.active {
-                    background: rgba(0, 210, 190, 0.2);
-                    color: white;
-                    font-weight: bold;
-                }
-                
-                .mercado-tab:hover:not(.active) {
-                    background: rgba(255, 255, 255, 0.1);
-                }
-                
-                /* Contenido de tabs */
-                .tab-content {
-                    display: none;
-                }
-                
-                .tab-content.active {
-                    display: block;
-                }
-                
-                /* Tabla de órdenes */
-                .ordenes-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    background: rgba(255, 255, 255, 0.03);
-                    border-radius: 10px;
-                    overflow: hidden;
-                }
-                
-                .ordenes-table th {
-                    background: rgba(0, 210, 190, 0.2);
-                    color: white;
-                    padding: 12px 15px;
-                    text-align: left;
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 0.8rem;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                }
-                
-                .ordenes-table td {
-                    padding: 12px 15px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-                    color: #ccc;
-                }
-                
-                .ordenes-table tr:hover {
-                    background: rgba(255, 255, 255, 0.05);
-                }
-                
-                .btn-comprar {
-                    background: linear-gradient(135deg, #4CAF50, #388E3C);
-                    border: none;
-                    color: white;
-                    padding: 6px 12px;
-                    border-radius: 5px;
-                    font-size: 0.8rem;
-                    cursor: pointer;
-                    font-weight: bold;
-                }
-                
-                .btn-comprar:hover {
-                    background: linear-gradient(135deg, #66BB6A, #4CAF50);
-                }
-                
-                /* Pieza card */
-                .pieza-card {
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 8px;
-                    padding: 10px;
-                    margin-bottom: 10px;
-                    border-left: 3px solid #00d2be;
-                }
-                
-                .pieza-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 8px;
-                }
-                
-                .pieza-nombre {
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 0.9rem;
-                    color: white;
-                    font-weight: bold;
-                }
-                
-                .pieza-info {
-                    display: flex;
-                    gap: 15px;
-                    font-size: 0.8rem;
-                    color: #aaa;
-                }
-                
-                .pieza-precio {
-                    color: #FFD700;
-                    font-weight: bold;
-                }
-                
-                /* Modales */
-                .modal-overlay {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100vw;
-                    height: 100vh;
-                    background: rgba(0, 0, 0, 0.8);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 10000;
-                }
-                
-                .modal-container {
-                    background: #1a1a2e;
-                    border-radius: 15px;
-                    width: 90%;
-                    max-width: 500px;
-                    border: 3px solid #00d2be;
-                    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-                }
-                
-                .modal-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 15px 20px;
-                    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-                }
-                
-                .modal-header h3 {
-                    margin: 0;
-                    color: white;
-                    font-family: 'Orbitron', sans-serif;
-                }
-                
-                .btn-cerrar-modal {
-                    background: none;
-                    border: none;
-                    color: white;
-                    font-size: 1.5rem;
-                    cursor: pointer;
-                    padding: 0;
-                    width: 30px;
-                    height: 30px;
-                }
-                
-                .modal-body {
-                    padding: 20px;
-                }
-                
-                /* Formulario precio */
-                .form-group {
-                    margin-bottom: 15px;
-                }
-                
-                .form-group label {
-                    display: block;
-                    color: #aaa;
-                    margin-bottom: 5px;
-                    font-size: 0.9rem;
-                }
-                
-                .form-group input {
-                    width: 100%;
-                    padding: 10px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 5px;
-                    color: white;
-                    font-size: 1rem;
-                }
-                
-                .precio-sugerido {
-                    background: rgba(255, 215, 0, 0.1);
-                    border: 1px solid #FFD700;
-                    border-radius: 8px;
-                    padding: 10px;
-                    margin: 15px 0;
-                    color: #FFD700;
-                    font-size: 0.9rem;
-                }
-                
-                .btn-confirmar {
-                    width: 100%;
-                    padding: 12px;
-                    background: linear-gradient(135deg, #00d2be, #009688);
-                    border: none;
-                    border-radius: 8px;
-                    color: white;
-                    font-family: 'Orbitron', sans-serif;
-                    font-weight: bold;
-                    cursor: pointer;
-                    margin-top: 15px;
-                }
-                
-                /* Responsive */
-                @media (max-width: 768px) {
-                    .mercado-stats {
-                        grid-template-columns: 1fr;
+                    .mercado-header h1 {
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 1.5rem;
+                        color: white;
+                        margin-bottom: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
                         gap: 10px;
                     }
                     
-                    .ordenes-table {
-                        font-size: 0.8rem;
+                    .subtitle {
+                        color: #aaa;
+                        font-size: 0.85rem;
                     }
                     
-                    .ordenes-table th,
-                    .ordenes-table td {
-                        padding: 8px 10px;
+                    /* Stats en horizontal */
+                    .mercado-stats-horizontal {
+                        display: flex;
+                        gap: 10px;
+                        margin-bottom: 20px;
+                        justify-content: center;
+                        flex-wrap: wrap;
                     }
-                }
-            </style>
+                    
+                    .stat-card-horizontal {
+                        background: rgba(255, 255, 255, 0.05);
+                        border-radius: 8px;
+                        padding: 12px;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        flex: 1;
+                        min-width: 140px;
+                        max-width: 200px;
+                    }
+                    
+                    .stat-icon-horizontal {
+                        font-size: 1.5rem;
+                        width: 40px;
+                        height: 40px;
+                        background: rgba(0, 210, 190, 0.1);
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    
+                    .stat-value-horizontal {
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                        color: white;
+                        margin-bottom: 2px;
+                    }
+                    
+                    .stat-label-horizontal {
+                        color: #aaa;
+                        font-size: 0.75rem;
+                        white-space: nowrap;
+                    }
+                    
+                    /* Contenedor tabla */
+                    .mercado-tabla-container {
+                        margin-top: 15px;
+                    }
+                    
+                    .tabla-titulo {
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 1rem;
+                        color: white;
+                        margin-bottom: 12px;
+                        padding-left: 5px;
+                    }
+                    
+                    /* Tabla compacta */
+                    .table-responsive {
+                        overflow-x: auto;
+                        border-radius: 10px;
+                        background: rgba(255, 255, 255, 0.03);
+                        border: 1px solid rgba(255, 255, 255, 0.05);
+                    }
+                    
+                    .ordenes-table-compact {
+                        width: 100%;
+                        border-collapse: collapse;
+                        min-width: 600px;
+                    }
+                    
+                    .ordenes-table-compact th {
+                        background: rgba(0, 210, 190, 0.15);
+                        color: white;
+                        padding: 10px 8px;
+                        text-align: left;
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 0.75rem;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        white-space: nowrap;
+                    }
+                    
+                    .ordenes-table-compact td {
+                        padding: 10px 8px;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                        color: #ccc;
+                        font-size: 0.85rem;
+                    }
+                    
+                    .ordenes-table-compact tr:hover {
+                        background: rgba(255, 255, 255, 0.05);
+                    }
+                    
+                    /* Columnas específicas */
+                    .pieza-nombre-col {
+                        font-weight: bold;
+                        color: white;
+                        min-width: 150px;
+                    }
+                    
+                    .nivel-col {
+                        text-align: center;
+                        min-width: 60px;
+                    }
+                    
+                    .vendedor-col {
+                        min-width: 120px;
+                        color: #aaa;
+                    }
+                    
+                    .precio-col {
+                        color: #FFD700;
+                        font-weight: bold;
+                        min-width: 100px;
+                    }
+                    
+                    .accion-col {
+                        min-width: 90px;
+                    }
+                    
+                    .btn-comprar-compact {
+                        background: linear-gradient(135deg, #4CAF50, #388E3C);
+                        border: none;
+                        color: white;
+                        padding: 6px 12px;
+                        border-radius: 5px;
+                        font-size: 0.75rem;
+                        cursor: pointer;
+                        font-weight: bold;
+                        white-space: nowrap;
+                    }
+                    
+                    .btn-comprar-compact:hover {
+                        background: linear-gradient(135deg, #66BB6A, #4CAF50);
+                    }
+                    
+                    .sin-ordenes {
+                        text-align: center;
+                        padding: 40px 20px;
+                        color: #888;
+                    }
+                    
+                    .sin-ordenes p {
+                        margin: 5px 0;
+                    }
+                    
+                    .sin-ordenes .small {
+                        font-size: 0.85rem;
+                        color: #666;
+                    }
+                    
+                    /* Modales (mantener igual) */
+                    .modal-overlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100vw;
+                        height: 100vh;
+                        background: rgba(0, 0, 0, 0.8);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        z-index: 10000;
+                    }
+                    
+                    .modal-container {
+                        background: #1a1a2e;
+                        border-radius: 15px;
+                        width: 90%;
+                        max-width: 500px;
+                        border: 3px solid #00d2be;
+                        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+                    }
+                    
+                    .modal-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 15px 20px;
+                        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+                    }
+                    
+                    .modal-header h3 {
+                        margin: 0;
+                        color: white;
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 1rem;
+                    }
+                    
+                    .btn-cerrar-modal {
+                        background: none;
+                        border: none;
+                        color: white;
+                        font-size: 1.5rem;
+                        cursor: pointer;
+                        padding: 0;
+                        width: 30px;
+                        height: 30px;
+                    }
+                    
+                    .modal-body {
+                        padding: 20px;
+                    }
+                    
+                    /* Responsive para móvil */
+                    @media (max-width: 768px) {
+                        .mercado-container {
+                            padding: 10px;
+                        }
+                        
+                        .mercado-header h1 {
+                            font-size: 1.3rem;
+                        }
+                        
+                        .subtitle {
+                            font-size: 0.8rem;
+                        }
+                        
+                        .mercado-stats-horizontal {
+                            gap: 8px;
+                        }
+                        
+                        .stat-card-horizontal {
+                            padding: 10px;
+                            gap: 10px;
+                            min-width: 120px;
+                        }
+                        
+                        .stat-icon-horizontal {
+                            font-size: 1.3rem;
+                            width: 35px;
+                            height: 35px;
+                        }
+                        
+                        .stat-value-horizontal {
+                            font-size: 1rem;
+                        }
+                        
+                        .stat-label-horizontal {
+                            font-size: 0.7rem;
+                        }
+                        
+                        .ordenes-table-compact th,
+                        .ordenes-table-compact td {
+                            padding: 8px 6px;
+                            font-size: 0.8rem;
+                        }
+                        
+                        .btn-comprar-compact {
+                            padding: 5px 10px;
+                            font-size: 0.7rem;
+                        }
+                        
+                        .tabla-titulo {
+                            font-size: 0.9rem;
+                            padding-left: 0;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        .mercado-header h1 {
+                            font-size: 1.1rem;
+                        }
+                        
+                        .stat-card-horizontal {
+                            min-width: 100px;
+                            padding: 8px;
+                        }
+                        
+                        .stat-label-horizontal {
+                            font-size: 0.65rem;
+                        }
+                        
+                        .table-responsive {
+                            margin: 0 -10px;
+                            border-radius: 0;
+                            border-left: none;
+                            border-right: none;
+                        }
+                    }
+                </style>
+            </div>
         `;
     }
 
@@ -630,38 +631,21 @@ class MercadoManager {
     // 5. CONFIGURAR EVENTOS
     // ========================
     configurarEventosMercado() {
-        // Tabs
-        document.querySelectorAll('.mercado-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const tabId = e.target.dataset.tab;
-                this.cambiarTab(tabId);
-            });
-        });
-
-        // Botones comprar
-        document.querySelectorAll('.btn-comprar').forEach(btn => {
+        // Solo configurar botones de compra (las pestañas ya no existen)
+        document.querySelectorAll('.btn-comprar-compact').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const ordenId = e.target.dataset.ordenId;
                 this.mostrarModalCompra(ordenId);
             });
         });
-
-        // Botones cancelar venta
-        document.querySelectorAll('.btn-cancelar-venta').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const ordenId = e.target.dataset.ordenId;
-                await this.cancelarVenta(ordenId);
-            });
-        });
-
-        // Cerrar modales
+    
+        // Cerrar modales (se mantiene)
         document.querySelectorAll('.btn-cerrar-modal').forEach(btn => {
             btn.addEventListener('click', () => {
                 this.ocultarModales();
             });
         });
-
-        // Cerrar modal al hacer clic fuera
+    
         document.querySelectorAll('.modal-overlay').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
@@ -671,19 +655,6 @@ class MercadoManager {
         });
     }
 
-    cambiarTab(tabId) {
-        // Actualizar tabs activos
-        document.querySelectorAll('.mercado-tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
-
-        // Mostrar contenido correspondiente
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        document.getElementById(`tab-${tabId}-content`).classList.add('active');
-    }
 
     // ========================
     // 6. FUNCIONES PRINCIPALES
