@@ -989,6 +989,16 @@ class MercadoManager {
     
             // 9. Mostrar notificación
             this.mostrarNotificacion(`✅ Compra realizada: ${orden.pieza_nombre} por ${orden.precio.toLocaleString()}€`, 'success');
+
+            // 10. REGISTRAR TRANSACCIÓN EN PRESUPUESTO
+            if (window.presupuestoManager) {
+                await window.presupuestoManager.registrarTransaccion(
+                    'gasto',
+                    orden.precio,
+                    `Compra: ${orden.pieza_nombre} de ${orden.vendedor_nombre}`,
+                    orden.id
+                );
+            }            
     
         } catch (error) {
             console.error('❌ Error procesando compra:', error);
