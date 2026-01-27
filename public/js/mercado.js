@@ -958,10 +958,19 @@ class MercadoManager {
             await this.actualizarDineroEscuderia();
     
             // 5. Añadir dinero al vendedor
-            await this.supabase.rpc('incrementar_dinero', {
-                escuderia_id: orden.vendedor_id,
-                cantidad: orden.precio
-            });
+            const { data: vendedor, error: vendedorError } = await this.supabase
+                .from('escuderias')
+                .select('dinero')
+                .eq('id', orden.vendedor_id)
+                .single();
+            
+            if (!vendedorError && vendedor) {
+                const nuevoDinero = vendedor.dinero + orden.precio;
+                await this.supabase
+                    .from('escuderias')
+                    .update({ dinero: nuevoDinero })
+                    .eq('id', orden.vendedor_id);
+            }
     
             // 6. Marcar orden como vendida
             const { error: updateError } = await this.supabase
