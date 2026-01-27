@@ -124,19 +124,29 @@ class MercadoManager {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${this.ordenesDisponibles.map(orden => `
-                                        <tr>
-                                            <td class="pieza-nombre-col">${orden.pieza_nombre}</td>
-                                            <td class="nivel-col">${orden.nivel}</td>
-                                            <td class="vendedor-col">${orden.vendedor_nombre}</td>
-                                            <td class="precio-col">${orden.precio.toLocaleString()}€</td>
-                                            <td class="accion-col">
-                                                <button class="btn-comprar-compact" data-orden-id="${orden.id}">
-                                                    COMPRAR
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
+
+                                    ${this.ordenesDisponibles.map(orden => {
+                                        const esMiOrden = orden.vendedor_id === this.escuderia.id;
+                                        
+                                        return `
+                                            <tr>
+                                                <td class="pieza-nombre-col">${orden.pieza_nombre}</td>
+                                                <td class="nivel-col">${orden.nivel}</td>
+                                                <td class="vendedor-col">${orden.vendedor_nombre}</td>
+                                                <td class="precio-col">${orden.precio.toLocaleString()}€</td>
+                                                <td class="accion-col">
+                                                    ${esMiOrden ? 
+                                                        `<button class="btn-cancelar-compact" data-orden-id="${orden.id}">
+                                                            CANCELAR
+                                                        </button>` : 
+                                                        `<button class="btn-comprar-compact" data-orden-id="${orden.id}">
+                                                            COMPRAR
+                                                        </button>`
+                                                    }
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
                                 </tbody>
                             </table>
                         </div>`
@@ -333,7 +343,21 @@ class MercadoManager {
                         font-weight: bold;
                         white-space: nowrap;
                     }
+                    .btn-cancelar-compact {
+                        background: linear-gradient(135deg, #FF5722, #D32F2F);
+                        border: none;
+                        color: white;
+                        padding: 6px 10px;
+                        border-radius: 4px;
+                        font-size: 0.7rem;
+                        cursor: pointer;
+                        font-weight: bold;
+                        white-space: nowrap;
+                    }
                     
+                    .btn-cancelar-compact:hover {
+                        background: linear-gradient(135deg, #FF7043, #E53935);
+                    }                    
                     .btn-comprar-compact:hover {
                         background: linear-gradient(135deg, #66BB6A, #4CAF50);
                     }
@@ -487,6 +511,10 @@ class MercadoManager {
                             padding: 5px 8px;
                             font-size: 0.65rem;
                         }
+                        .btn-cancelar-compact {
+                            padding: 5px 8px;
+                            font-size: 0.65rem;
+                        }                        
                     }
                     
                     @media (max-width: 480px) {
@@ -566,7 +594,10 @@ class MercadoManager {
                             padding: 4px 6px;
                             font-size: 0.6rem;
                         }
-                        
+                        .btn-cancelar-compact {
+                            padding: 4px 6px;
+                            font-size: 0.6rem;
+                        }                        
                         .table-responsive {
                             margin: 0 -5px;
                             border-radius: 0;
@@ -586,7 +617,10 @@ class MercadoManager {
                             padding: 3px 5px;
                             font-size: 0.55rem;
                         }
-                        
+                        .btn-cancelar-compact {
+                            padding: 3px 5px;
+                            font-size: 0.55rem;
+                        }                        
                         .stat-card-horizontal {
                             min-width: 75px;
                             padding: 5px;
@@ -755,7 +789,7 @@ class MercadoManager {
     // 5. CONFIGURAR EVENTOS
     // ========================
     configurarEventosMercado() {
-        // Solo configurar botones de compra (las pestañas ya no existen)
+        // Botones comprar
         document.querySelectorAll('.btn-comprar-compact').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const ordenId = e.target.dataset.ordenId;
@@ -763,7 +797,17 @@ class MercadoManager {
             });
         });
     
-        // Cerrar modales (se mantiene)
+        // Botones cancelar
+        document.querySelectorAll('.btn-cancelar-compact').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const ordenId = e.target.dataset.ordenId;
+                if (confirm('¿Cancelar esta venta? La pieza volverá a tu almacén.')) {
+                    await this.cancelarVenta(ordenId);
+                }
+            });
+        });
+    
+        // Cerrar modales
         document.querySelectorAll('.btn-cerrar-modal').forEach(btn => {
             btn.addEventListener('click', () => {
                 this.ocultarModales();
