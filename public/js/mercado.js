@@ -992,13 +992,18 @@ class MercadoManager {
 
             // 10. REGISTRAR TRANSACCIÓN EN PRESUPUESTO
             if (window.presupuestoManager) {
+                // Asegurar que tiene la escudería
+                if (!window.presupuestoManager.escuderia) {
+                    window.presupuestoManager.escuderia = this.escuderia;
+                }
+                
                 await window.presupuestoManager.registrarTransaccion(
                     'gasto',
                     orden.precio,
                     `Compra: ${orden.pieza_nombre} de ${orden.vendedor_nombre}`,
                     orden.id
                 );
-            }            
+            }          
     
         } catch (error) {
             console.error('❌ Error procesando compra:', error);
