@@ -753,6 +753,9 @@ class F1Manager {
                         <button class="tab-btn-compacto" data-tab="mercado">
                             <i class="fas fa-shopping-cart"></i> Mercado
                         </button>
+                        <button class="tab-btn-compacto" data-tab="pronosticos">
+                            <i class="fas fa-chart-line"></i> Pronósticos
+                        </button>
                         <button class="tab-btn-compacto" data-tab="presupuesto">
                             <i class="fas fa-chart-pie"></i> Presupuesto
                         </button>
