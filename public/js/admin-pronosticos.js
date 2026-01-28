@@ -1,45 +1,53 @@
-// admin-pronosticos.js - VERSIÓN CORREGIDA
+// admin-pronosticos.js - VERSIÓN CORREGIDA DEFINITIVA
 
 console.log('🔧 Admin Pronósticos cargando...');
 
-// Verificar que la librería está cargada
-if (typeof supabase === 'undefined') {
-    alert('❌ ERROR: La librería Supabase no está cargada. Recarga la página.');
-    throw new Error('Supabase library not loaded');
-}
-
-// Configuración
+// CONFIGURACIÓN
 const SUPABASE_URL = 'https://xbnbbmhcveyzrvvmdktg.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg';
 
-// 🔴 CAMBIO CRÍTICO: Hacer la variable GLOBAL
-window.supabaseCliente = null;
+// 1. VERIFICAR QUE LA LIBRERÍA ESTÁ CARGADA
+if (typeof supabase === 'undefined') {
+    console.error('❌ ERROR: La librería Supabase no está cargada');
+    document.body.innerHTML = `
+        <div style="padding: 50px; text-align: center; font-family: Arial;">
+            <h1 style="color: red;">❌ ERROR</h1>
+            <p>La librería Supabase no se cargó correctamente.</p>
+            <p>Recarga la página o verifica la conexión.</p>
+        </div>
+    `;
+    throw new Error('Supabase library not loaded');
+}
 
+// 2. CREAR CLIENTE
+let supabaseCliente;
 try {
-    // Crear cliente y asignarlo a variable GLOBAL
-    window.supabaseCliente = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('✅ Cliente Supabase creado:', window.supabaseCliente);
+    supabaseCliente = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('✅ Cliente Supabase creado');
 } catch (error) {
     console.error('❌ Error creando cliente:', error);
-    alert('Error creando conexión a Supabase: ' + error.message);
+    document.body.innerHTML = `
+        <div style="padding: 50px; text-align: center; font-family: Arial;">
+            <h1 style="color: red;">❌ ERROR DE CONEXIÓN</h1>
+            <p>No se pudo conectar a la base de datos:</p>
+            <p><code>${error.message}</code></p>
+        </div>
+    `;
     throw error;
 }
 
-// Clase Admin - ahora usa window.supabaseCliente
+// 3. CLASE ADMIN
 class AdminPronosticos {
     constructor() {
-        console.log("🔨 Constructor: window.supabaseCliente =", window.supabaseCliente);
-        console.log("🔨 ¿Tiene .from?", typeof window.supabaseCliente?.from);
-        
-        this.supabase = window.supabaseCliente;  // ← Usar window.supabaseCliente
+        console.log('🔨 Constructor AdminPronosticos');
+        this.supabase = supabaseCliente;
         this.carreras = [];
         this.preguntasActuales = [];
         this.init();
     }
     
     async init() {
-        console.log("🔧 Inicializando Admin Pronósticos");
-        console.log("🔍 Supabase cliente:", this.supabase);
+        console.log('🔧 Inicializando Admin...');
         
         // Configurar tabs
         this.setupTabs();
@@ -49,11 +57,28 @@ class AdminPronosticos {
         
         // Configurar eventos
         this.setupEventos();
+        
+        console.log('✅ Admin inicializado');
+    }
+    
+    setupTabs() {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remover activo de todos
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Activar actual
+                btn.classList.add('active');
+                const tabId = btn.dataset.tab;
+                document.getElementById(`tab-${tabId}`).classList.add('active');
+            });
+        });
     }
     
     async cargarCarreras() {
         try {
-            console.log("📋 Cargando carreras...");
+            console.log('📋 Cargando carreras...');
             const { data, error } = await this.supabase
                 .from('calendario_gp')
                 .select('*')
@@ -64,12 +89,12 @@ class AdminPronosticos {
             this.carreras = data;
             console.log(`✅ ${data.length} carreras cargadas`);
             
-            // Actualizar selectores
+            // Llenar selectores
             this.actualizarSelectoresCarreras();
             
         } catch (error) {
-            console.error("❌ Error cargando carreras:", error);
-            this.mostrarMensaje("Error cargando carreras: " + error.message, "error");
+            console.error('❌ Error cargando carreras:', error);
+            this.mostrarMensaje('Error cargando carreras: ' + error.message, 'error');
         }
     }
     
@@ -103,7 +128,6 @@ class AdminPronosticos {
         }
         
         try {
-            // Buscar preguntas existentes
             const { data, error } = await this.supabase
                 .from('preguntas_pronostico')
                 .select('*')
@@ -113,15 +137,12 @@ class AdminPronosticos {
             if (error) throw error;
             
             this.preguntasActuales = data || [];
-            
-            // Generar formulario de 10 preguntas
             this.generarFormularioPreguntas(carreraId);
-            
             document.getElementById('btn-guardar-preguntas').disabled = false;
             
         } catch (error) {
-            console.error("❌ Error cargando preguntas:", error);
-            this.mostrarMensaje("Error cargando preguntas", "error");
+            console.error('❌ Error cargando preguntas:', error);
+            this.mostrarMensaje('Error cargando preguntas', 'error');
         }
     }
     
@@ -129,7 +150,6 @@ class AdminPronosticos {
         const container = document.getElementById('preguntas-container');
         let html = '<div class="preguntas-grid">';
         
-        // Mapeo de áreas para bonificaciones
         const areas = [
             'meteorologia', 'fiabilidad', 'estrategia', 'rendimiento', 'neumaticos',
             'seguridad', 'clasificacion', 'carrera', 'overtakes', 'incidentes'
@@ -173,14 +193,13 @@ class AdminPronosticos {
     async guardarPreguntas() {
         const carreraId = document.getElementById('select-carrera').value;
         if (!carreraId) {
-            this.mostrarMensaje("Selecciona una carrera primero", "error");
+            this.mostrarMensaje('Selecciona una carrera primero', 'error');
             return;
         }
         
         try {
             const preguntas = [];
             
-            // Recoger las 10 preguntas
             for (let i = 1; i <= 10; i++) {
                 const texto = document.getElementById(`p${i}_texto`).value.trim();
                 const opcionA = document.getElementById(`p${i}_a`).value.trim();
@@ -189,7 +208,7 @@ class AdminPronosticos {
                 const area = document.getElementById(`p${i}_area`).value;
                 
                 if (!texto || !opcionA || !opcionB || !opcionC) {
-                    this.mostrarMensaje(`La pregunta ${i} tiene campos vacíos`, "error");
+                    this.mostrarMensaje(`La pregunta ${i} tiene campos vacíos`, 'error');
                     return;
                 }
                 
@@ -204,7 +223,7 @@ class AdminPronosticos {
                 });
             }
             
-            // 1. Eliminar preguntas existentes para esta carrera
+            // Eliminar existentes
             const { error: deleteError } = await this.supabase
                 .from('preguntas_pronostico')
                 .delete()
@@ -212,207 +231,18 @@ class AdminPronosticos {
             
             if (deleteError) throw deleteError;
             
-            // 2. Insertar nuevas preguntas
+            // Insertar nuevas
             const { error: insertError } = await this.supabase
                 .from('preguntas_pronostico')
                 .insert(preguntas);
             
             if (insertError) throw insertError;
             
-            this.mostrarMensaje("✅ 10 preguntas guardadas correctamente", "success");
-            console.log("📝 Preguntas guardadas:", preguntas);
+            this.mostrarMensaje('✅ 10 preguntas guardadas correctamente', 'success');
             
         } catch (error) {
-            console.error("❌ Error guardando preguntas:", error);
-            this.mostrarMensaje(`Error: ${error.message}`, "error");
-        }
-    }
-    
-    async cargarParaCorreccion(carreraId) {
-        if (!carreraId) return;
-        
-        try {
-            // 1. Cargar preguntas de esta carrera
-            const { data: preguntas, error: errorPreguntas } = await this.supabase
-                .from('preguntas_pronostico')
-                .select('*')
-                .eq('carrera_id', carreraId)
-                .order('numero_pregunta', { ascending: true });
-            
-            if (errorPreguntas) throw errorPreguntas;
-            
-            if (!preguntas || preguntas.length === 0) {
-                document.getElementById('correccion-container').innerHTML = `
-                    <div class="alert error">
-                        <p>⚠️ Esta carrera no tiene preguntas creadas.</p>
-                        <p>Primero crea las preguntas en la pestaña "Crear Preguntas".</p>
-                    </div>
-                `;
-                document.getElementById('btn-guardar-correccion').disabled = true;
-                return;
-            }
-            
-            // 2. Cargar respuestas correctas existentes (si hay)
-            const { data: correccionExistente } = await this.supabase
-                .from('resultados_carrera')
-                .select('*')
-                .eq('carrera_id', carreraId)
-                .single();
-            
-            // 3. Generar formulario de corrección
-            this.generarFormularioCorreccion(preguntas, correccionExistente);
-            
-            document.getElementById('btn-guardar-correccion').disabled = false;
-            
-        } catch (error) {
-            console.error("❌ Error cargando para corrección:", error);
-            this.mostrarMensaje("Error cargando datos para corrección", "error");
-        }
-    }
-    
-    generarFormularioCorreccion(preguntas, correccionExistente) {
-        const container = document.getElementById('correccion-container');
-        let html = `
-            <div class="alert info">
-                <p>Selecciona la respuesta correcta para cada pregunta.</p>
-                <p>Al guardar, el sistema calculará automáticamente los aciertos de todos los usuarios.</p>
-            </div>
-            
-            <div class="preguntas-grid">
-        `;
-        
-        const respuestasGuardadas = correccionExistente?.respuestas_correctas || {};
-        
-        preguntas.forEach((pregunta, index) => {
-            const numero = index + 1;
-            const respuestaGuardada = respuestasGuardadas[`p${numero}`];
-            
-            html += `
-                <div class="pregunta-card">
-                    <h3>Pregunta ${numero}: ${pregunta.texto_pregunta}</h3>
-                    
-                    <div class="opciones">
-                        <div class="${respuestaGuardada === 'A' ? 'respuesta-correcta' : ''}">
-                            <label>
-                                <input type="radio" name="p${numero}" value="A" ${respuestaGuardada === 'A' ? 'checked' : ''}>
-                                <strong>A)</strong> ${pregunta.opcion_a}
-                            </label>
-                        </div>
-                        <div class="${respuestaGuardada === 'B' ? 'respuesta-correcta' : ''}">
-                            <label>
-                                <input type="radio" name="p${numero}" value="B" ${respuestaGuardada === 'B' ? 'checked' : ''}>
-                                <strong>B)</strong> ${pregunta.opcion_b}
-                            </label>
-                        </div>
-                        <div class="${respuestaGuardada === 'C' ? 'respuesta-correcta' : ''}">
-                            <label>
-                                <input type="radio" name="p${numero}" value="C" ${respuestaGuardada === 'C' ? 'checked' : ''}>
-                                <strong>C)</strong> ${pregunta.opcion_c}
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        html += '</div>';
-        container.innerHTML = html;
-    }
-    
-    async guardarCorreccion() {
-        const carreraId = document.getElementById('select-carrera-corregir').value;
-        if (!carreraId) {
-            this.mostrarMensaje("Selecciona una carrera primero", "error");
-            return;
-        }
-        
-        try {
-            const respuestasCorrectas = {};
-            let completado = true;
-            
-            // Recoger las 10 respuestas
-            for (let i = 1; i <= 10; i++) {
-                const respuesta = document.querySelector(`input[name="p${i}"]:checked`);
-                if (!respuesta) {
-                    this.mostrarMensaje(`Debes seleccionar respuesta para pregunta ${i}`, "error");
-                    completado = false;
-                    break;
-                }
-                respuestasCorrectas[`p${i}`] = respuesta.value;
-            }
-            
-            if (!completado) return;
-            
-            // Guardar en resultados_carrera
-            const { error } = await this.supabase
-                .from('resultados_carrera')
-                .upsert([{
-                    carrera_id: parseInt(carreraId),
-                    respuestas_correctas: respuestasCorrectas,
-                    fecha_publicacion: new Date().toISOString()
-                }], {
-                    onConflict: 'carrera_id'
-                });
-            
-            if (error) throw error;
-            
-            // Actualizar estado de pronósticos
-            await this.supabase
-                .from('pronosticos_usuario')
-                .update({ estado: 'calificado' })
-                .eq('carrera_id', carreraId);
-            
-            // Crear notificaciones para usuarios
-            await this.crearNotificacionesResultados(carreraId);
-            
-            this.mostrarMensaje("✅ Respuestas correctas guardadas. Los pronósticos se están calificando.", "success");
-            console.log("📊 Corrección guardada:", respuestasCorrectas);
-            
-        } catch (error) {
-            console.error("❌ Error guardando corrección:", error);
-            this.mostrarMensaje(`Error: ${error.message}`, "error");
-        }
-    }
-    
-    async crearNotificacionesResultados(carreraId) {
-        // Obtener carrera para el nombre
-        const carrera = this.carreras.find(c => c.id == carreraId);
-        if (!carrera) return;
-        
-        // Obtener usuarios con pronósticos
-        const { data: pronosticos } = await this.supabase
-            .from('pronosticos_usuario')
-            .select('escuderia_id')
-            .eq('carrera_id', carreraId);
-        
-        if (!pronosticos || pronosticos.length === 0) return;
-        
-        // Obtener user_id de cada escudería
-        const notificaciones = [];
-        for (const pronostico of pronosticos) {
-            const { data: escuderia } = await this.supabase
-                .from('escuderias')
-                .select('user_id')
-                .eq('id', pronostico.escuderia_id)
-                .single();
-            
-            if (escuderia && escuderia.user_id) {
-                notificaciones.push({
-                    usuario_id: escuderia.user_id,
-                    tipo: 'resultados',
-                    titulo: 'Resultados disponibles',
-                    mensaje: `Los resultados del ${carrera.nombre} están disponibles`,
-                    vista: false,
-                    fecha_creacion: new Date().toISOString()
-                });
-            }
-        }
-        
-        if (notificaciones.length > 0) {
-            await this.supabase
-                .from('notificaciones_usuarios')
-                .insert(notificaciones);
-            console.log(`📢 ${notificaciones.length} notificaciones creadas`);
+            console.error('❌ Error guardando preguntas:', error);
+            this.mostrarMensaje(`Error: ${error.message}`, 'error');
         }
     }
     
@@ -426,28 +256,29 @@ class AdminPronosticos {
         const mensaje = document.createElement('div');
         mensaje.className = `alert ${tipo}`;
         mensaje.innerHTML = texto;
-        
         container.appendChild(mensaje);
         
-        // Auto-eliminar después de 5 segundos
         setTimeout(() => {
-            if (mensaje.parentNode) {
-                mensaje.remove();
-            }
+            if (mensaje.parentNode) mensaje.remove();
         }, 5000);
     }
 }
 
-// Inicializar cuando se cargue la página
+// 4. INICIALIZAR CUANDO EL DOM ESTÉ LISTO
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("📄 DOM cargado, window.supabaseCliente =", window.supabaseCliente);
+    console.log('📄 DOM cargado, creando Admin...');
     
-    if (!window.supabaseCliente || typeof window.supabaseCliente.from !== 'function') {
-        console.error('❌ ERROR: Cliente Supabase no está listo');
-        alert('Error: Conexión a base de datos no establecida. Recarga la página.');
-        return;
+    try {
+        window.adminPronosticos = new AdminPronosticos();
+        console.log('🎉 Admin creado exitosamente');
+    } catch (error) {
+        console.error('❌ Error creando Admin:', error);
+        document.body.innerHTML = `
+            <div style="padding: 50px; text-align: center; font-family: Arial;">
+                <h1 style="color: red;">❌ ERROR INESPERADO</h1>
+                <p>${error.message}</p>
+                <button onclick="location.reload()">Reintentar</button>
+            </div>
+        `;
     }
-    
-    console.log('✅ Creando instancia de AdminPronosticos...');
-    window.adminPronosticos = new AdminPronosticos();
 });
