@@ -45,7 +45,30 @@ class AdminPronosticos {
         this.preguntasActuales = [];
         this.init();
     }
-    
+    setupTabs() {
+        console.log("🔧 Configurando tabs...");
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remover activo de todos
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Activar actual
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                const tabContent = document.getElementById(`tab-${tabId}`);
+                if (tabContent) {
+                    tabContent.classList.add('active');
+                }
+            });
+        });
+        
+        console.log(`✅ ${tabButtons.length} tabs configurados`);
+    }    
     async init() {
         console.log('🔧 Inicializando Admin...');
         
