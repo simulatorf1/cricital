@@ -225,17 +225,12 @@ class PronosticosManager {
         if (this.estrategasActivos.length > 0) {
             estrategasHTML = this.estrategasActivos.map(e => `
                 <div class="estratega-card">
-                    <strong>${e.ingenieros.nombre}</strong>
-                    <small class="text-muted">${e.ingenieros.especialidad}</small>
+                    <strong>${e.nombre || 'Estratega'}</strong>  // ← USA e.nombre directo
+                    <small class="text-muted">${e.especialidad || 'Sin especialidad'}</small>
                     <div class="bonificaciones">
-                        ${e.ingenieros.bonificacion_meteorologia > 0 ? 
-                            `<span class="badge bg-info">Meteo: +${e.ingenieros.bonificacion_meteorologia}%</span>` : ''}
-                        ${e.ingenieros.bonificacion_fiabilidad > 0 ? 
-                            `<span class="badge bg-warning">Fiab: +${e.ingenieros.bonificacion_fiabilidad}%</span>` : ''}
-                        ${e.ingenieros.bonificacion_estrategia > 0 ? 
-                            `<span class="badge bg-success">Estr: +${e.ingenieros.bonificacion_estrategia}%</span>` : ''}
-                        ${e.ingenieros.bonificacion_rendimiento > 0 ? 
-                            `<span class="badge bg-danger">Rend: +${e.ingenieros.bonificacion_rendimiento}%</span>` : ''}
+                        ${e.bonificacion_valor > 0 ? 
+                            `<span class="badge bg-info">${e.bonificacion_tipo || 'Bonificación'}: +${e.bonificacion_valor}%</span>` : 
+                            '<span class="badge bg-secondary">Sin bonificación</span>'}
                     </div>
                 </div>
             `).join('');
@@ -371,14 +366,10 @@ class PronosticosManager {
         
         const snapshotEstrategas = this.estrategasActivos.map(e => ({
             ingeniero_id: e.ingeniero_id,
-            nombre: e.ingenieros.nombre,
-            especialidad: e.ingenieros.especialidad,
-            bonificaciones: {
-                meteorologia: e.ingenieros.bonificacion_meteorologia,
-                fiabilidad: e.ingenieros.bonificacion_fiabilidad,
-                estrategia: e.ingenieros.bonificacion_estrategia,
-                rendimiento: e.ingenieros.bonificacion_rendimiento
-            }
+            nombre: e.nombre,
+            especialidad: e.especialidad,
+            bonificacion_tipo: e.bonificacion_tipo,
+            bonificacion_valor: e.bonificacion_valor
         }));
         
         try {
