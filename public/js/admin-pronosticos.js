@@ -1,17 +1,32 @@
+// admin-pronosticos.js - VERSIÓN CON CDN
+
 console.log('🔧 Admin Pronósticos cargando...');
 
-// Configuración directa
+// Verificar que la librería está cargada
+if (typeof supabase === 'undefined') {
+    alert('❌ ERROR: La librería Supabase no está cargada. Recarga la página.');
+    throw new Error('Supabase library not loaded');
+}
+
+// Configuración
 const SUPABASE_URL = 'https://xbnbbmhcveyzrvvmdktg.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg';
 
-// Crear cliente directamente
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-console.log('✅ Cliente creado:', supabase);
+// Crear cliente
+let supabaseCliente;
+try {
+    supabaseCliente = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('✅ Cliente Supabase creado:', supabaseCliente);
+} catch (error) {
+    console.error('❌ Error creando cliente:', error);
+    alert('Error creando conexión a Supabase: ' + error.message);
+    throw error;
+}
 
 // Clase Admin
 class AdminPronosticos {
     constructor() {
-        this.supabase = supabase;
+        this.supabase = supabaseCliente;
         this.carreras = [];
         this.preguntasActuales = [];
         this.init();
@@ -19,6 +34,7 @@ class AdminPronosticos {
     
     async init() {
         console.log("🔧 Inicializando Admin Pronósticos");
+        console.log("🔍 Supabase cliente:", this.supabase);
         
         // Configurar tabs
         this.setupTabs();
@@ -30,23 +46,9 @@ class AdminPronosticos {
         this.setupEventos();
     }
     
-    setupTabs() {
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Remover activo de todos
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
-                // Activar actual
-                btn.classList.add('active');
-                const tabId = btn.dataset.tab;
-                document.getElementById(`tab-${tabId}`).classList.add('active');
-            });
-        });
-    }
-    
     async cargarCarreras() {
         try {
+            console.log("📋 Cargando carreras...");
             const { data, error } = await this.supabase
                 .from('calendario_gp')
                 .select('*')
@@ -55,15 +57,14 @@ class AdminPronosticos {
             if (error) throw error;
             
             this.carreras = data;
-            
-            // Llenar selectores
-            this.actualizarSelectoresCarreras();
-            
             console.log(`✅ ${data.length} carreras cargadas`);
+            
+            // Actualizar selectores
+            this.actualizarSelectoresCarreras();
             
         } catch (error) {
             console.error("❌ Error cargando carreras:", error);
-            this.mostrarMensaje("Error cargando carreras", "error");
+            this.mostrarMensaje("Error cargando carreras: " + error.message, "error");
         }
     }
     
