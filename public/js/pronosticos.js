@@ -909,6 +909,11 @@ if (!window.pronosticosManager) {
 }
 
 // Hacer el método principal disponible globalmente
-window.cargarPantallaPronostico = () => window.pronosticosManager.cargarPantallaPronostico();
+window.cargarPantallaPronostico = function() {
+    if (window.pronosticosManager) {
+        return window.pronosticosManager.cargarPantallaPronostico();
+    }
+    return Promise.reject("pronosticosManager no disponible");
+};
 
 console.log("✅ Sistema de pronósticos listo");
