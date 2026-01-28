@@ -615,7 +615,34 @@ class AdminPronosticos {
                 console.log(`✓ Pregunta ${preguntaNum} marcada como: ${respuesta}`);
             });
         });
+    }  
+
+    // Función para procesar bonificaciones de estrategas
+    procesarBonificacionesEstrategas(estrategasSnapshot) {
+        if (!estrategasSnapshot || !Array.isArray(estrategasSnapshot)) {
+            return {};
+        }
+        
+        const bonificacionesConsolidadas = {};
+        
+        estrategasSnapshot.forEach(estratega => {
+            if (estratega.bonificaciones && typeof estratega.bonificaciones === 'object') {
+                Object.entries(estratega.bonificaciones).forEach(([area, porcentaje]) => {
+                    if (!bonificacionesConsolidadas[area]) {
+                        bonificacionesConsolidadas[area] = 0;
+                    }
+                    // Sumar bonificaciones (máximo 50% por área para evitar excesos)
+                    bonificacionesConsolidadas[area] = Math.min(
+                        bonificacionesConsolidadas[area] + porcentaje, 
+                        50
+                    );
+                });
+            }
+        });
+        
+        return bonificacionesConsolidadas;
     }    
+    
     // Función auxiliar para obtener etiqueta del área
     getAreaLabel(areaValue) {
         const areas = {
@@ -703,6 +730,34 @@ class AdminPronosticos {
         } catch (error) {
             console.error('❌ Error calculando puntajes:', error);
             this.mostrarMensaje(`Error calculando puntajes: ${error.message}`, 'error');
+        }
+    }
+
+    async actualizarDineroUsuarios(carreraId) {
+        try {
+            // Obtener pronósticos calificados
+            const { data: pronosticos, error } = await this.supabase
+                .from('pronosticos_usuario')
+                .select('usuario_id, escuderia_id, dinero_ganado')
+                .eq('carrera_id', carreraId)
+                .eq('estado', 'calificado')
+                .not('dinero_ganado', 'is', null);
+            
+            if (error) throw error;
+            
+            for (const pronostico of pronosticos) {
+                // Aquí deberías tener una tabla 'escuderias' o 'usuarios_dinero'
+                // Ejemplo:
+                // await this.supabase.rpc('incrementar_dinero', {
+                //     escuderia_id: pronostico.escuderia_id,
+                //     cantidad: pronostico.dinero_ganado
+                // });
+            }
+            
+            console.log(`💰 Dinero actualizado para ${pronosticos.length} usuarios`);
+            
+        } catch (error) {
+            console.error('Error actualizando dinero:', error);
         }
     }
     
@@ -802,8 +857,19 @@ class AdminPronosticos {
             this.mostrarMensaje('✅ Respuestas correctas guardadas exitosamente', 'success');
             console.log('✅ Corrección guardada:', respuestasCorrectas);
             
-            // 6. OPCIONAL: Calcular puntajes automáticamente
-            // await this.calcularPuntajesCarrera(carreraId);
+            // 🎯 NUEVO: Calcular puntajes automáticamente
+            this.mostrarMensaje('🧮 Calculando puntajes para todos los usuarios...', 'info');
+            
+            // Esperar 1 segundo y calcular
+            setTimeout(async () => {
+                try {
+                    await this.calcularPuntajesCarrera(parseInt(carreraId));
+                    this.mostrarMensaje('🎉 ¡Todo completado! Los usuarios pueden ver sus resultados.', 'success');
+                } catch (calcError) {
+                    console.error('Error en cálculo automático:', calcError);
+                    this.mostrarMensaje('✅ Respuestas guardadas, pero error en cálculo de puntos. Reintentar más tarde.', 'warning');
+                }
+            }, 1000);
             
         } catch (error) {
             console.error('❌ Error guardando corrección:', error);
@@ -814,6 +880,189 @@ class AdminPronosticos {
             }
             
             this.mostrarMensaje(mensajeError, 'error');
+        }
+    }
+
+    async calcularPuntajesCarrera(carreraId) {
+        try {
+            console.log('🧮 Iniciando cálculo de puntajes para carrera:', carreraId);
+            
+            // 1. Obtener respuestas correctas
+            const { data: resultados, error: errorResultados } = await this.supabase
+                .from('resultados_carrera')
+                .select('respuestas_correctas')
+                .eq('carrera_id', carreraId)
+                .single();
+            
+            if (errorResultados || !resultados) {
+                throw new Error('No se encontraron respuestas correctas para esta carrera');
+            }
+            
+            const respuestasCorrectas = resultados.respuestas_correctas;
+            console.log('📊 Respuestas correctas:', respuestasCorrectas);
+            
+            // 2. Obtener todos los pronósticos de esta carrera
+            const { data: pronosticos, error: errorPronosticos } = await this.supabase
+                .from('pronosticos_usuario')
+                .select('*')
+                .eq('carrera_id', carreraId)
+                .eq('estado', 'pendiente'); // Solo pronósticos no calificados
+            
+            if (errorPronosticos) throw errorPronosticos;
+            
+            if (!pronosticos || pronosticos.length === 0) {
+                console.log('📭 No hay pronósticos pendientes para calificar');
+                this.mostrarMensaje('✅ No hay pronósticos pendientes para calificar', 'info');
+                return;
+            }
+            
+            console.log(`👥 ${pronosticos.length} pronósticos a calificar`);
+            
+            // 3. Obtener las preguntas para mapear áreas
+            const { data: preguntas, error: errorPreguntas } = await this.supabase
+                .from('preguntas_pronostico')
+                .select('numero_pregunta, area')
+                .eq('carrera_id', carreraId)
+                .order('numero_pregunta');
+            
+            if (errorPreguntas) throw errorPreguntas;
+            
+            // Crear mapa: pregunta -> área
+            const mapaAreas = {};
+            preguntas.forEach(p => {
+                mapaAreas[`p${p.numero_pregunta}`] = p.area;
+            });
+            
+            // 4. Calcular para cada pronóstico
+            let procesados = 0;
+            let errores = 0;
+            
+            for (const pronostico of pronosticos) {
+                try {
+                    console.log(`📝 Procesando pronóstico ID: ${pronostico.id} - Usuario: ${pronostico.usuario_id}`);
+                    
+                    // A. Calcular aciertos básicos
+                    let aciertos = 0;
+                    const respuestasUsuario = pronostico.respuestas;
+                    
+                    for (let i = 1; i <= 10; i++) {
+                        const clave = `p${i}`;
+                        if (respuestasUsuario[clave] === respuestasCorrectas[clave]) {
+                            aciertos++;
+                        }
+                    }
+                    
+                    console.log(`✅ Aciertos básicos: ${aciertos}/10`);
+                    
+                    // B. Aplicar bonificaciones de estrategas (si existen)
+                    let puntosConBonificacion = aciertos;
+                    let bonificacionesAplicadas = {};
+                    
+                    if (pronostico.estrategas_snapshot && Array.isArray(pronostico.estrategas_snapshot)) {
+                        console.log('🎯 Aplicando bonificaciones de estrategas...');
+                        
+                        // Mapeo de áreas a bonificaciones
+                        const bonificacionesPorArea = {};
+                        
+                        pronostico.estrategas_snapshot.forEach(estratega => {
+                            if (estratega.bonificaciones) {
+                                Object.entries(estratega.bonificaciones).forEach(([area, porcentaje]) => {
+                                    if (!bonificacionesPorArea[area]) {
+                                        bonificacionesPorArea[area] = 0;
+                                    }
+                                    bonificacionesPorArea[area] += porcentaje;
+                                });
+                            }
+                        });
+                        
+                        console.log('📊 Bonificaciones por área:', bonificacionesPorArea);
+                        
+                        // Aplicar bonificaciones a cada acierto
+                        for (let i = 1; i <= 10; i++) {
+                            const clave = `p${i}`;
+                            if (respuestasUsuario[clave] === respuestasCorrectas[clave]) {
+                                const areaPregunta = mapaAreas[clave];
+                                const bonificacionArea = bonificacionesPorArea[areaPregunta] || 0;
+                                
+                                if (bonificacionArea > 0) {
+                                    const puntosExtra = 1 * (bonificacionArea / 100); // 1 punto base por acierto
+                                    puntosConBonificacion += puntosExtra;
+                                    
+                                    bonificacionesAplicadas[clave] = {
+                                        area: areaPregunta,
+                                        bonificacion: bonificacionArea,
+                                        puntos_extra: puntosExtra
+                                    };
+                                    
+                                    console.log(`✨ Pregunta ${i} (${areaPregunta}): +${bonificacionArea}% = +${puntosExtra.toFixed(2)} puntos`);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // C. Sumar puntos del coche (conversión: cada 10 puntos de coche = 1 punto extra)
+                    const puntosCocheBonus = Math.floor(pronostico.puntos_coche_snapshot / 10);
+                    const puntuacionFinal = puntosConBonificacion + puntosCocheBonus;
+                    
+                    // D. Calcular dinero ganado (ejemplo: 1000€ por punto)
+                    const factorDinero = 1000;
+                    const dineroGanado = puntuacionFinal * factorDinero;
+                    
+                    console.log(`💰 Cálculo final:
+                    - Aciertos base: ${aciertos}
+                    - Con bonificaciones: ${puntosConBonificacion.toFixed(2)}
+                    - Bonus coche (${pronostico.puntos_coche_snapshot} pts): +${puntosCocheBonus}
+                    - TOTAL: ${puntuacionFinal.toFixed(2)} puntos
+                    - Dinero: €${dineroGanado.toFixed(2)}`);
+                    
+                    // E. Actualizar el pronóstico
+                    const { error: updateError } = await this.supabase
+                        .from('pronosticos_usuario')
+                        .update({
+                            aciertos: aciertos,
+                            puntuacion_total: parseFloat(puntuacionFinal.toFixed(2)),
+                            dinero_ganado: parseFloat(dineroGanado.toFixed(2)),
+                            bonificaciones_aplicadas: bonificacionesAplicadas,
+                            estado: 'calificado',
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', pronostico.id);
+                    
+                    if (updateError) {
+                        console.error(`❌ Error actualizando pronóstico ${pronostico.id}:`, updateError);
+                        errores++;
+                    } else {
+                        procesados++;
+                        console.log(`✅ Pronóstico ${pronostico.id} actualizado`);
+                    }
+                    
+                } catch (errorPronostico) {
+                    console.error(`❌ Error procesando pronóstico ${pronostico?.id}:`, errorPronostico);
+                    errores++;
+                }
+            }
+            
+            // 5. Resultado final
+            console.log(`🎉 Cálculo completado: ${procesados} procesados, ${errores} errores`);
+            
+            if (errores > 0) {
+                this.mostrarMensaje(
+                    `⚠️ Cálculo completado con ${errores} error(es). Revisa la consola.`, 
+                    'error'
+                );
+            } else {
+                this.mostrarMensaje(
+                    `✅ Puntajes calculados para ${procesados} usuario(s)`, 
+                    'success'
+                );
+            }
+            
+            return { procesados, errores };
+            
+        } catch (error) {
+            console.error('❌ Error en calcularPuntajesCarrera:', error);
+            this.mostrarMensaje(`Error calculando puntajes: ${error.message}`, 'error');
+            throw error;
         }
     }
     
