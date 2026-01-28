@@ -124,7 +124,49 @@ class TabManager {
                 // ... código del taller ...
                 return;
             }
-            
+            // ======================================================
+            // ¡¡PESTAÑA PRONÓSTICOS - NUEVO COMPORTAMIENTO!!
+            // ======================================================
+            if (tabId === 'pronosticos') {
+                // 1. SOLO marcar como activa
+                tabContent.classList.add('active');
+                this.currentTab = tabId;
+                
+                // 2. LIMPIAR contenido anterior
+                tabContent.innerHTML = '<div class="cargando-pronosticos"><i class="fas fa-spinner fa-spin"></i> Cargando pronósticos...</div>';
+                
+                // 3. Cargar los pronósticos usando la función del pronosticos.js
+                setTimeout(async () => {
+                    try {
+                        if (window.cargarPantallaPronostico) {
+                            console.log('🔮 Ejecutando cargarPantallaPronostico()...');
+                            await window.cargarPantallaPronostico();
+                            console.log('✅ Pronósticos cargados exitosamente');
+                        } else {
+                            console.error('❌ cargarPantallaPronostico no disponible');
+                            tabContent.innerHTML = `
+                                <div class="error-message">
+                                    <h3>❌ Error cargando pronósticos</h3>
+                                    <p>El sistema de pronósticos no está disponible</p>
+                                    <button onclick="location.reload()">Reintentar</button>
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        console.error('❌ Error cargando pronósticos:', error);
+                        tabContent.innerHTML = `
+                            <div class="error-message">
+                                <h3>❌ Error cargando pronósticos</h3>
+                                <p>${error.message || 'Error desconocido'}</p>
+                                <button onclick="location.reload()">Reintentar</button>
+                            </div>
+                        `;
+                    }
+                }, 300);
+                
+                // SALIR del método - no hacer nada más para pronósticos
+                return;
+            }            
             // ======================================================
             // ¡¡PESTAÑA MERCADO - NUEVO COMPORTAMIENTO!!
             // ======================================================
@@ -297,7 +339,7 @@ class TabManager {
     
     loadTabContents() {
         // Precargar contenido de todas las pestañas
-        const tabs = ['principal', 'taller', 'almacen', 'mercado', 'presupuesto', 'clasificacion'];
+        const tabs = ['principal', 'taller', 'almacen', 'mercado', 'presupuesto', 'clasificacion', 'pronosticos'];
         
         tabs.forEach(tab => {
             this.tabContents[tab] = this.generateTabContent(tab);
@@ -318,6 +360,8 @@ class TabManager {
                 return this.getPresupuestoContent();
             case 'clasificacion':
                 return this.getClasificacionContent();
+            case 'pronosticos': 
+                return this.getPronosticosContent();                
             default:
                 return `<h2>Pestaña ${tabId}</h2><p>Contenido en desarrollo...</p>`;
         }
@@ -742,6 +786,17 @@ class TabManager {
                             <span>Top 100 global</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        `;
+    }
+
+    getPronosticosContent() {
+        return `
+            <div class="pronosticos-container" id="pronosticos-container">
+                <div class="cargando-pronosticos">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Cargando sistema de pronósticos...</p>
                 </div>
             </div>
         `;
