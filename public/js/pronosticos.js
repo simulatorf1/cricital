@@ -102,21 +102,22 @@ class PronosticosManager {
         try {
             console.log("🔍 Cargando datos para usuario:", usuarioId);
             
-            // 1. Obtener la ESCUDERÍA del usuario
+            // 1. Obtener la ESCUDERÍA del usuario (usar user_id, no usuario_id)
             const { data: escuderia, error: errorEscuderia } = await this.supabase
                 .from('escuderias')
                 .select('id, puntos, dinero')
-                .eq('usuario_id', usuarioId)
+                .eq('user_id', usuarioId)  // ← CAMBIADO: user_id en lugar de usuario_id
                 .single();
             
             if (errorEscuderia || !escuderia) {
                 console.error("❌ Error obteniendo escudería:", errorEscuderia);
                 this.usuarioPuntos = 0;
                 this.estrategasActivos = [];
+                this.escuderiaId = null;
                 return;
             }
             
-            console.log("✅ Escudería encontrada:", escuderia.id);
+            console.log("✅ Escudería encontrada:", escuderia);
             this.escuderiaId = escuderia.id;
             
             // 2. Calcular puntos TOTALES del coche
@@ -148,7 +149,7 @@ class PronosticosManager {
                 console.log("✅ Puntos calculados:", puntosTotales);
             }
             
-            // 3. Obtener estrategas contratados (TU ESTRUCTURA)
+            // 3. Obtener estrategas contratados
             const { data: estrategas, error: errorEstrategas } = await this.supabase
                 .from('ingenieros_contratados')
                 .select(`
@@ -176,13 +177,20 @@ class PronosticosManager {
                     bonificacion_valor: e.bonificacion_valor,
                     activo: e.activo
                 }));
-                console.log("✅ Estrategas encontrados:", this.estrategasActivos.length);
+                console.log("✅ Estrategas encontrados:", this.estrategasActivos);
             }
+            
+            console.log("📊 Datos finales:", {
+                escuderiaId: this.escuderiaId,
+                puntos: this.usuarioPuntos,
+                estrategasCount: this.estrategasActivos.length
+            });
             
         } catch (error) {
             console.error("💥 Error completo en cargarDatosUsuario:", error);
             this.usuarioPuntos = 0;
             this.estrategasActivos = [];
+            this.escuderiaId = null;
         }
     }
     
