@@ -221,22 +221,43 @@ class AdminPronosticos {
             const areaActual = preguntaExistente?.area || 'meteorologia';
             
             // Generar opciones para el select
+            // Generar opciones para el select CON ESTILOS MEJORADOS
             let opcionesArea = '';
             areasDisponibles.forEach(area => {
                 const seleccionado = area.value === areaActual ? 'selected' : '';
-                opcionesArea += `<option value="${area.value}" ${seleccionado}>${area.label}</option>`;
+                // Forzar estilos directamente en cada option
+                opcionesArea += `<option value="${area.value}" ${seleccionado} 
+                                 style="background: #000; color: #fff; padding: 8px 12px;">
+                                    ${area.label}
+                                 </option>`;
             });
             
             html += `
                 <div class="pregunta-card">
-                    <!-- CABECERA CON SELECTOR DE ÁREA -->
+                    <!-- CABECERA CON SELECTOR DE ÁREA - CORREGIDO -->
                     <div class="pregunta-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                         <h3 style="margin: 0;">Pregunta ${i}</h3>
                         <div class="area-selector" style="display: flex; align-items: center; gap: 10px;">
                             <span style="color: #aaa; font-size: 0.9rem;">Área:</span>
                             <select id="p${i}_area" 
                                     class="area-select" 
-                                    style="padding: 6px 12px; background: rgba(255,255,255,0.1); color: white; border: 1px solid #444; border-radius: 6px; min-width: 150px;">
+                                    style="
+                                        padding: 6px 12px 6px 12px;
+                                        background: #111;
+                                        color: white;
+                                        border: 1px solid #444;
+                                        border-radius: 6px;
+                                        min-width: 150px;
+                                        cursor: pointer;
+                                        appearance: none;
+                                        -webkit-appearance: none;
+                                        -moz-appearance: none;
+                                        background-image: url('data:image/svg+xml;utf8,<svg fill=\"white\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>');
+                                        background-repeat: no-repeat;
+                                        background-position: right 10px center;
+                                        background-size: 16px;
+                                        padding-right: 30px;
+                                    ">
                                 ${opcionesArea}
                             </select>
                         </div>
@@ -290,7 +311,7 @@ class AdminPronosticos {
                     </div>
                 </div>
             `;
-        }
+        }   
         
         html += '</div>';
         container.innerHTML = html;
