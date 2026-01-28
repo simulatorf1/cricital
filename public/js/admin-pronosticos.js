@@ -199,38 +199,95 @@ class AdminPronosticos {
         const container = document.getElementById('preguntas-container');
         let html = '<div class="preguntas-grid">';
         
-        const areas = [
-            'meteorologia', 'fiabilidad', 'estrategia', 'rendimiento', 'neumaticos',
-            'seguridad', 'clasificacion', 'carrera', 'overtakes', 'incidentes'
+        // LISTA DE ÁREAS DISPONIBLES (puedes personalizar)
+        const areasDisponibles = [
+            { value: 'meteorologia', label: 'Meteorología' },
+            { value: 'fiabilidad', label: 'Fiabilidad' },
+            { value: 'estrategia', label: 'Estrategia' },
+            { value: 'rendimiento', label: 'Rendimiento' },
+            { value: 'neumaticos', label: 'Neumáticos' },
+            { value: 'seguridad', label: 'Seguridad' },
+            { value: 'clasificacion', label: 'Clasificación' },
+            { value: 'carrera', label: 'Carrera' },
+            { value: 'overtakes', label: 'Adelantamientos' },
+            { value: 'incidentes', label: 'Incidentes' },
+            { value: 'equipos', label: 'Equipos' },
+            { value: 'tiempos', label: 'Tiempos' },
+            { value: 'paradas', label: 'Paradas en boxes' }
         ];
         
         for (let i = 1; i <= 10; i++) {
             const preguntaExistente = this.preguntasActuales.find(p => p.numero_pregunta === i);
-            const area = areas[i-1] || 'general';
+            const areaActual = preguntaExistente?.area || 'meteorologia';
+            
+            // Generar opciones para el select
+            let opcionesArea = '';
+            areasDisponibles.forEach(area => {
+                const seleccionado = area.value === areaActual ? 'selected' : '';
+                opcionesArea += `<option value="${area.value}" ${seleccionado}>${area.label}</option>`;
+            });
             
             html += `
-                <div class="pregunta-card" data-numero="${i}">
-                    <h3>Pregunta ${i} <small style="color: #00D2BE;">(${area})</small></h3>
-                    
-                    <label>Texto de la pregunta:</label>
-                    <textarea id="p${i}_texto" rows="3" placeholder="Ej: ¿Quién conseguirá la pole position?">${preguntaExistente?.texto_pregunta || ''}</textarea>
-                    
-                    <div class="opciones">
-                        <div>
-                            <label>Opción A:</label>
-                            <input type="text" id="p${i}_a" value="${preguntaExistente?.opcion_a || ''}" placeholder="Respuesta A">
-                        </div>
-                        <div>
-                            <label>Opción B:</label>
-                            <input type="text" id="p${i}_b" value="${preguntaExistente?.opcion_b || ''}" placeholder="Respuesta B">
-                        </div>
-                        <div>
-                            <label>Opción C:</label>
-                            <input type="text" id="p${i}_c" value="${preguntaExistente?.opcion_c || ''}" placeholder="Respuesta C">
+                <div class="pregunta-card">
+                    <!-- CABECERA CON SELECTOR DE ÁREA -->
+                    <div class="pregunta-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <h3 style="margin: 0;">Pregunta ${i}</h3>
+                        <div class="area-selector" style="display: flex; align-items: center; gap: 10px;">
+                            <span style="color: #aaa; font-size: 0.9rem;">Área:</span>
+                            <select id="p${i}_area" 
+                                    class="area-select" 
+                                    style="padding: 6px 12px; background: rgba(255,255,255,0.1); color: white; border: 1px solid #444; border-radius: 6px; min-width: 150px;">
+                                ${opcionesArea}
+                            </select>
                         </div>
                     </div>
                     
-                    <input type="hidden" id="p${i}_area" value="${area}">
+                    <!-- TEXTO DE LA PREGUNTA -->
+                    <div class="pregunta-texto" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; color: #aaa; font-size: 0.9rem;">
+                            <i class="fas fa-question-circle"></i> Texto de la pregunta:
+                        </label>
+                        <textarea id="p${i}_texto" 
+                                  rows="3" 
+                                  style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid #444; color: white; border-radius: 6px; resize: vertical;"
+                                  placeholder="Ej: ¿Cuántas veces saldrá el coche de seguridad?">${preguntaExistente?.texto_pregunta || ''}</textarea>
+                    </div>
+                    
+                    <!-- OPCIONES DE RESPUESTA -->
+                    <div class="opciones" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div class="opcion" style="background: rgba(0,210,190,0.1); padding: 15px; border-radius: 6px; border-left: 3px solid #00D2BE;">
+                            <label style="display: block; margin-bottom: 8px; color: #00D2BE; font-weight: bold;">
+                                <i class="fas fa-a"></i> Opción A:
+                            </label>
+                            <input type="text" 
+                                   id="p${i}_a" 
+                                   value="${preguntaExistente?.opcion_a || ''}" 
+                                   placeholder="Respuesta A"
+                                   style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid #444; color: white; border-radius: 4px;">
+                        </div>
+                        
+                        <div class="opcion" style="background: rgba(255,135,0,0.1); padding: 15px; border-radius: 6px; border-left: 3px solid #FF8700;">
+                            <label style="display: block; margin-bottom: 8px; color: #FF8700; font-weight: bold;">
+                                <i class="fas fa-b"></i> Opción B:
+                            </label>
+                            <input type="text" 
+                                   id="p${i}_b" 
+                                   value="${preguntaExistente?.opcion_b || ''}" 
+                                   placeholder="Respuesta B"
+                                   style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid #444; color: white; border-radius: 4px;">
+                        </div>
+                        
+                        <div class="opcion" style="background: rgba(255,105,180,0.1); padding: 15px; border-radius: 6px; border-left: 3px solid #FF69B4;">
+                            <label style="display: block; margin-bottom: 8px; color: #FF69B4; font-weight: bold;">
+                                <i class="fas fa-c"></i> Opción C:
+                            </label>
+                            <input type="text" 
+                                   id="p${i}_c" 
+                                   value="${preguntaExistente?.opcion_c || ''}" 
+                                   placeholder="Respuesta C"
+                                   style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid #444; color: white; border-radius: 4px;">
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -242,7 +299,7 @@ class AdminPronosticos {
     async guardarPreguntas() {
         const carreraId = document.getElementById('select-carrera').value;
         if (!carreraId) {
-            this.mostrarMensaje('Selecciona una carrera primero', 'error');
+            this.mostrarMensaje("Selecciona una carrera primero", "error");
             return;
         }
         
@@ -254,10 +311,10 @@ class AdminPronosticos {
                 const opcionA = document.getElementById(`p${i}_a`).value.trim();
                 const opcionB = document.getElementById(`p${i}_b`).value.trim();
                 const opcionC = document.getElementById(`p${i}_c`).value.trim();
-                const area = document.getElementById(`p${i}_area`).value;
+                const area = document.getElementById(`p${i}_area`).value;  // ← Nuevo: obtener del select
                 
                 if (!texto || !opcionA || !opcionB || !opcionC) {
-                    this.mostrarMensaje(`La pregunta ${i} tiene campos vacíos`, 'error');
+                    this.mostrarMensaje(`La pregunta ${i} tiene campos vacíos`, "error");
                     return;
                 }
                 
@@ -268,7 +325,7 @@ class AdminPronosticos {
                     opcion_a: opcionA,
                     opcion_b: opcionB,
                     opcion_c: opcionC,
-                    area: area
+                    area: area  // ← Guardar el área seleccionada
                 });
             }
             
