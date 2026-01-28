@@ -331,7 +331,7 @@ class AdminPronosticos {
         try {
             console.log('📝 Cargando preguntas para corrección...');
             
-            // 1. Cargar preguntas de la carrera
+            // 1. Cargar preguntas de la carrera (esto ya funciona)
             const { data: preguntas, error: errorPreguntas } = await this.supabase
                 .from('preguntas_pronostico')
                 .select('*')
@@ -351,15 +351,27 @@ class AdminPronosticos {
                 return;
             }
             
-            // 2. Verificar si ya hay respuestas correctas guardadas
-            const { data: resultadosExistentes, error: errorResultados } = await this.supabase
-                .from('resultados_carrera')
-                .select('respuestas_correctas')
-                .eq('carrera_id', carreraId)
-                .single();
+            // 2. CORREGIDO: Verificar respuestas correctas - SIN EL .single()
+            let respuestasGuardadas = {};
             
-            // Nota: si no existe, errorResultados tendrá info pero no es problema
-            const respuestasGuardadas = resultadosExistentes?.respuestas_correctas || {};
+            try {
+                const { data: resultadosExistentes, error: errorResultados } = await this.supabase
+                    .from('resultados_carrera')
+                    .select('respuestas_correctas, publicado_por, fecha_publicacion')
+                    .eq('carrera_id', carreraId);
+                
+                // Si hay datos, tomar el primero (debería ser solo uno)
+                if (resultadosExistentes && resultadosExistentes.length > 0) {
+                    respuestasGuardadas = resultadosExistentes[0].respuestas_correctas || {};
+                    console.log('📊 Respuestas existentes encontradas:', respuestasGuardadas);
+                } else {
+                    console.log('📭 No hay respuestas guardadas para esta carrera');
+                }
+                
+            } catch (consultaError) {
+                console.warn('⚠️ Error al consultar resultados:', consultaError);
+                // Continuar con objeto vacío
+            }
             
             // 3. Generar formulario de corrección
             let html = `
@@ -704,20 +716,17 @@ class AdminPronosticos {
         try {
             console.log('💾 Guardando corrección para carrera:', carreraId);
             
-            // 1. Recoger todas las respuestas correctas
+            // 1. Recoger respuestas correctas (tu código funciona)
             const respuestasCorrectas = {};
             let todasCompletas = true;
             
             for (let i = 1; i <= 10; i++) {
                 const input = document.getElementById(`respuesta_correcta_${i}`);
-                if (!input) {
-                    console.warn(`No se encontró respuesta para pregunta ${i}`);
-                    continue;
-                }
+                if (!input) continue;
                 
                 const respuesta = input.value.trim();
                 if (!respuesta) {
-                    this.mostrarMensaje(`❌ La pregunta ${i} no tiene respuesta correcta seleccionada`, "error");
+                    this.mostrarMensaje(`❌ Pregunta ${i} sin respuesta`, "error");
                     todasCompletas = false;
                     break;
                 }
@@ -727,40 +736,84 @@ class AdminPronosticos {
             
             if (!todasCompletas) return;
             
-            // 2. Verificar que tenemos todas las respuestas
             if (Object.keys(respuestasCorrectas).length !== 10) {
-                this.mostrarMensaje("❌ Debes seleccionar respuesta correcta para las 10 preguntas", "error");
+                this.mostrarMensaje("❌ Debes seleccionar las 10 respuestas", "error");
                 return;
             }
             
-            // 3. Guardar en la tabla resultados_carrera
+            // 2. Obtener usuario actual (para publicado_por)
+            let usuarioId = null;
+            try {
+                const { data: { user } } = await this.supabase.auth.getUser();
+                usuarioId = user?.id || null;
+            } catch (authError) {
+                console.warn('⚠️ Sin usuario autenticado');
+            }
+            
+            // 3. PREPARAR DATOS CON LAS COLUMNAS EXACTAS DE TU TABLA
+            const datosParaGuardar = {
+                carrera_id: parseInt(carreraId),
+                respuestas_correctas: respuestasCorrectas,
+                publicado_por: usuarioId,
+                fecha_publicacion: new Date().toISOString()
+                // NO INCLUIR: estado (no existe en tu tabla)
+                // NO INCLUIR: created_at (se genera automático)
+            };
+            
+            console.log('📤 Datos a guardar:', datosParaGuardar);
+            
+            // 4. Guardar usando upsert (insert or update)
             const { data, error } = await this.supabase
                 .from('resultados_carrera')
-                .upsert({
-                    carrera_id: parseInt(carreraId),
-                    respuestas_correctas: respuestasCorrectas,
-                    fecha_correccion: new Date().toISOString(),
-                    estado: 'corregido'
-                }, {
-                    onConflict: 'carrera_id'
+                .upsert(datosParaGuardar, {
+                    onConflict: 'carrera_id',
+                    ignoreDuplicates: false
                 });
             
-            if (error) throw error;
+            if (error) {
+                console.error('❌ Error Supabase:', error);
+                
+                // Intentar con insert normal si upsert falla
+                if (error.code === 'PGRST204') {
+                    console.log('🔄 Intentando insert directo...');
+                    
+                    // Primero intentar eliminar si existe
+                    await this.supabase
+                        .from('resultados_carrera')
+                        .delete()
+                        .eq('carrera_id', carreraId);
+                    
+                    // Luego insertar nuevo
+                    const { data: newData, error: newError } = await this.supabase
+                        .from('resultados_carrera')
+                        .insert(datosParaGuardar);
+                    
+                    if (newError) throw newError;
+                    
+                    this.mostrarMensaje('✅ Respuestas guardadas (modo alternativo)', 'success');
+                    console.log('✅ Corrección guardada con insert directo');
+                    return;
+                }
+                
+                throw error;
+            }
             
-            // 4. Mostrar confirmación
+            // 5. Éxito
             this.mostrarMensaje('✅ Respuestas correctas guardadas exitosamente', 'success');
-            
-            // 5. OPCIONAL: Calcular puntajes automáticamente
-            // this.calcularPuntajesCarrera(carreraId);
-            
-            // 6. OPCIONAL: Notificar a usuarios
-            // this.notificarUsuariosResultados(carreraId);
-            
             console.log('✅ Corrección guardada:', respuestasCorrectas);
+            
+            // 6. OPCIONAL: Calcular puntajes automáticamente
+            // await this.calcularPuntajesCarrera(carreraId);
             
         } catch (error) {
             console.error('❌ Error guardando corrección:', error);
-            this.mostrarMensaje(`Error: ${error.message}`, 'error');
+            
+            let mensajeError = `Error: ${error.message}`;
+            if (error.message.includes("column") && error.message.includes("does not exist")) {
+                mensajeError = "Error: La tabla tiene columnas diferentes. Revisa la estructura.";
+            }
+            
+            this.mostrarMensaje(mensajeError, 'error');
         }
     }
     
