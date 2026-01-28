@@ -316,6 +316,453 @@ class AdminPronosticos {
         html += '</div>';
         container.innerHTML = html;
     }
+
+    async cargarParaCorreccion(carreraId) {
+        if (!carreraId) {
+            document.getElementById('correccion-container').innerHTML = `
+                <div class="alert info">
+                    <p>Selecciona una carrera para ingresar las respuestas correctas.</p>
+                </div>
+            `;
+            document.getElementById('btn-guardar-correccion').disabled = true;
+            return;
+        }
+        
+        try {
+            console.log('📝 Cargando preguntas para corrección...');
+            
+            // 1. Cargar preguntas de la carrera
+            const { data: preguntas, error: errorPreguntas } = await this.supabase
+                .from('preguntas_pronostico')
+                .select('*')
+                .eq('carrera_id', carreraId)
+                .order('numero_pregunta', { ascending: true });
+            
+            if (errorPreguntas) throw errorPreguntas;
+            
+            if (!preguntas || preguntas.length === 0) {
+                document.getElementById('correccion-container').innerHTML = `
+                    <div class="alert error">
+                        <p>❌ Esta carrera no tiene preguntas creadas.</p>
+                        <p>Primero crea las preguntas en la pestaña "Crear Preguntas".</p>
+                    </div>
+                `;
+                document.getElementById('btn-guardar-correccion').disabled = true;
+                return;
+            }
+            
+            // 2. Verificar si ya hay respuestas correctas guardadas
+            const { data: resultadosExistentes, error: errorResultados } = await this.supabase
+                .from('resultados_carrera')
+                .select('respuestas_correctas')
+                .eq('carrera_id', carreraId)
+                .single();
+            
+            // Nota: si no existe, errorResultados tendrá info pero no es problema
+            const respuestasGuardadas = resultadosExistentes?.respuestas_correctas || {};
+            
+            // 3. Generar formulario de corrección
+            let html = `
+                <div class="alert info">
+                    <p>📋 <strong>Instrucciones:</strong> Para cada pregunta, selecciona la opción correcta (A, B o C).</p>
+                    <p>Los usuarios recibirán puntos por cada acierto.</p>
+                </div>
+                
+                <div class="preguntas-grid">
+            `;
+            
+            preguntas.forEach((pregunta) => {
+                const numPregunta = pregunta.numero_pregunta;
+                const respuestaCorrectaActual = respuestasGuardadas[`p${numPregunta}`] || '';
+                
+                // Determinar qué botón está seleccionado
+                const btnAseleccionado = respuestaCorrectaActual === 'A' ? 'selected' : '';
+                const btnBseleccionado = respuestaCorrectaActual === 'B' ? 'selected' : '';
+                const btnCseleccionado = respuestaCorrectaActual === 'C' ? 'selected' : '';
+                
+                html += `
+                    <div class="pregunta-card" style="background: rgba(30, 45, 30, 0.2);">
+                        <!-- CABECERA CON NÚMERO Y ÁREA -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <h3 style="margin: 0; color: #00D2BE;">
+                                <i class="fas fa-question-circle"></i> Pregunta ${numPregunta}
+                            </h3>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #aaa; font-size: 0.9rem;">Área:</span>
+                                <span style="background: rgba(0,210,190,0.2); padding: 4px 12px; border-radius: 20px; color: #00D2BE; font-size: 0.9rem;">
+                                    ${this.getAreaLabel(pregunta.area)}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- TEXTO DE LA PREGUNTA -->
+                        <div style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                            <p style="margin: 0; font-size: 1.1rem; line-height: 1.4;">
+                                ${pregunta.texto_pregunta}
+                            </p>
+                        </div>
+                        
+                        <!-- OPCIONES CON BOTONES PARA MARCAR LA CORRECTA -->
+                        <div style="margin-bottom: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                                <!-- OPCIÓN A -->
+                                <div class="opcion-container" style="position: relative; padding: 15px; background: rgba(0,210,190,0.1); border-radius: 8px; border: 2px solid ${respuestaCorrectaActual === 'A' ? '#00D2BE' : 'rgba(0,210,190,0.3)'}; transition: all 0.3s;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                        <div>
+                                            <strong style="color: #00D2BE; font-size: 1.2rem;">A</strong>
+                                            <span style="color: #aaa; font-size: 0.9rem; margin-left: 8px;">Opción A</span>
+                                        </div>
+                                        <button type="button" 
+                                                class="btn-marcar-correcta ${btnAseleccionado}" 
+                                                data-pregunta="${numPregunta}" 
+                                                data-respuesta="A"
+                                                style="
+                                                    width: 40px; 
+                                                    height: 40px; 
+                                                    border-radius: 50%; 
+                                                    background: ${respuestaCorrectaActual === 'A' ? '#00D2BE' : 'rgba(255,255,255,0.1)'}; 
+                                                    border: 2px solid ${respuestaCorrectaActual === 'A' ? '#00D2BE' : 'rgba(255,255,255,0.3)'};
+                                                    color: white;
+                                                    cursor: pointer;
+                                                    font-weight: bold;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                ">
+                                            ${respuestaCorrectaActual === 'A' ? '✓' : 'A'}
+                                        </button>
+                                    </div>
+                                    <p style="margin: 0; font-size: 1rem; color: #fff;">
+                                        ${pregunta.opcion_a}
+                                    </p>
+                                </div>
+                                
+                                <!-- OPCIÓN B -->
+                                <div class="opcion-container" style="position: relative; padding: 15px; background: rgba(255,135,0,0.1); border-radius: 8px; border: 2px solid ${respuestaCorrectaActual === 'B' ? '#FF8700' : 'rgba(255,135,0,0.3)'}; transition: all 0.3s;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                        <div>
+                                            <strong style="color: #FF8700; font-size: 1.2rem;">B</strong>
+                                            <span style="color: #aaa; font-size: 0.9rem; margin-left: 8px;">Opción B</span>
+                                        </div>
+                                        <button type="button" 
+                                                class="btn-marcar-correcta ${btnBseleccionado}" 
+                                                data-pregunta="${numPregunta}" 
+                                                data-respuesta="B"
+                                                style="
+                                                    width: 40px; 
+                                                    height: 40px; 
+                                                    border-radius: 50%; 
+                                                    background: ${respuestaCorrectaActual === 'B' ? '#FF8700' : 'rgba(255,255,255,0.1)'}; 
+                                                    border: 2px solid ${respuestaCorrectaActual === 'B' ? '#FF8700' : 'rgba(255,255,255,0.3)'};
+                                                    color: white;
+                                                    cursor: pointer;
+                                                    font-weight: bold;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                ">
+                                            ${respuestaCorrectaActual === 'B' ? '✓' : 'B'}
+                                        </button>
+                                    </div>
+                                    <p style="margin: 0; font-size: 1rem; color: #fff;">
+                                        ${pregunta.opcion_b}
+                                    </p>
+                                </div>
+                                
+                                <!-- OPCIÓN C -->
+                                <div class="opcion-container" style="position: relative; padding: 15px; background: rgba(255,105,180,0.1); border-radius: 8px; border: 2px solid ${respuestaCorrectaActual === 'C' ? '#FF69B4' : 'rgba(255,105,180,0.3)'}; transition: all 0.3s;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                        <div>
+                                            <strong style="color: #FF69B4; font-size: 1.2rem;">C</strong>
+                                            <span style="color: #aaa; font-size: 0.9rem; margin-left: 8px;">Opción C</span>
+                                        </div>
+                                        <button type="button" 
+                                                class="btn-marcar-correcta ${btnCseleccionado}" 
+                                                data-pregunta="${numPregunta}" 
+                                                data-respuesta="C"
+                                                style="
+                                                    width: 40px; 
+                                                    height: 40px; 
+                                                    border-radius: 50%; 
+                                                    background: ${respuestaCorrectaActual === 'C' ? '#FF69B4' : 'rgba(255,255,255,0.1)'}; 
+                                                    border: 2px solid ${respuestaCorrectaActual === 'C' ? '#FF69B4' : 'rgba(255,255,255,0.3)'};
+                                                    color: white;
+                                                    cursor: pointer;
+                                                    font-weight: bold;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                ">
+                                            ${respuestaCorrectaActual === 'C' ? '✓' : 'C'}
+                                        </button>
+                                    </div>
+                                    <p style="margin: 0; font-size: 1rem; color: #fff;">
+                                        ${pregunta.opcion_c}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- INDICADOR DE RESPUESTA CORRECTA -->
+                            <div id="indicador-p${numPregunta}" style="margin-top: 15px; padding: 10px; background: ${respuestaCorrectaActual ? 'rgba(30, 90, 30, 0.3)' : 'rgba(90, 30, 30, 0.3)'}; border-radius: 6px; display: ${respuestaCorrectaActual ? 'block' : 'none'};">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="color: ${respuestaCorrectaActual ? '#90EE90' : '#FF6B6B'};">
+                                        ${respuestaCorrectaActual ? '✅' : '❌'}
+                                    </span>
+                                    <span style="color: ${respuestaCorrectaActual ? '#90EE90' : '#FF6B6B'};">
+                                        <strong>Respuesta correcta actual:</strong> 
+                                        ${respuestaCorrectaActual ? `Opción ${respuestaCorrectaActual}` : 'No seleccionada'}
+                                    </span>
+                                    <input type="hidden" id="respuesta_correcta_${numPregunta}" value="${respuestaCorrectaActual}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>'; // Cierra .preguntas-grid
+            
+            // 4. Insertar el HTML
+            document.getElementById('correccion-container').innerHTML = html;
+            document.getElementById('btn-guardar-correccion').disabled = false;
+            
+            // 5. Configurar eventos para los botones de selección
+            this.configurarEventosCorreccion();
+            
+            console.log('✅ Formulario de corrección generado');
+            
+        } catch (error) {
+            console.error('❌ Error cargando para corrección:', error);
+            document.getElementById('correccion-container').innerHTML = `
+                <div class="alert error">
+                    <p>❌ Error al cargar las preguntas: ${error.message}</p>
+                </div>
+            `;
+            this.mostrarMensaje('Error cargando preguntas para corrección', 'error');
+        }
+    }
+    
+    configurarEventosCorreccion() {
+        // Configurar eventos para los botones de marcar correcta
+        document.querySelectorAll('.btn-marcar-correcta').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const preguntaNum = e.target.dataset.pregunta;
+                const respuesta = e.target.dataset.respuesta;
+                
+                // 1. Actualizar todos los botones de esta pregunta
+                document.querySelectorAll(`.btn-marcar-correcta[data-pregunta="${preguntaNum}"]`).forEach(b => {
+                    const resp = b.dataset.respuesta;
+                    
+                    // Restablecer estilos para todos
+                    b.innerHTML = resp; // Volver a poner A, B o C
+                    b.style.background = 'rgba(255,255,255,0.1)';
+                    b.style.border = '2px solid rgba(255,255,255,0.3)';
+                    
+                    // Estilos específicos por opción
+                    if (resp === 'A') {
+                        b.style.color = '#00D2BE';
+                    } else if (resp === 'B') {
+                        b.style.color = '#FF8700';
+                    } else if (resp === 'C') {
+                        b.style.color = '#FF69B4';
+                    }
+                });
+                
+                // 2. Marcar el botón seleccionado
+                e.target.innerHTML = '✓';
+                e.target.style.color = 'white';
+                
+                // Estilos según la opción seleccionada
+                if (respuesta === 'A') {
+                    e.target.style.background = '#00D2BE';
+                    e.target.style.border = '2px solid #00D2BE';
+                } else if (respuesta === 'B') {
+                    e.target.style.background = '#FF8700';
+                    e.target.style.border = '2px solid #FF8700';
+                } else if (respuesta === 'C') {
+                    e.target.style.background = '#FF69B4';
+                    e.target.style.border = '2px solid #FF69B4';
+                }
+                
+                // 3. Actualizar el campo oculto y el indicador
+                document.getElementById(`respuesta_correcta_${preguntaNum}`).value = respuesta;
+                
+                const indicador = document.getElementById(`indicador-p${preguntaNum}`);
+                indicador.style.display = 'block';
+                indicador.style.background = 'rgba(30, 90, 30, 0.3)';
+                indicador.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="color: #90EE90;">✅</span>
+                        <span style="color: #90EE90;">
+                            <strong>Respuesta correcta:</strong> Opción ${respuesta}
+                        </span>
+                        <input type="hidden" id="respuesta_correcta_${preguntaNum}" value="${respuesta}">
+                    </div>
+                `;
+                
+                console.log(`✓ Pregunta ${preguntaNum} marcada como: ${respuesta}`);
+            });
+        });
+    }    
+    // Función auxiliar para obtener etiqueta del área
+    getAreaLabel(areaValue) {
+        const areas = {
+            'meteorologia': 'Meteorología',
+            'fiabilidad': 'Fiabilidad',
+            'estrategia': 'Estrategia',
+            'rendimiento': 'Rendimiento',
+            'neumaticos': 'Neumáticos',
+            'seguridad': 'Seguridad',
+            'clasificacion': 'Clasificación',
+            'carrera': 'Carrera',
+            'overtakes': 'Adelantamientos',
+            'incidentes': 'Incidentes',
+            'equipos': 'Equipos',
+            'tiempos': 'Tiempos',
+            'paradas': 'Paradas en boxes'
+        };
+        return areas[areaValue] || areaValue;
+    }
+    async calcularPuntajesCarrera(carreraId) {
+        try {
+            console.log('🧮 Calculando puntajes para carrera:', carreraId);
+            
+            // 1. Obtener respuestas correctas
+            const { data: resultados, error: errorResultados } = await this.supabase
+                .from('resultados_carrera')
+                .select('respuestas_correctas')
+                .eq('carrera_id', carreraId)
+                .single();
+            
+            if (errorResultados || !resultados) {
+                throw new Error('No se encontraron resultados para esta carrera');
+            }
+            
+            // 2. Obtener todos los pronósticos de esta carrera
+            const { data: pronosticos, error: errorPronosticos } = await this.supabase
+                .from('pronosticos_usuario') // Asegúrate que esta tabla existe
+                .select('*')
+                .eq('carrera_id', carreraId)
+                .eq('estado', 'pendiente'); // O el estado que uses
+            
+            if (errorPronosticos) throw errorPronosticos;
+            
+            if (!pronosticos || pronosticos.length === 0) {
+                console.log('⚠️ No hay pronósticos para calcular');
+                return;
+            }
+            
+            // 3. Calcular puntajes para cada usuario
+            for (const pronostico of pronosticos) {
+                let aciertos = 0;
+                
+                // Comparar respuestas
+                const respuestasUsuario = pronostico.respuestas_usuario; // JSON con respuestas
+                const respuestasCorrectas = resultados.respuestas_correctas;
+                
+                for (let i = 1; i <= 10; i++) {
+                    if (respuestasUsuario[`p${i}`] === respuestasCorrectas[`p${i}`]) {
+                        aciertos++;
+                    }
+                }
+                
+                // Calcular puntos totales (ejemplo: 10 puntos por acierto)
+                const puntosTotales = aciertos * 10;
+                
+                // 4. Actualizar el pronóstico con el resultado
+                const { error: errorUpdate } = await this.supabase
+                    .from('pronosticos_usuario')
+                    .update({
+                        estado: 'calificado',
+                        aciertos: aciertos,
+                        puntos_totales: puntosTotales,
+                        fecha_calificacion: new Date().toISOString()
+                    })
+                    .eq('id', pronostico.id);
+                
+                if (errorUpdate) {
+                    console.error(`Error actualizando pronóstico ${pronostico.id}:`, errorUpdate);
+                }
+            }
+            
+            console.log(`✅ Puntajes calculados para ${pronosticos.length} usuarios`);
+            this.mostrarMensaje(`✅ Puntajes calculados para ${pronosticos.length} usuarios`, 'success');
+            
+        } catch (error) {
+            console.error('❌ Error calculando puntajes:', error);
+            this.mostrarMensaje(`Error calculando puntajes: ${error.message}`, 'error');
+        }
+    }
+    
+    async guardarCorreccion() {
+        const carreraId = document.getElementById('select-carrera-corregir').value;
+        if (!carreraId) {
+            this.mostrarMensaje("Selecciona una carrera primero", "error");
+            return;
+        }
+        
+        try {
+            console.log('💾 Guardando corrección para carrera:', carreraId);
+            
+            // 1. Recoger todas las respuestas correctas
+            const respuestasCorrectas = {};
+            let todasCompletas = true;
+            
+            for (let i = 1; i <= 10; i++) {
+                const input = document.getElementById(`respuesta_correcta_${i}`);
+                if (!input) {
+                    console.warn(`No se encontró respuesta para pregunta ${i}`);
+                    continue;
+                }
+                
+                const respuesta = input.value.trim();
+                if (!respuesta) {
+                    this.mostrarMensaje(`❌ La pregunta ${i} no tiene respuesta correcta seleccionada`, "error");
+                    todasCompletas = false;
+                    break;
+                }
+                
+                respuestasCorrectas[`p${i}`] = respuesta;
+            }
+            
+            if (!todasCompletas) return;
+            
+            // 2. Verificar que tenemos todas las respuestas
+            if (Object.keys(respuestasCorrectas).length !== 10) {
+                this.mostrarMensaje("❌ Debes seleccionar respuesta correcta para las 10 preguntas", "error");
+                return;
+            }
+            
+            // 3. Guardar en la tabla resultados_carrera
+            const { data, error } = await this.supabase
+                .from('resultados_carrera')
+                .upsert({
+                    carrera_id: parseInt(carreraId),
+                    respuestas_correctas: respuestasCorrectas,
+                    fecha_correccion: new Date().toISOString(),
+                    estado: 'corregido'
+                }, {
+                    onConflict: 'carrera_id'
+                });
+            
+            if (error) throw error;
+            
+            // 4. Mostrar confirmación
+            this.mostrarMensaje('✅ Respuestas correctas guardadas exitosamente', 'success');
+            
+            // 5. OPCIONAL: Calcular puntajes automáticamente
+            // this.calcularPuntajesCarrera(carreraId);
+            
+            // 6. OPCIONAL: Notificar a usuarios
+            // this.notificarUsuariosResultados(carreraId);
+            
+            console.log('✅ Corrección guardada:', respuestasCorrectas);
+            
+        } catch (error) {
+            console.error('❌ Error guardando corrección:', error);
+            this.mostrarMensaje(`Error: ${error.message}`, 'error');
+        }
+    }
     
     async guardarPreguntas() {
         const carreraId = document.getElementById('select-carrera').value;
