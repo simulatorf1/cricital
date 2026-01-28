@@ -1,33 +1,24 @@
-// admin-pronosticos.js - Usando supabase global
+console.log('🔧 Admin Pronósticos cargando...');
 
-// 1. PRIMERO intentar usar supabase global (ya existe en tu app)
-let supabase;
-
-if (window.supabase) {
-    // Usar el supabase que ya existe en tu aplicación
-    supabase = window.supabase;
-    console.log('✅ Usando supabase global existente');
-} else {
-    // Si no existe (por si accedes directamente al admin), crear uno
-    console.log('⚠️ Supabase global no encontrado, creando nuevo cliente...');
+// Verificar si supabase ya existe globalmente
+if (!window.supabase) {
+    console.error('❌ ERROR: window.supabase no está disponible');
     
+    // Si no existe, crearlo (con tus credenciales reales)
     const SUPABASE_URL = 'https://xbnbbmhcveyzrvvmdktg.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg';
     
     try {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        window.supabase = supabase; // Hacerlo global por si acaso
-        console.log('✅ Cliente Supabase creado manualmente');
+        window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('✅ Cliente Supabase creado');
     } catch (error) {
-        console.error('❌ Error creando cliente Supabase:', error);
-        alert('Error conectando a la base de datos. Verifica la consola.');
+        console.error('❌ Error creando Supabase:', error);
+        alert('Error conectando a la base de datos');
         throw error;
     }
 }
 
-// 2. Verificar que tenemos supabase
-console.log('🔧 Supabase disponible:', !!supabase);
-
+// 3. Ahora usa window.supabase directamente en la clase
 class AdminPronosticos {
     constructor() {
         this.supabase = supabase;
