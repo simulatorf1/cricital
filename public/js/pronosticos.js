@@ -78,12 +78,18 @@ class PronosticosManager {
         }
         
         // 🔴 **CUARTO:** Ahora sí verificar pronóstico existente (this.escuderiaId ya está definido)
-        const { data: pronosticoExistente } = await this.supabase
+        const { data: pronosticos, error: errorPronosticos } = await this.supabase
             .from('pronosticos_usuario')
             .select('id')
-            .eq('escuderia_id', this.escuderiaId)  // ← Ahora this.escuderiaId tiene valor
-            .eq('carrera_id', this.carreraActual.id)
-            .single();
+            .eq('escuderia_id', this.escuderiaId)
+            .eq('carrera_id', this.carreraActual.id);
+        
+        if (errorPronosticos) {
+            console.error("❌ Error verificando pronóstico:", errorPronosticos);
+            this.pronosticoGuardado = false;
+        } else {
+            this.pronosticoGuardado = pronosticos && pronosticos.length > 0;
+        }
         
         this.pronosticoGuardado = !!pronosticoExistente;
         
@@ -416,16 +422,22 @@ class PronosticosManager {
             return;
         }
         
-        const { data: resultado } = await this.supabase
+        const { data: resultados, error: errorResultados } = await this.supabase
             .from('pronosticos_usuario')
             .select(`
                 *,
                 carreras:calendario_gp(nombre),
                 resultados_carrera(respuestas_correctas)
             `)
-            .eq('usuario_id', user.id)
-            .eq('carrera_id', carreraId)
-            .single();
+            .eq('escuderia_id', this.escuderiaId)
+            .eq('carrera_id', carreraId);
+        
+        if (errorResultados || !resultados || resultados.length === 0) {
+            this.mostrarError("No hay resultados disponibles");
+            return;
+        }
+        
+        const resultado = resultados[0];  // ← Tomar el primero;
         
         if (!resultado || resultado.estado !== 'calificado') {
             this.mostrarError("Los resultados no están disponibles aún", container);
