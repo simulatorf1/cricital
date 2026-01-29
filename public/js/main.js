@@ -2142,23 +2142,7 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         if (fetchError) throw fetchError;
         
   
-        
-        // Obtener número global de pieza
-        const { data: todasPiezasArea } = await window.supabase
-            .from('almacen_piezas')
-            .select('id')
-            .eq('escuderia_id', fabricacion.escuderia_id)
-            .eq('area', fabricacion.area);
-        
-        const numeroPiezaGlobal = (todasPiezasArea?.length || 0) + 1;
-        
-        // Calcular puntos usando el nuevo sistema
-        let puntosTotales;
-        if (window.f1Manager && window.f1Manager.calcularPuntosPieza) {
-            puntosTotales = window.f1Manager.calcularPuntosPieza(numeroPiezaGlobal);
-        } else {
-            puntosTotales = calcularPuntosBase(fabricacion.area, fabricacion.nivel, numeroPiezaGlobal);
-        }
+ 
         
         // REEMPLÁZALO con esto:
         // ===== NUEVO: Calcular número global =====
