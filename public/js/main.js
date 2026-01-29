@@ -2141,10 +2141,6 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         
         if (fetchError) throw fetchError;
         
-  
- 
-        
-        // REEMPLÁZALO con esto:
         // ===== NUEVO: Calcular número global =====
         // 1. Obtener todas las piezas de esta área
         const { data: todasPiezasArea } = await window.supabase
@@ -2165,14 +2161,22 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         }
         const nuevoNumeroGlobal = maxNumeroGlobal + 1;
         
-        // 3. Insertar con numero_global
+        // ===== 3. Calcular puntos =====
+        let puntosTotales;
+        if (window.f1Manager && window.f1Manager.calcularPuntosPieza) {
+            puntosTotales = window.f1Manager.calcularPuntosPieza(nuevoNumeroGlobal);
+        } else {
+            puntosTotales = calcularPuntosBase(fabricacion.area, fabricacion.nivel, nuevoNumeroGlobal);
+        }
+        
+        // ===== 4. Insertar con numero_global =====
         const { error: insertError } = await window.supabase
             .from('almacen_piezas')
             .insert([{
                 escuderia_id: fabricacion.escuderia_id,
                 area: fabricacion.area,
                 nivel: fabricacion.nivel || 1,
-                numero_global: nuevoNumeroGlobal,  // ← NUEVO CAMPO
+                numero_global: nuevoNumeroGlobal,
                 puntos_base: puntosTotales,
                 calidad: 'Normal',
                 equipada: false,
