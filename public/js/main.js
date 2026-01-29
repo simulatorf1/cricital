@@ -71,8 +71,8 @@ class F1Manager {
             const { data: piezasFabricadas, error: errorPiezas } = await this.supabase
                 .from('almacen_piezas')
                 .select('area, nivel, calidad')
-                .eq('escuderia_id', this.escuderia.id)
-                .eq('equipada', false);
+                .eq('escuderia_id', this.escuderia.id);
+
             
             if (errorPiezas) {
                 console.error('Error cargando piezas:', errorPiezas);
