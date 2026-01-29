@@ -15,392 +15,393 @@ class PronosticosManager {
         this.estrategasActivos = [];
         this.pronosticoGuardado = false;
         this.injectarEstilos();
-
-        injectarEstilos() {
-            if (document.getElementById('estilos-pronosticos-f1')) return;
+    }
+    injectarEstilos() {
+        if (document.getElementById('estilos-pronosticos-f1')) return;
+        
+        const estilos = `
+            /* ========== ESTILOS F1 PARA PRONÓSTICOS (ADAPTADOS A CLASES EXISTENTES) ========== */
             
-            const estilos = `
-                /* ========== ESTILOS F1 PARA PRONÓSTICOS (ADAPTADOS A CLASES EXISTENTES) ========== */
-                
-                /* Contenedor principal - usa la clase que ya tienes */
-                .pronostico-container {
-                    padding: 20px;
-                    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-                    min-height: 100vh;
-                    color: white;
-                    font-family: 'Orbitron', 'Segoe UI', sans-serif;
-                }
-                
-                /* Tarjetas - usa las clases Bootstrap que ya tienes */
-                .card {
-                    background: rgba(20, 20, 40, 0.9) !important;
-                    border-radius: 15px !important;
-                    border: 2px solid rgba(0, 210, 190, 0.3) !important;
-                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
-                    backdrop-filter: blur(10px);
-                    margin-bottom: 25px !important;
-                    overflow: hidden;
-                    transition: transform 0.3s ease, border-color 0.3s ease;
-                }
-                
-                .card:hover {
-                    transform: translateY(-5px);
-                    border-color: rgba(0, 210, 190, 0.7) !important;
-                }
-                
-                /* Cabeceras de tarjetas - mantiene clases Bootstrap */
-                .card-header {
-                    background: linear-gradient(90deg, #00d2be 0%, #0066cc 100%) !important;
-                    padding: 15px 25px !important;
-                    color: white !important;
-                    border-bottom: 3px solid rgba(255, 255, 255, 0.1) !important;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                }
-                
-                .card-header h4 {
-                    margin: 0 !important;
-                    font-weight: 700 !important;
-                    letter-spacing: 1px;
-                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-                }
-                
-                .card-body {
-                    padding: 25px !important;
-                }
-                
-                /* Botones - mantiene clases Bootstrap pero con estilo F1 */
-                .btn {
-                    border-radius: 8px !important;
-                    padding: 12px 24px !important;
-                    font-weight: bold !important;
-                    letter-spacing: 0.5px;
-                    text-transform: uppercase;
-                    transition: all 0.3s ease !important;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-family: 'Orbitron', sans-serif !important;
-                    font-size: 0.9rem !important;
-                }
-                
-                .btn-success {
-                    background: linear-gradient(90deg, #00d2be 0%, #0066cc 100%) !important;
-                    border: none !important;
-                    box-shadow: 0 4px 15px rgba(0, 210, 190, 0.3) !important;
-                }
-                
-                .btn-success:hover {
-                    transform: translateY(-2px) !important;
-                    box-shadow: 0 6px 20px rgba(0, 210, 190, 0.4) !important;
-                    background: linear-gradient(90deg, #0066cc 0%, #00d2be 100%) !important;
-                }
-                
-                .btn-primary {
-                    background: linear-gradient(90deg, #e10600 0%, #ff6b00 100%) !important;
-                    border: none !important;
-                    box-shadow: 0 4px 15px rgba(225, 6, 0, 0.3) !important;
-                }
-                
-                .btn-primary:hover {
-                    transform: translateY(-2px) !important;
-                    box-shadow: 0 6px 20px rgba(225, 6, 0, 0.4) !important;
-                    background: linear-gradient(90deg, #ff6b00 0%, #e10600 100%) !important;
-                }
-                
-                .btn-outline-secondary {
-                    background: rgba(0, 210, 190, 0.1) !important;
-                    border: 2px solid #00d2be !important;
-                    color: #00d2be !important;
-                }
-                
-                .btn-outline-secondary:hover {
-                    background: rgba(0, 210, 190, 0.2) !important;
-                    transform: translateY(-2px) !important;
-                    border-color: #00d2be !important;
-                    color: white !important;
-                }
-                
-                /* Preguntas - usa tu clase .pregunta-card existente */
-                .pregunta-card {
-                    background: rgba(30, 30, 50, 0.7) !important;
-                    border-radius: 12px !important;
-                    padding: 20px !important;
-                    margin-bottom: 20px !important;
-                    border-left: 5px solid #00d2be !important;
-                    transition: all 0.3s ease !important;
-                }
-                
-                .pregunta-card:hover {
-                    background: rgba(40, 40, 60, 0.8) !important;
-                    border-left-color: #e10600 !important;
-                }
-                
-                .pregunta-card h5 {
-                    color: #00d2be !important;
-                    margin-bottom: 15px !important;
-                    font-size: 1.1rem !important;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                }
-                
-                /* Opciones de respuesta - usa tus clases .opciones y .opcion */
-                .opciones {
-                    display: grid !important;
-                    gap: 12px !important;
-                    margin-top: 15px !important;
-                }
-                
-                .opcion {
-                    position: relative;
-                }
-                
-                .opcion input[type="radio"] {
-                    display: none;
-                }
-                
-                .opcion label {
-                    display: block !important;
-                    padding: 15px !important;
-                    background: rgba(255, 255, 255, 0.05) !important;
-                    border: 2px solid rgba(255, 255, 255, 0.1) !important;
-                    border-radius: 10px !important;
-                    cursor: pointer !important;
-                    transition: all 0.3s ease !important;
-                    color: #ddd !important;
-                    font-size: 0.95rem !important;
-                    display: flex !important;
-                    align-items: center;
-                    gap: 12px;
-                }
-                
-                .opcion label:hover {
-                    background: rgba(255, 255, 255, 0.1) !important;
-                    border-color: rgba(0, 210, 190, 0.3) !important;
-                }
-                
-                .opcion input[type="radio"]:checked + label {
-                    background: rgba(0, 210, 190, 0.15) !important;
-                    border-color: #00d2be !important;
-                    color: white !important;
-                    box-shadow: 0 0 15px rgba(0, 210, 190, 0.3) !important;
-                }
-                
-                .opcion label strong {
-                    color: #00d2be !important;
-                    font-size: 1.1rem !important;
-                    min-width: 25px;
-                }
-                
-                /* Badges - mantiene clase .badge */
-                .badge {
-                    padding: 6px 12px !important;
-                    border-radius: 20px !important;
-                    font-size: 0.8rem !important;
-                    font-weight: bold !important;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-                
-                .bg-success {
-                    background: linear-gradient(90deg, #00d2be, #0066cc) !important;
-                }
-                
-                .bg-danger {
-                    background: linear-gradient(90deg, #e10600, #ff6b00) !important;
-                }
-                
-                .bg-warning {
-                    background: linear-gradient(90deg, #ffb400, #ff6b00) !important;
-                }
-                
-                .bg-info {
-                    background: linear-gradient(90deg, #0066cc, #0099ff) !important;
-                }
-                
-                .bg-secondary {
-                    background: rgba(255, 255, 255, 0.1) !important;
-                    color: #aaa !important;
-                    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                }
-                
-                /* Tablas - mantiene clase .table */
-                .table {
-                    background: rgba(20, 20, 40, 0.8) !important;
-                    border-radius: 10px !important;
-                    overflow: hidden !important;
-                    margin: 20px 0 !important;
-                    border-collapse: separate !important;
-                    border-spacing: 0 !important;
-                }
-                
-                .table thead {
-                    background: linear-gradient(90deg, #00d2be 0%, #0066cc 100%) !important;
-                }
-                
-                .table th {
-                    padding: 15px !important;
-                    color: white !important;
-                    font-weight: 600 !important;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    font-size: 0.85rem !important;
-                }
-                
-                .table tbody tr {
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-                    transition: background 0.3s ease !important;
-                }
-                
-                .table tbody tr:hover {
-                    background: rgba(0, 210, 190, 0.1) !important;
-                }
-                
-                .table td {
-                    padding: 15px !important;
-                    color: #ddd !important;
-                    vertical-align: middle !important;
-                }
-                
-                .table-success {
-                    background: rgba(0, 210, 190, 0.15) !important;
-                }
-                
-                .table-danger {
-                    background: rgba(225, 6, 0, 0.15) !important;
-                }
-                
-                /* Alertas - mantiene clase .alert */
-                .alert {
-                    background: rgba(255, 255, 255, 0.08) !important;
-                    border: 2px solid !important;
-                    border-radius: 10px !important;
-                    padding: 15px 20px !important;
-                    margin: 15px 0 !important;
-                    display: flex !important;
-                    align-items: center;
-                    gap: 12px;
-                    font-size: 0.95rem !important;
-                }
-                
-                .alert-success {
-                    border-color: #00d2be !important;
-                    background: rgba(0, 210, 190, 0.1) !important;
-                    color: #00d2be !important;
-                }
-                
-                .alert-danger {
-                    border-color: #e10600 !important;
-                    background: rgba(225, 6, 0, 0.1) !important;
-                    color: #ff6b6b !important;
-                }
-                
-                .alert-warning {
-                    border-color: #ffb400 !important;
-                    background: rgba(255, 180, 0, 0.1) !important;
-                    color: #ffd166 !important;
-                }
-                
-                .alert-info {
-                    border-color: #0066cc !important;
-                    background: rgba(0, 102, 204, 0.1) !important;
-                    color: #66b3ff !important;
-                }
-                
-                /* Tarjetas de estadísticas - mantiene .stat-card */
-                .stat-card {
-                    background: rgba(30, 30, 50, 0.7) !important;
-                    border-radius: 12px !important;
-                    padding: 20px !important;
-                    text-align: center !important;
-                    border: 1px solid rgba(0, 210, 190, 0.2) !important;
-                    transition: all 0.3s ease !important;
-                }
-                
-                .stat-card:hover {
-                    transform: translateY(-3px);
-                    border-color: #00d2be !important;
-                    box-shadow: 0 8px 20px rgba(0, 210, 190, 0.2) !important;
-                }
-                
-                .stat-value {
-                    font-size: 2.2rem !important;
-                    font-weight: 700 !important;
-                    background: linear-gradient(90deg, #00d2be, #0066cc) !important;
-                    -webkit-background-clip: text !important;
-                    -webkit-text-fill-color: transparent !important;
-                    margin: 10px 0 !important;
-                    font-family: 'Orbitron', sans-serif !important;
-                }
-                
-                /* Estrategas - mantiene .estratega-card */
-                .estratega-card {
-                    background: rgba(40, 40, 60, 0.7) !important;
-                    border-radius: 10px !important;
-                    padding: 15px !important;
-                    margin-bottom: 10px !important;
-                    border-left: 4px solid #00d2be !important;
-                    transition: all 0.3s ease !important;
-                }
-                
-                .estratega-card:hover {
-                    background: rgba(50, 50, 70, 0.8) !important;
-                    transform: translateX(5px);
-                }
-                
-                /* Grids - mantiene tus clases row y col-* */
+            /* Contenedor principal - usa la clase que ya tienes */
+            .pronostico-container {
+                padding: 20px;
+                background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+                min-height: 100vh;
+                color: white;
+                font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            }
+            
+            /* Tarjetas - usa las clases Bootstrap que ya tienes */
+            .card {
+                background: rgba(20, 20, 40, 0.9) !important;
+                border-radius: 15px !important;
+                border: 2px solid rgba(0, 210, 190, 0.3) !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+                backdrop-filter: blur(10px);
+                margin-bottom: 25px !important;
+                overflow: hidden;
+                transition: transform 0.3s ease, border-color 0.3s ease;
+            }
+            
+            .card:hover {
+                transform: translateY(-5px);
+                border-color: rgba(0, 210, 190, 0.7) !important;
+            }
+            
+            /* Cabeceras de tarjetas - mantiene clases Bootstrap */
+            .card-header {
+                background: linear-gradient(90deg, #00d2be 0%, #0066cc 100%) !important;
+                padding: 15px 25px !important;
+                color: white !important;
+                border-bottom: 3px solid rgba(255, 255, 255, 0.1) !important;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            
+            .card-header h4 {
+                margin: 0 !important;
+                font-weight: 700 !important;
+                letter-spacing: 1px;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            }
+            
+            .card-body {
+                padding: 25px !important;
+            }
+            
+            /* Botones - mantiene clases Bootstrap pero con estilo F1 */
+            .btn {
+                border-radius: 8px !important;
+                padding: 12px 24px !important;
+                font-weight: bold !important;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+                transition: all 0.3s ease !important;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-family: 'Orbitron', sans-serif !important;
+                font-size: 0.9rem !important;
+            }
+            
+            .btn-success {
+                background: linear-gradient(90deg, #00d2be 0%, #0066cc 100%) !important;
+                border: none !important;
+                box-shadow: 0 4px 15px rgba(0, 210, 190, 0.3) !important;
+            }
+            
+            .btn-success:hover {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 20px rgba(0, 210, 190, 0.4) !important;
+                background: linear-gradient(90deg, #0066cc 0%, #00d2be 100%) !important;
+            }
+            
+            .btn-primary {
+                background: linear-gradient(90deg, #e10600 0%, #ff6b00 100%) !important;
+                border: none !important;
+                box-shadow: 0 4px 15px rgba(225, 6, 0, 0.3) !important;
+            }
+            
+            .btn-primary:hover {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 20px rgba(225, 6, 0, 0.4) !important;
+                background: linear-gradient(90deg, #ff6b00 0%, #e10600 100%) !important;
+            }
+            
+            .btn-outline-secondary {
+                background: rgba(0, 210, 190, 0.1) !important;
+                border: 2px solid #00d2be !important;
+                color: #00d2be !important;
+            }
+            
+            .btn-outline-secondary:hover {
+                background: rgba(0, 210, 190, 0.2) !important;
+                transform: translateY(-2px) !important;
+                border-color: #00d2be !important;
+                color: white !important;
+            }
+            
+            /* Preguntas - usa tu clase .pregunta-card existente */
+            .pregunta-card {
+                background: rgba(30, 30, 50, 0.7) !important;
+                border-radius: 12px !important;
+                padding: 20px !important;
+                margin-bottom: 20px !important;
+                border-left: 5px solid #00d2be !important;
+                transition: all 0.3s ease !important;
+            }
+            
+            .pregunta-card:hover {
+                background: rgba(40, 40, 60, 0.8) !important;
+                border-left-color: #e10600 !important;
+            }
+            
+            .pregunta-card h5 {
+                color: #00d2be !important;
+                margin-bottom: 15px !important;
+                font-size: 1.1rem !important;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            /* Opciones de respuesta - usa tus clases .opciones y .opcion */
+            .opciones {
+                display: grid !important;
+                gap: 12px !important;
+                margin-top: 15px !important;
+            }
+            
+            .opcion {
+                position: relative;
+            }
+            
+            .opcion input[type="radio"] {
+                display: none;
+            }
+            
+            .opcion label {
+                display: block !important;
+                padding: 15px !important;
+                background: rgba(255, 255, 255, 0.05) !important;
+                border: 2px solid rgba(255, 255, 255, 0.1) !important;
+                border-radius: 10px !important;
+                cursor: pointer !important;
+                transition: all 0.3s ease !important;
+                color: #ddd !important;
+                font-size: 0.95rem !important;
+                display: flex !important;
+                align-items: center;
+                gap: 12px;
+            }
+            
+            .opcion label:hover {
+                background: rgba(255, 255, 255, 0.1) !important;
+                border-color: rgba(0, 210, 190, 0.3) !important;
+            }
+            
+            .opcion input[type="radio"]:checked + label {
+                background: rgba(0, 210, 190, 0.15) !important;
+                border-color: #00d2be !important;
+                color: white !important;
+                box-shadow: 0 0 15px rgba(0, 210, 190, 0.3) !important;
+            }
+            
+            .opcion label strong {
+                color: #00d2be !important;
+                font-size: 1.1rem !important;
+                min-width: 25px;
+            }
+            
+            /* Badges - mantiene clase .badge */
+            .badge {
+                padding: 6px 12px !important;
+                border-radius: 20px !important;
+                font-size: 0.8rem !important;
+                font-weight: bold !important;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            
+            .bg-success {
+                background: linear-gradient(90deg, #00d2be, #0066cc) !important;
+            }
+            
+            .bg-danger {
+                background: linear-gradient(90deg, #e10600, #ff6b00) !important;
+            }
+            
+            .bg-warning {
+                background: linear-gradient(90deg, #ffb400, #ff6b00) !important;
+            }
+            
+            .bg-info {
+                background: linear-gradient(90deg, #0066cc, #0099ff) !important;
+            }
+            
+            .bg-secondary {
+                background: rgba(255, 255, 255, 0.1) !important;
+                color: #aaa !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            }
+            
+            /* Tablas - mantiene clase .table */
+            .table {
+                background: rgba(20, 20, 40, 0.8) !important;
+                border-radius: 10px !important;
+                overflow: hidden !important;
+                margin: 20px 0 !important;
+                border-collapse: separate !important;
+                border-spacing: 0 !important;
+            }
+            
+            .table thead {
+                background: linear-gradient(90deg, #00d2be 0%, #0066cc 100%) !important;
+            }
+            
+            .table th {
+                padding: 15px !important;
+                color: white !important;
+                font-weight: 600 !important;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-size: 0.85rem !important;
+            }
+            
+            .table tbody tr {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+                transition: background 0.3s ease !important;
+            }
+            
+            .table tbody tr:hover {
+                background: rgba(0, 210, 190, 0.1) !important;
+            }
+            
+            .table td {
+                padding: 15px !important;
+                color: #ddd !important;
+                vertical-align: middle !important;
+            }
+            
+            .table-success {
+                background: rgba(0, 210, 190, 0.15) !important;
+            }
+            
+            .table-danger {
+                background: rgba(225, 6, 0, 0.15) !important;
+            }
+            
+            /* Alertas - mantiene clase .alert */
+            .alert {
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 2px solid !important;
+                border-radius: 10px !important;
+                padding: 15px 20px !important;
+                margin: 15px 0 !important;
+                display: flex !important;
+                align-items: center;
+                gap: 12px;
+                font-size: 0.95rem !important;
+            }
+            
+            .alert-success {
+                border-color: #00d2be !important;
+                background: rgba(0, 210, 190, 0.1) !important;
+                color: #00d2be !important;
+            }
+            
+            .alert-danger {
+                border-color: #e10600 !important;
+                background: rgba(225, 6, 0, 0.1) !important;
+                color: #ff6b6b !important;
+            }
+            
+            .alert-warning {
+                border-color: #ffb400 !important;
+                background: rgba(255, 180, 0, 0.1) !important;
+                color: #ffd166 !important;
+            }
+            
+            .alert-info {
+                border-color: #0066cc !important;
+                background: rgba(0, 102, 204, 0.1) !important;
+                color: #66b3ff !important;
+            }
+            
+            /* Tarjetas de estadísticas - mantiene .stat-card */
+            .stat-card {
+                background: rgba(30, 30, 50, 0.7) !important;
+                border-radius: 12px !important;
+                padding: 20px !important;
+                text-align: center !important;
+                border: 1px solid rgba(0, 210, 190, 0.2) !important;
+                transition: all 0.3s ease !important;
+            }
+            
+            .stat-card:hover {
+                transform: translateY(-3px);
+                border-color: #00d2be !important;
+                box-shadow: 0 8px 20px rgba(0, 210, 190, 0.2) !important;
+            }
+            
+            .stat-value {
+                font-size: 2.2rem !important;
+                font-weight: 700 !important;
+                background: linear-gradient(90deg, #00d2be, #0066cc) !important;
+                -webkit-background-clip: text !important;
+                -webkit-text-fill-color: transparent !important;
+                margin: 10px 0 !important;
+                font-family: 'Orbitron', sans-serif !important;
+            }
+            
+            /* Estrategas - mantiene .estratega-card */
+            .estratega-card {
+                background: rgba(40, 40, 60, 0.7) !important;
+                border-radius: 10px !important;
+                padding: 15px !important;
+                margin-bottom: 10px !important;
+                border-left: 4px solid #00d2be !important;
+                transition: all 0.3s ease !important;
+            }
+            
+            .estratega-card:hover {
+                background: rgba(50, 50, 70, 0.8) !important;
+                transform: translateX(5px);
+            }
+            
+            /* Grids - mantiene tus clases row y col-* */
+            .row {
+                margin: 0 -10px !important;
+            }
+            
+            .col-md-3, .col-md-4, .col-md-6 {
+                padding: 0 10px !important;
+            }
+            
+            /* Responsive */
+            @media (max-width: 768px) {
                 .row {
-                    margin: 0 -10px !important;
+                    flex-direction: column !important;
                 }
                 
                 .col-md-3, .col-md-4, .col-md-6 {
-                    padding: 0 10px !important;
+                    margin-bottom: 15px !important;
                 }
                 
-                /* Responsive */
-                @media (max-width: 768px) {
-                    .row {
-                        flex-direction: column !important;
-                    }
-                    
-                    .col-md-3, .col-md-4, .col-md-6 {
-                        margin-bottom: 15px !important;
-                    }
-                    
-                    .card-header h4 {
-                        font-size: 1.1rem !important;
-                    }
-                    
-                    .btn {
-                        padding: 10px 18px !important;
-                        font-size: 0.85rem !important;
-                    }
+                .card-header h4 {
+                    font-size: 1.1rem !important;
                 }
                 
-                /* Scrollbar personalizado */
-                .pronostico-container::-webkit-scrollbar {
-                    width: 8px;
+                .btn {
+                    padding: 10px 18px !important;
+                    font-size: 0.85rem !important;
                 }
-                
-                .pronostico-container::-webkit-scrollbar-track {
-                    background: rgba(0, 0, 0, 0.2);
-                    border-radius: 4px;
-                }
-                
-                .pronostico-container::-webkit-scrollbar-thumb {
-                    background: linear-gradient(180deg, #00d2be, #0066cc);
-                    border-radius: 4px;
-                }
-            `;
+            }
             
-            const style = document.createElement('style');
-            style.id = 'estilos-pronosticos-f1';
-            style.textContent = estilos;
-            document.head.appendChild(style);
-        }
+            /* Scrollbar personalizado */
+            .pronostico-container::-webkit-scrollbar {
+                width: 8px;
+            }
+            
+            .pronostico-container::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 4px;
+            }
+            
+            .pronostico-container::-webkit-scrollbar-thumb {
+                background: linear-gradient(180deg, #00d2be, #0066cc);
+                border-radius: 4px;
+            }
+        `;
+        
+        const style = document.createElement('style');
+        style.id = 'estilos-pronosticos-f1';
+        style.textContent = estilos;
+        document.head.appendChild(style);
     }
+
+
     
     async inicializar(usuarioId) {
         console.log("📊 Inicializando PronosticosManager");
