@@ -162,16 +162,17 @@ class F1Manager {
                 
                 // Para cada una de las 5 posibles piezas de este nivel
                 // Primero, obtener todas las piezas de esta área para saber los numeros_global usados
-                const { data: todasPiezasAreaConGlobal } = await this.supabase  // ← CAMBIÉ EL NOMBRE
+                // 1. Obtener TODAS las piezas (equipadas o no) con numero_global
+                const { data: todasPiezasAreaConGlobal } = await this.supabase
                     .from('almacen_piezas')
-                    .select('id, nivel, numero_global')
+                    .select('id, nivel, numero_global, equipada')
                     .eq('escuderia_id', this.escuderia.id)
                     .eq('area', area.id);
                 
-                // Crear array de numeros_global ya usados en este nivel
+                // 2. Crear array de numeros_global ya usados (solo NO equipadas)
                 const numerosGlobalesUsados = [];
-                todasPiezasAreaConGlobal?.forEach(p => {  // ← USAR EL NUEVO NOMBRE
-                    if (p.nivel === nivelAFabricar && p.numero_global) {
+                todasPiezasAreaConGlobal?.forEach(p => {
+                    if (p.nivel === nivelAFabricar && p.numero_global && !p.equipada) {
                         numerosGlobalesUsados.push(p.numero_global);
                     }
                 });
@@ -181,17 +182,38 @@ class F1Manager {
                     // Calcular qué número global sería esta pieza
                     const numeroGlobalEsperado = ((nivelAFabricar - 1) * 5) + piezaNum;
                     
-                    // Verificar si YA EXISTE una pieza con este numero_global
-                    const yaLaTienes = numerosGlobalesUsados.includes(numeroGlobalEsperado);
+                    // CAMBIO 1: Verificar si existe una pieza NO EQUIPADA con este numero_global
+                    const yaLaTienesNoEquipada = numerosGlobalesUsados.includes(numeroGlobalEsperado);
+                    
+                    // CAMBIO 2: Verificar si existe una pieza EQUIPADA con este numero_global
+                    const existePeroEquipada = todasPiezasAreaConGlobal?.some(p => 
+                        p.nivel === nivelAFabricar && 
+                        p.numero_global === numeroGlobalEsperado && 
+                        p.equipada === true
+                    );
+                    
                     const piezaFabricada = piezasAreaNivel.length >= piezaNum;
                     
                     // Calcular puntos para mostrar
                     const puntosPieza = this.calcularPuntosPieza(numeroGlobalEsperado);
                     
-                    if (yaLaTienes || piezaFabricada) {
-                        // YA LA TIENES (fabricada O comprada)
+                    // CAMBIO 3: Cambiar la condición del if
+                    if (yaLaTienesNoEquipada || piezaFabricada) {
+                        // YA LA TIENES NO EQUIPADA o ya fabricada
                         html += '<button class="btn-pieza-mini lleno" disabled title="' + area.nombre + ' - Ya posees esta pieza (+' + puntosPieza + ' pts)">';
                         html += '<i class="fas fa-check"></i>';
+                        html += '<span class="pieza-num">+' + puntosPieza + '</span>';
+                        html += '</button>';
+                    } else if (existePeroEquipada) {
+                        // La tienes pero EQUIPADA - PUEDES fabricarla de nuevo
+                        const puedeFabricar = fabricacionesCount < 4 && 
+                                            this.escuderia.dinero >= 10000 &&
+                                            piezaNum === piezasAreaNivel.length + 1;
+                        
+                        html += '<button class="btn-pieza-mini vacio" ';
+                        html += 'onclick="iniciarFabricacionTallerDesdeBoton(\'' + area.id + '\', ' + nivelAFabricar + ')"';
+                        html += (!puedeFabricar ? ' disabled' : '') + '>';
+                        html += '<i class="fas fa-plus"></i>';
                         html += '<span class="pieza-num">+' + puntosPieza + '</span>';
                         html += '</button>';
                     } else if (fabricacionActiva && piezaNum === piezasAreaNivel.length + 1) {
