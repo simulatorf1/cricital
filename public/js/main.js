@@ -161,17 +161,36 @@ class F1Manager {
                 const totalPiezasFabricadas = todasPiezasArea?.length || 0;
                 
                 // Para cada una de las 5 posibles piezas de este nivel
+                // Primero, obtener todas las piezas de esta área para saber los numeros_global usados
+                const { data: todasPiezasArea } = await this.supabase
+                    .from('almacen_piezas')
+                    .select('id, nivel, numero_global')
+                    .eq('escuderia_id', this.escuderia.id)
+                    .eq('area', area.id);
+                
+                // Crear array de numeros_global ya usados en este nivel
+                const numerosGlobalesUsados = [];
+                todasPiezasArea?.forEach(p => {
+                    if (p.nivel === nivelAFabricar && p.numero_global) {
+                        numerosGlobalesUsados.push(p.numero_global);
+                    }
+                });
+                
+                // Para cada una de las 5 posibles piezas
                 for (let piezaNum = 1; piezaNum <= 5; piezaNum++) {
+                    // Calcular qué número global sería esta pieza
+                    const numeroGlobalEsperado = ((nivelAFabricar - 1) * 5) + piezaNum;
+                    
+                    // Verificar si YA EXISTE una pieza con este numero_global
+                    const yaLaTienes = numerosGlobalesUsados.includes(numeroGlobalEsperado);
                     const piezaFabricada = piezasAreaNivel.length >= piezaNum;
                     
-                    // Calcular el número global de esta pieza específica
-                    const numeroPiezaGlobal = totalPiezasFabricadas + piezaNum;
+                    // Calcular puntos para mostrar
+                    const puntosPieza = this.calcularPuntosPieza(numeroGlobalEsperado);
                     
-                    // Calcular los puntos usando tu método existente
-                    const puntosPieza = this.calcularPuntosPieza(numeroPiezaGlobal);
-                    
-                    if (piezaFabricada) {
-                        html += '<button class="btn-pieza-mini lleno" disabled title="' + area.nombre + ' - Evolución ' + piezaNum + ' fabricada (+' + puntosPieza + ' pts)">';
+                    if (yaLaTienes || piezaFabricada) {
+                        // YA LA TIENES (fabricada O comprada)
+                        html += '<button class="btn-pieza-mini lleno" disabled title="' + area.nombre + ' - Ya posees esta pieza (+' + puntosPieza + ' pts)">';
                         html += '<i class="fas fa-check"></i>';
                         html += '<span class="pieza-num">+' + puntosPieza + '</span>';
                         html += '</button>';
@@ -2148,12 +2167,35 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
             puntosTotales = calcularPuntosBase(fabricacion.area, fabricacion.nivel, numeroPiezaGlobal);
         }
         
+        // REEMPLÁZALO con esto:
+        // ===== NUEVO: Calcular número global =====
+        // 1. Obtener todas las piezas de esta área
+        const { data: todasPiezasArea } = await window.supabase
+            .from('almacen_piezas')
+            .select('id, numero_global')
+            .eq('escuderia_id', fabricacion.escuderia_id)
+            .eq('area', fabricacion.area);
+        
+        // 2. Encontrar el siguiente número global
+        let maxNumeroGlobal = 0;
+        if (todasPiezasArea && todasPiezasArea.length > 0) {
+            // Buscar el máximo numero_global existente
+            todasPiezasArea.forEach(p => {
+                if (p.numero_global && p.numero_global > maxNumeroGlobal) {
+                    maxNumeroGlobal = p.numero_global;
+                }
+            });
+        }
+        const nuevoNumeroGlobal = maxNumeroGlobal + 1;
+        
+        // 3. Insertar con numero_global
         const { error: insertError } = await window.supabase
             .from('almacen_piezas')
             .insert([{
                 escuderia_id: fabricacion.escuderia_id,
                 area: fabricacion.area,
                 nivel: fabricacion.nivel || 1,
+                numero_global: nuevoNumeroGlobal,  // ← NUEVO CAMPO
                 puntos_base: puntosTotales,
                 calidad: 'Normal',
                 equipada: false,
