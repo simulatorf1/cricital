@@ -47,6 +47,10 @@ class F1Manager {
     // MÉTODO PARA CARGAR PESTAÑA TALLER
     // ========================
 
+    // ========================
+    // MÉTODO PARA CARGAR PESTAÑA TALLER (MODIFICADO)
+    // ========================
+    
     async cargarTabTaller() {
         console.log('🔧 Cargando pestaña taller minimalista...');
         
@@ -112,7 +116,8 @@ class F1Manager {
             
             html += '<div class="taller-botones-grid">';
             
-            areas.forEach(area => {
+            // Para cada área, procesar las 5 piezas posibles
+            for (const area of areas) {
                 const nivelActual = this.carStats ? 
                     this.carStats[area.id + '_nivel'] || 0 : 0;
                 const nivelAFabricar = nivelActual + 1;
@@ -135,33 +140,48 @@ class F1Manager {
                 html += '<span class="area-nombre-mini">' + area.nombre + '</span>';
                 html += '<span class="area-nivel-mini">Nivel ' + nivelAFabricar + '</span>';
                 
-                // === AÑADE AQUÍ LA BARRA SIMPLE ===
+                // Barra simple
                 html += '<div style="width: 100%; margin: 5px 0 10px 0;">';
                 html += '<div style="font-size: 0.7rem; color: #aaa; margin-bottom: 3px;">Progreso del área</div>';
                 html += '<div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">';
                 html += '<div style="width: 2%; height: 100%; background: #00d2be; border-radius: 3px;"></div>';
                 html += '</div>';
                 html += '</div>';
-                // === FIN DE LA BARRA SIMPLE ===
                 
-                html += '</div>';  // ← Esto cierra 'area-titulo-mini'
+                html += '</div>';  // ← Cierra 'area-titulo-mini'
                 html += '<div class="botones-calidad-mini">';
                 
+                // Primero, obtener el total de piezas fabricadas para esta área
+                const { data: todasPiezasArea } = await this.supabase
+                    .from('almacen_piezas')
+                    .select('id')
+                    .eq('escuderia_id', this.escuderia.id)
+                    .eq('area', area.id);
+                
+                const totalPiezasFabricadas = todasPiezasArea?.length || 0;
+                
+                // Para cada una de las 5 posibles piezas de este nivel
                 for (let piezaNum = 1; piezaNum <= 5; piezaNum++) {
                     const piezaFabricada = piezasAreaNivel.length >= piezaNum;
                     
+                    // Calcular el número global de esta pieza específica
+                    const numeroPiezaGlobal = totalPiezasFabricadas + piezaNum;
+                    
+                    // Calcular los puntos usando tu método existente
+                    const puntosPieza = this.calcularPuntosPieza(numeroPiezaGlobal);
+                    
                     if (piezaFabricada) {
-                        html += '<button class="btn-pieza-mini lleno" disabled title="' + area.nombre + ' - Evolución ' + piezaNum + ' fabricada">';
+                        html += '<button class="btn-pieza-mini lleno" disabled title="' + area.nombre + ' - Evolución ' + piezaNum + ' fabricada (+' + puntosPieza + ' pts)">';
                         html += '<i class="fas fa-check"></i>';
-                        html += '<span class="pieza-num">' + piezaNum + '</span>';
+                        html += '<span class="pieza-num">+' + puntosPieza + '</span>';
                         html += '</button>';
                     } else if (fabricacionActiva && piezaNum === piezasAreaNivel.length + 1) {
                         const tiempoRestante = new Date(fabricacionActiva.tiempo_fin) - new Date();
                         const minutos = Math.ceil(tiempoRestante / (1000 * 60));
                         
-                        html += '<button class="btn-pieza-mini fabricando" disabled title="' + area.nombre + ' - Evolución ' + piezaNum + ' en fabricación (' + minutos + ' min)">';
+                        html += '<button class="btn-pieza-mini fabricando" disabled title="' + area.nombre + ' - Evolución ' + piezaNum + ' en fabricación (' + minutos + ' min) - +' + puntosPieza + ' pts">';
                         html += '<i class="fas fa-spinner fa-spin"></i>';
-                        html += '<span class="pieza-num">' + piezaNum + '</span>';
+                        html += '<span class="pieza-num">+' + puntosPieza + '</span>';
                         html += '</button>';
                     } else {
                         const puedeFabricar = fabricacionesCount < 4 && 
@@ -172,7 +192,7 @@ class F1Manager {
                         html += 'onclick="iniciarFabricacionTallerDesdeBoton(\'' + area.id + '\', ' + nivelAFabricar + ')"';
                         html += (!puedeFabricar ? ' disabled' : '') + '>';
                         html += '<i class="fas fa-plus"></i>';
-                        html += '<span class="pieza-num">' + piezaNum + '</span>';
+                        html += '<span class="pieza-num">+' + puntosPieza + '</span>';
                         html += '</button>';
                     }
                 }
@@ -186,12 +206,13 @@ class F1Manager {
                 
                 html += '</div>';
                 html += '</div>';
-            });
+            }
             
             html += '</div>';
             html += '<div class="taller-info-mini">';
             html += '<p><i class="fas fa-info-circle"></i> Fabricaciones activas: <strong>' + fabricacionesCount + '/4</strong></p>';
             html += '<p><i class="fas fa-info-circle"></i> Necesitas 5 evoluciones del mismo nivel para subir de nivel</p>';
+            html += '<p><i class="fas fa-info-circle"></i> Los números muestran los puntos técnicos que otorga cada pieza</p>';
             html += '</div>';
             html += '</div>';
             
