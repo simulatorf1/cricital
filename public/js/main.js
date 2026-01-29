@@ -253,9 +253,7 @@ class F1Manager {
             const tiempoMilisegundos = tiempoMinutos * 60 * 1000;
             console.log('⏱️ Tiempo: ' + tiempoMinutos + ' minutos (' + tiempoMilisegundos + 'ms)');
             
-            // Obtener número global de pieza para esta área
-            const numeroPiezaGlobal = await this.obtenerNumeroPiezaGlobal(areaId, nivel);
-            const numeroPiezaEnNivel = ((numeroPiezaGlobal - 1) % 5) + 1;
+
             
             // Calcular costo basado en nivel y número de pieza
             const costo = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
