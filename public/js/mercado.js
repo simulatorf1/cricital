@@ -930,18 +930,19 @@ class MercadoManager {
             }
     
             // 2. ENCONTRAR LA PIEZA ORIGINAL DEL VENDEDOR
-            const { data: piezaOriginal, error: findError } = await this.supabase
+            const { data: piezasOriginales, error: findError } = await this.supabase
                 .from('almacen_piezas')
                 .select('*')
-                .eq('id', orden.pieza_id)
-                .single();
+                .eq('id', orden.pieza_id);
             
-            if (findError || !piezaOriginal) {
+            if (findError || !piezasOriginales || piezasOriginales.length === 0) {
                 throw new Error('No se encontró la pieza original');
             }
+            
+            const piezaOriginal = piezasOriginales[0];
     
             // 3. TRANSFERIR la pieza al comprador (NO crear nueva)
-            const { error: transferPiezaError } = await this.supabase  // ← CAMBIA NOMBRE
+            const { error: transferPiezaError } = await this.supabase
                 .from('almacen_piezas')
                 .update({
                     escuderia_id: this.escuderia.id,
@@ -951,7 +952,7 @@ class MercadoManager {
                 })
                 .eq('id', orden.pieza_id);
             
-            if (transferPiezaError) throw transferPiezaError;  // ← USA NUEVO NOMBRE
+            if (transferPiezaError) throw transferPiezaError;
     
             // 4. Y 5. TRANSFERIR DINERO CON LA FUNCIÓN SEGURA
             const { error: transferDineroError } = await this.supabase.rpc(  // ← NOMBRE DIFERENTE
@@ -1456,32 +1457,36 @@ async function venderPiezaDesdeAlmacen(piezaId) {
     }
     
     try {
-        // 1. Obtener datos de la pieza desde la BD
+        // Obtener pieza
         const { data: piezas, error } = await this.supabase
             .from('almacen_piezas')
             .select('*')
             .eq('id', piezaId)
-            .eq('escuderia_id', this.escuderia.id)
-            .eq('equipada', false);
+            .eq('escuderia_id', this.escuderia.id);
         
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Error obteniendo pieza:', error);
+            alert('Error: No se pudo encontrar la pieza en tu inventario');
+            return;
+        }
         
         if (!piezas || piezas.length === 0) {
-            this.mostrarNotificacion('❌ Pieza no encontrada o ya equipada', 'error');
+            alert('❌ Pieza no encontrada en tu inventario');
             return;
         }
         
         const pieza = piezas[0];
         
-        // 2. Verificar si ya está en venta
+        // Verificar que no esté ya en venta
         const { data: yaEnVenta } = await this.supabase
             .from('mercado')
             .select('*')
             .eq('pieza_id', piezaId)
             .eq('estado', 'disponible');
-        
+            
         if (yaEnVenta && yaEnVenta.length > 0) {
-            this.mostrarNotificacion('⚠️ Esta pieza ya está en venta', 'warning');
+            alert('⚠️ Esta pieza ya está en venta en el mercado');
+            if (modal) modal.remove();
             return;
         }
         
