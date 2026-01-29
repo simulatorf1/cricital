@@ -134,28 +134,17 @@ class F1Manager {
                 html += '<span class="area-icono-mini">' + area.icono + '</span>';
                 html += '<span class="area-nombre-mini">' + area.nombre + '</span>';
                 html += '<span class="area-nivel-mini">Nivel ' + nivelAFabricar + '</span>';
-                html += '</div>';
-                // Calcular progreso global del área (piezas 1-50)
-                const { data: todasPiezasArea } = await this.supabase
-                    .from('almacen_piezas')
-                    .select('id')
-                    .eq('escuderia_id', this.escuderia.id)
-                    .eq('area', area.id)
-                    .eq('equipada', false);
                 
-                const totalPiezasFabricadas = todasPiezasArea?.length || 0;
-                const numeroPiezaGlobal = totalPiezasFabricadas;
-                const porcentajeGlobal = Math.min(100, (numeroPiezaGlobal / 50) * 100);
+                // === AÑADE AQUÍ LA BARRA SIMPLE ===
+                html += '<div style="width: 100%; margin: 5px 0 10px 0;">';
+                html += '<div style="font-size: 0.7rem; color: #aaa; margin-bottom: 3px;">Progreso del área</div>';
+                html += '<div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">';
+                html += '<div style="width: 2%; height: 100%; background: #00d2be; border-radius: 3px;"></div>';
+                html += '</div>';
+                html += '</div>';
+                // === FIN DE LA BARRA SIMPLE ===
                 
-                // Barra de progreso global
-                html += '<div class="progreso-global-container" style="margin: 5px 0; padding: 0 10px;">';
-                html += '<div class="progreso-global-text" style="font-size: 0.7rem; color: #aaa; margin-bottom: 3px;">';
-                html += 'Progreso: ' + numeroPiezaGlobal + '/50 piezas';
-                html += '</div>';
-                html += '<div class="progress-bar-global" title="Progreso total del área: ' + numeroPiezaGlobal + '/50 piezas" style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">';
-                html += '<div class="progress-fill-global" style="width: ' + porcentajeGlobal + '%; height: 100%; background: linear-gradient(90deg, #00d2be, #0066cc); border-radius: 3px;"></div>';
-                html += '</div>';
-                html += '</div>';                
+                html += '</div>';  // ← Esto cierra 'area-titulo-mini'
                 html += '<div class="botones-calidad-mini">';
                 
                 for (let piezaNum = 1; piezaNum <= 5; piezaNum++) {
