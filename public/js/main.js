@@ -162,7 +162,7 @@ class F1Manager {
                 
                 // Para cada una de las 5 posibles piezas de este nivel
                 // Primero, obtener todas las piezas de esta área para saber los numeros_global usados
-                const { data: todasPiezasArea } = await this.supabase
+                const { data: todasPiezasAreaConGlobal } = await this.supabase  // ← CAMBIÉ EL NOMBRE
                     .from('almacen_piezas')
                     .select('id, nivel, numero_global')
                     .eq('escuderia_id', this.escuderia.id)
@@ -170,7 +170,7 @@ class F1Manager {
                 
                 // Crear array de numeros_global ya usados en este nivel
                 const numerosGlobalesUsados = [];
-                todasPiezasArea?.forEach(p => {
+                todasPiezasAreaConGlobal?.forEach(p => {  // ← USAR EL NUEVO NOMBRE
                     if (p.nivel === nivelAFabricar && p.numero_global) {
                         numerosGlobalesUsados.push(p.numero_global);
                     }
