@@ -1388,7 +1388,7 @@ MercadoManager.prototype.procesarVentaRapida = async function(piezaId) {
         // Verificar que no esté ya en venta
         const { data: yaEnVenta } = await this.supabase
             .from('mercado')
-            .select('id')
+            .select('*')
             .eq('pieza_id', piezaId)
             .eq('estado', 'disponible')
             .single();
@@ -1475,7 +1475,7 @@ async function venderPiezaDesdeAlmacen(piezaId) {
         // 2. Verificar si ya está en venta
         const { data: yaEnVenta } = await this.supabase
             .from('mercado')
-            .select('id')
+            .select('*')
             .eq('pieza_id', piezaId)
             .eq('estado', 'disponible')
             .single();
