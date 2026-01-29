@@ -2202,9 +2202,12 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         
         console.log("✅ Fabricación marcada como completada");
         
+        // Calcular qué número de pieza es dentro del nivel (1-5)
+        const numeroPiezaEnNivel = ((nuevoNumeroGlobal - 1) % 5) + 1;
         const nombreArea = window.f1Manager?.getNombreArea(fabricacion.area) || fabricacion.area;
+        
         if (window.f1Manager && window.f1Manager.showNotification) {
-            window.f1Manager.showNotification('✅ ' + nombreArea + ' (Pieza ' + numeroPieza + ') recogida\n+' + puntosTotales + ' puntos técnicos', 'success');
+            window.f1Manager.showNotification('✅ ' + nombreArea + ' (Pieza ' + numeroPiezaEnNivel + ' de nivel ' + fabricacion.nivel + ') recogida\n+' + puntosTotales + ' puntos técnicos', 'success');
         }
         
         if (window.f1Manager) {
