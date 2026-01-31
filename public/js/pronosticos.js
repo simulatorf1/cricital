@@ -14,6 +14,7 @@ class PronosticosManager {
         this.usuarioPuntos = 0;
         this.estrategasActivos = [];
         this.pronosticoGuardado = false;
+        this.usuarioAceptoCondiciones = false; // <- Añade esto
         this.injectarEstilos();
     }
     injectarEstilos() {
@@ -388,6 +389,102 @@ class PronosticosManager {
                 background: rgba(0, 0, 0, 0.2);
                 border-radius: 4px;
             }
+            /* ESTILOS COMPACTOS */
+            .compacto .card {
+                margin-bottom: 15px !important;
+                border-radius: 10px !important;
+            }
+            
+            .compacto .card-header {
+                padding: 10px 15px !important;
+            }
+            
+            .compacto .card-body {
+                padding: 15px !important;
+            }
+            
+            .compacto h5, .compacto h6 {
+                font-size: 1rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+            
+            .compacto .stat-value-mini {
+                font-size: 1.5rem !important;
+                font-weight: 700 !important;
+                background: linear-gradient(90deg, #00d2be, #0066cc) !important;
+                -webkit-background-clip: text !important;
+                -webkit-text-fill-color: transparent !important;
+            }
+            
+            .compacto .fecha-actual {
+                font-size: 1.1rem !important;
+                font-weight: 600 !important;
+                color: #00d2be !important;
+            }
+            
+            .compacto .table-sm th,
+            .compacto .table-sm td {
+                padding: 8px !important;
+            }
+            
+            .compacto .alert-sm {
+                padding: 8px 12px !important;
+                font-size: 0.85rem !important;
+            }
+            
+            .compacto .estratega-mini {
+                background: rgba(40, 40, 60, 0.5) !important;
+                border-radius: 6px !important;
+                padding: 8px !important;
+                margin-bottom: 6px !important;
+                border-left: 3px solid #00d2be !important;
+                font-size: 0.85rem !important;
+            }
+            
+            .compacto .estratega-mini strong {
+                font-size: 0.9rem !important;
+            }
+            
+            .compacto .badge-sm {
+                padding: 3px 8px !important;
+                font-size: 0.7rem !important;
+            }
+            
+            .compacto .pregunta-card.compacto {
+                padding: 15px !important;
+                margin-bottom: 15px !important;
+                border-left: 4px solid #00d2be !important;
+            }
+            
+            .compacto .opciones.compacto {
+                gap: 8px !important;
+            }
+            
+            .compacto .opcion.compacto label {
+                padding: 10px 12px !important;
+                font-size: 0.9rem !important;
+            }
+            
+            .compacto .opcion.compacto label strong {
+                font-size: 0.95rem !important;
+            }
+            
+            .compacto .btn-sm {
+                padding: 6px 12px !important;
+                font-size: 0.85rem !important;
+            }
+            
+            .compacto .form-check-input {
+                width: 16px !important;
+                height: 16px !important;
+                margin-top: 0.2rem !important;
+            }
+            
+            .compacto .form-check-label {
+                font-size: 0.9rem !important;
+            }
+
+
             
             .pronostico-container::-webkit-scrollbar-thumb {
                 background: linear-gradient(180deg, #00d2be, #0066cc);
@@ -590,6 +687,15 @@ class PronosticosManager {
             return;
         }
         
+        if (!this.usuarioAceptoCondiciones) {
+            this.mostrarCondicionesIniciales(container);
+            return;
+        }
+        
+        this.mostrarPreguntasPronostico(container);
+    }
+    
+    mostrarCondicionesIniciales(container) {
         const fechaCarrera = new Date(this.carreraActual.fecha_inicio);
         fechaCarrera.setHours(fechaCarrera.getHours() + 24);
         const fechaResultados = fechaCarrera.toLocaleDateString('es-ES', {
@@ -599,29 +705,111 @@ class PronosticosManager {
             minute: '2-digit'
         });
         
-        let estrategasHTML = '<p class="text-muted">No tienes estrategas contratados</p>';
+        let estrategasHTML = '<p class="text-muted mb-0">No tienes estrategas contratados</p>';
         if (this.estrategasActivos.length > 0) {
-            estrategasHTML = this.estrategasActivos.map(e => `
-                <div class="estratega-card">
-                    <strong>${e.nombre || 'Estratega'}</strong>  // ← USA e.nombre directo
-                    <small class="text-muted">${e.especialidad || 'Sin especialidad'}</small>
-                    <div class="bonificaciones">
-                        ${e.bonificacion_valor > 0 ? 
-                            `<span class="badge bg-info">${e.bonificacion_tipo || 'Bonificación'}: +${e.bonificacion_valor}%</span>` : 
-                            '<span class="badge bg-secondary">Sin bonificación</span>'}
-                    </div>
+            estrategasHTML = `
+                <div class="estrategas-mini-list">
+                    ${this.estrategasActivos.map(e => `
+                        <div class="estratega-mini">
+                            <strong>${e.nombre || 'Estratega'}</strong>
+                            <small class="text-muted d-block">${e.especialidad || 'Sin especialidad'}</small>
+                            ${e.bonificacion_valor > 0 ? 
+                                `<span class="badge bg-info badge-sm">+${e.bonificacion_valor}%</span>` : ''}
+                        </div>
+                    `).join('')}
                 </div>
-            `).join('');
+            `;
         }
         
+        container.innerHTML = `
+            <div class="pronosticos-container-f1 compacto">
+                <div class="card">
+                    <div class="card-header bg-dark text-white py-2">
+                        <h5 class="mb-0"><i class="fas fa-flag-checkered"></i> Pronóstico - ${this.carreraActual.nombre}</h5>
+                    </div>
+                    <div class="card-body py-3">
+                        <h6 class="text-warning mb-3"><i class="fas fa-info-circle"></i> Datos que se guardarán:</h6>
+                        
+                        <div class="table-responsive mb-3">
+                            <table class="table table-sm table-dark">
+                                <thead class="bg-secondary">
+                                    <tr>
+                                        <th width="25%">Puntos coche</th>
+                                        <th width="25%">Estrategas activos</th>
+                                        <th width="25%">Fecha captura</th>
+                                        <th width="25%">Resultados</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <div class="stat-value-mini">${this.usuarioPuntos}</div>
+                                            <small class="text-muted">puntos actuales</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="stat-value-mini">${this.estrategasActivos.length}</div>
+                                            <small class="text-muted">estrategas</small>
+                                            ${this.estrategasActivos.length > 0 ? '<div class="mt-1"><small>Ver abajo</small></div>' : ''}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="fecha-actual">${new Date().toLocaleDateString('es-ES')}</div>
+                                            <small class="text-muted">Hoy</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="text-info">${fechaResultados.split(' ')[0]}</div>
+                                            <small class="text-muted">aprox.</small>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        ${this.estrategasActivos.length > 0 ? `
+                            <div class="estrategas-detalle mb-3">
+                                <h6 class="text-info mb-2"><i class="fas fa-users"></i> Tus estrategas:</h6>
+                                ${estrategasHTML}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="alert alert-warning alert-sm py-2 mb-3">
+                            <i class="fas fa-clock"></i>
+                            <small>
+                                <strong>Importante:</strong> Cuanto más tarde hagas el pronóstico, más puntos tendrás, ya que se guardarán los puntos de <strong>hoy</strong> (${new Date().toLocaleDateString('es-ES')}), no los del día de la carrera.
+                            </small>
+                        </div>
+                        
+                        <div class="condiciones-acepto mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="aceptoCondiciones">
+                                <label class="form-check-label small" for="aceptoCondiciones">
+                                    Entiendo que estos datos se guardarán y se tendrán en cuenta para el cálculo final
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-success btn-sm flex-grow-1" onclick="window.pronosticosManager.iniciarPronostico()">
+                                <i class="fas fa-play"></i> Empezar pronóstico
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.tabManager.switchTab('principal')">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    mostrarPreguntasPronostico(container) {
         let preguntasHTML = '';
         this.preguntasActuales.forEach((pregunta, index) => {
             const area = this.preguntaAreas[index + 1] || 'general';
             preguntasHTML += `
-                <div class="pregunta-card" data-area="${area}">
-                    <h5>Pregunta ${index + 1}: ${pregunta.texto_pregunta}</h5>
-                    <div class="opciones">
-                        <div class="opcion">
+                <div class="pregunta-card compacto" data-area="${area}">
+                    <h6 class="mb-2"><span class="badge bg-dark me-2">${index + 1}</span> ${pregunta.texto_pregunta}</h6>
+                    <div class="opciones compacto">
+                        <div class="opcion compacto">
                             <input type="radio" 
                                    id="p${index}_a" 
                                    name="p${index}" 
@@ -631,7 +819,7 @@ class PronosticosManager {
                                 <strong>A)</strong> ${pregunta.opcion_a}
                             </label>
                         </div>
-                        <div class="opcion">
+                        <div class="opcion compacto">
                             <input type="radio" 
                                    id="p${index}_b" 
                                    name="p${index}" 
@@ -640,7 +828,7 @@ class PronosticosManager {
                                 <strong>B)</strong> ${pregunta.opcion_b}
                             </label>
                         </div>
-                        <div class="opcion">
+                        <div class="opcion compacto">
                             <input type="radio" 
                                    id="p${index}_c" 
                                    name="p${index}" 
@@ -650,12 +838,11 @@ class PronosticosManager {
                             </label>
                         </div>
                     </div>
-                    <div class="area-indicator">
-                        <span class="badge bg-secondary">${area.toUpperCase()}</span>
+                    <div class="area-indicator mt-2">
+                        <span class="badge bg-secondary badge-sm">${area.toUpperCase()}</span>
                         ${this.calcularBonificacionArea(area) > 0 ? 
-                            `<span class="bonificacion-text">
-                                <i class="fas fa-chart-line"></i> 
-                                Bonificación: +${this.calcularBonificacionArea(area)}%
+                            `<span class="bonificacion-text small">
+                                <i class="fas fa-chart-line"></i> +${this.calcularBonificacionArea(area)}%
                             </span>` : ''}
                     </div>
                 </div>
@@ -663,63 +850,49 @@ class PronosticosManager {
         });
         
         container.innerHTML = `
-            <div class="pronosticos-container-f1">
-                <div class="f1-card">
-                    <div class="f1-card-header">
-                        <i class="fas fa-info-circle"></i>
-                        <h4>INFORMACIÓN IMPORTANTE</h4>
+            <div class="pronosticos-container-f1 compacto">
+                <div class="card">
+                    <div class="card-header bg-dark text-white py-2 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-bullseye"></i> ${this.carreraActual.nombre}</h5>
+                        <button class="btn btn-outline-light btn-sm" onclick="window.pronosticosManager.usuarioAceptoCondiciones = false; window.pronosticosManager.mostrarInterfazPronostico(this.parentElement.parentElement.parentElement);">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </button>
                     </div>
-                    <div class="card-body">
-                        <p>Al enviar tu pronóstico, se registrará un <strong>snapshot</strong> de:</p>
-                        
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <div class="stat-card">
-                                    <h6><i class="fas fa-car"></i> Puntos actuales del coche</h6>
-                                    <div class="stat-value">${this.usuarioPuntos} puntos</div>
-                                    <small class="text-muted">Estos puntos se sumarán a tu puntuación final</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="stat-card">
-                                    <h6><i class="fas fa-users"></i> Estrategas activos</h6>
-                                    <div class="estrategas-list">
-                                        ${estrategasHTML}
-                                    </div>
-                                    <small class="text-muted">Sus bonificaciones se aplicarán a preguntas de su especialidad</small>
-                                </div>
-                            </div>
+                    <div class="card-body py-3">
+                        <div class="preguntas-container">
+                            ${preguntasHTML}
                         </div>
                         
-                        <div class="alert alert-warning mt-3">
-                            <i class="fas fa-clock"></i>
-                            <strong>Fecha estimada de resultados:</strong> 
-                            ${fechaResultados} (aprox. 24h después de la carrera)
+                        <div class="mt-3 pt-3 border-top">
+                            <button type="button" class="btn btn-success btn-sm" onclick="window.pronosticosManager.guardarPronostico()">
+                                <i class="fas fa-paper-plane"></i> Enviar pronóstico
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.pronosticosManager.usuarioAceptoCondiciones = false; window.pronosticosManager.mostrarInterfazPronostico(this.parentElement.parentElement.parentElement);">
+                                Cancelar
+                            </button>
                         </div>
                     </div>
                 </div>
-                
-                <form id="formPronostico" onsubmit="event.preventDefault(); window.pronosticosManager.guardarPronostico();">
-                    <div class="card">
-                        <div class="card-header bg-dark text-white">
-                            <h4><i class="fas fa-bullseye"></i> Pronóstico - ${this.carreraActual.nombre}</h4>
-                        </div>
-                        <div class="card-body">
-                            ${preguntasHTML}
-                            
-                            <div class="mt-4">
-                                <button type="submit" class="btn btn-success btn-lg">
-                                    <i class="fas fa-paper-plane"></i> Enviar pronóstico
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" onclick="window.tabManager.switchTab('principal')">
-                                    Cancelar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
             </div>
         `;
+    }
+    
+    iniciarPronostico() {
+        const aceptoCheckbox = document.getElementById('aceptoCondiciones');
+        if (!aceptoCheckbox || !aceptoCheckbox.checked) {
+            this.mostrarError("Debes aceptar las condiciones primero");
+            return;
+        }
+        
+        this.usuarioAceptoCondiciones = true;
+        
+        const container = document.querySelector('.pronosticos-container-f1')?.parentElement || 
+                         document.getElementById('main-content') || 
+                         document.querySelector('.tab-content.active');
+        
+        if (container) {
+            this.mostrarInterfazPronostico(container);
+        }
     }
     
     async guardarPronostico() {
