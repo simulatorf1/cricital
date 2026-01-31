@@ -24,51 +24,51 @@ class PronosticosManager {
         const estilos = `
             /* ========== ESTILOS F1 SIMPLIFICADOS ========== */
             
-            /* Contenedor principal - COMPACTO PERO LEGIBLE */
+            /* Contenedor principal - TODOS LOS TAMAÑOS IGUAL QUE LAS RESPUESTAS */
             .pronostico-container {
-                padding: 12px;
+                padding: 15px;
                 background: #0a0a0a;
                 color: white;
                 font-family: 'Courier New', monospace;
-                font-size: 14px;
-                line-height: 1.3;
+                font-size: 16px;
+                line-height: 1.4;
             }
             
-            /* Tarjetas - COMPACTAS */
+            /* Tarjetas */
             .card {
                 background: #1a1a1a;
-                border-radius: 6px;
+                border-radius: 8px;
                 border: 1px solid #00d2be;
-                margin-bottom: 10px;
-                font-size: 13px;
+                margin-bottom: 15px;
+                font-size: 16px;
             }
             
-            /* Cabeceras de tarjetas */
+            /* Cabeceras de tarjetas - MISMO TAMAÑO */
             .card-header {
                 background: #0066cc;
-                padding: 8px 12px;
+                padding: 12px 15px;
                 color: white;
                 border-bottom: 1px solid #00d2be;
-                font-size: 13px;
+                font-size: 16px;
             }
             
             .card-header h4 {
                 margin: 0;
-                font-size: 15px;
+                font-size: 16px;
                 font-weight: bold;
             }
             
             .card-body {
-                padding: 12px;
-                font-size: 13px;
+                padding: 15px;
+                font-size: 16px;
             }
             
-            /* Botones */
+            /* Botones - MISMO TAMAÑO */
             .btn {
-                border-radius: 4px;
-                padding: 6px 10px;
-                font-size: 12px;
-                margin: 3px;
+                border-radius: 5px;
+                padding: 10px 15px;
+                font-size: 16px;
+                margin: 5px;
                 border: 1px solid;
                 cursor: pointer;
             }
@@ -91,27 +91,28 @@ class PronosticosManager {
                 color: #ccc;
             }
             
-            /* Preguntas */
+            /* Preguntas - MISMO TAMAÑO QUE LAS RESPUESTAS */
             .pregunta-card {
                 background: #222;
-                border-radius: 5px;
-                padding: 10px;
-                margin-bottom: 8px;
+                border-radius: 6px;
+                padding: 15px;
+                margin-bottom: 12px;
                 border-left: 3px solid #00d2be;
-                font-size: 13px;
+                font-size: 16px;
             }
             
             .pregunta-card h5 {
                 color: #00d2be;
-                margin-bottom: 6px;
-                font-size: 14px;
+                margin-bottom: 10px;
+                font-size: 16px;
+                font-weight: bold;
             }
             
-            /* Opciones de respuesta */
+            /* Opciones de respuesta - TAMAÑO BASE (16px) */
             .opciones {
                 display: grid;
-                gap: 5px;
-                margin-top: 8px;
+                gap: 8px;
+                margin-top: 12px;
             }
             
             .opcion {
@@ -124,14 +125,14 @@ class PronosticosManager {
             
             .opcion label {
                 display: block;
-                padding: 8px 10px;
+                padding: 12px 15px;
                 background: #2a2a2a;
                 border: 1px solid #444;
-                border-radius: 4px;
+                border-radius: 5px;
                 cursor: pointer;
                 color: #ddd;
-                font-size: 12px;
-                line-height: 1.3;
+                font-size: 16px;
+                line-height: 1.4;
             }
             
             .opcion input[type="radio"]:checked + label {
@@ -142,15 +143,15 @@ class PronosticosManager {
             
             .opcion label strong {
                 color: #00d2be;
-                font-size: 12px;
-                min-width: 20px;
+                font-size: 16px;
+                min-width: 25px;
             }
             
-            /* Badges */
+            /* Badges - MISMO TAMAÑO */
             .badge {
-                padding: 3px 8px;
-                border-radius: 4px;
-                font-size: 11px;
+                padding: 5px 10px;
+                border-radius: 5px;
+                font-size: 16px;
                 font-weight: bold;
             }
             
@@ -175,12 +176,12 @@ class PronosticosManager {
                 color: #aaa;
             }
             
-            /* Tablas */
+            /* Tablas - MISMO TAMAÑO */
             .table {
                 background: #1a1a1a;
-                border-radius: 5px;
-                margin: 8px 0;
-                font-size: 12px;
+                border-radius: 6px;
+                margin: 12px 0;
+                font-size: 16px;
                 width: 100%;
             }
             
@@ -189,17 +190,17 @@ class PronosticosManager {
             }
             
             .table th {
-                padding: 8px;
+                padding: 12px;
                 color: white;
                 font-weight: bold;
-                font-size: 12px;
+                font-size: 16px;
             }
             
             .table td {
-                padding: 8px;
+                padding: 12px;
                 color: #ddd;
-                font-size: 12px;
-                line-height: 1.3;
+                font-size: 16px;
+                line-height: 1.4;
             }
             
             .table-success {
@@ -210,14 +211,14 @@ class PronosticosManager {
                 background: rgba(225, 6, 0, 0.1);
             }
             
-            /* Alertas */
+            /* Alertas - MISMO TAMAÑO */
             .alert {
-                padding: 8px 10px;
-                margin: 6px 0;
-                border-radius: 4px;
-                font-size: 12px;
+                padding: 12px 15px;
+                margin: 10px 0;
+                border-radius: 5px;
+                font-size: 16px;
                 border: 1px solid;
-                line-height: 1.3;
+                line-height: 1.4;
             }
             
             .alert-success {
@@ -244,231 +245,236 @@ class PronosticosManager {
                 color: #66b3ff;
             }
             
-            /* Tarjetas de estadísticas */
+            /* Tarjetas de estadísticas - MISMO TAMAÑO */
             .stat-card {
                 background: #222;
-                border-radius: 5px;
-                padding: 10px;
+                border-radius: 6px;
+                padding: 15px;
                 text-align: center;
                 border: 1px solid #444;
-                font-size: 12px;
+                font-size: 16px;
             }
             
             .stat-value {
-                font-size: 18px;
+                font-size: 24px;
                 font-weight: bold;
                 color: #00d2be;
-                margin: 5px 0;
+                margin: 8px 0;
             }
             
-            /* Estrategas */
+            /* Estrategas - MISMO TAMAÑO */
             .estratega-card {
                 background: #222;
-                border-radius: 4px;
-                padding: 8px;
-                margin-bottom: 5px;
+                border-radius: 5px;
+                padding: 12px;
+                margin-bottom: 8px;
                 border-left: 3px solid #00d2be;
-                font-size: 12px;
+                font-size: 16px;
             }
             
             /* Grids */
             .row {
-                margin: 0 -5px;
+                margin: 0 -8px;
             }
             
             .col-md-3, .col-md-4, .col-md-6 {
-                padding: 0 5px;
+                padding: 0 8px;
             }
             
             /* Responsive */
             @media (max-width: 768px) {
                 .pronostico-container {
-                    padding: 8px;
-                    font-size: 13px;
+                    padding: 12px;
+                    font-size: 16px;
                 }
                 
                 .card-header {
-                    padding: 6px 10px;
-                    font-size: 12px;
+                    padding: 10px 12px;
+                    font-size: 16px;
                 }
                 
                 .card-header h4 {
-                    font-size: 14px;
+                    font-size: 16px;
                 }
                 
                 .card-body {
-                    padding: 10px;
-                    font-size: 12px;
+                    padding: 12px;
+                    font-size: 16px;
                 }
                 
                 .btn {
-                    padding: 5px 8px;
-                    font-size: 11px;
+                    padding: 8px 12px;
+                    font-size: 16px;
                 }
                 
                 .pregunta-card {
-                    padding: 8px;
-                    font-size: 12px;
+                    padding: 12px;
+                    font-size: 16px;
                 }
                 
                 .pregunta-card h5 {
-                    font-size: 13px;
+                    font-size: 16px;
+                }
+                
+                .opcion label {
+                    padding: 10px 12px;
+                    font-size: 16px;
                 }
             }
             
-            /* ESTILOS COMPACTOS ESPECIALES */
+            /* ESTILOS COMPACTOS ESPECIALES - MISMO TAMAÑO */
             .compacto .card {
-                margin-bottom: 8px;
+                margin-bottom: 12px;
             }
             
             .compacto .card-header {
-                padding: 6px 10px;
-                font-size: 12px;
+                padding: 10px 12px;
+                font-size: 16px;
             }
             
             .compacto .card-header h4 {
-                font-size: 14px;
+                font-size: 16px;
             }
             
             .compacto .card-body {
-                padding: 10px;
-                font-size: 12px;
+                padding: 12px;
+                font-size: 16px;
             }
             
             .compacto .pregunta-card {
-                padding: 8px;
-                margin-bottom: 6px;
-                font-size: 12px;
+                padding: 12px;
+                margin-bottom: 10px;
+                font-size: 16px;
             }
             
             .compacto .pregunta-card h5 {
-                font-size: 13px;
-                margin-bottom: 4px;
+                font-size: 16px;
+                margin-bottom: 8px;
             }
             
             .compacto .opcion label {
-                padding: 6px 8px;
-                font-size: 11px;
+                padding: 10px 12px;
+                font-size: 16px;
             }
             
             .compacto .alert {
-                padding: 6px 8px;
-                margin: 5px 0;
-                font-size: 11px;
+                padding: 10px 12px;
+                margin: 8px 0;
+                font-size: 16px;
             }
             
             .compacto .table {
-                font-size: 11px;
+                font-size: 16px;
             }
             
             .compacto .table th,
             .compacto .table td {
-                padding: 6px;
+                padding: 10px;
             }
             
             .compacto .badge {
-                padding: 3px 6px;
-                font-size: 10px;
+                padding: 4px 8px;
+                font-size: 16px;
             }
             
             .compacto .stat-value-mini {
-                font-size: 16px;
+                font-size: 20px;
                 color: #00d2be;
             }
             
             .compacto .btn-sm {
-                padding: 5px 8px;
-                font-size: 11px;
+                padding: 8px 12px;
+                font-size: 16px;
             }
             
-            /* Tablas súper compactas */
+            /* Tablas súper compactas - MISMO TAMAÑO */
             .table-sm th,
             .table-sm td {
-                padding: 6px;
-                font-size: 11px;
+                padding: 10px;
+                font-size: 16px;
             }
             
             /* Espaciados */
-            .mb-1 { margin-bottom: 0.25rem !important; }
-            .mb-2 { margin-bottom: 0.5rem !important; }
-            .mb-3 { margin-bottom: 0.75rem !important; }
-            .mt-1 { margin-top: 0.25rem !important; }
-            .mt-2 { margin-top: 0.5rem !important; }
-            .mt-3 { margin-top: 0.75rem !important; }
-            .pt-1 { padding-top: 0.25rem !important; }
-            .pt-2 { padding-top: 0.5rem !important; }
-            .pt-3 { padding-top: 0.75rem !important; }
+            .mb-1 { margin-bottom: 0.4rem !important; }
+            .mb-2 { margin-bottom: 0.8rem !important; }
+            .mb-3 { margin-bottom: 1.2rem !important; }
+            .mt-1 { margin-top: 0.4rem !important; }
+            .mt-2 { margin-top: 0.8rem !important; }
+            .mt-3 { margin-top: 1.2rem !important; }
+            .pt-1 { padding-top: 0.4rem !important; }
+            .pt-2 { padding-top: 0.8rem !important; }
+            .pt-3 { padding-top: 1.2rem !important; }
             
             /* Grid compacto */
             .row.g-2 {
-                margin: 0 -3px !important;
+                margin: 0 -5px !important;
             }
             
             .row.g-2 > [class*="col-"] {
-                padding: 0 3px !important;
+                padding: 0 5px !important;
             }
             
-            /* Contenedor de estrategas mini */
+            /* Contenedor de estrategas mini - MISMO TAMAÑO */
             .estratega-mini {
                 background: #222;
-                border-radius: 4px;
-                padding: 6px;
-                margin-bottom: 4px;
+                border-radius: 5px;
+                padding: 10px;
+                margin-bottom: 6px;
                 border-left: 2px solid #00d2be;
-                font-size: 11px;
+                font-size: 16px;
             }
             
-            /* Texto de preguntas */
+            /* Texto de preguntas - MISMO TAMAÑO */
             .pregunta-texto small {
-                font-size: 11px;
+                font-size: 16px;
                 color: #bbb;
-                line-height: 1.3;
+                line-height: 1.4;
             }
             
             .respuesta-usuario {
-                font-size: 11px;
+                font-size: 16px;
                 color: #00d2be;
-                line-height: 1.3;
+                line-height: 1.4;
             }
             
             .stat-value-mini {
-                font-size: 16px;
+                font-size: 20px;
                 font-weight: bold;
                 color: #00d2be;
-                margin: 3px 0;
+                margin: 5px 0;
             }
             
             .fecha-actual {
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: 600;
                 color: #00d2be;
             }
             
-            /* Formularios */
+            /* Formularios - MISMO TAMAÑO */
             .form-check-input {
-                width: 16px;
-                height: 16px;
-                margin-top: 0.2rem;
+                width: 18px;
+                height: 18px;
+                margin-top: 0.3rem;
             }
             
             .form-check-label {
-                font-size: 12px;
-                margin-left: 5px;
+                font-size: 16px;
+                margin-left: 8px;
             }
             
             /* Scrollbar */
             .pronostico-container::-webkit-scrollbar {
-                width: 6px;
+                width: 8px;
             }
             
             .pronostico-container::-webkit-scrollbar-track {
                 background: rgba(0, 0, 0, 0.2);
-                border-radius: 3px;
+                border-radius: 4px;
             }
             
             .pronostico-container::-webkit-scrollbar-thumb {
                 background: #00d2be;
-                border-radius: 3px;
+                border-radius: 4px;
             }
         `;
         
@@ -476,7 +482,7 @@ class PronosticosManager {
         style.id = 'estilos-pronosticos-f1';
         style.textContent = estilos;
         document.head.appendChild(style);
-    }    
+    }
 
 
     
