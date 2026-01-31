@@ -886,9 +886,9 @@ class F1Manager {
                     </div>
                 </div>
                 
-                <button class="btn-pronostico-f1" id="btn-estado-apuestas">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <span>Cargando...</span>
+                <button class="btn-pronostico-f1" id="btn-estado-apuestas" onclick="irAPestañaPronosticos()">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>ENVIAR PRONÓSTICO</span>
                 </button>
             </div>
         `;
@@ -1402,13 +1402,17 @@ class F1Manager {
                 const btnApuestas = document.getElementById('btn-estado-apuestas');
                 if (btnApuestas) {
                     if (diferencia > 0) {
+                        // Apuestas ABIERTAS
                         btnApuestas.disabled = false;
                         btnApuestas.innerHTML = '<i class="fas fa-paper-plane"></i> ENVIAR PRONÓSTICO';
                         btnApuestas.className = 'btn-pronostico-f1 abierto';
+                        // Mantener el onclick que ya pusimos
                     } else {
+                        // Apuestas CERRADAS
                         btnApuestas.disabled = true;
                         btnApuestas.innerHTML = '<i class="fas fa-lock"></i> APUESTAS CERRADAS';
                         btnApuestas.className = 'btn-pronostico-f1 cerrado';
+                        btnApuestas.onclick = null; // Quitar onclick cuando esté cerrado
                     }
                 }
                 
@@ -3023,6 +3027,34 @@ setTimeout(() => {
             alert('Error al cargar el calendario: ' + error.message);
         }
     };
+    // ========================
+    // FUNCIÓN PARA IR A PESTAÑA PRONÓSTICOS
+    // ========================
+    window.irAPestañaPronosticos = function() {
+        console.log('📊 Redirigiendo a pestaña Pronósticos...');
+        
+        // Buscar el botón de la pestaña pronosticos
+        const tabButton = document.querySelector('[data-tab="pronosticos"]');
+        
+        if (tabButton) {
+            // Simular click para activar todo el sistema que ya tienes
+            tabButton.click();
+            console.log('✅ Click simulado en pestaña Pronósticos');
+        } else {
+            console.error('❌ No se encontró el botón de pestaña Pronósticos');
+            
+            // Plan B: Activar manualmente
+            document.querySelectorAll('.tab-btn-compacto').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            const pronosticosTab = document.getElementById('tab-pronosticos');
+            if (pronosticosTab) {
+                pronosticosTab.classList.add('active');
+                console.log('✅ Pestaña Pronósticos activada manualmente');
+            }
+        }
+    };
+    
     
     // Función para redirigir al almacén desde las piezas montadas
     window.irAlAlmacenDesdePiezas = function() {
