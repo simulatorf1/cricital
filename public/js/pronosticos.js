@@ -21,137 +21,96 @@ class PronosticosManager {
         if (document.getElementById('estilos-pronosticos-f1')) return;
         
         const estilos = `
-            /* ========== ESTILOS F1 PARA PRONÓSTICOS (ADAPTADOS A CLASES EXISTENTES) ========== */
+            /* ========== ESTILOS F1 SIMPLIFICADOS ========== */
             
-            /* Contenedor principal - usa la clase que ya tienes */
+            /* Contenedor principal - SIMPLE Y PEQUEÑO */
             .pronostico-container {
-                padding: 20px;
-                background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-                min-height: 100vh;
+                padding: 8px;
+                background: #0a0a0a;
                 color: white;
-                font-family: 'Orbitron', 'Segoe UI', sans-serif;
+                font-family: 'Courier New', monospace;
+                font-size: 12px;
+                line-height: 1.2;
             }
             
-            /* Tarjetas - usa las clases Bootstrap que ya tienes */
+            /* Tarjetas - MÍNIMAS */
             .card {
-                background: rgba(20, 20, 40, 0.9) !important;
-                border-radius: 15px !important;
-                border: 2px solid rgba(0, 210, 190, 0.3) !important;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
-                backdrop-filter: blur(10px);
-                margin-bottom: 25px !important;
-                overflow: hidden;
-                transition: transform 0.3s ease, border-color 0.3s ease;
+                background: #1a1a1a;
+                border-radius: 4px;
+                border: 1px solid #00d2be;
+                margin-bottom: 8px;
+                font-size: 11px;
             }
             
-            .card:hover {
-                transform: translateY(-5px);
-                border-color: rgba(0, 210, 190, 0.7) !important;
-            }
-            
-            /* Cabeceras de tarjetas - mantiene clases Bootstrap */
+            /* Cabeceras de tarjetas */
             .card-header {
-                background: linear-gradient(90deg, #00d2be 0%, #0066cc 100%) !important;
-                padding: 15px 25px !important;
-                color: white !important;
-                border-bottom: 3px solid rgba(255, 255, 255, 0.1) !important;
-                display: flex;
-                align-items: center;
-                gap: 12px;
+                background: #0066cc;
+                padding: 4px 8px;
+                color: white;
+                border-bottom: 1px solid #00d2be;
+                font-size: 11px;
             }
             
             .card-header h4 {
-                margin: 0 !important;
-                font-weight: 700 !important;
-                letter-spacing: 1px;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                margin: 0;
+                font-size: 12px;
+                font-weight: bold;
             }
             
             .card-body {
-                padding: 25px !important;
+                padding: 8px;
+                font-size: 11px;
             }
             
-            /* Botones - mantiene clases Bootstrap pero con estilo F1 */
+            /* Botones - PEQUEÑOS */
             .btn {
-                border-radius: 8px !important;
-                padding: 12px 24px !important;
-                font-weight: bold !important;
-                letter-spacing: 0.5px;
-                text-transform: uppercase;
-                transition: all 0.3s ease !important;
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                font-family: 'Orbitron', sans-serif !important;
-                font-size: 0.9rem !important;
+                border-radius: 3px;
+                padding: 3px 6px;
+                font-size: 10px;
+                margin: 2px;
+                border: 1px solid;
+                cursor: pointer;
             }
             
             .btn-success {
-                background: linear-gradient(90deg, #00d2be 0%, #0066cc 100%) !important;
-                border: none !important;
-                box-shadow: 0 4px 15px rgba(0, 210, 190, 0.3) !important;
-            }
-            
-            .btn-success:hover {
-                transform: translateY(-2px) !important;
-                box-shadow: 0 6px 20px rgba(0, 210, 190, 0.4) !important;
-                background: linear-gradient(90deg, #0066cc 0%, #00d2be 100%) !important;
+                background: #00d2be;
+                border-color: #00d2be;
+                color: white;
             }
             
             .btn-primary {
-                background: linear-gradient(90deg, #e10600 0%, #ff6b00 100%) !important;
-                border: none !important;
-                box-shadow: 0 4px 15px rgba(225, 6, 0, 0.3) !important;
-            }
-            
-            .btn-primary:hover {
-                transform: translateY(-2px) !important;
-                box-shadow: 0 6px 20px rgba(225, 6, 0, 0.4) !important;
-                background: linear-gradient(90deg, #ff6b00 0%, #e10600 100%) !important;
+                background: #e10600;
+                border-color: #e10600;
+                color: white;
             }
             
             .btn-outline-secondary {
-                background: rgba(0, 210, 190, 0.1) !important;
-                border: 2px solid #00d2be !important;
-                color: #00d2be !important;
+                background: transparent;
+                border-color: #666;
+                color: #ccc;
             }
             
-            .btn-outline-secondary:hover {
-                background: rgba(0, 210, 190, 0.2) !important;
-                transform: translateY(-2px) !important;
-                border-color: #00d2be !important;
-                color: white !important;
-            }
-            
-            /* Preguntas - usa tu clase .pregunta-card existente */
+            /* Preguntas */
             .pregunta-card {
-                background: rgba(30, 30, 50, 0.7) !important;
-                border-radius: 12px !important;
-                padding: 20px !important;
-                margin-bottom: 20px !important;
-                border-left: 5px solid #00d2be !important;
-                transition: all 0.3s ease !important;
-            }
-            
-            .pregunta-card:hover {
-                background: rgba(40, 40, 60, 0.8) !important;
-                border-left-color: #e10600 !important;
+                background: #222;
+                border-radius: 3px;
+                padding: 6px;
+                margin-bottom: 6px;
+                border-left: 2px solid #00d2be;
+                font-size: 11px;
             }
             
             .pregunta-card h5 {
-                color: #00d2be !important;
-                margin-bottom: 15px !important;
-                font-size: 1.1rem !important;
-                display: flex;
-                align-items: center;
-                gap: 10px;
+                color: #00d2be;
+                margin-bottom: 4px;
+                font-size: 11px;
             }
             
-            /* Opciones de respuesta - usa tus clases .opciones y .opcion */
+            /* Opciones de respuesta */
             .opciones {
-                display: grid !important;
-                gap: 12px !important;
-                margin-top: 15px !important;
+                display: grid;
+                gap: 3px;
+                margin-top: 4px;
             }
             
             .opcion {
@@ -163,390 +122,291 @@ class PronosticosManager {
             }
             
             .opcion label {
-                display: block !important;
-                padding: 15px !important;
-                background: rgba(255, 255, 255, 0.05) !important;
-                border: 2px solid rgba(255, 255, 255, 0.1) !important;
-                border-radius: 10px !important;
-                cursor: pointer !important;
-                transition: all 0.3s ease !important;
-                color: #ddd !important;
-                font-size: 0.95rem !important;
-                display: flex !important;
-                align-items: center;
-                gap: 12px;
-            }
-            
-            .opcion label:hover {
-                background: rgba(255, 255, 255, 0.1) !important;
-                border-color: rgba(0, 210, 190, 0.3) !important;
+                display: block;
+                padding: 4px 6px;
+                background: #2a2a2a;
+                border: 1px solid #444;
+                border-radius: 2px;
+                cursor: pointer;
+                color: #ddd;
+                font-size: 10px;
             }
             
             .opcion input[type="radio"]:checked + label {
-                background: rgba(0, 210, 190, 0.15) !important;
-                border-color: #00d2be !important;
-                color: white !important;
-                box-shadow: 0 0 15px rgba(0, 210, 190, 0.3) !important;
+                background: #003333;
+                border-color: #00d2be;
+                color: white;
             }
             
             .opcion label strong {
-                color: #00d2be !important;
-                font-size: 1.1rem !important;
-                min-width: 25px;
+                color: #00d2be;
+                font-size: 10px;
+                min-width: 15px;
             }
             
-            /* Badges - mantiene clase .badge */
+            /* Badges */
             .badge {
-                padding: 6px 12px !important;
-                border-radius: 20px !important;
-                font-size: 0.8rem !important;
-                font-weight: bold !important;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
+                padding: 1px 4px;
+                border-radius: 3px;
+                font-size: 9px;
+                font-weight: bold;
             }
             
             .bg-success {
-                background: linear-gradient(90deg, #00d2be, #0066cc) !important;
+                background: #00d2be;
             }
             
             .bg-danger {
-                background: linear-gradient(90deg, #e10600, #ff6b00) !important;
+                background: #e10600;
             }
             
             .bg-warning {
-                background: linear-gradient(90deg, #ffb400, #ff6b00) !important;
+                background: #ffb400;
             }
             
             .bg-info {
-                background: linear-gradient(90deg, #0066cc, #0099ff) !important;
+                background: #0066cc;
             }
             
             .bg-secondary {
-                background: rgba(255, 255, 255, 0.1) !important;
-                color: #aaa !important;
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                background: #444;
+                color: #aaa;
             }
             
-            /* Tablas - mantiene clase .table */
+            /* Tablas */
             .table {
-                background: rgba(20, 20, 40, 0.8) !important;
-                border-radius: 10px !important;
-                overflow: hidden !important;
-                margin: 20px 0 !important;
-                border-collapse: separate !important;
-                border-spacing: 0 !important;
+                background: #1a1a1a;
+                border-radius: 3px;
+                margin: 4px 0;
+                font-size: 10px;
+                width: 100%;
             }
             
             .table thead {
-                background: linear-gradient(90deg, #00d2be 0%, #0066cc 100%) !important;
+                background: #0066cc;
             }
             
             .table th {
-                padding: 15px !important;
-                color: white !important;
-                font-weight: 600 !important;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                font-size: 0.85rem !important;
-            }
-            
-            .table tbody tr {
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-                transition: background 0.3s ease !important;
-            }
-            
-            .table tbody tr:hover {
-                background: rgba(0, 210, 190, 0.1) !important;
+                padding: 3px;
+                color: white;
+                font-weight: bold;
+                font-size: 10px;
             }
             
             .table td {
-                padding: 15px !important;
-                color: #ddd !important;
-                vertical-align: middle !important;
+                padding: 3px;
+                color: #ddd;
+                font-size: 10px;
             }
             
             .table-success {
-                background: rgba(0, 210, 190, 0.15) !important;
+                background: rgba(0, 210, 190, 0.1);
             }
             
             .table-danger {
-                background: rgba(225, 6, 0, 0.15) !important;
+                background: rgba(225, 6, 0, 0.1);
             }
             
-            /* Alertas - mantiene clase .alert */
+            /* Alertas */
             .alert {
-                background: rgba(255, 255, 255, 0.08) !important;
-                border: 2px solid !important;
-                border-radius: 10px !important;
-                padding: 15px 20px !important;
-                margin: 15px 0 !important;
-                display: flex !important;
-                align-items: center;
-                gap: 12px;
-                font-size: 0.95rem !important;
+                padding: 4px 6px;
+                margin: 4px 0;
+                border-radius: 3px;
+                font-size: 10px;
+                border: 1px solid;
             }
             
             .alert-success {
-                border-color: #00d2be !important;
-                background: rgba(0, 210, 190, 0.1) !important;
-                color: #00d2be !important;
+                border-color: #00d2be;
+                background: rgba(0, 210, 190, 0.1);
+                color: #00d2be;
             }
             
             .alert-danger {
-                border-color: #e10600 !important;
-                background: rgba(225, 6, 0, 0.1) !important;
-                color: #ff6b6b !important;
+                border-color: #e10600;
+                background: rgba(225, 6, 0, 0.1);
+                color: #ff6b6b;
             }
             
             .alert-warning {
-                border-color: #ffb400 !important;
-                background: rgba(255, 180, 0, 0.1) !important;
-                color: #ffd166 !important;
+                border-color: #ffb400;
+                background: rgba(255, 180, 0, 0.1);
+                color: #ffd166;
             }
             
             .alert-info {
-                border-color: #0066cc !important;
-                background: rgba(0, 102, 204, 0.1) !important;
-                color: #66b3ff !important;
+                border-color: #0066cc;
+                background: rgba(0, 102, 204, 0.1);
+                color: #66b3ff;
             }
             
-            /* Tarjetas de estadísticas - mantiene .stat-card */
+            /* Tarjetas de estadísticas */
             .stat-card {
-                background: rgba(30, 30, 50, 0.7) !important;
-                border-radius: 12px !important;
-                padding: 20px !important;
-                text-align: center !important;
-                border: 1px solid rgba(0, 210, 190, 0.2) !important;
-                transition: all 0.3s ease !important;
-            }
-            
-            .stat-card:hover {
-                transform: translateY(-3px);
-                border-color: #00d2be !important;
-                box-shadow: 0 8px 20px rgba(0, 210, 190, 0.2) !important;
+                background: #222;
+                border-radius: 3px;
+                padding: 6px;
+                text-align: center;
+                border: 1px solid #444;
+                font-size: 10px;
             }
             
             .stat-value {
-                font-size: 2.2rem !important;
-                font-weight: 700 !important;
-                background: linear-gradient(90deg, #00d2be, #0066cc) !important;
-                -webkit-background-clip: text !important;
-                -webkit-text-fill-color: transparent !important;
-                margin: 10px 0 !important;
-                font-family: 'Orbitron', sans-serif !important;
+                font-size: 14px;
+                font-weight: bold;
+                color: #00d2be;
+                margin: 2px 0;
             }
             
-            /* Estrategas - mantiene .estratega-card */
+            /* Estrategas */
             .estratega-card {
-                background: rgba(40, 40, 60, 0.7) !important;
-                border-radius: 10px !important;
-                padding: 15px !important;
-                margin-bottom: 10px !important;
-                border-left: 4px solid #00d2be !important;
-                transition: all 0.3s ease !important;
+                background: #222;
+                border-radius: 2px;
+                padding: 4px;
+                margin-bottom: 3px;
+                border-left: 2px solid #00d2be;
+                font-size: 10px;
             }
             
-            .estratega-card:hover {
-                background: rgba(50, 50, 70, 0.8) !important;
-                transform: translateX(5px);
-            }
-            
-            /* Grids - mantiene tus clases row y col-* */
+            /* Grids */
             .row {
-                margin: 0 -10px !important;
+                margin: 0 -2px;
             }
             
             .col-md-3, .col-md-4, .col-md-6 {
-                padding: 0 10px !important;
+                padding: 0 2px;
             }
             
             /* Responsive */
             @media (max-width: 768px) {
-                .row {
-                    flex-direction: column !important;
+                .pronostico-container {
+                    padding: 4px;
                 }
                 
-                .col-md-3, .col-md-4, .col-md-6 {
-                    margin-bottom: 15px !important;
+                .card-header {
+                    padding: 3px 6px;
                 }
                 
-                .card-header h4 {
-                    font-size: 1.1rem !important;
+                .card-body {
+                    padding: 6px;
                 }
                 
                 .btn {
-                    padding: 10px 18px !important;
-                    font-size: 0.85rem !important;
+                    padding: 2px 4px;
+                    font-size: 9px;
                 }
             }
             
-            /* Scrollbar personalizado */
-            .pronostico-container::-webkit-scrollbar {
-                width: 8px;
-            }
-            
-            .pronostico-container::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.2);
-                border-radius: 4px;
-            }
-            /* ESTILOS COMPACTOS */
+            /* ESTILOS COMPACTOS ESPECIALES */
             .compacto .card {
-                margin-bottom: 15px !important;
-                border-radius: 10px !important;
+                margin-bottom: 4px;
             }
             
             .compacto .card-header {
-                padding: 10px 15px !important;
+                padding: 3px 6px;
+                font-size: 10px;
+            }
+            
+            .compacto .card-header h4 {
+                font-size: 11px;
             }
             
             .compacto .card-body {
-                padding: 15px !important;
+                padding: 6px;
+                font-size: 10px;
             }
             
-            .compacto h5, .compacto h6 {
-                font-size: 1rem !important;
-                margin-bottom: 0.5rem !important;
+            .compacto .pregunta-card {
+                padding: 4px;
+                margin-bottom: 4px;
+                font-size: 10px;
+            }
+            
+            .compacto .pregunta-card h5 {
+                font-size: 10px;
+                margin-bottom: 2px;
+            }
+            
+            .compacto .opcion label {
+                padding: 3px 4px;
+                font-size: 9px;
+            }
+            
+            .compacto .alert {
+                padding: 3px 4px;
+                margin: 3px 0;
+                font-size: 9px;
+            }
+            
+            .compacto .table {
+                font-size: 9px;
+            }
+            
+            .compacto .table th,
+            .compacto .table td {
+                padding: 2px;
+            }
+            
+            .compacto .badge {
+                padding: 1px 3px;
+                font-size: 8px;
             }
             
             .compacto .stat-value-mini {
-                font-size: 1.5rem !important;
-                font-weight: 700 !important;
-                background: linear-gradient(90deg, #00d2be, #0066cc) !important;
-                -webkit-background-clip: text !important;
-                -webkit-text-fill-color: transparent !important;
-            }
-            
-            .compacto .fecha-actual {
-                font-size: 1.1rem !important;
-                font-weight: 600 !important;
-                color: #00d2be !important;
-            }
-            
-            .compacto .table-sm th,
-            .compacto .table-sm td {
-                padding: 8px !important;
-            }
-            
-            .compacto .alert-sm {
-                padding: 8px 12px !important;
-                font-size: 0.85rem !important;
-            }
-            
-            .compacto .estratega-mini {
-                background: rgba(40, 40, 60, 0.5) !important;
-                border-radius: 6px !important;
-                padding: 8px !important;
-                margin-bottom: 6px !important;
-                border-left: 3px solid #00d2be !important;
-                font-size: 0.85rem !important;
-            }
-            
-            .compacto .estratega-mini strong {
-                font-size: 0.9rem !important;
-            }
-            
-            .compacto .badge-sm {
-                padding: 3px 8px !important;
-                font-size: 0.7rem !important;
-            }
-            
-            .compacto .pregunta-card.compacto {
-                padding: 15px !important;
-                margin-bottom: 15px !important;
-                border-left: 4px solid #00d2be !important;
-            }
-            
-            .compacto .opciones.compacto {
-                gap: 8px !important;
-            }
-            
-            .compacto .opcion.compacto label {
-                padding: 10px 12px !important;
-                font-size: 0.9rem !important;
-            }
-            
-            .compacto .opcion.compacto label strong {
-                font-size: 0.95rem !important;
+                font-size: 12px;
+                color: #00d2be;
             }
             
             .compacto .btn-sm {
-                padding: 6px 12px !important;
-                font-size: 0.85rem !important;
+                padding: 2px 4px;
+                font-size: 9px;
             }
             
-            .compacto .form-check-input {
-                width: 16px !important;
-                height: 16px !important;
-                margin-top: 0.2rem !important;
-            }
-            /* ESTILOS COMPACTOS PARA VISTAS DE PRONÓSTICO */
-            .stat-card-sm {
-                background: rgba(30, 30, 50, 0.7) !important;
-                border-radius: 8px !important;
-                border: 1px solid rgba(0, 210, 190, 0.2) !important;
+            /* Tablas súper compactas */
+            .table-sm th,
+            .table-sm td {
+                padding: 2px;
+                font-size: 9px;
             }
             
-            .alert-sm {
-                padding: 8px 12px !important;
-                font-size: 0.85rem !important;
-                border-radius: 8px !important;
-            }
-            
-            .badge-sm {
-                padding: 3px 8px !important;
-                font-size: 0.7rem !important;
-                border-radius: 12px !important;
-            }
-            
-            .compacto .table-sm th,
-            .compacto .table-sm td {
-                padding: 6px 8px !important;
-                font-size: 0.85rem !important;
-            }
-            
-            .compacto .table-sm thead th {
-                font-size: 0.8rem !important;
-                padding: 8px !important;
-            }
-            
-            .pregunta-texto small {
-                font-size: 0.8rem !important;
-                color: #bbb !important;
-            }
-            
-            .respuesta-usuario {
-                font-size: 0.8rem !important;
-                color: #00d2be !important;
-            }
+            /* Espaciados mínimos */
+            .mb-1 { margin-bottom: 0.1rem !important; }
+            .mb-2 { margin-bottom: 0.2rem !important; }
+            .mb-3 { margin-bottom: 0.3rem !important; }
+            .mt-1 { margin-top: 0.1rem !important; }
+            .mt-2 { margin-top: 0.2rem !important; }
+            .mt-3 { margin-top: 0.3rem !important; }
+            .pt-1 { padding-top: 0.1rem !important; }
+            .pt-2 { padding-top: 0.2rem !important; }
+            .pt-3 { padding-top: 0.3rem !important; }
             
             /* Grid compacto */
             .row.g-2 {
-                margin: 0 -4px !important;
+                margin: 0 -1px !important;
             }
             
             .row.g-2 > [class*="col-"] {
-                padding: 0 4px !important;
+                padding: 0 1px !important;
             }
             
-            /* Botones compactos */
-            .d-grid.gap-2 {
-                gap: 6px !important;
+            /* Contenedor de estrategas mini */
+            .estratega-mini {
+                background: #222;
+                border-radius: 2px;
+                padding: 3px;
+                margin-bottom: 2px;
+                border-left: 1px solid #00d2be;
+                font-size: 9px;
             }
             
-            .btn-sm {
-                padding: 6px 12px !important;
-                font-size: 0.85rem !important;
-                border-radius: 6px !important;
-            }            
-            .compacto .form-check-label {
-                font-size: 0.9rem !important;
+            /* Texto de preguntas */
+            .pregunta-texto small {
+                font-size: 9px;
+                color: #bbb;
             }
-
-
             
-            .pronostico-container::-webkit-scrollbar-thumb {
-                background: linear-gradient(180deg, #00d2be, #0066cc);
-                border-radius: 4px;
+            .respuesta-usuario {
+                font-size: 9px;
+                color: #00d2be;
             }
         `;
         
