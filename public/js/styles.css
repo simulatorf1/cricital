@@ -784,11 +784,20 @@ html, body {
 
 .grid-11-columns {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, 1fr); /* 5 columnas para PC */
     gap: 8px !important;
     margin-top: 10px !important;
     height: 100px;
     align-items: stretch;
+}
+
+/* Para móviles (≤768px): 4 columnas */
+@media (max-width: 768px) {
+    .grid-11-columns {
+        grid-template-columns: repeat(4, 1fr) !important; /* 4 columnas en móvil */
+        height: auto !important;
+        min-height: 120px; /* Ajusta según necesites */
+    }
 }
 
 /* Botones pasos 2, 3, 4 - sin animaciones, sin clic */
