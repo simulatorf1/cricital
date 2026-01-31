@@ -2843,7 +2843,7 @@ setTimeout(() => {
     };
     // ========================
     // ========================
-    // CALENDARIO SIMPLE - OPTIMIZADO PARA MÓVIL
+    // CALENDARIO SIMPLE - VERSIÓN LEGIBLE
     // ========================
     window.mostrarCalendarioSimple = async function() {
         try {
@@ -2864,35 +2864,35 @@ setTimeout(() => {
                 height: 100%;
                 background: rgba(0,0,0,0.95);
                 z-index: 9999;
-                padding: 10px;
+                padding: 15px;
                 overflow: auto;
             `;
             
-            // Contenedor compacto
+            // Contenedor
             const container = document.createElement('div');
             container.style.cssText = `
                 max-width: 100%;
-                margin: 10px auto;
+                margin: 15px auto;
                 background: #1a1a2e;
-                border-radius: 5px;
-                padding: 10px;
-                border: 1px solid #00d2be;
+                border-radius: 8px;
+                padding: 15px;
+                border: 2px solid #00d2be;
             `;
             
-            // Header compacto
+            // Header
             const header = document.createElement('div');
             header.style.cssText = `
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 10px;
-                padding-bottom: 8px;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
                 border-bottom: 1px solid #00d2be;
             `;
             
-            const titulo = document.createElement('h4');
-            titulo.textContent = 'CALENDARIO F1';
-            titulo.style.cssText = 'color: #00d2be; margin: 0; font-size: 0.9rem; font-weight: bold;';
+            const titulo = document.createElement('h3');
+            titulo.textContent = 'CALENDARIO F1 2024';
+            titulo.style.cssText = 'color: #00d2be; margin: 0; font-size: 1rem; font-weight: bold;';
             
             const btnCerrar = document.createElement('button');
             btnCerrar.textContent = '✕';
@@ -2900,52 +2900,47 @@ setTimeout(() => {
                 background: #e10600;
                 color: white;
                 border: none;
-                width: 25px;
-                height: 25px;
+                width: 28px;
+                height: 28px;
                 border-radius: 50%;
                 cursor: pointer;
                 font-weight: bold;
-                font-size: 0.8rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0;
+                font-size: 0.9rem;
             `;
             btnCerrar.onclick = () => modal.remove();
             
             header.appendChild(titulo);
             header.appendChild(btnCerrar);
             
-            // Tabla compacta
+            // Tabla
             const tabla = document.createElement('table');
             tabla.style.cssText = `
                 width: 100%;
                 border-collapse: collapse;
                 color: white;
-                font-size: 0.75rem;
+                font-size: 0.85rem;
             `;
             
-            // Encabezados compactos
+            // Encabezados
             const thead = document.createElement('thead');
             thead.innerHTML = `
                 <tr style="background: #00d2be; color: black;">
-                    <th style="padding: 5px; text-align: left; width: 30px;">#</th>
-                    <th style="padding: 5px; text-align: left;">CARRERA</th>
-                    <th style="padding: 5px; text-align: left; width: 50px;">FECHA</th>
-                    <th style="padding: 5px; text-align: left; width: 60px;">APUESTAS</th>
+                    <th style="padding: 8px; text-align: left; width: 35px;">#</th>
+                    <th style="padding: 8px; text-align: left;">GRAN PREMIO</th>
+                    <th style="padding: 8px; text-align: left; width: 65px;">FECHA</th>
+                    <th style="padding: 8px; text-align: left; width: 80px;">APUESTAS</th>
                 </tr>
             `;
             
-            // Cuerpo compacto
+            // Cuerpo
             const tbody = document.createElement('tbody');
             
             if (carreras && carreras.length > 0) {
                 carreras.forEach((carrera, index) => {
                     const fecha = new Date(carrera.fecha_inicio);
-                    const fechaFormateada = fecha.toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: 'numeric'
-                    }).replace('/', '/');
+                    const dia = fecha.getDate().toString().padStart(2, '0');
+                    const mes = fecha.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '');
+                    const fechaFormateada = `${dia}-${mes}`;
                     
                     const fila = document.createElement('tr');
                     fila.style.cssText = `
@@ -2953,20 +2948,26 @@ setTimeout(() => {
                         background: ${index % 2 === 0 ? '#222' : '#1a1a2e'};
                     `;
                     
-                    // Acortar nombre de carrera si es muy largo
-                    let nombreCorto = carrera.nombre;
-                    if (nombreCorto.length > 20) {
-                        nombreCorto = nombreCorto.substring(0, 18) + '...';
+                    // Dividir nombre en dos líneas si tiene "de"
+                    let nombreHTML = carrera.nombre;
+                    if (carrera.nombre.includes(' de ')) {
+                        const partes = carrera.nombre.split(' de ');
+                        nombreHTML = `${partes[0]}<br><span style="color: #aaa; font-size: 0.75rem;">de ${partes[1]}</span>`;
+                    } else if (carrera.nombre.includes(' ')) {
+                        const palabras = carrera.nombre.split(' ');
+                        if (palabras.length > 2) {
+                            nombreHTML = `${palabras.slice(0, 2).join(' ')}<br><span style="color: #aaa; font-size: 0.75rem;">${palabras.slice(2).join(' ')}</span>`;
+                        }
                     }
                     
                     fila.innerHTML = `
-                        <td style="padding: 5px; color: #aaa;">${index + 1}</td>
-                        <td style="padding: 5px; font-weight: bold; font-size: 0.8rem;">${nombreCorto}</td>
-                        <td style="padding: 5px; color: #00d2be;">${fechaFormateada}</td>
-                        <td style="padding: 5px;">
+                        <td style="padding: 8px; color: #aaa; vertical-align: top;">${index + 1}</td>
+                        <td style="padding: 8px; font-weight: bold; vertical-align: top; line-height: 1.2;">${nombreHTML}</td>
+                        <td style="padding: 8px; color: #00d2be; vertical-align: top; text-transform: uppercase;">${fechaFormateada}</td>
+                        <td style="padding: 8px; vertical-align: top;">
                             <span style="color: ${carrera.cerrado_apuestas ? '#e10600' : '#00d2be'}; 
-                                  font-size: 0.7rem; font-weight: bold;">
-                                ${carrera.cerrado_apuestas ? 'CERR' : 'ABIER'}
+                                  font-weight: bold; font-size: 0.8rem;">
+                                ${carrera.cerrado_apuestas ? 'CERRADO' : 'ABIERTO'}
                             </span>
                         </td>
                     `;
@@ -2976,8 +2977,8 @@ setTimeout(() => {
             } else {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="4" style="padding: 10px; text-align: center; color: #888; font-size: 0.8rem;">
-                            No hay carreras
+                        <td colspan="4" style="padding: 20px; text-align: center; color: #888; font-size: 0.9rem;">
+                            No hay carreras programadas
                         </td>
                     </tr>
                 `;
@@ -2986,17 +2987,17 @@ setTimeout(() => {
             tabla.appendChild(thead);
             tabla.appendChild(tbody);
             
-            // Footer super compacto
+            // Footer
             const footer = document.createElement('div');
             footer.style.cssText = `
-                margin-top: 8px;
-                padding-top: 5px;
+                margin-top: 12px;
+                padding-top: 8px;
                 border-top: 1px solid #333;
-                color: #666;
-                font-size: 0.7rem;
+                color: #aaa;
+                font-size: 0.8rem;
                 text-align: center;
             `;
-            footer.textContent = `${carreras?.length || 0} GP`;
+            footer.textContent = `Total: ${carreras?.length || 0} Grandes Premios`;
             
             // Ensamblar
             container.appendChild(header);
@@ -3010,7 +3011,7 @@ setTimeout(() => {
                 if (e.key === 'Escape') modal.remove();
             });
             
-            // Cerrar tocando fuera (opcional)
+            // Cerrar tocando fuera
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     modal.remove();
@@ -3019,7 +3020,7 @@ setTimeout(() => {
             
         } catch (error) {
             console.error('Error cargando calendario:', error);
-            alert('Error: ' + error.message);
+            alert('Error al cargar el calendario: ' + error.message);
         }
     };
     
