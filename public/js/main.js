@@ -2553,6 +2553,11 @@ window.addEventListener('auth-completado', async (evento) => {
     
     if (user && escuderia) {
         console.log('🎮 Creando F1Manager con datos de autenticación...');
+        // MOSTRAR PANTALLA DE CARGA INMEDIATAMENTE
+        document.getElementById('f1-loading-screen')?.style?.display = 'flex';
+        
+
+        
         
         window.f1Manager = new F1Manager(user, escuderia, supabase);
         if (window.MercadoManager) {
