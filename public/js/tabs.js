@@ -453,8 +453,8 @@ class TabManager {
                     <div class="stat-card-taller">
                         <i class="fas fa-puzzle-piece"></i>
                         <div>
-                            <span class="stat-label">PIEZAS POR NIVEL</span>
-                            <span class="stat-value">20</span>
+                            <span class="stat-label">PIEZAS POR NIVEL</span>  ← ¡¡QUITAR ESTO!!
+                            <span class="stat-value">20</span>               ← ¡¡QUITAR ESTO!!
                         </div>
                     </div>
                 </div>
@@ -936,6 +936,7 @@ class TabManager {
                 }
             });
         });
+        this.actualizarProgresoTotal();
     }
     
     async loadAlmacenPiezas() {
@@ -1195,10 +1196,32 @@ class TabManager {
     
 
     
-    // ===== FUNCIONES PARA MANEJAR PIEZAS =====
-    // ... el resto de tu código sigue aquí ... 
+
     
-    
+    async actualizarProgresoTotal() {
+        try {
+            if (!window.f1Manager?.escuderia?.id) return;
+            
+            const { data: piezas, error } = await supabase
+                .from('almacen_piezas')
+                .select('id')
+                .eq('escuderia_id', window.f1Manager.escuderia.id);
+                
+            if (error) throw error;
+            
+            const total = piezas?.length || 0;
+            const porcentaje = Math.min(100, (total / 550) * 100);
+            
+            document.getElementById('piezas-fabricadas').textContent = total;
+            const fill = document.getElementById('progreso-total-fill');
+            if (fill) {
+                fill.style.width = `${porcentaje}%`;
+            }
+            
+        } catch (error) {
+            console.error('Error actualizando progreso:', error);
+        }
+    }    
     
     // ===== FUNCIONES PARA MANEJAR PIEZAS =====
     
