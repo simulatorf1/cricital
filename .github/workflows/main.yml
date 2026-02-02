@@ -13,6 +13,17 @@ jobs:
         with:
           node-version: 20
 
+      - name: UPDATE APP NAME IN CONFIG
+        run: |
+          echo "🔄 CAMBIANDO NOMBRE DE LA APP..."
+          
+          # Cambiar nombre en capacitor.config.json
+          jq '.appName = "Critical Lap"' capacitor.config.json > temp.json
+          mv temp.json capacitor.config.json
+          
+          echo "✅ Nombre cambiado a 'Critical Lap'"
+          cat capacitor.config.json
+
       - name: Install Capacitor
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
@@ -26,41 +37,75 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Download and setup icon
+      - name: DOWNLOAD ICON
         run: |
-          # Descargar el icono desde GitHub
-          echo "Descargando icono para Critical Lap..."
-          wget -q "https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.png" -O icon.png
+          echo "🎨 DESCARGANDO ICONO..."
           
-          if [ -f "icon.png" ]; then
-            echo "✅ Icono descargado correctamente"
+          # URL CORRECTA - usar raw.githubusercontent.com
+          ICON_URL="https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.png"
+          echo "Descargando desde: $ICON_URL"
+          
+          wget -q "$ICON_URL" -O icon_original.png
+          
+          if [ -f "icon_original.png" ]; then
+            echo "✅ Icono descargado: $(ls -lh icon_original.png)"
           else
-            echo "❌ ERROR: No se pudo descargar el icono"
+            echo "❌ Error descargando icono"
             exit 1
           fi
 
-      - name: Set App Name to Critical Lap
-        run: |
-          echo "🔧 Configurando nombre de la aplicación internamente..."
-          
-          # Crear o actualizar el archivo capacitor.config.json con el nombre correcto
-          if [ -f "capacitor.config.json" ]; then
-            # Si existe, actualizar el nombre
-            jq '.appName = "Critical Lap"' capacitor.config.json > capacitor.config.tmp.json
-            mv capacitor.config.tmp.json capacitor.config.json
-          else
-            # Si no existe, crearlo
-            echo '{
-              "appId": "com.example.app",
-              "appName": "Critical Lap",
-              "webDir": "out"
-            }' > capacitor.config.json
-          fi
-          
-          echo "✅ Nombre de la app configurado en capacitor.config.json"
-
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: CONFIGURE ICON FOR ANDROID
+        run: |
+          echo "🔄 CONFIGURANDO ICONO PARA ANDROID..."
+          
+          # Instalar ImageMagick para procesar iconos
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+          
+          # Crear iconos en todas las densidades requeridas por Android
+          DENSITIES=("mdpi" "hdpi" "xhdpi" "xxhdpi" "xxxhdpi")
+          SIZES=(48 72 96 144 192)
+          
+          for i in "${!DENSITIES[@]}"; do
+            DENSITY="${DENSITIES[$i]}"
+            SIZE="${SIZES[$i]}"
+            
+            # Crear directorio si no existe
+            mkdir -p "android/app/src/main/res/drawable-${DENSITY}"
+            
+            # Redimensionar icono
+            convert icon_original.png -resize "${SIZE}x${SIZE}" "android/app/src/main/res/drawable-${DENSITY}/ic_launcher.png"
+            convert icon_original.png -resize "${SIZE}x${SIZE}" "android/app/src/main/res/drawable-${DENSITY}/ic_launcher_foreground.png"
+            convert icon_original.png -resize "${SIZE}x${SIZE}" "android/app/src/main/res/drawable-${DENSITY}/ic_launcher_round.png"
+            
+            echo "  ✅ Creado icono ${DENSITY} (${SIZE}x${SIZE})"
+          done
+          
+          echo "✅ Todos los iconos creados para Android"
+
+      - name: UPDATE APP NAME IN ANDROID
+        run: |
+          echo "✏️ ACTUALIZANDO NOMBRE EN ANDROID..."
+          
+          # Actualizar strings.xml
+          STRINGS_FILE="android/app/src/main/res/values/strings.xml"
+          
+          if [ -f "$STRINGS_FILE" ]; then
+            # Reemplazar el nombre de la app
+            sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Critical Lap<\/string>/' "$STRINGS_FILE"
+            echo "✅ Nombre actualizado en strings.xml"
+            grep "app_name" "$STRINGS_FILE"
+          else
+            echo "⚠️  No se encontró strings.xml, creando uno nuevo..."
+            mkdir -p "$(dirname "$STRINGS_FILE")"
+            echo '<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Critical Lap</string>
+</resources>' > "$STRINGS_FILE"
+          fi
 
       - name: Force Fix Kotlin Duplicates
         run: |
@@ -80,41 +125,49 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew clean assembleDebug --no-daemon --stacktrace
 
-      - name: Rename and compress APK
+      - name: Rename APK
         run: |
           cd android/app/build/outputs/apk/debug
-          # Renombrar APK a Critical Lap
-          mv app-debug.apk "Critical Lap.apk"
-          # Comprimir
-          gzip -c "Critical Lap.apk" > "Critical Lap.apk.gz"
-          echo "✅ APK renombrado: Critical Lap.apk"
-          echo "📊 Tamaño original: $(du -h Critical\ Lap.apk | cut -f1)"
-          echo "📊 Tamaño comprimido: $(du -h Critical\ Lap.apk.gz | cut -f1)"
+          
+          # Renombrar APK
+          if [ -f "app-debug.apk" ]; then
+            mv app-debug.apk "Critical Lap.apk"
+            
+            # Verificar tamaño y nombre
+            echo "✅ APK creado: Critical Lap.apk"
+            echo "📊 Tamaño: $(du -h Critical\ Lap.apk | cut -f1)"
+            echo "🔍 Información del APK:"
+            ls -lh "Critical Lap.apk"
+            
+            # Comprimir para GitHub
+            gzip -k "Critical Lap.apk"
+            echo "📦 Comprimido: Critical Lap.apk.gz"
+          else
+            echo "❌ ERROR: No se encontró app-debug.apk"
+            ls -la
+            exit 1
+          fi
 
-      - name: Upload APK (Compressed)
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Critical-Lap-APK
           path: android/app/build/outputs/apk/debug/Critical Lap.apk.gz
           retention-days: 7
-          if-no-files-found: error
-          overwrite: true
-          compression-level: 0
 
-      - name: Upload APK (Original) como fallback
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Critical-Lap-APK-Raw
-          path: android/app/build/outputs/apk/debug/Critical Lap.apk
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Display APK info
+      - name: Final Verification
         run: |
-          echo "✅ APK generado: Critical Lap.apk"
-          echo "📱 Nombre de la app: Critical Lap (configurado internamente)"
-          echo "🎯 Icono: Descargado desde GitHub correctamente"
-          echo "📥 Para descargar: Ve a 'Actions' → selecciona esta ejecución → 'Artifacts' → 'Critical-Lap-APK'"
+          echo "✅ CONSTRUCCIÓN COMPLETADA"
+          echo ""
+          echo "📱 NOMBRE DE LA APP: Critical Lap"
+          echo "🎯 ICONO: Configurado correctamente en todas las densidades"
+          echo "📦 ARCHIVO: Critical Lap.apk"
+          echo ""
+          echo "Para descargar:"
+          echo "1. Ve a la pestaña 'Actions'"
+          echo "2. Haz clic en la ejecución más reciente"
+          echo "3. Descarga 'Critical-Lap-APK'"
+          echo "4. Descomprime el archivo .gz"
+          echo "5. Instala Critical Lap.apk en tu dispositivo"
