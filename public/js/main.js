@@ -585,7 +585,16 @@ class F1Manager {
             }
             
             const nivelMostrar = "Q" + nivel;
-            this.showNotification('✅ Actualización ' + nombreArea + ' (Mejora ' + numeroPiezaGlobal + ' ' + nivelMostrar + ') en fabricación - ' + tiempoTexto, 'success');            
+            // Obtener nombre personalizado para la notificación
+            let nombrePiezaNotif = nombreArea;
+            if (this.nombresPiezas && this.nombresPiezas[areaId]) {
+                const nombresArea = this.nombresPiezas[areaId];
+                if (numeroPiezaGlobal <= nombresArea.length) {
+                    nombrePiezaNotif = nombresArea[numeroPiezaGlobal - 1];
+                }
+            }
+            
+            this.showNotification('✅ ' + nombrePiezaNotif + ' en fabricación - ' + tiempoTexto, 'success');                        
 
             setTimeout(() => {
                 this.updateProductionMonitor();
@@ -958,7 +967,15 @@ class F1Manager {
                 
                 if (pieza) {
                     puntosTotales += pieza.puntos_base || 0;
-                    html += '<div class="boton-area-montada" onclick="irAlAlmacenDesdePiezas()" title="' + pieza.area + ' - Nivel ' + pieza.nivel + ' - ' + pieza.calidad + '">';
+                    // Obtener nombre personalizado
+                    let nombreMostrar = pieza.area;
+                    if (pieza.numero_global && this.nombresPiezas && 
+                        this.nombresPiezas[area.id] && 
+                        pieza.numero_global <= this.nombresPiezas[area.id].length) {
+                        nombreMostrar = this.nombresPiezas[area.id][pieza.numero_global - 1];
+                    }
+                    
+                    html += '<div class="boton-area-montada" onclick="irAlAlmacenDesdePiezas()" title="' + nombreMostrar + ' - Nivel ' + pieza.nivel + ' - ' + pieza.calidad + '">';
                     html += '<div class="icono-area">' + area.icono + '</div>';
                     html += '<div class="nombre-area">' + area.nombre + '</div>';
                     html += '<div class="nivel-pieza">Nivel ' + pieza.nivel + '</div>';
@@ -2118,15 +2135,23 @@ class F1Manager {
                     const tiempoFormateado = this.formatTime(tiempoRestante);
                     const numeroPieza = fabricacion.numero_pieza || 1;
                     
-                    // === NUEVO: Cambiar textos de visualización ===
-                    // "Actualización Suelo" en lugar del nombre del área
-                    const nombreMostrar = "Actualización " + nombreArea;
+
+                    // === NUEVO: Usar nombres personalizados ===
+                    // Obtener el nombre personalizado según el número global de pieza
+                    let nombreMostrar = "Actualización " + nombreArea;
+                    let mejoraTexto = "";
                     
-                    // "Mejora 4 Q1" en lugar de "Pieza 4/50 (Nivel 1)"
-                    // Q1, Q2, Q3... en lugar de nivel 1, nivel 2
-                    const nivelMostrar = "Q" + fabricacion.nivel;
-                    const mejoraTexto = "Mejora " + numeroPieza + " " + nivelMostrar;
-                    // === FIN NUEVO ===
+                    // Buscar en los nombres personalizados si existe
+                    if (this.nombresPiezas && this.nombresPiezas[fabricacion.area]) {
+                        const nombresArea = this.nombresPiezas[fabricacion.area];
+                        // El número global está en numeroPiezaGlobal
+                        if (numeroPiezaGlobal <= nombresArea.length) {
+                            nombreMostrar = nombresArea[numeroPiezaGlobal - 1];
+                        }
+                    }
+                    
+                    // Mostrar solo el nombre, no "Mejora X Q1"
+                    mejoraTexto = "Nivel " + fabricacion.nivel;
                     
                     html += '<div class="produccion-slot ' + (lista ? 'produccion-lista' : 'produccion-activa') + '" ';
                     html += 'onclick="recogerPiezaSiLista(\'' + fabricacion.id + '\', ' + lista + ', ' + i + ')" ';
@@ -2453,8 +2478,18 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         const numeroPiezaEnNivel = ((nuevoNumeroGlobal - 1) % 5) + 1;
         const nombreArea = window.f1Manager?.getNombreArea(fabricacion.area) || fabricacion.area;
         
+        // Obtener nombre personalizado
+        let nombrePiezaNotif = nombreArea;
+        if (window.f1Manager && window.f1Manager.nombresPiezas && 
+            window.f1Manager.nombresPiezas[fabricacion.area]) {
+            const nombresArea = window.f1Manager.nombresPiezas[fabricacion.area];
+            if (nuevoNumeroGlobal <= nombresArea.length) {
+                nombrePiezaNotif = nombresArea[nuevoNumeroGlobal - 1];
+            }
+        }
+        
         if (window.f1Manager && window.f1Manager.showNotification) {
-            window.f1Manager.showNotification('✅ ' + nombreArea + ' (Pieza ' + numeroPiezaEnNivel + ' de nivel ' + fabricacion.nivel + ') recogida\n+' + puntosTotales + ' puntos técnicos', 'success');
+            window.f1Manager.showNotification('✅ ' + nombrePiezaNotif + ' recogida\n+' + puntosTotales + ' puntos técnicos', 'success');
         }
         
         if (window.f1Manager) {
