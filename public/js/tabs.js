@@ -1003,6 +1003,7 @@ class TabManager {
                         const esEquipada = piezaEquipada && piezaEquipada.id === pieza.id;
                         const puntos = pieza.puntos_base || 10;
                         const nivel = pieza.nivel || 1;
+                        const nombreComponente = pieza.componente || pieza.area;
                         
                         // CONTENEDOR para pieza + botón vender
                         html += `<div style="display:flex;flex-direction:column;align-items:center;gap:5px;margin-right:8px;">`;
