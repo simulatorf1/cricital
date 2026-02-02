@@ -479,59 +479,11 @@ class TabManager {
     getAlmacenContent() {
         return `
             <div class="almacen-botones-container">
-                <div class="almacen-header-botones">
-                    <h2><i class="fas fa-warehouse"></i> ALMACÉN</h2>
-                    <button class="btn-refresh-almacen" onclick="window.tabManager.loadAlmacenPiezas()">
-                        <i class="fas fa-sync-alt"></i> Actualizar
-                    </button>
-                </div>
-                
-                <div class="almacen-estadisticas">
-                    <div class="estadistica-card">
-                        <i class="fas fa-box-open"></i>
-                        <div>
-                            <span class="estadistica-label">Piezas totales</span>
-                            <span class="estadistica-valor" id="total-piezas">0</span>
-                        </div>
-                    </div>
-                    <div class="estadistica-card">
-                        <i class="fas fa-check-circle"></i>
-                        <div>
-                            <span class="estadistica-label">Piezas equipadas</span>
-                            <span class="estadistica-valor" id="piezas-equipadas">0</span>
-                        </div>
-                    </div>
-                    <div class="estadistica-card">
-                        <i class="fas fa-tag"></i>
-                        <div>
-                            <span class="estadistica-label">En venta</span>
-                            <span class="estadistica-valor" id="piezas-venta">0</span>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="areas-grid-botones" id="areas-grid-botones">
-                    <!-- CONTENIDO SE CARGARÁ AQUÍ -->
                     <div class="cargando-almacen">
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>Cargando piezas...</p>
                     </div>
-                </div>
-                
-                <div class="almacen-acciones">
-                    <button class="btn-vender-todas" onclick="window.tabManager.venderTodasNoEquipadas()" 
-                            style="background: linear-gradient(135deg, #FF9800, #F57C00);">
-                        <i class="fas fa-tags"></i> VENDER TODAS (NO EQUIPADAS)
-                    </button>
-                    <button class="btn-equipar-mejores" onclick="window.tabManager.equiparMejoresPiezas()"
-                            style="background: linear-gradient(135deg, #4CAF50, #2E7D32); margin-left: 10px;">
-                        <i class="fas fa-star"></i> EQUIPAR MEJORES
-                    </button>
-                </div>
-                
-                <div class="almacen-info">
-                    <p><i class="fas fa-info-circle"></i> Haz click en una pieza para equiparla/desequiparla</p>
-                    <p><i class="fas fa-info-circle"></i> Usa el botón "VENDER" para ponerla en el mercado</p>
                 </div>
             </div>
         `;
