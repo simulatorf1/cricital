@@ -998,21 +998,21 @@ class TabManager {
                             
                             <div class="piezas-fila-almacen" style="display:flex;flex-direction:row;flex-wrap:nowrap;gap:8px;padding:10px;overflow-x:auto;min-height:95px;">`;
                     
-
                     piezasArea.forEach(pieza => {
                         const esEquipada = piezaEquipada && piezaEquipada.id === pieza.id;
                         const puntos = pieza.puntos_base || 10;
                         const nivel = pieza.nivel || 1;
+                        
                         const nombreComponente = pieza.componente || pieza.area;
                         
                         // CONTENEDOR para pieza + botón vender
-                        html += `<div style="display:flex;flex-direction:column;align-items:center;gap:5px;margin-right:8px;">`;
+                        html += `<div style="display:flex;flex-direction:column;align-items:center;gap:5px;margin-right:8px;position:relative;">`;
                         
-                        // BOTÓN PRINCIPAL DE LA PIEZA (tu código actual)
+                        // BOTÓN PRINCIPAL DE LA PIEZA
                         html += `<button class="pieza-boton-almacen ${esEquipada ? 'equipada' : ''}" 
                                 onclick="window.tabManager.equiparPieza('${pieza.id}')"
                                 data-color="${areaConfig.color}"
-                                style="flex-shrink:0;min-width:75px;max-width:75px;height:85px;padding:8px;border:2px solid ${areaConfig.color};border-radius:10px;background:linear-gradient(145deg, rgba(20,20,30,0.95), rgba(10,10,20,0.95));color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;${esEquipada ? 'box-shadow:0 0 15px ' + areaConfig.color + ', 0 0 30px ' + areaConfig.color + '80;' : 'box-shadow:0 4px 12px rgba(0,0,0,0.4);'}"
+                                style="flex-shrink:0;min-width:75px;max-width:75px;height:85px;padding:8px;border:2px solid ${areaConfig.color};border-radius:10px;background:linear-gradient(145deg, rgba(20,20,30,0.95), rgba(10,10,20,0.95));color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;${esEquipada ? 'box-shadow:0 0 15px ' + areaConfig.color + ', 0 0 30px ' + areaConfig.color + '80;' : 'box-shadow:0 4px 12px rgba(0,0,0,0.4);'};position:relative;"
                                 title="${nombreComponente}">
                             
                             <!-- SOLO EL NOMBRE DEL COMPONENTE -->
@@ -1020,7 +1020,11 @@ class TabManager {
                                 ${nombreComponente}
                             </div>
                             
-                            <!-- QUITADO: puntos, nivel y todo lo demás -->
+                            <!-- TICK DE EQUIPADO -->
+                            ${esEquipada ? 
+                                '<div style="position: absolute; top: -5px; right: -5px; background: #FFD700; color: black; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; z-index: 10;">✓</div>' : 
+                                ''
+                            }
                         </button>`;
                         
                         // BOTÓN VENDER (NUEVO - solo si no está equipada)
