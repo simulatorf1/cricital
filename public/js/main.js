@@ -977,15 +977,21 @@ class F1Manager {
                         nombreMostrar = this.nombresPiezas[area.id][pieza.numero_global - 1];
                     }
                     
-                    // SOLO icono y nombre de la pieza
-                    html += '<div class="boton-area-montada" onclick="irAlAlmacenDesdePiezas()" title="' + nombreMostrar + '">';
+                    // Crear contenido con área arriba y pieza abajo
+                    html += '<div class="boton-area-montada" onclick="irAlAlmacenDesdePiezas()" title="' + area.nombre + ': ' + nombreMostrar + '">';
                     html += '<div class="icono-area">' + area.icono + '</div>';
-                    html += '<div class="nombre-area">' + nombreMostrar + '</div>';
+                    html += '<div class="area-pieza-info">';
+                    html += '<div class="area-nombre-titulo">' + area.nombre + '</div>';
+                    html += '<div class="pieza-nombre-detalle">' + nombreMostrar + '</div>';
+                    html += '</div>';
                     html += '</div>';
                 } else {
                     html += '<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="Sin pieza - Click para equipar">';
                     html += '<div class="icono-area">+</div>';
-                    html += '<div class="nombre-area">' + area.nombre + '</div>';
+                    html += '<div class="area-pieza-info">';
+                    html += '<div class="area-nombre-titulo">' + area.nombre + '</div>';
+                    html += '<div class="pieza-nombre-detalle" style="color: #888; font-size: 0.8rem;">Vacío</div>';
+                    html += '</div>';
                     html += '</div>';
                 }
             });
@@ -1591,15 +1597,22 @@ class F1Manager {
                         nombrePiezaMostrar = this.nombresPiezas[area.id][pieza.numero_global - 1];
                     }
                     
-                    // SOLO icono y nombre de la pieza
-                    html += '<div class="pieza-boton-compacto pieza-montada-compacto" onclick="irAlAlmacenDesdePiezas()" title="' + nombrePiezaMostrar + '">';
+                    // Crear contenido con área arriba y pieza abajo
+                    html += '<div class="pieza-boton-compacto pieza-montada-compacto" onclick="irAlAlmacenDesdePiezas()" title="' + area.nombre + ': ' + nombrePiezaMostrar + '">';
                     html += '<div class="pieza-icono-compacto">' + area.icono + '</div>';
-                    html += '<div class="pieza-nombre-compacto">' + nombrePiezaMostrar + '</div>';
+                    html += '<div class="pieza-info-compacto">';
+                    html += '<div class="pieza-area-titulo">' + area.nombre + '</div>';
+                    html += '<div class="pieza-nombre-detalle">' + nombrePiezaMostrar + '</div>';
+                    html += '</div>';
                     html += '</div>';
                 } else {
+                    // Para huecos vacíos
                     html += '<div class="pieza-boton-compacto" onclick="irAlAlmacenDesdePiezas()" title="Sin pieza - Click para equipar">';
                     html += '<div class="pieza-icono-compacto" style="color: #666;">+</div>';
-                    html += '<div class="pieza-nombre-compacto">' + area.nombre + '</div>';
+                    html += '<div class="pieza-info-compacto">';
+                    html += '<div class="pieza-area-titulo">' + area.nombre + '</div>';
+                    html += '<div class="pieza-nombre-detalle" style="color: #888; font-size: 0.8rem;">Vacío</div>';
+                    html += '</div>';
                     html += '</div>';
                 }
             });
