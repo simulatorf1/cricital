@@ -968,26 +968,24 @@ class F1Manager {
                 
                 if (pieza) {
                     puntosTotales += pieza.puntos_base || 0;
-                    // Obtener nombre personalizado
-                    let nombreMostrar = pieza.area;
+                    
+                    // Obtener nombre personalizado de la pieza
+                    let nombreMostrar = pieza.componente || area.nombre;
                     if (pieza.numero_global && this.nombresPiezas && 
                         this.nombresPiezas[area.id] && 
                         pieza.numero_global <= this.nombresPiezas[area.id].length) {
                         nombreMostrar = this.nombresPiezas[area.id][pieza.numero_global - 1];
                     }
                     
-                    html += '<div class="boton-area-montada" onclick="irAlAlmacenDesdePiezas()" title="' + nombreMostrar + ' - Nivel ' + pieza.nivel + ' - ' + pieza.calidad + '">';
+                    // SOLO icono y nombre de la pieza
+                    html += '<div class="boton-area-montada" onclick="irAlAlmacenDesdePiezas()" title="' + nombreMostrar + '">';
                     html += '<div class="icono-area">' + area.icono + '</div>';
-                    html += '<div class="nombre-area">' + area.nombre + '</div>';
-                    html += '<div class="nivel-pieza">Nivel ' + pieza.nivel + '</div>';
-                    html += '<div class="puntos-pieza">+' + pieza.puntos_base + '</div>';
-                    html += '<div class="calidad-pieza" style="font-size:0.6rem;color:#aaa">' + pieza.calidad + '</div>';
+                    html += '<div class="nombre-area">' + nombreMostrar + '</div>';
                     html += '</div>';
                 } else {
                     html += '<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="Sin pieza - Click para equipar">';
                     html += '<div class="icono-area">+</div>';
                     html += '<div class="nombre-area">' + area.nombre + '</div>';
-                    html += '<div style="font-size:0.7rem; color:#888; margin-top:5px;">Vacío</div>';
                     html += '</div>';
                 }
             });
@@ -1584,16 +1582,24 @@ class F1Manager {
                 
                 if (pieza) {
                     puntosTotales += pieza.puntos_base || 0;
-                    html += '<div class="pieza-boton-compacto pieza-montada-compacto" onclick="irAlAlmacenDesdePiezas()" title="' + pieza.area + ' - Nivel ' + pieza.nivel + ' - ' + pieza.calidad + '">';
+                    
+                    // Obtener nombre personalizado de la pieza
+                    let nombrePiezaMostrar = pieza.componente || area.nombre;
+                    if (pieza.numero_global && this.nombresPiezas && 
+                        this.nombresPiezas[area.id] && 
+                        pieza.numero_global <= this.nombresPiezas[area.id].length) {
+                        nombrePiezaMostrar = this.nombresPiezas[area.id][pieza.numero_global - 1];
+                    }
+                    
+                    // SOLO icono y nombre de la pieza
+                    html += '<div class="pieza-boton-compacto pieza-montada-compacto" onclick="irAlAlmacenDesdePiezas()" title="' + nombrePiezaMostrar + '">';
                     html += '<div class="pieza-icono-compacto">' + area.icono + '</div>';
-                    html += '<div class="pieza-nombre-compacto">' + area.nombre + '</div>';
-                    html += '<div class="pieza-nivel-compacto">N' + pieza.nivel + '</div>';
+                    html += '<div class="pieza-nombre-compacto">' + nombrePiezaMostrar + '</div>';
                     html += '</div>';
                 } else {
                     html += '<div class="pieza-boton-compacto" onclick="irAlAlmacenDesdePiezas()" title="Sin pieza - Click para equipar">';
                     html += '<div class="pieza-icono-compacto" style="color: #666;">+</div>';
                     html += '<div class="pieza-nombre-compacto">' + area.nombre + '</div>';
-                    html += '<div style="font-size: 0.55rem; color: #888;">Vacío</div>';
                     html += '</div>';
                 }
             });
@@ -1609,7 +1615,6 @@ class F1Manager {
             container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #888; padding: 10px;">Error cargando piezas</div>';
         }
     }
-
     async iniciarCountdownCompacto() {
         console.log('🏎️ Iniciando countdown estilo F1...');
         
