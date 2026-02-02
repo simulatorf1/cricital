@@ -210,10 +210,9 @@ class FabricacionManager {
                 .insert([{
                     escuderia_id: this.escuderiaId,
                     area: area.name,
-                    orden_pieza: await this.obtenerSiguienteOrden(areaId),
-                    nombre_visible: await this.obtenerNombrePieza(areaId, await this.obtenerSiguienteOrden(areaId)),
+                    nivel: 1,
                     tiempo_inicio: tiempoInicio.toISOString(),
-                    tiempo_fin: tiempoFinAjustado.toISOString(),
+                    tiempo_fin: tiempoFinAjustado.toISOString(),  // ← Usa tiempoFinAjustado
                     completada: false,
                     costo: costoFabricacion,
                     creada_en: new Date().toISOString()
@@ -298,10 +297,9 @@ class FabricacionManager {
                 .insert([{
                     escuderia_id: fabricacion.escuderia_id,
                     area: areaId,
-                    orden_pieza: fabricacion.orden_pieza || 1,
-                    nombre_visible: fabricacion.nombre_visible || areaId,
-                    puntos_reales: this.generarPuntosOcultos(areaId),
-                    calidad_interna: this.generarCalidadOculta(),
+                    nivel: fabricacion.nivel,
+                    puntos_base: 10,
+                    calidad: 'Estándar',
                     equipada: false,
                     fabricada_en: new Date().toISOString(),
                     creada_en: new Date().toISOString()
@@ -317,7 +315,8 @@ class FabricacionManager {
 
             if (updateError) throw updateError;
 
-
+            // 5. Actualizar progreso del coche
+            await this.actualizarProgresoCoche(fabricacion.area);
 
             // 6. Remover de lista local
             this.produccionesActivas = this.produccionesActivas.filter(f => f.id !== fabricacionId);
@@ -351,180 +350,68 @@ class FabricacionManager {
             return false;
         }
     }
-
-    async obtenerSiguienteOrden(areaId) {
-        // AÑADE ESTO AL PRINCIPIO:
-        if (!this.escuderiaId) {
-            console.error('❌ No hay escuderiaId en obtenerSiguienteOrden');
-            return 1;
-        }
-        
+    async actualizarProgresoCoche(areaNombre) {
         try {
-            const { data, error } = await supabase
-                .from('almacen_piezas')
-                .select('orden_pieza')
+            const area = window.CAR_AREAS.find(a => a.name === areaNombre);
+            if (!area) return;
+
+            const areaId = area.id;
+
+            const { data: stats, error: fetchError } = await supabase
+                .from('coches_stats')
+                .select('*')
                 .eq('escuderia_id', this.escuderiaId)
-                .eq('area', areaId)
-                .order('orden_pieza', { ascending: false })
-                .limit(1);
+                .single();
+
+            let currentStats = stats;
             
-            if (error) throw error;
-            
-            return data && data.length > 0 ? data[0].orden_pieza + 1 : 1;
-            
+            if (!currentStats) {
+                const { data: newStats, error: createError } = await supabase
+                    .from('coches_stats')
+                    .insert([{
+                        escuderia_id: this.escuderiaId,
+                        [`${areaId}_nivel`]: 0,
+                        [`${areaId}_progreso`]: 1
+                    }])
+                    .select()
+                    .single();
+
+                if (createError) throw createError;
+                currentStats = newStats;
+            } else {
+                const currentProgress = currentStats[`${areaId}_progreso`] || 0;
+                const currentLevel = currentStats[`${areaId}_nivel`] || 0;
+                
+                let newProgress = currentProgress + 1;
+                let newLevel = currentLevel;
+
+                if (newProgress >= 20) {
+                    newProgress = 0;
+                    newLevel = currentLevel + 1;
+                    if (newLevel > 10) newLevel = 10;
+                }
+
+                const { error: updateError } = await supabase
+                    .from('coches_stats')
+                    .update({
+                        [`${areaId}_progreso`]: newProgress,
+                        [`${areaId}_nivel`]: newLevel,
+                        actualizado_en: new Date().toISOString()
+                    })
+                    .eq('id', currentStats.id);
+
+                if (updateError) throw updateError;
+            }
+
+            if (window.f1Manager && window.f1Manager.loadCarStatus) {
+                setTimeout(() => window.f1Manager.loadCarStatus(), 500);
+            }
+
         } catch (error) {
-            console.error('Error obteniendo orden:', error);
-            return 1;
+            console.error('❌ Error actualizando progreso del coche:', error);
         }
     }
 
-    
-    async obtenerNombrePieza(areaId, orden) {
-        const listas50Piezas = {
-            motor: [
-                "Motor V6 Básico", "Turbo Compresor T1", "Bloque Aleación V8", "Culata Racing", "Árbol de Levas Sport",
-                "Inyección Directa Pro", "Sistema ERS Gen1", "Bomba Agua Racing", "Radiador Intercooler", "Colector Admisión",
-                "Escape Titanio V1", "Filtro Aire Comp", "Sensor MAP Pro", "Bobinas Ignición", "Bujías Iridium",
-                "Correa Distribución", "Bomba Aceite Seco", "Cárter Aluminio", "Junta Culata", "Válvulas Titanio",
-                "Resorte Válvulas", "Levas Racing", "Retenes Racing", "Soporte Motor", "Tensor Correa",
-                "Termostato Racing", "Refrigerante Pro", "Sonda Lambda", "Catalizador Hi-Flow", "Silenciador Deportivo",
-                "Downpipe Stage1", "Wastegate 38mm", "BOV Compressor", "Intercooler Upgrade", "Fuel Rail",
-                "Inyectores 1000cc", "Regulador Presión", "Bomba Combustible", "Filtro Combustible", "Líneas AN",
-                "Control Tracción V1", "Launch Control", "Anti-lag System", "Flat Shift", "Rev Limiter",
-                "Data Logger", "ECU Flash V1", "Tune Stage 1", "Tune Stage 2", "Motor V10 Extreme"
-            ],
-            chasis: [
-                "Chasis Monocasco", "Estructura Carbono V1", "Suspensión Pushrod", "Bastidor Titanio", "Paneles Kevlar",
-                "Túnel Central", "Piso Plano V1", "Estribos Racing", "Torre Suspensión", "Brazos Upper",
-                "Brazos Lower", "Rótulas Titanio", "Rodamientos Cerámicos", "Cojinetes", "Casquillos Poly",
-                "Barra Antivuelco V1", "Protección Lateral", "Celluloid Safety", "Halo System", "Cockpit Protection",
-                "Asiento Fibra", "Arneses 6pt", "Apoyacabezas", "Pedalera Ajust", "Column Dirección",
-                "Caja Cambios Mount", "Tapa Diferencial", "Semiejes", "Juntas Homocinéticas", "Portaejes",
-                "Soporte Motor V1", "Bastidor Delantero", "Subchasis Trasero", "Fuselaje Central", "Estructura Crash",
-                "Zona Deformable", "Protección Fuel", "Tanque Combustible", "Sistema Extinción", "Batería Litio",
-                "Wiring Harness", "Loom Protección", "Conectores Racing", "Fusibles High-Amp", "Relays Solid State",
-                "Ground Straps", "Buss Bars", "Terminal Blocks", "Cableado Shielded", "Chasis Carbono Full"
-            ],
-            frenos: [
-                "Discos Carbono", "Pastillas Racing", "Líquido High-Temp", "Pinzas Forjadas", "Sistema ABS Pro",
-                "Discos Perforados", "Discos Rayados", "Campanas Aluminio", "Mordazas 6 Pistón", "Mordazas 4 Pistón",
-                "Cilindros Maestros", "Bombines", "Líneas Braided", "Proportioning Valve", "Bias Bar",
-                "Pedal Brake", "Servo Asist", "Sensor ABS", "Tonillos Bleed", "Pistons Ceramic",
-                "Seals High-Temp", "Shims Anti-noise", "Wear Sensors", "Brake Ducting", "Cooling Vanes",
-                "Dust Shields", "Mounting Brackets", "Anti-rattle Clips", "Retaining Pins", "Springs Caliper",
-                "Pads Track", "Pads Street", "Pads Endurance", "Discs 330mm", "Discs 355mm",
-                "Discs 380mm", "Caliper Bridge", "Bleeder Nipples", "Brake Lines Kit", "Fluid DOT4",
-                "Fluid DOT5.1", "Catch Tank", "Brake Bias Controller", "Pedal Box", "Master Cylinder Kit",
-                "Slave Cylinder", "Handbrake Lever", "Cable Handbrake", "Brake Light Switch", "Frenos Carbono-Cerámicos"
-            ],
-            aleron_delantero: [
-                "Alerón Básico", "Perfil Laminar V1", "Elemento Multi", "Aleta Gurney", "Flap DRS",
-                "Endplate Standard", "Mainplane V1", "Winglet Ángulo", "Mount Brackets", "Pylon Supports",
-                "Adjust Mechanism", "Flap Actuator", "DRS Actuator", "Position Sensor", "Load Cells",
-                "Aero Fins", "Vortex Generators", "Cascade Elements", "Turn vanes", "Bargeboards",
-                "Y250 Wing", "Outwash Wing", "Inwash Element", "Strake Kit", "Wing Flap",
-                "Wing Slat", "Spoiler", "Splitter", "Canards", "Dive Planes",
-                "Aero Disc", "Wheel Covers", "Bargeboard Fins", "Vane Array", "Flow Conditioner",
-                "Boundary Layer", "Stall Strips", "Gurney Flap", "Wicker Bill", "Trim Tabs",
-                "Aero Balance", "Static Ports", "Pitot Tube", "Aero Rake", "Pressure Taps",
-                "Tuft Grid", "Smoke Wire", "Flow Vis", "Alerón Doble Elemento", "Alerón Triple Elemento"
-            ],
-            aleron_trasero: [
-                "Alerón Trasero", "DRS Pasivo V1", "Winglet Ángulo", "Mainplane", "Endplate",
-                "Beam Wing", "Monkey Seat", "Diffuser Gurney", "Wing Flap", "Wing Slat",
-                "Mounting Pillars", "Hydraulic Ram", "Position Sensor", "Load Sensor", "Pivot Mechanism",
-                "Adjuster Screw", "Locking Pin", "Safety Cable", "Aero Fins", "Vortex Generators",
-                "Cascade Array", "Turning Vanes", "Stall Fence", "Gurney Strip", "Wicker Bill",
-                "Trim Tab", "Balance Panel", "Static Port", "Pitot Array", "Pressure Sensor",
-                "Tuft Array", "Flow Vis Kit", "Smoke Generator", "Aero Rake", "Boundary Suction",
-                "Separation Edge", "Reattachment Lip", "Coanda Surface", "Blown Wing", "Slot Gap",
-                "Trailing Edge", "Leading Edge", "Camber Line", "Chord Line", "Span Wise",
-                "Tip Vortex", "Wingtip Fence", "Endplate Fins", "Alerón DRS Activo", "Alerón Doble Flap"
-            ],
-            caja_cambios: [
-                "Caja 7 Vel", "Secuencial S1", "Diferencial Auto", "Embrague Cerámico", "Selector Quickshift",
-                "Synchro Rings", "Dog Rings", "Selector Forks", "Shift Rods", "Shift Drum",
-                "Gear Sets", "Input Shaft", "Output Shaft", "Layshaft", "Countershaft",
-                "Bearings", "Bushings", "Seals", "Gaskets", "Oil Pump",
-                "Oil Cooler", "Filter", "Magnet", "Drain Plug", "Fill Plug",
-                "Breather", "Case", "Bellhousing", "Adapter Plate", "Mounting Brackets",
-                "Linkage Kit", "Cable Kit", "Hydraulic Kit", "Pneumatic Kit", "Actuator",
-                "Solenoid", "Sensor Speed", "Sensor Position", "Sensor Temp", "Sensor Pressure",
-                "ECU Gearbox", "Software Tune", "Calibration Kit", "Launch Control", "Flat Shift",
-                "Auto Blip", "Auto Shift", "Paddle Shifters", "Sequential Shifter", "Caja 8 Vel Secuencial"
-            ],
-            suspension: [
-                "Amortiguadores", "Muelles Coilover", "Barra Antivuelco", "Brazos Ajustables", "Rótulas Racing",
-                "Top Mounts", "Strut Brace", "Wishbones", "Trailing Arms", "Control Arms",
-                "Tie Rods", "Steering Arms", "Ball Joints", "Rod Ends", "Heim Joints",
-                "Bushings Poly", "Bushings Rubber", "Bushings Spherical", "Bump Stops", "Dust Boots",
-                "Bellows", "Seals", "Pistons", "Shims", "Valving",
-                "Springs Linear", "Springs Progressive", "Springs Tender", "Spring Helpers", "Preload Adjusters",
-                "Ride Height Adjust", "Damping Adjust", "Rebound Adjust", "Compression Adjust", "Fast Bump",
-                "Slow Rebound", "Reservoirs", "Remote Canisters", "Nitrogen Charge", "Bleed Valves",
-                "Mounting Brackets", "Spacers", "Shims Pack", "Hardware Kit", "Suspensión Push-Pull Pro"
-            ],
-            electronica: [
-                "ECU Básica", "Telemetría Pro", "Sensors Pack V1", "Control Tracción", "ERS Manager",
-                "Data Logger", "Dash Display", "Steering Wheel", "Button Box", "Rotary Encoders",
-                "Toggle Switches", "Push Buttons", "Rotary Dials", "LCD Screen", "LED Lights",
-                "Wiring Harness", "Connectors", "Terminals", "Fuses", "Relays",
-                "Circuit Breakers", "Power Distribution", "Ground Points", "Shielded Cable", "Twisted Pair",
-                "CAN Bus", "LIN Bus", "Ethernet", "WiFi Module", "Bluetooth",
-                "GPS Antenna", "IMU Sensor", "Accelerometer", "Gyroscope", "Magnetometer",
-                "Pressure Sensors", "Temp Sensors", "Flow Sensors", "Position Sensors", "Speed Sensors",
-                "Load Cells", "Strain Gauges", "Thermocouples", "RTDs", "Hall Effect",
-                "Optical Sensors", "Ultrasonic", "Radar", "Lidar", "Sistema Telemetría Full"
-            ],
-            volante: [
-                "Volante Std", "Display LCD V1", "Botones Paddle", "Grip Alcantara", "Quick Release",
-                "Hub Adapter", "Spacer", "Lock Ring", "Release Mechanism", "Wiring Slip Ring",
-                "Connector", "Cable", "Shift Lights", "Rev Lights", "Gear Display",
-                "Speed Display", "RPM Display", "Temp Display", "Pressure Display", "Lap Timer",
-                "Delta Timer", "Fuel Calc", "Tire Temp", "Brake Bias", "Traction Control",
-                "Engine Map", "DRS Button", "Pit Limiter", "Radio Button", "Drink Button",
-                "OVERTAKE Button", "PAGE Button", "SCROLL Wheel", "ENTER Button", "BACK Button",
-                "MENU Button", "OK Button", "CANCEL Button", "RESET Button", "LAP Button",
-                "PIT Button", "BOX Button", "IN Button", "OUT Button", "YES Button",
-                "NO Button", "UP Button", "DOWN Button", "LEFT Button", "Volante Full Carbon"
-            ],
-            suelo: [
-                "Suelo Plano", "Difusor Pasivo V1", "Túneles Venturi", "Skid Block", "Step Plane",
-                "Reference Plane", "Ride Height", "Rake Angle", "Platform", "Tunnel Inlet",
-                "Tunnel Outlet", "Throat Area", "Expansion Zone", "Diffuser Angle", "Strake Kit",
-                "Vortex Generators", "Gurney Flap", "Wicker Bill", "Fence", "Splitter",
-                "Splinter", "Serrations", "Slots", "Holes", "Vents",
-                "Ducts", "Channels", "Grooves", "Ribs", "Stiffeners",
-                "Baffles", "Bulkheads", "Longerons", "Frames", "Ribs Transverse",
-                "Ribs Longitudinal", "Skin Panels", "Floor Pan", "Tunnel Pan", "Diffuser Pan",
-                "Sidepod Floor", "Coke Bottle", "Waist", "Shoulder", "Hip",
-                "Teardrop", "Bulge", "Scoop", "NACA Duct", "Suelo Venturi Activo"
-            ],
-            pontones: [
-                "Pontón Estándar", "Sidepod Slim V1", "Cooling Duct", "Radiotor Pack", "Aero Cove",
-                "Inlet", "Outlet", "Cowling", "Fairing", "Cover",
-                "Panel", "Door", "Louver", "Gill", "Vent",
-                "Duct", "Channel", "Passage", "Manifold", "Header",
-                "Collector", "Muffler", "Silencer", "Resonator", "Baffle",
-                "Matrix", "Core", "Fin", "Tube", "Pipe",
-                "Hose", "Line", "Fitting", "Adapter", "Reducer",
-                "Elbow", "Tee", "Cross", "Cap", "Plug",
-                "Flange", "Gasket", "Seal", "Clamp", "Bracket",
-                "Mount", "Support", "Hanger", "Stay", "Pontón Aero-Cooling Pro"
-            ]
-        };
-        
-        if (!listas50Piezas[areaId]) {
-            return `${areaId.charAt(0).toUpperCase() + areaId.slice(1)} ${orden}`;
-        }
-        
-        const lista = listas50Piezas[areaId];
-        if (orden > lista.length) {
-            return `${lista[orden % lista.length]} ${Math.floor(orden / lista.length) + 1}`;
-        }
-        
-        return lista[orden - 1] || `${areaId} Pieza ${orden}`;
-    }
 
 
     // NUEVA FUNCIÓN: Solo actualiza contadores
@@ -573,11 +460,11 @@ class FabricacionManager {
                 <div class="fabricacion-info">
                     <div class="fab-area">
                         <i class="fas fa-cog"></i>
-                        <span>${fab.nombre_visible || fab.area}</span>
+                        <span>${fab.area} • Nivel ${fab.nivel}</span>
                     </div>
                     <div class="fab-estado">
                         <span class="estado-badge ${lista ? 'lista' : 'fabricando'}">
-                            ${lista ? '✅ LISTA' : `⏳ ${minutos}m ${segundos}s`}
+                            ${lista ? '✅ LISTA' : `⏳ ${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`}
                         </span>
                     </div>
                 </div>
