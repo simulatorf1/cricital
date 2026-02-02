@@ -30,6 +30,7 @@ const produccionStyles = `
 const tallerStyles = '';
 
 // ========================
+// ========================
 // 4. CLASE F1Manager PRINCIPAL CON TUTORIAL
 // ========================
 class F1Manager {
@@ -41,6 +42,146 @@ class F1Manager {
         this.pilotos = [];
         this.carStats = null;
         this.proximoGP = null;
+        
+        // Nombres personalizados para cada pieza de cada área (50 por área)
+        this.nombresPiezas = {
+            'suelo': [
+                'Perfil aerodinámico básico', 'Difusor estándar', 'Planes de succión', 'Túnel de viento v1',
+                'Doble difusor', 'Suelo escalonado', 'Alas de gaviota', 'Túnel de viento v2',
+                'Suelo poroso', 'Generadores de vórtice', 'Difusor soplado', 'Túnel de viento v3',
+                'Suelo flexible', 'Canales de flujo', 'Doble plano', 'Túnel de viento v4',
+                'Sistema de succión activa', 'Difusor ajustable', 'Alas delta', 'Túnel de viento v5',
+                'Suelo magnético', 'Canales helicoidales', 'Difusor turbo', 'Túnel de viento v6',
+                'Sistema antigravitatorio', 'Perfiles adaptativos', 'Difusor cuántico', 'Túnel de viento v7',
+                'Suelo inteligente', 'Microcanales', 'Difusor holográfico', 'Túnel de viento v8',
+                'Sistema de levitación', 'Nanoperfiles', 'Difusor iónico', 'Túnel de viento v9',
+                'Suelo cuántico', 'Canales plasmáticos', 'Difusor gravitatorio', 'Túnel de viento v10',
+                'Sistema de distorsión', 'Perfiles temporales', 'Difusor dimensional', 'Túnel de viento omega',
+                'Suelo de singularidad', 'Canales de taquiones', 'Difusor de agujero de gusano', 'Tecnología final'
+            ],
+            'motor': [
+                'Motor V6 estándar', 'Turbo simple', 'Sistema MGU-H básico', 'MGU-K v1',
+                'Motor V6 turbo', 'Turbocompresor dual', 'Sistema MGU-H mejorado', 'MGU-K v2',
+                'Motor V8', 'Turbo de geometría variable', 'MGU-H avanzado', 'MGU-K v3',
+                'Motor V10', 'Turbocompresor eléctrico', 'Sistema híbrido v1', 'MGU-K v4',
+                'Motor V12', 'Turbo magnético', 'Sistema híbrido v2', 'MGU-K v5',
+                'Motor W16', 'Turbo plasmático', 'Sistema híbrido v3', 'MGU-K v6',
+                'Motor rotativo', 'Turbo iónico', 'Sistema híbrido v4', 'MGU-K v7',
+                'Motor eléctrico puro', 'Turbo cuántico', 'Sistema híbrido v5', 'MGU-K v8',
+                'Motor de fusión', 'Turbo gravitatorio', 'Sistema híbrido v6', 'MGU-K v9',
+                'Motor de antimateria', 'Turbo temporal', 'Sistema híbrido v7', 'MGU-K omega',
+                'Motor de singularidad', 'Turbo dimensional', 'Sistema híbrido final', 'MGU-K perfecto',
+                'Motor cuántico', 'Turbo de taquiones', 'Sistema de agujero de gusano', 'Tecnología final'
+            ],
+            'aleron_delantero': [
+                'Alerón básico', 'Perfiles estándar', 'Elementos endplate', 'Flaps v1',
+                'Alerón con DRS', 'Perfiles optimizados', 'Endplate vortex', 'Flaps v2',
+                'Alerón ajustable', 'Perfiles aerodinámicos', 'Endplate soplado', 'Flaps v3',
+                'Alerón flexible', 'Perfiles adaptativos', 'Endplate magnético', 'Flaps v4',
+                'Alerón inteligente', 'Perfiles activos', 'Endplate iónico', 'Flaps v5',
+                'Alerón holográfico', 'Perfiles cuánticos', 'Endplate gravitatorio', 'Flaps v6',
+                'Alerón cuántico', 'Perfiles temporales', 'Endplate dimensional', 'Flaps v7',
+                'Alerón de plasma', 'Perfiles de taquiones', 'Endplate de singularidad', 'Flaps v8',
+                'Alerón gravitatorio', 'Perfiles de agujero de gusano', 'Endplate final', 'Flaps omega',
+                'Alerón temporal', 'Perfiles omnidireccionales', 'Endplate perfecto', 'Tecnología final'
+            ],
+            'caja_cambios': [
+                'Caja 7 velocidades', 'Cambio secuencial', 'Embrague semiautomático', 'Diferencial v1',
+                'Caja 8 velocidades', 'Cambio rápido', 'Embrague dual', 'Diferencial v2',
+                'Caja 9 velocidades', 'Cambio instantáneo', 'Embrague magnético', 'Diferencial v3',
+                'Caja 10 velocidades', 'Cambio predictivo', 'Embrague iónico', 'Diferencial v4',
+                'Caja CVT', 'Cambio adaptativo', 'Embrague cuántico', 'Diferencial v5',
+                'Caja magnética', 'Cambio temporal', 'Embrague gravitatorio', 'Diferencial v6',
+                'Caja iónica', 'Cambio cuántico', 'Embrague dimensional', 'Diferencial v7',
+                'Caja cuántica', 'Cambio de taquiones', 'Embrague de singularidad', 'Diferencial v8',
+                'Caja gravitatoria', 'Cambio omnidireccional', 'Embrague perfecto', 'Diferencial omega',
+                'Caja temporal', 'Cambio final', 'Embrague final', 'Tecnología final'
+            ],
+            'pontones': [
+                'Pontones estándar', 'Conductos de freno', 'Entradas de aire', 'Salidas v1',
+                'Pontones optimizados', 'Conductos mejorados', 'Entradas optimizadas', 'Salidas v2',
+                'Pontones soplados', 'Conductos soplados', 'Entradas sopladas', 'Salidas v3',
+                'Pontones flexibles', 'Conductos magnéticos', 'Entradas inteligentes', 'Salidas v4',
+                'Pontones inteligentes', 'Conductos iónicos', 'Entradas cuánticas', 'Salidas v5',
+                'Pontones holográficos', 'Conductos cuánticos', 'Entradas gravitatorias', 'Salidas v6',
+                'Pontones cuánticos', 'Conductos gravitatorios', 'Entradas dimensionales', 'Salidas v7',
+                'Pontones de plasma', 'Conductos temporales', 'Entradas de taquiones', 'Salidas v8',
+                'Pontones gravitatorios', 'Conductos de singularidad', 'Entradas finales', 'Salidas omega',
+                'Pontones temporales', 'Conductos finales', 'Entradas perfectas', 'Tecnología final'
+            ],
+            'suspension': [
+                'Suspensión push-rod', 'Amortiguadores v1', 'Barra estabilizadora', 'Muelles v1',
+                'Suspensión pull-rod', 'Amortiguadores v2', 'Barra activa', 'Muelles v2',
+                'Suspensión activa', 'Amortiguadores magnéticos', 'Barra inteligente', 'Muelles v3',
+                'Suspensión hidráulica', 'Amortiguadores iónicos', 'Barra cuántica', 'Muelles v4',
+                'Suspensión neumática', 'Amortiguadores cuánticos', 'Barra gravitatoria', 'Muelles v5',
+                'Suspensión magnética', 'Amortiguadores gravitatorios', 'Barra temporal', 'Muelles v6',
+                'Suspensión iónica', 'Amortiguadores dimensionales', 'Barra de taquiones', 'Muelles v7',
+                'Suspensión cuántica', 'Amortiguadores de singularidad', 'Barra final', 'Muelles v8',
+                'Suspensión gravitatoria', 'Amortiguadores perfectos', 'Sistema omnidireccional', 'Muelles omega',
+                'Suspensión temporal', 'Sistema final', 'Tecnología definitiva', 'Perfección alcanzada'
+            ],
+            'aleron_trasero': [
+                'Alerón trasero básico', 'DRS estándar', 'Flap principal', 'Endplates v1',
+                'Alerón optimizado', 'DRS mejorado', 'Flap activo', 'Endplates v2',
+                'Alerón soplado', 'DRS magnético', 'Flap inteligente', 'Endplates v3',
+                'Alerón flexible', 'DRS iónico', 'Flap cuántico', 'Endplates v4',
+                'Alerón inteligente', 'DRS cuántico', 'Flap gravitatorio', 'Endplates v5',
+                'Alerón holográfico', 'DRS gravitatorio', 'Flap dimensional', 'Endplates v6',
+                'Alerón cuántico', 'DRS temporal', 'Flap de taquiones', 'Endplates v7',
+                'Alerón de plasma', 'DRS de singularidad', 'Flap final', 'Endplates v8',
+                'Alerón gravitatorio', 'DRS perfecto', 'Sistema omnidireccional', 'Endplates omega',
+                'Alerón temporal', 'Tecnología final', 'Perfección aerodinámica', 'Última evolución'
+            ],
+            'chasis': [
+                'Chasis monocasco', 'Estructura v1', 'Protección anti-intrusión', 'Jaula v1',
+                'Chasis carbono', 'Estructura v2', 'Protección mejorada', 'Jaula v2',
+                'Chasis compuesto', 'Estructura v3', 'Protección activa', 'Jaula v3',
+                'Chasis inteligente', 'Estructura v4', 'Protección magnética', 'Jaula v4',
+                'Chasis adaptativo', 'Estructura v5', 'Protección iónica', 'Jaula v5',
+                'Chasis magnético', 'Estructura v6', 'Protección cuántica', 'Jaula v6',
+                'Chasis iónico', 'Estructura v7', 'Protección gravitatoria', 'Jaula v7',
+                'Chasis cuántico', 'Estructura v8', 'Protección dimensional', 'Jaula v8',
+                'Chasis gravitatorio', 'Estructura v9', 'Protección de taquiones', 'Jaula v9',
+                'Chasis temporal', 'Estructura omega', 'Protección final', 'Tecnología definitiva'
+            ],
+            'frenos': [
+                'Frenos de disco', 'Pastillas carbono', 'Pinzas v1', 'Sistema hidráulico',
+                'Frenos carbono', 'Pastillas mejoradas', 'Pinzas v2', 'Sistema neumático',
+                'Frenos cerámicos', 'Pastillas magnéticas', 'Pinzas v3', 'Sistema magnético',
+                'Frenos magnéticos', 'Pastillas iónicas', 'Pinzas v4', 'Sistema iónico',
+                'Frenos iónicos', 'Pastillas cuánticas', 'Pinzas v5', 'Sistema cuántico',
+                'Frenos cuánticos', 'Pastillas gravitatorias', 'Pinzas v6', 'Sistema gravitatorio',
+                'Frenos gravitatorios', 'Pastillas dimensionales', 'Pinzas v7', 'Sistema dimensional',
+                'Frenos de plasma', 'Pastillas de taquiones', 'Pinzas v8', 'Sistema temporal',
+                'Frenos temporales', 'Pastillas de singularidad', 'Pinzas omega', 'Sistema final',
+                'Frenos perfectos', 'Tecnología definitiva', 'Sistema omnidireccional', 'Última evolución'
+            ],
+            'volante': [
+                'Volante básico', 'Botones v1', 'Pantalla LCD', 'Sistema telemetría',
+                'Volante mejorado', 'Botones v2', 'Pantalla OLED', 'Telemetría avanzada',
+                'Volante táctil', 'Botones haptic', 'Pantalla holográfica', 'Telemetría en tiempo real',
+                'Volante inteligente', 'Botones adaptativos', 'Pantalla 3D', 'Telemetría predictiva',
+                'Volante holográfico', 'Botones cuánticos', 'Pantalla cuántica', 'Telemetría cuántica',
+                'Volante cuántico', 'Botones gravitatorios', 'Pantalla gravitatoria', 'Telemetría gravitatoria',
+                'Volante gravitatorio', 'Botones dimensionales', 'Pantalla dimensional', 'Telemetría temporal',
+                'Volante temporal', 'Botones de taquiones', 'Pantalla de singularidad', 'Telemetría omnidireccional',
+                'Volante perfecto', 'Botones finales', 'Pantalla definitiva', 'Telemetría final',
+                'Volante final', 'Tecnología omega', 'Interfaz perfecta', 'Control total'
+            ],
+            'electronica': [
+                'ECU básica', 'Sensores v1', 'Sistema adquisición', 'Telemetría básica',
+                'ECU mejorada', 'Sensores v2', 'Adquisición avanzada', 'Telemetría v2',
+                'ECU predictiva', 'Sensores v3', 'Sistema inteligente', 'Telemetría v3',
+                'ECU inteligente', 'Sensores v4', 'Sistema adaptativo', 'Telemetría v4',
+                'ECU cuántica', 'Sensores cuánticos', 'Sistema cuántico', 'Telemetría cuántica',
+                'ECU gravitatoria', 'Sensores gravitatorios', 'Sistema gravitatorio', 'Telemetría gravitatoria',
+                'ECU temporal', 'Sensores dimensionales', 'Sistema dimensional', 'Telemetría temporal',
+                'ECU de taquiones', 'Sensores de taquiones', 'Sistema taquiónico', 'Telemetría omnidireccional',
+                'ECU de singularidad', 'Sensores perfectos', 'Sistema final', 'Telemetría definitiva',
+                'ECU omega', 'Tecnología final', 'Sistema perfecto', 'Control total'
+            ]
+        };
     }
 
 
@@ -84,146 +225,6 @@ class F1Manager {
                 console.error('Error cargando fabricaciones:', errorFabricaciones);
                 throw errorFabricaciones;
             }
-            
-            // Nombres personalizados para cada pieza de cada área (50 por área)
-            const nombresPiezas = {
-                'suelo': [
-                    'Perfil aerodinámico básico', 'Difusor estándar', 'Planes de succión', 'Túnel de viento v1',
-                    'Doble difusor', 'Suelo escalonado', 'Alas de gaviota', 'Túnel de viento v2',
-                    'Suelo poroso', 'Generadores de vórtice', 'Difusor soplado', 'Túnel de viento v3',
-                    'Suelo flexible', 'Canales de flujo', 'Doble plano', 'Túnel de viento v4',
-                    'Sistema de succión activa', 'Difusor ajustable', 'Alas delta', 'Túnel de viento v5',
-                    'Suelo magnético', 'Canales helicoidales', 'Difusor turbo', 'Túnel de viento v6',
-                    'Sistema antigravitatorio', 'Perfiles adaptativos', 'Difusor cuántico', 'Túnel de viento v7',
-                    'Suelo inteligente', 'Microcanales', 'Difusor holográfico', 'Túnel de viento v8',
-                    'Sistema de levitación', 'Nanoperfiles', 'Difusor iónico', 'Túnel de viento v9',
-                    'Suelo cuántico', 'Canales plasmáticos', 'Difusor gravitatorio', 'Túnel de viento v10',
-                    'Sistema de distorsión', 'Perfiles temporales', 'Difusor dimensional', 'Túnel de viento omega',
-                    'Suelo de singularidad', 'Canales de taquiones', 'Difusor de agujero de gusano', 'Tecnología final'
-                ],
-                'motor': [
-                    'Motor V6 estándar', 'Turbo simple', 'Sistema MGU-H básico', 'MGU-K v1',
-                    'Motor V6 turbo', 'Turbocompresor dual', 'Sistema MGU-H mejorado', 'MGU-K v2',
-                    'Motor V8', 'Turbo de geometría variable', 'MGU-H avanzado', 'MGU-K v3',
-                    'Motor V10', 'Turbocompresor eléctrico', 'Sistema híbrido v1', 'MGU-K v4',
-                    'Motor V12', 'Turbo magnético', 'Sistema híbrido v2', 'MGU-K v5',
-                    'Motor W16', 'Turbo plasmático', 'Sistema híbrido v3', 'MGU-K v6',
-                    'Motor rotativo', 'Turbo iónico', 'Sistema híbrido v4', 'MGU-K v7',
-                    'Motor eléctrico puro', 'Turbo cuántico', 'Sistema híbrido v5', 'MGU-K v8',
-                    'Motor de fusión', 'Turbo gravitatorio', 'Sistema híbrido v6', 'MGU-K v9',
-                    'Motor de antimateria', 'Turbo temporal', 'Sistema híbrido v7', 'MGU-K omega',
-                    'Motor de singularidad', 'Turbo dimensional', 'Sistema híbrido final', 'MGU-K perfecto',
-                    'Motor cuántico', 'Turbo de taquiones', 'Sistema de agujero de gusano', 'Tecnología final'
-                ],
-                'aleron_delantero': [
-                    'Alerón básico', 'Perfiles estándar', 'Elementos endplate', 'Flaps v1',
-                    'Alerón con DRS', 'Perfiles optimizados', 'Endplate vortex', 'Flaps v2',
-                    'Alerón ajustable', 'Perfiles aerodinámicos', 'Endplate soplado', 'Flaps v3',
-                    'Alerón flexible', 'Perfiles adaptativos', 'Endplate magnético', 'Flaps v4',
-                    'Alerón inteligente', 'Perfiles activos', 'Endplate iónico', 'Flaps v5',
-                    'Alerón holográfico', 'Perfiles cuánticos', 'Endplate gravitatorio', 'Flaps v6',
-                    'Alerón cuántico', 'Perfiles temporales', 'Endplate dimensional', 'Flaps v7',
-                    'Alerón de plasma', 'Perfiles de taquiones', 'Endplate de singularidad', 'Flaps v8',
-                    'Alerón gravitatorio', 'Perfiles de agujero de gusano', 'Endplate final', 'Flaps omega',
-                    'Alerón temporal', 'Perfiles omnidireccionales', 'Endplate perfecto', 'Tecnología final'
-                ],
-                'caja_cambios': [
-                    'Caja 7 velocidades', 'Cambio secuencial', 'Embrague semiautomático', 'Diferencial v1',
-                    'Caja 8 velocidades', 'Cambio rápido', 'Embrague dual', 'Diferencial v2',
-                    'Caja 9 velocidades', 'Cambio instantáneo', 'Embrague magnético', 'Diferencial v3',
-                    'Caja 10 velocidades', 'Cambio predictivo', 'Embrague iónico', 'Diferencial v4',
-                    'Caja CVT', 'Cambio adaptativo', 'Embrague cuántico', 'Diferencial v5',
-                    'Caja magnética', 'Cambio temporal', 'Embrague gravitatorio', 'Diferencial v6',
-                    'Caja iónica', 'Cambio cuántico', 'Embrague dimensional', 'Diferencial v7',
-                    'Caja cuántica', 'Cambio de taquiones', 'Embrague de singularidad', 'Diferencial v8',
-                    'Caja gravitatoria', 'Cambio omnidireccional', 'Embrague perfecto', 'Diferencial omega',
-                    'Caja temporal', 'Cambio final', 'Embrague final', 'Tecnología final'
-                ],
-                'pontones': [
-                    'Pontones estándar', 'Conductos de freno', 'Entradas de aire', 'Salidas v1',
-                    'Pontones optimizados', 'Conductos mejorados', 'Entradas optimizadas', 'Salidas v2',
-                    'Pontones soplados', 'Conductos soplados', 'Entradas sopladas', 'Salidas v3',
-                    'Pontones flexibles', 'Conductos magnéticos', 'Entradas inteligentes', 'Salidas v4',
-                    'Pontones inteligentes', 'Conductos iónicos', 'Entradas cuánticas', 'Salidas v5',
-                    'Pontones holográficos', 'Conductos cuánticos', 'Entradas gravitatorias', 'Salidas v6',
-                    'Pontones cuánticos', 'Conductos gravitatorios', 'Entradas dimensionales', 'Salidas v7',
-                    'Pontones de plasma', 'Conductos temporales', 'Entradas de taquiones', 'Salidas v8',
-                    'Pontones gravitatorios', 'Conductos de singularidad', 'Entradas finales', 'Salidas omega',
-                    'Pontones temporales', 'Conductos finales', 'Entradas perfectas', 'Tecnología final'
-                ],
-                'suspension': [
-                    'Suspensión push-rod', 'Amortiguadores v1', 'Barra estabilizadora', 'Muelles v1',
-                    'Suspensión pull-rod', 'Amortiguadores v2', 'Barra activa', 'Muelles v2',
-                    'Suspensión activa', 'Amortiguadores magnéticos', 'Barra inteligente', 'Muelles v3',
-                    'Suspensión hidráulica', 'Amortiguadores iónicos', 'Barra cuántica', 'Muelles v4',
-                    'Suspensión neumática', 'Amortiguadores cuánticos', 'Barra gravitatoria', 'Muelles v5',
-                    'Suspensión magnética', 'Amortiguadores gravitatorios', 'Barra temporal', 'Muelles v6',
-                    'Suspensión iónica', 'Amortiguadores dimensionales', 'Barra de taquiones', 'Muelles v7',
-                    'Suspensión cuántica', 'Amortiguadores de singularidad', 'Barra final', 'Muelles v8',
-                    'Suspensión gravitatoria', 'Amortiguadores perfectos', 'Sistema omnidireccional', 'Muelles omega',
-                    'Suspensión temporal', 'Sistema final', 'Tecnología definitiva', 'Perfección alcanzada'
-                ],
-                'aleron_trasero': [
-                    'Alerón trasero básico', 'DRS estándar', 'Flap principal', 'Endplates v1',
-                    'Alerón optimizado', 'DRS mejorado', 'Flap activo', 'Endplates v2',
-                    'Alerón soplado', 'DRS magnético', 'Flap inteligente', 'Endplates v3',
-                    'Alerón flexible', 'DRS iónico', 'Flap cuántico', 'Endplates v4',
-                    'Alerón inteligente', 'DRS cuántico', 'Flap gravitatorio', 'Endplates v5',
-                    'Alerón holográfico', 'DRS gravitatorio', 'Flap dimensional', 'Endplates v6',
-                    'Alerón cuántico', 'DRS temporal', 'Flap de taquiones', 'Endplates v7',
-                    'Alerón de plasma', 'DRS de singularidad', 'Flap final', 'Endplates v8',
-                    'Alerón gravitatorio', 'DRS perfecto', 'Sistema omnidireccional', 'Endplates omega',
-                    'Alerón temporal', 'Tecnología final', 'Perfección aerodinámica', 'Última evolución'
-                ],
-                'chasis': [
-                    'Chasis monocasco', 'Estructura v1', 'Protección anti-intrusión', 'Jaula v1',
-                    'Chasis carbono', 'Estructura v2', 'Protección mejorada', 'Jaula v2',
-                    'Chasis compuesto', 'Estructura v3', 'Protección activa', 'Jaula v3',
-                    'Chasis inteligente', 'Estructura v4', 'Protección magnética', 'Jaula v4',
-                    'Chasis adaptativo', 'Estructura v5', 'Protección iónica', 'Jaula v5',
-                    'Chasis magnético', 'Estructura v6', 'Protección cuántica', 'Jaula v6',
-                    'Chasis iónico', 'Estructura v7', 'Protección gravitatoria', 'Jaula v7',
-                    'Chasis cuántico', 'Estructura v8', 'Protección dimensional', 'Jaula v8',
-                    'Chasis gravitatorio', 'Estructura v9', 'Protección de taquiones', 'Jaula v9',
-                    'Chasis temporal', 'Estructura omega', 'Protección final', 'Tecnología definitiva'
-                ],
-                'frenos': [
-                    'Frenos de disco', 'Pastillas carbono', 'Pinzas v1', 'Sistema hidráulico',
-                    'Frenos carbono', 'Pastillas mejoradas', 'Pinzas v2', 'Sistema neumático',
-                    'Frenos cerámicos', 'Pastillas magnéticas', 'Pinzas v3', 'Sistema magnético',
-                    'Frenos magnéticos', 'Pastillas iónicas', 'Pinzas v4', 'Sistema iónico',
-                    'Frenos iónicos', 'Pastillas cuánticas', 'Pinzas v5', 'Sistema cuántico',
-                    'Frenos cuánticos', 'Pastillas gravitatorias', 'Pinzas v6', 'Sistema gravitatorio',
-                    'Frenos gravitatorios', 'Pastillas dimensionales', 'Pinzas v7', 'Sistema dimensional',
-                    'Frenos de plasma', 'Pastillas de taquiones', 'Pinzas v8', 'Sistema temporal',
-                    'Frenos temporales', 'Pastillas de singularidad', 'Pinzas omega', 'Sistema final',
-                    'Frenos perfectos', 'Tecnología definitiva', 'Sistema omnidireccional', 'Última evolución'
-                ],
-                'volante': [
-                    'Volante básico', 'Botones v1', 'Pantalla LCD', 'Sistema telemetría',
-                    'Volante mejorado', 'Botones v2', 'Pantalla OLED', 'Telemetría avanzada',
-                    'Volante táctil', 'Botones haptic', 'Pantalla holográfica', 'Telemetría en tiempo real',
-                    'Volante inteligente', 'Botones adaptativos', 'Pantalla 3D', 'Telemetría predictiva',
-                    'Volante holográfico', 'Botones cuánticos', 'Pantalla cuántica', 'Telemetría cuántica',
-                    'Volante cuántico', 'Botones gravitatorios', 'Pantalla gravitatoria', 'Telemetría gravitatoria',
-                    'Volante gravitatorio', 'Botones dimensionales', 'Pantalla dimensional', 'Telemetría temporal',
-                    'Volante temporal', 'Botones de taquiones', 'Pantalla de singularidad', 'Telemetría omnidireccional',
-                    'Volante perfecto', 'Botones finales', 'Pantalla definitiva', 'Telemetría final',
-                    'Volante final', 'Tecnología omega', 'Interfaz perfecta', 'Control total'
-                ],
-                'electronica': [
-                    'ECU básica', 'Sensores v1', 'Sistema adquisición', 'Telemetría básica',
-                    'ECU mejorada', 'Sensores v2', 'Adquisición avanzada', 'Telemetría v2',
-                    'ECU predictiva', 'Sensores v3', 'Sistema inteligente', 'Telemetría v3',
-                    'ECU inteligente', 'Sensores v4', 'Sistema adaptativo', 'Telemetría v4',
-                    'ECU cuántica', 'Sensores cuánticos', 'Sistema cuántico', 'Telemetría cuántica',
-                    'ECU gravitatoria', 'Sensores gravitatorios', 'Sistema gravitatorio', 'Telemetría gravitatoria',
-                    'ECU temporal', 'Sensores dimensionales', 'Sistema dimensional', 'Telemetría temporal',
-                    'ECU de taquiones', 'Sensores de taquiones', 'Sistema taquiónico', 'Telemetría omnidireccional',
-                    'ECU de singularidad', 'Sensores perfectos', 'Sistema final', 'Telemetría definitiva',
-                    'ECU omega', 'Tecnología final', 'Sistema perfecto', 'Control total'
-                ]
-            };
             
             const areas = [
                 { id: 'suelo', nombre: 'Suelo', icono: '🏎️' },
@@ -295,7 +296,7 @@ class F1Manager {
                     });
                     
                     // Nombre personalizado para esta pieza
-                    const nombrePieza = nombresPiezas[area.id]?.[piezaNum - 1] || `${area.nombre} Mejora ${piezaNum}`;
+                    const nombrePieza = this.nombresPiezas[area.id]?.[piezaNum - 1] || `${area.nombre} Mejora ${piezaNum}`;
                     
                     // Calcular puntos (aunque no se muestren en el botón)
                     const puntosPieza = this.calcularPuntosPieza(piezaNum);
