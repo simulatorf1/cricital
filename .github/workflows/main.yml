@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Critical Lap APK
 on: [workflow_dispatch]
 
 jobs:
@@ -29,15 +29,35 @@ jobs:
       - name: Download and setup icon
         run: |
           # Descargar el icono desde GitHub
-          echo "Descargando icono desde GitHub..."
-          wget -q https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/icon.png -O icon.png
+          echo "Descargando icono para Critical Lap..."
+          wget -q "https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.png" -O icon.png
           
           if [ -f "icon.png" ]; then
-            echo "Icono descargado correctamente"
-            ls -la icon.png
+            echo "✅ Icono descargado correctamente"
           else
-            echo "ERROR: No se pudo descargar el icono"
+            echo "❌ ERROR: No se pudo descargar el icono"
+            exit 1
           fi
+
+      - name: Set App Name to Critical Lap
+        run: |
+          echo "🔧 Configurando nombre de la aplicación internamente..."
+          
+          # Crear o actualizar el archivo capacitor.config.json con el nombre correcto
+          if [ -f "capacitor.config.json" ]; then
+            # Si existe, actualizar el nombre
+            jq '.appName = "Critical Lap"' capacitor.config.json > capacitor.config.tmp.json
+            mv capacitor.config.tmp.json capacitor.config.json
+          else
+            # Si no existe, crearlo
+            echo '{
+              "appId": "com.example.app",
+              "appName": "Critical Lap",
+              "webDir": "out"
+            }' > capacitor.config.json
+          fi
+          
+          echo "✅ Nombre de la app configurado en capacitor.config.json"
 
       - name: Sync Capacitor
         run: npx cap sync android
@@ -65,19 +85,19 @@ jobs:
       - name: Rename and compress APK
         run: |
           cd android/app/build/outputs/apk/debug
-          # Renombrar APK
-          mv app-debug.apk ManagerMotorsport.apk
+          # Renombrar APK a Critical Lap
+          mv app-debug.apk "Critical Lap.apk"
           # Comprimir
-          gzip -c ManagerMotorsport.apk > ManagerMotorsport.apk.gz
-          echo "APK renombrado: ManagerMotorsport.apk"
-          echo "Tamaño original: $(du -h ManagerMotorsport.apk | cut -f1)"
-          echo "Tamaño comprimido: $(du -h ManagerMotorsport.apk.gz | cut -f1)"
+          gzip -c "Critical Lap.apk" > "Critical Lap.apk.gz"
+          echo "✅ APK renombrado: Critical Lap.apk"
+          echo "📊 Tamaño original: $(du -h Critical\ Lap.apk | cut -f1)"
+          echo "📊 Tamaño comprimido: $(du -h Critical\ Lap.apk.gz | cut -f1)"
 
       - name: Upload APK (Compressed)
         uses: actions/upload-artifact@v4
         with:
-          name: ManagerMotorsport-APK
-          path: android/app/build/outputs/apk/debug/ManagerMotorsport.apk.gz
+          name: Critical-Lap-APK
+          path: android/app/build/outputs/apk/debug/Critical Lap.apk.gz
           retention-days: 7
           if-no-files-found: error
           overwrite: true
@@ -87,15 +107,14 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ManagerMotorsport-APK-Raw
-          path: android/app/build/outputs/apk/debug/ManagerMotorsport.apk
+          name: Critical-Lap-APK-Raw
+          path: android/app/build/outputs/apk/debug/Critical Lap.apk
           retention-days: 1
           if-no-files-found: error
 
       - name: Display APK info
         run: |
-          cd android/app/build/outputs/apk/debug
-          echo "✅ APK generado: ManagerMotorsport.apk"
-          echo "📱 Nombre de la app: Manager Motorsport"
-          echo "🎯 Icono: Descargado desde GitHub"
-          echo "📥 Para descargar: Ve a 'Artifacts' → 'ManagerMotorsport-APK'"
+          echo "✅ APK generado: Critical Lap.apk"
+          echo "📱 Nombre de la app: Critical Lap (configurado internamente)"
+          echo "🎯 Icono: Descargado desde GitHub correctamente"
+          echo "📥 Para descargar: Ve a 'Actions' → selecciona esta ejecución → 'Artifacts' → 'Critical-Lap-APK'"
