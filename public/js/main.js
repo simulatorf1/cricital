@@ -2136,34 +2136,7 @@ class F1Manager {
                     const tiempoFormateado = this.formatTime(tiempoRestante);
                     const numeroPieza = fabricacion.numero_pieza || 1;
                     
-
-                    // === NUEVO: Usar nombres personalizados ===
-                    // Obtener el nombre personalizado según el número global de pieza
-                    let nombreMostrar = "Actualización " + nombreArea;
-                    let mejoraTexto = "";
-                    
-                    // Buscar en los nombres personalizados si existe
-                    if (this.nombresPiezas && this.nombresPiezas[fabricacion.area]) {
-                        const nombresArea = this.nombresPiezas[fabricacion.area];
-                        // El número global está en numeroPiezaGlobal
-                        if (numeroPiezaGlobal <= nombresArea.length) {
-                            nombreMostrar = nombresArea[numeroPiezaGlobal - 1];
-                        }
-                    }
-                    
-                    // Mostrar solo el nombre, no "Mejora X Q1"
-                    mejoraTexto = "Nivel " + fabricacion.nivel;
-                    
-                    html += '<div class="produccion-slot ' + (lista ? 'produccion-lista' : 'produccion-activa') + '" ';
-                    html += 'onclick="recogerPiezaSiLista(\'' + fabricacion.id + '\', ' + lista + ', ' + i + ')" ';
-                    html += 'title="' + nombreArea + ' - Evolución ' + numeroPieza + ' de nivel ' + fabricacion.nivel + '">';
-                    html += '<div class="produccion-icon">';
-                    html += (lista ? '✅' : '');
-                    html += '</div>';
-                    html += '<div class="produccion-info">';
-                    html += '<span class="produccion-nombre">' + nombreMostrar + '</span>';
-                    
-                    // Calcular número global de pieza
+                    // === CALCULAR NÚMERO GLOBAL DE PIEZA (MOVER ARRIBA) ===
                     const { data: piezasAreaTotal } = await this.supabase
                         .from('almacen_piezas')
                         .select('id')
@@ -2173,7 +2146,32 @@ class F1Manager {
                     const totalPiezasFabricadas = piezasAreaTotal?.length || 0;
                     const numeroPiezaGlobal = totalPiezasFabricadas + 1;
                     
-                    // Mostrar "Mejora 4 Q1" en lugar del texto anterior
+                    // === USAR NOMBRES PERSONALIZADOS ===
+                    let nombreMostrar = "Actualización " + nombreArea;
+                    let mejoraTexto = "";
+                    
+                    // Buscar en los nombres personalizados si existe
+                    if (this.nombresPiezas && this.nombresPiezas[fabricacion.area]) {
+                        const nombresArea = this.nombresPiezas[fabricacion.area];
+                        // El número global está en numeroPiezaGlobal (ya definido)
+                        if (numeroPiezaGlobal <= nombresArea.length) {
+                            nombreMostrar = nombresArea[numeroPiezaGlobal - 1];
+                        }
+                    }
+                    
+                    // Mostrar solo el nivel
+                    mejoraTexto = "Nivel " + fabricacion.nivel;
+                    
+                    html += '<div class="produccion-slot ' + (lista ? 'produccion-lista' : 'produccion-activa') + '" ';
+                    html += 'onclick="recogerPiezaSiLista(\'' + fabricacion.id + '\', ' + lista + ', ' + i + ')" ';
+                    html += 'title="' + nombreMostrar + ' - Mejora ' + numeroPiezaGlobal + ' de 50 - Nivel ' + fabricacion.nivel + '">';
+                    html += '<div class="produccion-icon">';
+                    html += (lista ? '✅' : '');
+                    html += '</div>';
+                    html += '<div class="produccion-info">';
+                    html += '<span class="produccion-nombre">' + nombreMostrar + '</span>';
+                    
+                    // Mostrar nivel
                     html += '<span class="produccion-pieza-num">' + mejoraTexto + '</span>';
                     
                     if (lista) {
