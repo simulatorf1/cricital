@@ -310,8 +310,8 @@ class AuthManager {
             <div class="login-screen">
                 <div class="login-container">
                     <div class="login-header">
-                        <h1>MOTORSPORT Manager</h1>
-                        <p>Gestiona tu escudería de MotorSport</p>
+                        <h1>CRITICAL LAP</h1>
+                        <p>Strategy AND Design</p>
                     </div>
                     
                     <div id="login-error" class="error-message"></div>
@@ -345,7 +345,7 @@ class AuthManager {
                     </div>
                     
                     <div class="login-footer">
-                        <p>Un juego de gestión 100% online</p>
+                        <p>Gestiona tu escudería MotorSports</p>
                         <p>v1.0.0</p>
                     </div>
                 </div>
@@ -386,7 +386,7 @@ class AuthManager {
                     </button>
                     
                     <div class="register-header">
-                        <h1>CREAR CUENTA</h1>
+                        <h1>CREAR ESCUDERIA</h1>
                         <p>Comienza tu aventura en MotorSport</p>
                     </div>
                     
@@ -420,13 +420,11 @@ class AuthManager {
                         </button>
                         <button class="register-button" id="btn-register-submit" disabled>
                             <i class="fas fa-user-plus"></i>
-                            CREAR CUENTA
+                            CREAR ESCUDERIA
                         </button>
                     </div>
                     
-                    <div class="register-footer">
-                        <p>Recibirás 5,000,000€ para empezar</p>
-                    </div>
+
                 </div>
             </div>
         `;
