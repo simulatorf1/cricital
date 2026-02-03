@@ -823,8 +823,6 @@ class F1Manager {
             const tiempoMilisegundos = tiempoMinutos * 60 * 1000;
             console.log('⏱️ Tiempo: ' + tiempoMinutos + ' minutos (' + tiempoMilisegundos + 'ms)');
             
-
-            
             // Calcular costo basado en nivel y número de pieza
             const costo = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
             
@@ -832,7 +830,20 @@ class F1Manager {
                 this.showNotification('❌ Fondos insuficientes. Necesitas €' + costo.toLocaleString(), 'error');
                 return false;
             }
-                        
+            
+            // ✅✅✅ MUEVE ESTO AQUÍ (ARRIBA, ANTES DE USARLO):
+            const nombreArea = this.getNombreArea(areaId);
+            // Obtener nombre personalizado para la notificación
+            let nombrePiezaNotif = nombreArea;
+            if (this.nombresPiezas && this.nombresPiezas[areaId]) {
+                const nombresArea = this.nombresPiezas[areaId];
+                if (numeroPiezaGlobal <= nombresArea.length) {
+                    nombrePiezaNotif = nombresArea[numeroPiezaGlobal - 1];
+                }
+            }
+            console.log('🔍 Nombre de pieza calculado:', nombrePiezaNotif);
+            // ✅✅✅ FIN DEL MOVIMIENTO
+            
             const ahora = new Date();
             const tiempoFin = new Date(ahora.getTime() + tiempoMilisegundos);
             
@@ -861,19 +872,20 @@ class F1Manager {
             
             this.escuderia.dinero -= costo;
             await this.updateEscuderiaMoney();
-            // ✅ AGREGA ESTO:
+            
+            // ✅ AHORA SÍ PUEDES USAR nombrePiezaNotif (porque ya existe)
             // Registrar transacción de presupuesto
             try {
                 if (window.presupuestoManager && window.presupuestoManager.registrarTransaccion) {
                     await window.presupuestoManager.registrarTransaccion(
                         'gasto',
                         costo,
-                        `Fabricación ${nombrePiezaNotif}`, // ← ¡ESTE ES EL NOMBRE CORRECTO!
+                        `Fabricación ${nombrePiezaNotif}`, // ← ¡AHORA SÍ EXISTE!
                         'produccion',
                         { 
                             area: areaId, 
                             nivel: nivel,
-                            nombre_pieza: nombrePiezaNotif, // ← PASA EL NOMBRE TAMBIÉN
+                            nombre_pieza: nombrePiezaNotif,
                             numero_pieza: numeroPiezaGlobal
                         }
                     );
@@ -882,8 +894,8 @@ class F1Manager {
             } catch (error) {
                 console.warn('⚠️ No se pudo registrar transacción:', error);
                 // No fallar la fabricación si el registro de transacción falla
-            }            
-            const nombreArea = this.getNombreArea(areaId);
+            }
+            
             const horas = Math.floor(tiempoMinutos / 60);
             const dias = Math.floor(horas / 24);
             let tiempoTexto = '';
@@ -896,14 +908,6 @@ class F1Manager {
             }
             
             const nivelMostrar = "Q" + nivel;
-            // Obtener nombre personalizado para la notificación
-            let nombrePiezaNotif = nombreArea;
-            if (this.nombresPiezas && this.nombresPiezas[areaId]) {
-                const nombresArea = this.nombresPiezas[areaId];
-                if (numeroPiezaGlobal <= nombresArea.length) {
-                    nombrePiezaNotif = nombresArea[numeroPiezaGlobal - 1];
-                }
-            }
             
             this.showNotification('✅ ' + nombrePiezaNotif + ' en fabricación - ' + tiempoTexto, 'success');                        
             // ✅ AGREGAR TAMBIÉN AQUÍ para actualizar presupuesto en pantalla:
