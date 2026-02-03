@@ -26,8 +26,30 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Download icon
-        run: wget -q https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.PNG -O icon.png || echo "Icono no descargado"
+      - name: Download icon properly
+        run: |
+          # URL directa y corregida del icono
+          wget --no-check-certificate "https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.PNG" -O icon.png
+          
+          if [ -f "icon.png" ]; then
+            echo "✅ Icono descargado"
+            # Configurar para Android
+            mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+            cp icon.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          else
+            echo "⚠️  Usando icono por defecto"
+          fi
+
+      - name: Fix app name
+        run: |
+          # Asegurar nombre "Critical LAP"
+          mkdir -p android/app/src/main/res/values
+          cat > android/app/src/main/res/values/strings.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Critical LAP</string>
+</resources>
+EOF
 
       - name: Sync Capacitor
         run: npx cap sync android
@@ -51,17 +73,18 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Prepare APK
+      - name: Rename APK
         run: |
           cd android/app/build/outputs/apk/debug
           mv app-debug.apk CriticalLAP.apk
           gzip -k CriticalLAP.apk
+          echo "✅ APK: CriticalLAP.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: CriticalLAP
+          name: CriticalLAP-APK
           path: android/app/build/outputs/apk/debug/CriticalLAP.apk.gz
 
       - name: Done
-        run: echo "✅ APK CriticalLAP.apk.gz listo para descargar"
+        run: echo "🎉 ¡APK Critical LAP lista! Nombre e icono configurados."
