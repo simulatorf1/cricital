@@ -1,6 +1,6 @@
 {
   "appId": "com.miweb.app",
-  "appName": "Critical LAP",
+  "appName": "Critical Lap",
   "webDir": "out",
   "server": {
     "url": "https://f1-manager-game.vercel.app/",
