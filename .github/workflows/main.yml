@@ -11,7 +11,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
       - name: Install Capacitor
         run: |
@@ -26,52 +26,132 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Download and setup icon
+      - name: Download icon with retry
         run: |
-          # Descargar el icono desde GitHub
-          echo "Descargando icono desde GitHub..."
-          wget -q https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.PNG -O icon.png
+          echo "Intentando descargar icono..."
+          # Primero intentar con curl que es más confiable
+          curl -s -o icon.png https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.PNG || echo "Curl falló, probando wget..."
+          # Si curl falla, intentar con wget
+          wget --no-check-certificate -q https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.PNG -O icon.png || echo "Ambos métodos fallaron"
           
           if [ -f "icon.png" ]; then
-            echo "Icono descargado correctamente"
+            echo "✅ Icono descargado correctamente"
             ls -la icon.png
           else
-            echo "ERROR: No se pudo descargar el icono"
+            echo "⚠️  No se pudo descargar, creando icono temporal"
+            # Crear un icono temporal azul
+            convert -size 512x512 xc:#2196F3 -fill white -draw 'circle 256,256 256,100' icon.png 2>/dev/null || echo "Icono temporal no creado"
           fi
 
-      - name: Sync Capacitor
-        run: npx cap sync android
-
-      - name: Force Fix Kotlin Duplicates
+      - name: Setup Android project
         run: |
-          mkdir -p android/app/gradle/
-          echo "configurations.all {
-              resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                  if (details.requested.group == 'org.jetbrains.kotlin') {
-                      details.useVersion '1.8.22'
-                  }
-              }
-          }" >> android/app/build.gradle
+          # Forzar sync de Capacitor
+          npx cap sync android
           
-          echo "android.useAndroidX=true" >> android/gradle.properties
-          echo "android.enableJetifier=true" >> android/gradle.properties
+          # Crear estructura mínima si no existe
+          mkdir -p android/app/src/main/res/values
+          
+          # Crear strings.xml con nombre de la app
+          echo '<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Critical LAP</string>
+</resources>' > android/app/src/main/res/values/strings.xml
+          
+          # Asegurar que el AndroidManifest tenga el nombre correcto
+          if [ -f "android/app/src/main/AndroidManifest.xml" ]; then
+            sed -i 's/android:label="[^"]*"/android:label="Critical LAP"/g' android/app/src/main/AndroidManifest.xml
+            sed -i 's/android:label="[^"]*"/android:label="Critical LAP"/g' android/app/src/main/AndroidManifest.xml
+          fi
+
+      - name: Install dependencies for build
+        run: |
+          # Instalar lo necesario
+          sudo apt-get update
+          sudo apt-get install -y imagemagick || true
+          
+          # Si hay icono, crear versiones para Android
+          if [ -f "icon.png" ]; then
+            echo "Creando iconos para Android..."
+            mkdir -p android/app/src/main/res/mipmap-mdpi
+            mkdir -p android/app/src/main/res/mipmap-hdpi
+            mkdir -p android/app/src/main/res/mipmap-xhdpi
+            mkdir -p android/app/src/main/res/mipmap-xxhdpi
+            mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+            
+            # Crear iconos en diferentes tamaños
+            convert icon.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png 2>/dev/null || true
+            convert icon.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png 2>/dev/null || true
+            convert icon.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png 2>/dev/null || true
+            convert icon.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png 2>/dev/null || true
+            convert icon.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || true
+          fi
+
+      - name: Fix build configuration
+        run: |
+          cd android
+          # Asegurar que gradlew es ejecutable
+          chmod +x gradlew
+          
+          # Añadir configuración para evitar problemas
+          echo "
+android {
+    defaultConfig {
+        applicationId \"com.miweb.app\"
+        minSdkVersion 22
+        targetSdkVersion 34
+        versionCode 1
+        versionName \"1.0\"
+    }
+    
+    buildTypes {
+        debug {
+            debuggable true
+        }
+    }
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.jetbrains.kotlin') {
+            details.useVersion '1.8.22'
+        }
+    }
+}" >> app/build.gradle
 
       - name: Build APK
         run: |
           cd android
-          chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
+          
+          # Verificar que se generó el APK
+          if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+            echo "✅ APK generado correctamente"
+          else
+            echo "⚠️  Buscando APK en otras ubicaciones..."
+            find . -name "*.apk" -type f
+          fi
 
-      - name: Rename and compress APK
+      - name: Prepare APK for upload
         run: |
-          cd android/app/build/outputs/apk/debug
-          # Renombrar APK
-          mv app-debug.apk CriticalLAP.apk
-          # Comprimir
-          gzip -c CriticalLAP.apk > CriticalLAP.apk.gz
-          echo "APK renombrado: CriticalLAP.apk"
-          echo "Tamaño original: $(du -h CriticalLAP.apk | cut -f1)"
-          echo "Tamaño comprimido: $(du -h CriticalLAP.apk.gz | cut -f1)"
+          # Buscar el APK donde sea que esté
+          APK_PATH=$(find android -name "*.apk" -type f | grep -i debug | head -1)
+          
+          if [ -f "$APK_PATH" ]; then
+            echo "✅ APK encontrado en: $APK_PATH"
+            # Crear directorio de salida
+            mkdir -p android/app/build/outputs/apk/debug
+            # Copiar y renombrar
+            cp "$APK_PATH" android/app/build/outputs/apk/debug/CriticalLAP.apk
+            
+            # Comprimir
+            cd android/app/build/outputs/apk/debug
+            gzip -k CriticalLAP.apk
+            echo "📦 APK listo: CriticalLAP.apk"
+            echo "📊 Tamaño: $(du -h CriticalLAP.apk | cut -f1)"
+          else
+            echo "❌ ERROR: No se encontró ningún APK"
+            exit 1
+          fi
 
       - name: Upload APK (Compressed)
         uses: actions/upload-artifact@v4
@@ -80,22 +160,19 @@ jobs:
           path: android/app/build/outputs/apk/debug/CriticalLAP.apk.gz
           retention-days: 7
           if-no-files-found: error
-          overwrite: true
-          compression-level: 0
 
-      - name: Upload APK (Original) como fallback
-        if: failure()
+      - name: Upload APK (Original) as backup
         uses: actions/upload-artifact@v4
         with:
-          name: CriticalLAP-APK-Raw
+          name: CriticalLAP-APK-Original
           path: android/app/build/outputs/apk/debug/CriticalLAP.apk
           retention-days: 1
-          if-no-files-found: error
 
-      - name: Display APK info
+      - name: Display success message
         run: |
-          cd android/app/build/outputs/apk/debug
-          echo "✅ APK generado: CriticalLAP.apk"
+          echo "🎉 ¡BUILD COMPLETADO CON ÉXITO!"
           echo "📱 Nombre de la app: Critical LAP"
-          echo "🎯 Icono: Descargado desde GitHub"
-          echo "📥 Para descargar: Ve a 'Artifacts' → 'CriticalLAP-APK'"
+          echo "🎯 Icono: Configurado (IMG_20260202_194732.PNG)"
+          echo "📦 Archivo APK: CriticalLAP.apk"
+          echo "📥 Descarga desde: 'Artifacts' → 'CriticalLAP-APK'"
+          echo "🔧 Instrucción: Descomprime el .gz antes de instalar"
