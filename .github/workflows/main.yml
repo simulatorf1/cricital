@@ -11,7 +11,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
       - name: Install Capacitor
         run: |
@@ -26,70 +26,42 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Setup Android icon
-        run: |
-          echo "Configurando Android..."
-          # Crear estructura mínima para icono
-          mkdir -p android/app/src/main/res/mipmap-xxxhdpi
-          # Descargar icono con fallback
-          wget -q https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.PNG -O /tmp/icon.png || true
-          if [ -f "/tmp/icon.png" ]; then
-            echo "Usando icono personalizado"
-            cp /tmp/icon.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          else
-            echo "Usando icono por defecto"
-          fi
-          
-          # Forzar nombre de la app
-          echo '<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Critical LAP</string>
-</resources>' > android/app/src/main/res/values/strings.xml 2>/dev/null || true
+      - name: Download icon
+        run: wget -q https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.PNG -O icon.png || echo "Icono no descargado"
 
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Force Fix Kotlin Duplicates
+      - name: Fix Kotlin
         run: |
-          mkdir -p android/app/gradle/
           echo "configurations.all {
-              resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+              resolutionStrategy.eachDependency { details ->
                   if (details.requested.group == 'org.jetbrains.kotlin') {
                       details.useVersion '1.8.22'
                   }
               }
           }" >> android/app/build.gradle
           
-          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "android.useAndroidX=true" > android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug
 
-      - name: Rename and compress APK
+      - name: Prepare APK
         run: |
           cd android/app/build/outputs/apk/debug
           mv app-debug.apk CriticalLAP.apk
-          gzip -c CriticalLAP.apk > CriticalLAP.apk.gz
-          echo "APK renombrado: CriticalLAP.apk"
-          echo "Tamaño: $(du -h CriticalLAP.apk | cut -f1)"
+          gzip -k CriticalLAP.apk
 
-      - name: Upload APK (Compressed)
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: CriticalLAP-APK
+          name: CriticalLAP
           path: android/app/build/outputs/apk/debug/CriticalLAP.apk.gz
-          retention-days: 7
-          if-no-files-found: error
-          overwrite: true
-          compression-level: 0
 
-      - name: Display APK info
-        run: |
-          cd android/app/build/outputs/apk/debug
-          echo "✅ APK generado: CriticalLAP.apk"
-          echo "📱 Nombre: Critical LAP"
-          echo "📥 Descargar desde: Artifacts → CriticalLAP-APK"
+      - name: Done
+        run: echo "✅ APK CriticalLAP.apk.gz listo para descargar"
