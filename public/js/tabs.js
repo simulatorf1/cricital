@@ -804,7 +804,8 @@ class TabManager {
                 </div>
             </div>
         `;
-    }
+    }    
+    
     
     // ===== NUEVO MÉTODO PARA CARGAR CLASIFICACIÓN =====
     async loadClasificacionData(columnaOrden = 'dinero', orden = 'desc') {
