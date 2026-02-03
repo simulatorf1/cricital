@@ -829,7 +829,7 @@ class TabManager {
             
             // Obtener datos de todas las escuderías desde Supabase
             const { data: escuderias, error } = await supabase
-                .from('ESCUDERIAS')
+                .from('escuderias')
                 .select('id, nombre, dinero, puntos')
                 .order(columnaOrden, { ascending: orden === 'asc' });
             
