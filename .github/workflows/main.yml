@@ -26,72 +26,53 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Install dependencies for icon processing
-        run: sudo apt-get update && sudo apt-get install -y imagemagick
-
-      - name: Setup Android icon and app name
+      - name: Download and setup icon
         run: |
-          # Descargar el icono específico que quieres
-          echo "Descargando icono personalizado..."
-          wget -q https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.PNG -O icon_source.png
+          # Descargar el icono desde GitHub
+          echo "Descargando icono desde GitHub..."
+          wget -q https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.PNG -O icon.png
           
-          if [ -f "icon_source.png" ]; then
-            echo "✅ Icono descargado correctamente"
+          if [ -f "icon.png" ]; then
+            echo "Icono descargado correctamente"
+            ls -la icon.png
+          else
+            echo "ERROR: No se pudo descargar el icono"
+          fi
+
+      - name: Setup Android icon properly
+        run: |
+          if [ -f "icon.png" ]; then
+            echo "Configurando icono para Android..."
+            # Instalar ImageMagick si no está
+            sudo apt-get update && sudo apt-get install -y imagemagick || true
             
-            # Crear directorios para los iconos de Android
+            # Crear directorios para iconos
             mkdir -p android/app/src/main/res/mipmap-mdpi
             mkdir -p android/app/src/main/res/mipmap-hdpi
             mkdir -p android/app/src/main/res/mipmap-xhdpi
             mkdir -p android/app/src/main/res/mipmap-xxhdpi
             mkdir -p android/app/src/main/res/mipmap-xxxhdpi
             
-            # Convertir a diferentes tamaños para Android
-            convert icon_source.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-            convert icon_source.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-            convert icon_source.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-            convert icon_source.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-            convert icon_source.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+            # Crear iconos en diferentes tamaños
+            convert icon.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png 2>/dev/null || echo "Usando icono por defecto para mdpi"
+            convert icon.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png 2>/dev/null || echo "Usando icono por defecto para hdpi"
+            convert icon.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png 2>/dev/null || echo "Usando icono por defecto para xhdpi"
+            convert icon.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png 2>/dev/null || echo "Usando icono por defecto para xxhdpi"
+            convert icon.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || echo "Usando icono por defecto para xxxhdpi"
             
-            echo "✅ Iconos generados en 5 resoluciones diferentes"
-            
-          else
-            echo "⚠️  No se pudo descargar el icono, usando icono por defecto"
+            echo "Iconos configurados"
           fi
 
-      - name: Fix Android Manifest for app name
+      - name: Update Android Manifest for app name
         run: |
-          # Asegurar que el AndroidManifest.xml tiene el nombre correcto
+          # Solo actualizar el nombre si el archivo existe
           if [ -f "android/app/src/main/AndroidManifest.xml" ]; then
-            echo "Actualizando AndroidManifest.xml..."
-            # Usar sed para cambiar el nombre de la app
+            echo "Actualizando nombre de la app en AndroidManifest.xml..."
+            # Buscar y reemplazar el nombre de la app
             sed -i 's/android:label="[^"]*"/android:label="Critical LAP"/g' android/app/src/main/AndroidManifest.xml
-            echo "✅ Nombre de la app actualizado a 'Critical LAP'"
+            echo "Nombre actualizado a 'Critical LAP'"
           else
-            echo "⚠️  AndroidManifest.xml no encontrado, creando uno básico..."
-            mkdir -p android/app/src/main
-            echo '<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.miweb.app">
-    <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="Critical LAP"
-        android:theme="@style/AppTheme">
-        <activity
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
-            android:name="com.miweb.app.MainActivity"
-            android:label="Critical LAP"
-            android:theme="@style/AppTheme.NoActionBarLaunch"
-            android:launchMode="singleTask"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
-    <uses-permission android:name="android.permission.INTERNET" />
-</manifest>' > android/app/src/main/AndroidManifest.xml
+            echo "AndroidManifest.xml no encontrado, se creará automáticamente"
           fi
 
       - name: Sync Capacitor
@@ -120,19 +101,19 @@ jobs:
       - name: Rename and compress APK
         run: |
           cd android/app/build/outputs/apk/debug
-          # Renombrar APK con nombre simple (sin espacios)
-          mv app-debug.apk CriticalLAP.apk
+          # Renombrar APK
+          mv app-debug.apk ManagerMotorsport.apk
           # Comprimir
-          gzip -c CriticalLAP.apk > CriticalLAP.apk.gz
-          echo "APK renombrado: CriticalLAP.apk"
-          echo "Tamaño original: $(du -h CriticalLAP.apk | cut -f1)"
-          echo "Tamaño comprimido: $(du -h CriticalLAP.apk.gz | cut -f1)"
+          gzip -c ManagerMotorsport.apk > ManagerMotorsport.apk.gz
+          echo "APK renombrado: ManagerMotorsport.apk"
+          echo "Tamaño original: $(du -h ManagerMotorsport.apk | cut -f1)"
+          echo "Tamaño comprimido: $(du -h ManagerMotorsport.apk.gz | cut -f1)"
 
       - name: Upload APK (Compressed)
         uses: actions/upload-artifact@v4
         with:
-          name: CriticalLAP-APK
-          path: android/app/build/outputs/apk/debug/CriticalLAP.apk.gz
+          name: ManagerMotorsport-APK
+          path: android/app/build/outputs/apk/debug/ManagerMotorsport.apk.gz
           retention-days: 7
           if-no-files-found: error
           overwrite: true
@@ -142,17 +123,15 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: CriticalLAP-APK-Raw
-          path: android/app/build/outputs/apk/debug/CriticalLAP.apk
+          name: ManagerMotorsport-APK-Raw
+          path: android/app/build/outputs/apk/debug/ManagerMotorsport.apk
           retention-days: 1
           if-no-files-found: error
 
       - name: Display APK info
         run: |
           cd android/app/build/outputs/apk/debug
-          echo "✅ APK generado: CriticalLAP.apk"
+          echo "✅ APK generado: ManagerMotorsport.apk"
           echo "📱 Nombre de la app: Critical LAP"
           echo "🎯 Icono: IMG_20260202_194732.PNG"
-          echo "📦 Tamaño: $(du -h CriticalLAP.apk | cut -f1)"
-          echo "📥 Para descargar: Ve a 'Artifacts' → 'CriticalLAP-APK'"
-          echo "ℹ️  Nota: El archivo está comprimido (.gz), descomprímelo antes de instalar"
+          echo "📥 Para descargar: Ve a 'Artifacts' → 'ManagerMotorsport-APK'"
