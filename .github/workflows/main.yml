@@ -1,24 +1,73 @@
-- name: Setup Assets Tool and Icon
+name: Build Android APK
+on: [workflow_dispatch] # Esto activa el botón manual
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
         run: |
-          # Instalar la herramienta de generación de recursos
-          npm install @capacitor/assets --save-dev
-          
-          # Crear carpeta para el recurso base
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets
+          mkdir -p out
+          touch out/index.html
+          npx cap add android || true
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Generate Assets (Icon & Splash)
+        run: |
           mkdir -p assets
-          
-          # Descargar tu icono real desde la ruta que me pasaste
-          echo "Descargando icono personalizado..."
+          # Descargamos tu imagen desde la ruta que me diste
           wget -q https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.png -O assets/logo.png
-          
-          # Generar todos los iconos de Android automáticamente
-          # Esto reemplaza el icono por defecto de Capacitor por el tuyo
+          # Genera automáticamente todos los tamaños de icono para Android
           npx capacitor-assets generate --android --icon-source assets/logo.png
 
-      - name: Fix App Name and Sync
+      - name: Sync and Fix App Name
         run: |
-          # Sincronizar cambios de Capacitor
           npx cap sync android
-          
-          # Forzar el nombre "Critical Lap" en el archivo de recursos nativo
+          # Forzamos el nombre "Critical Lap" en los recursos de Android
           sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Critical Lap<\/string>/' android/app/src/main/res/values/strings.xml
           sed -i 's/<string name="title_activity_main">.*<\/string>/<string name="title_activity_main">Critical Lap<\/string>/' android/app/src/main/res/values/strings.xml
+
+      - name: Force Fix Kotlin Duplicates
+        run: |
+          mkdir -p android/app/gradle/
+          echo "configurations.all {
+              resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                  if (details.requested.group == 'org.jetbrains.kotlin') {
+                      details.useVersion '1.8.22'
+                  }
+              }
+          }" >> android/app/build.gradle
+          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "android.enableJetifier=true" >> android/gradle.properties
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Prepare Artifact
+        run: |
+          cd android/app/build/outputs/apk/debug
+          mv app-debug.apk CriticalLap.apk
+          gzip -c CriticalLap.apk > CriticalLap.apk.gz
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CriticalLap-Package
+          path: android/app/build/outputs/apk/debug/CriticalLap.apk.gz
