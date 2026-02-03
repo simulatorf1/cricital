@@ -3275,9 +3275,6 @@ function mostrarPantallaCargaInicial() {
                 Preparando tu escudería para la competición...
             </div>
             
-            <div style="margin-top: 30px; color: #e10600; font-size: 1.5rem; animation: spin 1.5s linear infinite;">
-                🏎️
-            </div>
         </div>
         
         <style>
@@ -3286,10 +3283,7 @@ function mostrarPantallaCargaInicial() {
                 100% { left: 200%; }
             }
             
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
+
         </style>
     `;
 }
