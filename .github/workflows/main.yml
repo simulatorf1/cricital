@@ -1,62 +1,101 @@
-name: Build Critical Lap APK
-
-on:
-  workflow_dispatch:
+name: Build Android APK
+on: [workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-    
-    - name: Update app name
-      run: |
-        # Cambiar nombre en capacitor.config.json
-        echo '{"appId":"com.miweb.app","appName":"Critical Lap","webDir":"out","server":{"url":"https://f1-manager-game.vercel.app/","cleartext":true}}' > capacitor.config.json
-        echo "✅ Nombre cambiado a Critical Lap"
-    
-    - name: Install dependencies
-      run: |
-        npm install @capacitor/core @capacitor/cli @capacitor/android
-        mkdir -p out
-        touch out/index.html
-    
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '21'
-    
-    - name: Add Android platform
-      run: npx cap add android || true
-    
-    - name: Download icon
-      run: |
-        wget https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/public/IMG_20260202_194732.png -O icon.png
-        echo "✅ Icono descargado"
-    
-    - name: Build APK
-      run: |
-        npx cap sync android
-        cd android
-        chmod +x gradlew
-        ./gradlew assembleDebug
-    
-    - name: Rename APK
-      run: |
-        cd android/app/build/outputs/apk/debug
-        mv app-debug.apk "Critical Lap.apk"
-        echo "✅ APK renombrado a Critical Lap.apk"
-    
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: Critical-Lap-APK
-        path: android/app/build/outputs/apk/debug/Critical Lap.apk
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Capacitor
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          mkdir -p out
+          touch out/index.html
+          npx cap add android || true
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Download and setup icon
+        run: |
+          # Descargar el icono desde GitHub
+          echo "Descargando icono desde GitHub..."
+          wget -q https://raw.githubusercontent.com/simulatorf1/f1-manager-game/main/icon.png -O icon.png
+          
+          if [ -f "icon.png" ]; then
+            echo "Icono descargado correctamente"
+            ls -la icon.png
+          else
+            echo "ERROR: No se pudo descargar el icono"
+          fi
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Force Fix Kotlin Duplicates
+        run: |
+          mkdir -p android/app/gradle/
+          echo "configurations.all {
+              resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                  if (details.requested.group == 'org.jetbrains.kotlin') {
+                      details.useVersion '1.8.22'
+                  }
+              }
+          }" >> android/app/build.gradle
+          
+          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "android.enableJetifier=true" >> android/gradle.properties
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Rename and compress APK
+        run: |
+          cd android/app/build/outputs/apk/debug
+          # Renombrar APK
+          mv app-debug.apk ManagerMotorsport.apk
+          # Comprimir
+          gzip -c ManagerMotorsport.apk > ManagerMotorsport.apk.gz
+          echo "APK renombrado: ManagerMotorsport.apk"
+          echo "Tamaño original: $(du -h ManagerMotorsport.apk | cut -f1)"
+          echo "Tamaño comprimido: $(du -h ManagerMotorsport.apk.gz | cut -f1)"
+
+      - name: Upload APK (Compressed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ManagerMotorsport-APK
+          path: android/app/build/outputs/apk/debug/ManagerMotorsport.apk.gz
+          retention-days: 7
+          if-no-files-found: error
+          overwrite: true
+          compression-level: 0
+
+      - name: Upload APK (Original) como fallback
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ManagerMotorsport-APK-Raw
+          path: android/app/build/outputs/apk/debug/ManagerMotorsport.apk
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Display APK info
+        run: |
+          cd android/app/build/outputs/apk/debug
+          echo "✅ APK generado: ManagerMotorsport.apk"
+          echo "📱 Nombre de la app: Manager Motorsport"
+          echo "🎯 Icono: Descargado desde GitHub"
+          echo "📥 Para descargar: Ve a 'Artifacts' → 'ManagerMotorsport-APK'"
