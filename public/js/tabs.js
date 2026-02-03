@@ -675,91 +675,317 @@ class TabManager {
             <div class="clasificacion-container">
                 <div class="clasificacion-header">
                     <h2><i class="fas fa-medal"></i> Clasificación Global</h2>
-                    <div class="clasificacion-filters">
-                        <button class="filter-btn active" data-filter="global">Global</button>
-                        <button class="filter-btn" data-filter="friends">Amigos</button>
-                        <button class="filter-btn" data-filter="regional">Regional</button>
-                    </div>
+                    <p class="clasificacion-subtitle">Ranking de todas las escuderías por dinero</p>
                 </div>
                 
-                <div class="clasificacion-info">
-                    <div class="info-card">
-                        <i class="fas fa-trophy"></i>
+                <div class="clasificacion-info-bar">
+                    <div class="info-item">
+                        <i class="fas fa-coins" style="color: #FFD700;"></i>
+                        <div>
+                            <span class="info-label">Tu dinero actual</span>
+                            <span class="info-value" id="mi-dinero-actual">Cargando...</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-trophy" style="color: #FF9800;"></i>
                         <div>
                             <span class="info-label">Tu posición</span>
-                            <span class="info-value" id="mi-posicion">#-</span>
+                            <span class="info-value" id="mi-posicion-actual">Cargando...</span>
                         </div>
                     </div>
-                    <div class="info-card">
-                        <i class="fas fa-users"></i>
+                    <div class="info-item">
+                        <i class="fas fa-users" style="color: #2196F3;"></i>
                         <div>
-                            <span class="info-label">Total jugadores</span>
-                            <span class="info-value" id="total-jugadores">0</span>
-                        </div>
-                    </div>
-                    <div class="info-card">
-                        <i class="fas fa-flag-checkered"></i>
-                        <div>
-                            <span class="info-label">Puntos para Top 10</span>
-                            <span class="info-value" id="puntos-top10">0</span>
+                            <span class="info-label">Total escuderías</span>
+                            <span class="info-value" id="total-escuderias">Cargando...</span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="clasificacion-tabla">
-                    <table>
+                <div class="tabla-controls">
+                    <div class="ordenamiento-buttons">
+                        <button class="btn-ordenar" data-col="dinero" data-order="desc">
+                            <i class="fas fa-sort-amount-down-alt"></i> Más dinero
+                        </button>
+                        <button class="btn-ordenar" data-col="dinero" data-order="asc">
+                            <i class="fas fa-sort-amount-up"></i> Menos dinero
+                        </button>
+                        <button class="btn-ordenar" data-col="nombre" data-order="asc">
+                            <i class="fas fa-sort-alpha-down"></i> Nombre A-Z
+                        </button>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="buscar-escuderia" placeholder="Buscar escudería..." class="search-input">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+                
+                <div class="tabla-contenedor-scroll">
+                    <table class="tabla-clasificacion-simple">
                         <thead>
                             <tr>
-                                <th>Pos.</th>
-                                <th>Escudería</th>
-                                <th>Puntos</th>
-                                <th>Dinero</th>
-                                <th>Nivel Ing.</th>
-                                <th>Acciones</th>
+                                <th class="col-posicion">#</th>
+                                <th class="col-nombre" data-sort="nombre">
+                                    <span>Escudería</span>
+                                    <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-dinero active-sort" data-sort="dinero" data-order="desc">
+                                    <span>Dinero (€)</span>
+                                    <i class="fas fa-sort-down sort-icon"></i>
+                                </th>
                             </tr>
                         </thead>
-                        <tbody id="tabla-clasificacion">
+                        <tbody id="tabla-clasificacion-body">
                             <tr class="loading-row">
-                                <td colspan="6">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                    <span>Cargando clasificación...</span>
+                                <td colspan="3" style="text-align: center; padding: 40px;">
+                                    <div class="cargando-clasificacion">
+                                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                                        <p>Cargando clasificación...</p>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 
-                <div class="clasificacion-pagination">
-                    <button class="btn-pagination prev" disabled>
-                        <i class="fas fa-chevron-left"></i> Anterior
-                    </button>
-                    <span class="pagination-info">Página <span id="current-page">1</span> de <span id="total-pages">1</span></span>
-                    <button class="btn-pagination next">
-                        Siguiente <i class="fas fa-chevron-right"></i>
-                    </button>
+                <div class="tabla-footer">
+                    <div class="pagination-info">
+                        Mostrando <span id="filas-mostradas">0</span> de <span id="total-filas">0</span> escuderías
+                    </div>
+                    <div class="last-update">
+                        <i class="fas fa-sync-alt"></i>
+                        <span id="ultima-actualizacion">Actualizado hace unos segundos</span>
+                    </div>
                 </div>
                 
-                <div class="clasificacion-logros">
-                    <h3><i class="fas fa-award"></i> Tus Logros</h3>
-                    <div class="logros-grid" id="logros-grid">
-                        <div class="logro-item locked">
-                            <i class="fas fa-lock"></i>
-                            <span>Primera fabricación</span>
-                        </div>
-                        <div class="logro-item locked">
-                            <i class="fas fa-lock"></i>
-                            <span>Primer piloto</span>
-                        </div>
-                        <div class="logro-item locked">
-                            <i class="fas fa-lock"></i>
-                            <span>Top 100 global</span>
-                        </div>
-                    </div>
+                <div class="actualizar-buttons">
+                    <button class="btn-actualizar" id="btn-actualizar-clasificacion">
+                        <i class="fas fa-sync-alt"></i> Actualizar clasificación
+                    </button>
                 </div>
             </div>
         `;
     }
+    
+    // ===== NUEVO MÉTODO PARA CARGAR CLASIFICACIÓN =====
+    async loadClasificacionData(columnaOrden = 'dinero', orden = 'desc') {
+        console.log('📊 Cargando datos de clasificación...');
+        
+        const tablaBody = document.getElementById('tabla-clasificacion-body');
+        if (!tablaBody) return;
+        
+        try {
+            // Mostrar estado de carga
+            tablaBody.innerHTML = `
+                <tr class="loading-row">
+                    <td colspan="3" style="text-align: center; padding: 30px;">
+                        <div class="cargando-clasificacion">
+                            <i class="fas fa-spinner fa-spin fa-lg"></i>
+                            <p>Consultando base de datos...</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            
+            // Obtener datos de todas las escuderías desde Supabase
+            const { data: escuderias, error } = await supabase
+                .from('ESCUDERIAS')
+                .select('id, nombre, dinero, puntos')
+                .order(columnaOrden, { ascending: orden === 'asc' });
+            
+            if (error) {
+                throw error;
+            }
+            
+            if (!escuderias || escuderias.length === 0) {
+                tablaBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 40px; color: #888;">
+                            <i class="fas fa-database fa-2x"></i>
+                            <p style="margin-top: 10px;">No hay escuderías registradas</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Actualizar contadores
+            document.getElementById('total-escuderias').textContent = escuderias.length;
+            document.getElementById('total-filas').textContent = escuderias.length;
+            document.getElementById('filas-mostradas').textContent = escuderias.length;
+            
+            // Encontrar mi posición y datos
+            const miEscuderiaId = window.f1Manager?.escuderia?.id;
+            let miPosicion = 0;
+            let miDinero = 0;
+            
+            // Generar filas de la tabla
+            let html = '';
+            
+            escuderias.forEach((escuderia, index) => {
+                const esMiEscuderia = escuderia.id === miEscuderiaId;
+                const posicion = index + 1;
+                
+                if (esMiEscuderia) {
+                    miPosicion = posicion;
+                    miDinero = escuderia.dinero;
+                }
+                
+                // Formatear dinero con separadores de miles
+                const dineroFormateado = new Intl.NumberFormat('es-ES', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(escuderia.dinero || 0);
+                
+                // Clases CSS
+                const claseFila = esMiEscuderia ? 'mi-escuderia' : '';
+                const clasePosicion = posicion <= 3 ? `top-${posicion}` : '';
+                
+                html += `
+                    <tr class="${claseFila}">
+                        <td class="celda-posicion ${clasePosicion}">
+                            <span class="numero-posicion">${posicion}</span>
+                        </td>
+                        <td class="celda-nombre">
+                            ${esMiEscuderia ? '<i class="fas fa-user" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
+                            ${escuderia.nombre || 'Sin nombre'}
+                        </td>
+                        <td class="celda-dinero">
+                            <span class="valor-dinero">€${dineroFormateado}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tablaBody.innerHTML = html;
+            
+            // Actualizar mi información
+            document.getElementById('mi-dinero-actual').textContent = `€${new Intl.NumberFormat('es-ES').format(miDinero)}`;
+            document.getElementById('mi-posicion-actual').textContent = `#${miPosicion}`;
+            
+            // Actualizar timestamp
+            const ahora = new Date();
+            document.getElementById('ultima-actualizacion').textContent = 
+                `Actualizado a las ${ahora.getHours().toString().padStart(2, '0')}:${ahora.getMinutes().toString().padStart(2, '0')}`;
+            
+            console.log('✅ Clasificación cargada correctamente');
+            
+        } catch (error) {
+            console.error('❌ Error cargando clasificación:', error);
+            tablaBody.innerHTML = `
+                <tr class="error-row">
+                    <td colspan="3" style="text-align: center; padding: 40px; color: #f44336;">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        <p style="margin-top: 10px;">Error al cargar la clasificación</p>
+                        <p style="font-size: 0.9em; margin-top: 5px;">${error.message || 'Intenta de nuevo más tarde'}</p>
+                        <button onclick="window.tabManager.loadClasificacionData()" 
+                                style="margin-top: 15px; padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Reintentar
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    
+    // ===== NUEVO MÉTODO PARA CONFIGURAR EVENTOS DE CLASIFICACIÓN =====
+    setupClasificacionEvents() {
+        console.log('🔧 Configurando eventos de clasificación...');
+        
+        // Botón actualizar
+        document.getElementById('btn-actualizar-clasificacion')?.addEventListener('click', () => {
+            this.loadClasificacionData();
+        });
+        
+        // Botones de ordenamiento
+        document.querySelectorAll('.btn-ordenar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const columna = e.currentTarget.dataset.col;
+                const orden = e.currentTarget.dataset.order;
+                this.loadClasificacionData(columna, orden);
+                
+                // Actualizar estado activo
+                document.querySelectorAll('.btn-ordenar').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+            });
+        });
+        
+        // Ordenar al hacer clic en encabezados de tabla
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const columna = th.dataset.sort;
+                const ordenActual = th.dataset.order || 'desc';
+                const nuevoOrden = ordenActual === 'desc' ? 'asc' : 'desc';
+                
+                // Actualizar iconos
+                document.querySelectorAll('.sort-icon').forEach(icon => {
+                    icon.className = 'fas fa-sort sort-icon';
+                });
+                
+                const icono = th.querySelector('.sort-icon');
+                if (icono) {
+                    icono.className = `fas fa-sort-${nuevoOrden === 'desc' ? 'down' : 'up'} sort-icon`;
+                }
+                
+                // Actualizar atributos
+                document.querySelectorAll('th[data-sort]').forEach(h => {
+                    h.classList.remove('active-sort');
+                });
+                th.classList.add('active-sort');
+                th.dataset.order = nuevoOrden;
+                
+                // Cargar datos con nuevo orden
+                this.loadClasificacionData(columna, nuevoOrden);
+            });
+        });
+        
+        // Buscador
+        const buscador = document.getElementById('buscar-escuderia');
+        if (buscador) {
+            buscador.addEventListener('input', (e) => {
+                const termino = e.target.value.toLowerCase();
+                const filas = document.querySelectorAll('#tabla-clasificacion-body tr');
+                
+                let filasVisibles = 0;
+                filas.forEach(fila => {
+                    if (fila.classList.contains('loading-row') || fila.classList.contains('error-row')) {
+                        return;
+                    }
+                    
+                    const nombre = fila.querySelector('.celda-nombre').textContent.toLowerCase();
+                    const esVisible = nombre.includes(termino);
+                    fila.style.display = esVisible ? '' : 'none';
+                    if (esVisible) filasVisibles++;
+                });
+                
+                document.getElementById('filas-mostradas').textContent = filasVisibles;
+            });
+        }
+    }
+    
+    // ===== ACTUALIZAR EL MÉTODO setupTabEvents =====
+    setupTabEvents(tabId) {
+        switch(tabId) {
+            case 'taller':
+                this.setupTallerEvents();
+                break;
+            case 'almacen':
+                this.setupAlmacenEvents();
+                break;
+            case 'mercado':
+                this.setupMercadoEvents();
+                break;
+            case 'clasificacion':  // ← AÑADIDO
+                this.setupClasificacionEvents();
+                // Cargar datos cuando se abra la pestaña
+                setTimeout(() => {
+                    this.loadClasificacionData();
+                }, 100);
+                break;
+        }
+    }
 
+    
     getPronosticosContent() {
         return `
             <div class="pronosticos-container" id="pronosticos-container">
