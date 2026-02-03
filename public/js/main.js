@@ -1593,7 +1593,7 @@ class F1Manager {
                         <i class="fas fa-sign-out-alt"></i> Salir
                     </button>
                     <div style="font-size: 0.7rem; color: #666;">
-                        F1 Manager v1.0
+                        CRITICAL LAP v1.0
                     </div>
                 </footer>
             </div>
