@@ -1213,11 +1213,17 @@ class F1Manager {
         }
         if (window.IngenieriaManager && !window.ingenieriaManager) {
             console.log('🔧 Creando ingenieriaManager...');
-            window.ingenieriaManager = new window.IngenieriaManager(this);
-            await window.ingenieriaManager.inicializar();
-            console.log('✅ Sistema de ingeniería inicializado');
+            try {
+                window.ingenieriaManager = new window.IngenieriaManager(this);
+                await window.ingenieriaManager.inicializar();
+                console.log('✅ Sistema de ingeniería inicializado');
+            } catch (error) {
+                console.error('❌ Error inicializando ingeniería:', error);
+            }
         } else if (window.ingenieriaManager) {
             console.log('✅ ingenieriaManager ya existe');
+        } else {
+            console.warn('⚠️ IngenieriaManager no disponible en window');
         }
         
         this.iniciarTimersAutomaticos();
