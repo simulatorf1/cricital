@@ -1840,18 +1840,64 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Inicializar automáticamente cuando esté disponible el F1Manager
-if (window.f1Manager && !window.ingenieriaManager) {
-    window.ingenieriaManager = new IngenieriaManager(window.f1Manager);
-    window.ingenieriaManager.inicializar();
+// Variable para verificar si ya estamos inicializando
+let inicializandoIngenieria = false;
+
+// Función para inicializar el manager de ingeniería
+async function inicializarIngenieriaManager() {
+    if (inicializandoIngenieria || window.ingenieriaManager) return;
     
-    // También inicializar cuando se complete el tutorial
-    window.addEventListener('tutorial-completado', () => {
-        if (window.f1Manager && !window.ingenieriaManager) {
-            window.ingenieriaManager = new IngenieriaManager(window.f1Manager);
-            window.ingenieriaManager.inicializar();
-        }
+    inicializandoIngenieria = true;
+    console.log('🔧 Intentando inicializar ingenieriaManager...');
+    
+    // Esperar a que F1Manager esté disponible
+    if (!window.f1Manager) {
+        console.log('⏳ Esperando a que F1Manager esté disponible...');
+        // Intentar de nuevo en 1 segundo
+        setTimeout(inicializarIngenieriaManager, 1000);
+        inicializandoIngenieria = false;
+        return;
+    }
+    
+    try {
+        window.ingenieriaManager = new IngenieriaManager(window.f1Manager);
+        await window.ingenieriaManager.inicializar();
+        console.log('✅ ingenieriaManager inicializado correctamente');
+    } catch (error) {
+        console.error('❌ Error inicializando ingenieriaManager:', error);
+    }
+    
+    inicializandoIngenieria = false;
+}
+
+// Inicializar cuando se cargue el DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Esperar un momento para asegurar que otros scripts se carguen
+    setTimeout(inicializarIngenieriaManager, 1500);
+});
+
+// También inicializar cuando F1Manager esté disponible (por si se carga después)
+if (window.f1Manager) {
+    inicializarIngenieriaManager();
+} else {
+    // Escuchar evento personalizado cuando F1Manager esté listo
+    window.addEventListener('f1manager-list', function() {
+        inicializarIngenieriaManager();
     });
 }
 
-console.log('✅ ingenieria.js cargado correctamente');
+// Verificar si hay una instancia global
+window.verificarIngenieriaManager = function() {
+    console.log('🔍 Estado de ingenieriaManager:', {
+        tieneClase: !!window.IngenieriaManager,
+        tieneInstancia: !!window.ingenieriaManager,
+        tieneF1Manager: !!window.f1Manager
+    });
+    
+    if (!window.ingenieriaManager && window.f1Manager && window.IngenieriaManager) {
+        console.log('⚠️ Inicializando ingenieriaManager manualmente...');
+        inicializarIngenieriaManager();
+    }
+};
+
+console.log('✅ ingenieria.js cargado - Clase disponible: ', !!window.IngenieriaManager);
