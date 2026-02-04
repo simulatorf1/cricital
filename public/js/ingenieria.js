@@ -61,16 +61,7 @@ class IngenieriaManager {
                     </div>
                     
                     <div class="simulacion-panel">
-                        <div class="simulacion-info">
-                            <div class="info-card">
-                                <div class="info-icon"><i class="fas fa-stopwatch"></i></div>
-                                <div class="info-content">
-                                    <div class="info-title">TIEMPO ESTIMADO</div>
-                                    <div class="info-value">${this.formatearTiempo(tiempoEstimado)}</div>
-                                    <div class="info-sub">por vuelta (10 vueltas de simulación)</div>
-                                </div>
-                            </div>
-                            
+                        <div class="simulacion-info">                   
                             <div class="info-card">
                                 <div class="info-icon"><i class="fas fa-history"></i></div>
                                 <div class="info-content">
