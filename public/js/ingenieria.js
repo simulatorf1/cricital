@@ -207,36 +207,32 @@ class IngenieriaManager {
         }
     }
     
+
     // ========================
     // CALCULAR TIEMPO DESDE PUNTOS
     // ========================
-
     calcularTiempoDesdePuntos(puntos) {
         const { tiempoBase, tiempoMinimo, puntosMaximos, puntosBase } = this.config;
         
-        // 1. Calcular mejora real basada en puntos
+        // 1. Puntos limitados entre base y máximo
         const puntosLimitados = Math.max(puntosBase, Math.min(puntos, puntosMaximos));
+        
+        // 2. Proporción lineal simple
         const proporcion = (puntosLimitados - puntosBase) / (puntosMaximos - puntosBase);
-        const diferenciaTiempo = tiempoBase - tiempoMinimo;
         
-        // Tu mejora REAL por puntos
-        const tuMejora = proporcion * diferenciaTiempo;
+        // 3. Tiempo base calculado (SIEMPRE EL MISMO para mismos puntos)
+        const tiempoCalculado = tiempoBase - (proporcion * (tiempoBase - tiempoMinimo));
         
-        // 2. AZAR FIJADO entre ±0.040 segundos (40 milisegundos)
-        // Esto simula variaciones normales en pista: temperatura, viento, error piloto
-        const maxAzar = 0.040; // 40 milisegundos máximo
-        const azar = (Math.random() * maxAzar * 2) - maxAzar; // Entre -0.040 y +0.040
+        // 4. AZAR FIJADO: ±0.040 SIEMPRE (40 milisegundos)
+        const azar = (Math.random() * 0.080) - 0.040; // Número entre -0.040 y +0.040
         
-        // 3. Tiempo final
-        const tiempoCalculado = tiempoBase - tuMejora;
+        // 5. Tiempo final con azar
         const tiempoFinal = Math.max(tiempoMinimo, tiempoCalculado + azar);
         
-        console.log('⚙️ Cálculo detallado:', {
+        console.log('⚙️ Cálculo FIJO + Azar:', {
             puntos: puntos,
-            proporcion: (proporcion * 100).toFixed(2) + '%',
-            tuMejora: tuMejora.toFixed(3) + 's',
-            azar: azar.toFixed(3) + 's',
-            tiempoBaseCalculado: tiempoCalculado.toFixed(3) + 's',
+            tiempoBaseCalculado: tiempoCalculado.toFixed(3) + 's', // SIEMPRE IGUAL
+            azar: azar.toFixed(3) + 's', // Solo ±0.040
             tiempoFinal: tiempoFinal.toFixed(3) + 's'
         });
         
