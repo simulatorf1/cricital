@@ -292,37 +292,33 @@ class TabManager {
             // ¡¡PESTAÑA CLASIFICACIÓN - NUEVO COMPORTAMIENTO!!
             // ======================================================
             if (tabId === 'clasificacion') {
+                console.log("🎯 Iniciando carga de clasificación");
+                
                 // 1. SOLO marcar como activa
                 tabContent.classList.add('active');
                 this.currentTab = tabId;
                 
-                // 2. LIMPIAR contenido anterior
-                tabContent.innerHTML = '<div class="cargando-clasificacion"><i class="fas fa-spinner fa-spin"></i> Cargando clasificación...</div>';
+                // 2. USAR EL HTML COMPLETO (¡ESTA ES LA CLAVE!)
+                tabContent.innerHTML = this.getClasificacionContent();
                 
-                // 3. Cargar la clasificación desde la base de datos
+                // 3. Pequeña pausa para que el DOM se renderice
                 setTimeout(async () => {
                     try {
-                        console.log('🏆 Cargando clasificación desde base de datos...');
+                        console.log('🏆 Cargando datos de clasificación...');
                         
-                        // Cargar datos y configurar eventos
+                        // Cargar datos
                         await this.loadClasificacionData();
+                        
+                        // Configurar eventos
                         this.setupClasificacionEvents();
                         
                         console.log('✅ Clasificación cargada exitosamente');
                         
                     } catch (error) {
                         console.error('❌ Error cargando clasificación:', error);
-                        tabContent.innerHTML = `
-                            <div class="error-message">
-                                <h3>❌ Error cargando clasificación</h3>
-                                <p>${error.message || 'Error desconocido'}</p>
-                                <button onclick="location.reload()">Reintentar</button>
-                            </div>
-                        `;
                     }
-                }, 300);
+                }, 100);
                 
-                // SALIR del método - no hacer nada más para clasificación
                 return;
             }
             
