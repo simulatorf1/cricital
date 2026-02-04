@@ -116,26 +116,37 @@ class MercadoManager {
                             <table class="ordenes-table-compact">
                                 <thead>
                                     <tr>
-                                        <th class="col-pieza">Pieza</th>
-                                        <th class="col-vendedor">Vendedor</th>
-                                        <th class="col-precio">Precio</th>
-                                        <th class="col-accion">Acción</th>
+                                        <th>Pieza</th>
+                                        <th>Nivel</th>
+                                        <th>Vendedor</th>
+                                        <th>Precio</th>
+                                        <th>Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${this.ordenesDisponibles.map(orden => `
-                                        <tr>
-                                            <td class="col-pieza">${orden.pieza_nombre}</td>
-                                            <td class="col-vendedor">${orden.vendedor_nombre}</td>
-                                            <td class="col-precio">${orden.precio.toLocaleString()}€</td>
-                                            <td class="col-accion">
-                                                ${esMiOrden ? 
-                                                    `<button class="btn-cancelar-compact" data-orden-id="${orden.id}">CANCELAR</button>` : 
-                                                    `<button class="btn-comprar-compact" data-orden-id="${orden.id}">COMPRAR</button>`
-                                                }
-                                            </td>
-                                        </tr>
-                                    `).join('')}
+
+                                    ${this.ordenesDisponibles.map(orden => {
+                                        const esMiOrden = orden.vendedor_id === this.escuderia.id;
+                                        
+                                        return `
+                                            <tr>
+                                                <td class="pieza-nombre-col">${orden.pieza_nombre}</td>
+                                                <td class="nivel-col">${orden.nivel}</td>
+                                                <td class="vendedor-col">${orden.vendedor_nombre}</td>
+                                                <td class="precio-col">${orden.precio.toLocaleString()}€</td>
+                                                <td class="accion-col">
+                                                    ${esMiOrden ? 
+                                                        `<button class="btn-cancelar-compact" data-orden-id="${orden.id}">
+                                                            CANCELAR
+                                                        </button>` : 
+                                                        `<button class="btn-comprar-compact" data-orden-id="${orden.id}">
+                                                            COMPRAR
+                                                        </button>`
+                                                    }
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
                                 </tbody>
                             </table>
                         </div>`
