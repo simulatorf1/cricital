@@ -219,23 +219,34 @@ class IngenieriaManager {
     // CALCULAR TIEMPO DESDE PUNTOS
     // ========================
     calcularTiempoDesdePuntos(puntos) {
-        // Fórmula lineal inversa: a más puntos, menos tiempo
         const { tiempoBase, tiempoMinimo, puntosMaximos, puntosBase } = this.config;
         
-        // Asegurar que los puntos estén en el rango
+        // 1. Calcular mejora real basada en puntos
         const puntosLimitados = Math.max(puntosBase, Math.min(puntos, puntosMaximos));
-        
-        // Calcular proporción
         const proporcion = (puntosLimitados - puntosBase) / (puntosMaximos - puntosBase);
-        
-        // Tiempo = tiempoBase - (proporción * diferencia)
         const diferenciaTiempo = tiempoBase - tiempoMinimo;
-        const tiempoCalculado = tiempoBase - (proporcion * diferenciaTiempo);
         
-        // Agregar pequeña variabilidad aleatoria (±0.3 segundos)
-        const variabilidad = (Math.random() * 0.6) - 0.3;
+        // Tu mejora REAL por puntos
+        const tuMejora = proporcion * diferenciaTiempo; // Ej: 0.129 segundos
         
-        return Math.max(tiempoMinimo, tiempoCalculado + variabilidad);
+        // 2. Azar MUY PEQUEÑO (máximo 20% de tu mejora)
+        const maxAzar = tuMejora * 0.2; // Si mejora = 0.129s → azar = 0.026s
+        const azar = (Math.random() * maxAzar * 2) - maxAzar; // ±0.026s
+        
+        // 3. Tiempo final
+        const tiempoCalculado = tiempoBase - tuMejora;
+        const tiempoFinal = Math.max(tiempoMinimo, tiempoCalculado + azar);
+        
+        console.log('⚙️ Cálculo detallado:', {
+            puntos: puntos,
+            proporcion: (proporcion * 100).toFixed(2) + '%',
+            tuMejora: tuMejora.toFixed(3) + 's',
+            maxAzar: maxAzar.toFixed(3) + 's',
+            azarReal: azar.toFixed(3) + 's',
+            tiempoFinal: tiempoFinal.toFixed(3) + 's'
+        });
+        
+        return tiempoFinal;
     }
     
     // ========================
