@@ -71,14 +71,7 @@ class IngenieriaManager {
                                 </div>
                             </div>
                             
-                            <div class="info-card">
-                                <div class="info-icon"><i class="fas fa-tools"></i></div>
-                                <div class="info-content">
-                                    <div class="info-title">PIEZAS EN PRUEBA</div>
-                                    <div class="info-value">${this.piezasEnPrueba.length}</div>
-                                    <div class="info-sub">componentes instalados</div>
-                                </div>
-                            </div>
+
                         </div>
                         
                         <div class="simulacion-control">
@@ -101,8 +94,7 @@ class IngenieriaManager {
                     </div>
                     
                     <div class="ingenieria-footer">
-                        <p><i class="fas fa-info-circle"></i> La simulación tarda 1 hora en completarse. Durante este tiempo podrás seguir usando otras secciones.</p>
-                        <p><i class="fas fa-info-circle"></i> Cada prueba incluye análisis de 10 vueltas en circuito para obtener un tiempo promedio preciso.</p>
+                        <p><i class="fas fa-info-circle"></i> La simulación tarda 1 hora en completarse. Durante este tiempo podrás seguir usando otras secciones.</p>                        
                     </div>
                 </div>
             `;
@@ -218,6 +210,7 @@ class IngenieriaManager {
     // ========================
     // CALCULAR TIEMPO DESDE PUNTOS
     // ========================
+
     calcularTiempoDesdePuntos(puntos) {
         const { tiempoBase, tiempoMinimo, puntosMaximos, puntosBase } = this.config;
         
@@ -227,11 +220,12 @@ class IngenieriaManager {
         const diferenciaTiempo = tiempoBase - tiempoMinimo;
         
         // Tu mejora REAL por puntos
-        const tuMejora = proporcion * diferenciaTiempo; // Ej: 0.129 segundos
+        const tuMejora = proporcion * diferenciaTiempo;
         
-        // 2. Azar MUY PEQUEÑO (máximo 20% de tu mejora)
-        const maxAzar = tuMejora * 0.2; // Si mejora = 0.129s → azar = 0.026s
-        const azar = (Math.random() * maxAzar * 2) - maxAzar; // ±0.026s
+        // 2. AZAR FIJADO entre ±0.040 segundos (40 milisegundos)
+        // Esto simula variaciones normales en pista: temperatura, viento, error piloto
+        const maxAzar = 0.040; // 40 milisegundos máximo
+        const azar = (Math.random() * maxAzar * 2) - maxAzar; // Entre -0.040 y +0.040
         
         // 3. Tiempo final
         const tiempoCalculado = tiempoBase - tuMejora;
@@ -241,8 +235,8 @@ class IngenieriaManager {
             puntos: puntos,
             proporcion: (proporcion * 100).toFixed(2) + '%',
             tuMejora: tuMejora.toFixed(3) + 's',
-            maxAzar: maxAzar.toFixed(3) + 's',
-            azarReal: azar.toFixed(3) + 's',
+            azar: azar.toFixed(3) + 's',
+            tiempoBaseCalculado: tiempoCalculado.toFixed(3) + 's',
             tiempoFinal: tiempoFinal.toFixed(3) + 's'
         });
         
@@ -840,23 +834,10 @@ class IngenieriaManager {
         return `
             <div class="control-inactivo">
                 <h4><i class="fas fa-play-circle"></i> INICIAR NUEVA SIMULACIÓN</h4>
-                <p class="simulacion-desc">La simulación realizará ${this.config.vueltasPrueba} vueltas de prueba en condiciones controladas para determinar el tiempo por vuelta de tu coche.</p>
-                
-                <div class="simulacion-estadisticas">
-                    <div class="estadistica">
-                        <span class="est-label">Duración:</span>
-                        <span class="est-value">1 hora</span>
-                    </div>
-                    <div class="estadistica">
-                        <span class="est-label">Vueltas:</span>
-                        <span class="est-value">${this.config.vueltasPrueba}</span>
-                    </div>
-                    <div class="estadistica">
-                        <span class="est-label">Piezas:</span>
-                        <span class="est-value">${this.piezasEnPrueba.length}</span>
-                    </div>
-                </div>
-                
+                <p class="simulacion-desc">
+                    La simulación realizará ${this.config.vueltasPrueba} vueltas de prueba en condiciones controladas para determinar el <strong>mejor tiempo por vuelta</strong> de tu coche. <i class="fas fa-info-circle"></i> <strong>Nota importante:</strong> Los tiempos nunca serán exactamente iguales incluso con las mismas piezas, ya que factores como el pilotaje, temperatura de neumáticos y condiciones de pista varían ligeramente en cada intento. El sistema registra la <strong>vuelta más rápida</strong> de las ${this.config.vueltasPrueba}, que es la referencia que debes considerar para tus pronósticos.
+                </p>
+            
                 <button id="iniciar-simulacion-btn" class="btn-iniciar-simulacion" ${!puedeProbar ? 'disabled' : ''}>
                     <i class="fas fa-play"></i>
                     ${puedeProbar ? 'INICIAR SIMULACIÓN (1 HORA)' : 'NO HAY PIEZAS MONTADAS'}
