@@ -350,10 +350,8 @@ class IngenieriaManager {
             
             if (fetchError) throw fetchError;
             
-            // Calcular tiempo final con pequeña variación
-            const tiempoBase = simulacion.tiempo_estimado;
-            const variacion = (Math.random() * 0.5) - 0.25; // ±0.25 segundos
-            const tiempoFinal = Math.max(this.config.tiempoMinimo, tiempoBase + variacion);
+            // USAR EL TIEMPO YA CALCULADO (que ya incluye el azar ±0.040)
+            const tiempoFinal = simulacion.tiempo_estimado;
             
             // Formatear tiempo
             const tiempoFormateado = this.formatearTiempo(tiempoFinal);
