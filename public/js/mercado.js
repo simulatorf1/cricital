@@ -991,42 +991,41 @@ class MercadoManager {
             // 9. Mostrar notificación
             this.mostrarNotificacion(`✅ Compra realizada: ${orden.pieza_nombre} por ${orden.precio.toLocaleString()}€`, 'success');
 
-            // 10. REGISTRAR TRANSACCIÓN EN PRESUPUESTO
-            if (window.presupuestoManager) {
-                // Asegurar que tiene la escudería
-                if (!window.presupuestoManager.escuderia) {
-                    window.presupuestoManager.escuderia = this.escuderia;
-                }
-                
-                // A) Para el COMPRADOR (gasto)
-                await window.presupuestoManager.registrarTransaccion(
-                    'gasto',
-                    orden.precio,
-                    `Compra: ${orden.pieza_nombre} de ${orden.vendedor_nombre}`,
-                    orden.id
-                );
+            // 10. REGISTRAR TRANSACCIÓN PARA EL COMPRADOR
+            try {
+                const { error: transaccionError } = await this.supabase
+                    .from('transacciones')
+                    .insert([{
+                        escuderia_id: this.escuderia.id,
+                        tipo: 'gasto',
+                        cantidad: orden.precio,
+                        descripcion: `Compra mercado: ${orden.pieza_nombre} de ${orden.vendedor_nombre}`,
+                        referencia: orden.id,
+                        fecha: new Date().toISOString(),
+                        saldo_resultante: this.escuderia.dinero - orden.precio,
+                        categoria: 'mercado'
+                    }]);
+            } catch (error) {
+                console.log('⚠️ Error registrando transacción de compra:', error);
             }
-            
-            // B) Para el VENDEDOR (ingreso) - NUEVO
+
+            // 11. REGISTRAR TRANSACCIÓN PARA EL VENDEDOR
             try {
                 const { error: transaccionVendedorError } = await this.supabase
                     .from('transacciones')
                     .insert([{
-                        escuderia_id: orden.vendedor_id,  // ID del que VENDE
+                        escuderia_id: orden.vendedor_id,
                         tipo: 'ingreso',
                         cantidad: orden.precio,
-                        descripcion: `Venta: ${orden.pieza_nombre} a ${this.escuderia.nombre}`,
+                        descripcion: `Venta mercado: ${orden.pieza_nombre} a ${this.escuderia.nombre}`,
                         referencia: orden.id,
                         fecha: new Date().toISOString(),
-                        saldo_resultante: null
+                        saldo_resultante: null,
+                        categoria: 'mercado'
                     }]);
-                
-                if (transaccionVendedorError) {
-                    console.log('⚠️ No se pudo registrar ingreso del vendedor:', transaccionVendedorError.message);
-                }
             } catch (error) {
-                console.log('⚠️ Error registrando transacción del vendedor:', error.message);
-            }  
+                console.log('⚠️ Error registrando transacción del vendedor:', error);
+            }
     
         } catch (error) {
             console.error('❌ Error procesando compra:', error);
@@ -1046,6 +1045,24 @@ class MercadoManager {
     
             await this.cargarTabMercado();
             this.mostrarNotificacion('✅ Venta cancelada', 'success');
+
+            // Registrar cancelación
+            try {
+                const { error: transaccionError } = await this.supabase
+                    .from('transacciones')
+                    .insert([{
+                        escuderia_id: this.escuderia.id,
+                        tipo: 'ajuste',
+                        cantidad: 0,
+                        descripcion: `Venta cancelada: Orden ${ordenId}`,
+                        referencia: ordenId,
+                        fecha: new Date().toISOString(),
+                        saldo_resultante: this.escuderia.dinero,
+                        categoria: 'mercado_cancelacion'
+                    }]);
+            } catch (error) {
+                console.log('⚠️ Error registrando cancelación:', error);
+            }
     
         } catch (error) {
             console.error('❌ Error cancelando venta:', error);
@@ -1429,6 +1446,24 @@ MercadoManager.prototype.procesarVentaRapida = async function(piezaId) {
         
         // Mostrar confirmación
         this.mostrarNotificacion(`✅ Pieza puesta en venta por ${precio.toLocaleString()}€`, 'success');
+
+        // Registrar transacción de "puesta en venta"
+        try {
+            const { error: transaccionError } = await this.supabase
+                .from('transacciones')
+                .insert([{
+                    escuderia_id: this.escuderia.id,
+                    tipo: 'ajuste',
+                    cantidad: 0,
+                    descripcion: `Pieza en venta: ${this.getAreaNombre(pieza.area)} Nivel ${pieza.nivel} por ${precio.toLocaleString()}€`,
+                    referencia: piezaId,
+                    fecha: new Date().toISOString(),
+                    saldo_resultante: this.escuderia.dinero,
+                    categoria: 'mercado_venta'
+                }]);
+        } catch (error) {
+            console.log('⚠️ Error registrando venta en mercado:', error);
+        }
         
         // Si está en pestaña mercado, recargar
         if (window.tabManager?.currentTab === 'mercado') {
@@ -1540,7 +1575,6 @@ window.venderPiezaDesdeAlmacen = async function(piezaId) {
         alert('Error al vender la pieza: ' + error.message);
     }
 };
-
 
 
 // ========================
