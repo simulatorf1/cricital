@@ -1,5 +1,4 @@
-[file name]: ingenieria.js
-[file content begin]
+
 // ========================
 // INGENIERÍA Y SIMULACIÓN - ingenieria.js
 // ========================
