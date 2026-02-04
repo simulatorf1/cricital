@@ -1855,4 +1855,3 @@ if (window.f1Manager && !window.ingenieriaManager) {
 }
 
 console.log('✅ ingenieria.js cargado correctamente');
-[file content end]
