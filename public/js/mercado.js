@@ -262,12 +262,15 @@ class MercadoManager {
                         border-radius: 8px;
                         background: rgba(255, 255, 255, 0.03);
                         border: 1px solid rgba(255, 255, 255, 0.05);
+                        width: fit-content; /* Se ajusta al contenido */
+                        min-width: 100%; /* Pero mínimo el 100% del contenedor */
                     }
                     
                     .ordenes-table-compact {
                         width: 100%;
                         border-collapse: collapse;
-                        min-width: 500px;
+                        table-layout: fixed;
+
                     }
                     
                     .ordenes-table-compact th {
@@ -298,7 +301,7 @@ class MercadoManager {
                     .pieza-nombre-col {
                         font-weight: bold;
                         color: white;
-                        width: auto;  /* NUEVO: ajuste automático */
+                        width: 1%; /* Se ajusta al contenido */
                         white-space: nowrap;
                     }
                     
@@ -310,20 +313,21 @@ class MercadoManager {
                     
                     .vendedor-col {
                         color: #aaa;
-                        width: auto;  /* NUEVO: ajuste automático */
+                        width: 1%; /* Se ajusta al contenido */
                         white-space: nowrap;
                     }
                     
                     .precio-col {
                         color: #FFD700;
                         font-weight: bold;
-                        width: auto;  /* NUEVO: ajuste automático */
+                        width: 1%; /* Se ajusta al contenido */
                         white-space: nowrap;
+                        text-align: right; /* Alinear precios a la derecha */
                     }
                     
                     .accion-col {
-                        min-width: 70px;
-                        max-width: 80px;
+                        width: 1%; /* Se ajusta al contenido */
+                        white-space: nowrap;
                     }
                     
                     .btn-comprar-compact {
