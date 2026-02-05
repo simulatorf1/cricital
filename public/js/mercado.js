@@ -1872,7 +1872,7 @@ window.venderPiezaDesdeAlmacen = async function(piezaId) {
                     .from('almacen_piezas')
                     .update({ 
                         en_venta: true,
-                        precio_venta: precio
+                        
                     })
                     .eq('id', piezaIdParam);
                 
