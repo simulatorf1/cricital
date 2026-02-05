@@ -195,7 +195,27 @@ class MercadoManager {
                         color: #aaa;
                         font-size: 0.8rem;
                     }
+                    .advertencia-duplicada {
+                        background: rgba(255, 152, 0, 0.1);
+                        border: 1px solid #FF9800;
+                        border-radius: 5px;
+                        padding: 8px;
+                        margin: 10px 0;
+                        color: #FF9800;
+                        font-size: 0.85rem;
+                    }
                     
+                    .advertencia-duplicada i {
+                        margin-right: 5px;
+                    }
+                    
+                    .btn-confirmar.con-advertencia {
+                        background: linear-gradient(135deg, #FF9800, #F57C00);
+                    }
+                    
+                    .btn-confirmar.con-advertencia:hover {
+                        background: linear-gradient(135deg, #FFB74D, #FF9800);
+                    }                    
                     /* Stats compactos */
                     .mercado-stats-horizontal {
                         display: flex;
@@ -818,6 +838,7 @@ class MercadoManager {
         }
     }
 
+    
     async cargarMisOrdenes() {
         if (!this.escuderia) return;
         
@@ -842,10 +863,13 @@ class MercadoManager {
     async mostrarModalCompra(ordenId) {
         const orden = this.ordenesDisponibles.find(o => o.id === ordenId);
         if (!orden) return;
-
+    
+        // VERIFICAR SI YA TIENE UNA PIEZA SIMILAR
+        const tieneDuplicada = await this.verificarPiezaDuplicada(orden.area, orden.nivel);
+        
         const modal = document.getElementById('modal-compra');
         const modalBody = document.getElementById('modal-compra-body');
-
+    
         modalBody.innerHTML = `
             <div class="compra-info">
                 <div class="info-item">
@@ -866,6 +890,12 @@ class MercadoManager {
                 <div class="info-item precio-final">
                     <strong>Precio:</strong> ${orden.precio.toLocaleString()}€
                 </div>
+                ${tieneDuplicada ? 
+                    `<div class="advertencia-duplicada">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        ¡Ya tienes una pieza similar en tu inventario!
+                    </div>` : ''
+                }
             </div>
             
             <div class="saldo-info">
@@ -873,8 +903,12 @@ class MercadoManager {
             </div>
             
             ${this.escuderia.dinero >= orden.precio ? `
-                <button class="btn-confirmar" id="btn-confirmar-compra">
-                    <i class="fas fa-check-circle"></i> CONFIRMAR COMPRA (${orden.precio.toLocaleString()}€)
+                <button class="btn-confirmar ${tieneDuplicada ? 'con-advertencia' : ''}" 
+                        id="btn-confirmar-compra"
+                        ${tieneDuplicada ? 'title="Ya tienes una pieza similar"' : ''}>
+                    <i class="fas ${tieneDuplicada ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> 
+                    ${tieneDuplicada ? 'COMPRAR DE TODAS FORMAS' : 'CONFIRMAR COMPRA'} 
+                    (${orden.precio.toLocaleString()}€)
                 </button>
             ` : `
                 <div class="error-saldo">
@@ -883,13 +917,18 @@ class MercadoManager {
                 </div>
             `}
         `;
-
+    
         modal.style.display = 'flex';
-
+    
         // Evento confirmar compra
         const confirmBtn = document.getElementById('btn-confirmar-compra');
         if (confirmBtn) {
             confirmBtn.addEventListener('click', async () => {
+                if (tieneDuplicada) {
+                    if (!confirm('⚠️ Ya tienes una pieza similar.\n¿Estás seguro de comprar esta pieza de todas formas?')) {
+                        return;
+                    }
+                }
                 await this.procesarCompra(orden);
             });
         }
@@ -1263,6 +1302,28 @@ class MercadoManager {
         }, 3000);
     }
 }
+
+async function verificarPiezaDuplicada(area, nivel) {
+    if (!this.escuderia) return false;
+    
+    try {
+        // Verificar si ya tiene una pieza del mismo nivel o superior en el mismo área
+        const { data: misPiezas, error } = await this.supabase
+            .from('almacen_piezas')
+            .select('*')
+            .eq('escuderia_id', this.escuderia.id)
+            .eq('area', area)
+            .eq('nivel', nivel);
+        
+        if (error) throw error;
+        
+        return misPiezas && misPiezas.length > 0;
+    } catch (error) {
+        console.error('Error verificando pieza duplicada:', error);
+        return false;
+    }
+}
+
 
 // ========================
 // 10. MODAL BÁSICO PARA VENDER DESDE ALMACÉN
