@@ -1471,63 +1471,11 @@ class TabManager {
             if (piezaNueva.en_venta) {
                 console.warn('❌ Intento de equipar pieza en venta:', piezaId);
                 
-                // Mostrar alerta y ofrecer opción de retirar del mercado
-                const confirmarRetiro = confirm(
-                    `⚠️ Esta pieza está actualmente en venta en el mercado por ${piezaNueva.precio_venta || '??'}€\n\n` +
-                    `¿Quieres retirarla del mercado para poder equiparla?\n\n` +
-                    `(Presiona "Aceptar" para cancelar la venta y equipar)\n` +
-                    `(Presiona "Cancelar" para mantenerla en venta)`
-                );
+                // MOSTRAR SOLO MENSAJE INFORMATIVO - SIN OPCIONES
+                alert('⚠️ Esta pieza está actualmente en venta en el mercado.\n\nPara poder equiparla, primero debes retirarla de la venta en la pestaña del Mercado.');
                 
-                if (confirmarRetiro) {
-                    // Retirar del mercado
-                    try {
-                        // Buscar la orden en mercado
-                        const { data: ordenMercado, error: mercadoError } = await supabase
-                            .from('mercado')
-                            .select('*')
-                            .eq('pieza_id', piezaId)
-                            .eq('estado', 'disponible')
-                            .maybeSingle();
-                        
-                        if (!mercadoError && ordenMercado) {
-                            // Cancelar la venta en mercado
-                            await supabase
-                                .from('mercado')
-                                .update({ 
-                                    estado: 'cancelado',
-                                    cancelada_en: new Date().toISOString()
-                                })
-                                .eq('id', ordenMercado.id);
-                            
-                            console.log('✅ Venta cancelada en mercado');
-                        }
-                        
-                        // Actualizar la pieza para quitar el flag en_venta
-                        await supabase
-                            .from('almacen_piezas')
-                            .update({ 
-                                en_venta: false,
-                                precio_venta: null
-                            })
-                            .eq('id', piezaId);
-                        
-                        console.log('✅ Pieza retirada del mercado');
-                        
-                        // Actualizar datos locales
-                        piezaNueva.en_venta = false;
-                        piezaNueva.precio_venta = null;
-                        
-                    } catch (mercadoError) {
-                        console.error('❌ Error retirando del mercado:', mercadoError);
-                        alert('Error al retirar la pieza del mercado. Intenta de nuevo.');
-                        return;
-                    }
-                } else {
-                    // Usuario decidió mantener la pieza en venta
-                    alert('La pieza permanecerá en venta en el mercado.\n\nPara equiparla, primero debes retirarla de la venta.');
-                    return;
-                }
+                // NO PERMITIR EQUIPAR - SIMPLEMENTE SALIR
+                return;
             }
             
             // 2. BUSCAR PIEZA EQUIPADA ACTUAL EN LA MISMA ÁREA
