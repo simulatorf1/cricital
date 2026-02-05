@@ -824,17 +824,26 @@ html, body {
     padding: 4px 10px;
     color: #FFD700;
     font-weight: bold;
-    cursor: help;
+    cursor: pointer;
     font-size: 0.9rem;
-}
-
-.estrellas-display-compacto i {
-    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    user-select: none;
 }
 
 .estrellas-display-compacto:hover {
     background: rgba(255, 215, 0, 0.2);
     border-color: #FFD700;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(255, 215, 0, 0.2);
+}
+
+.estrellas-display-compacto:active {
+    transform: translateY(0);
+    background: rgba(255, 215, 0, 0.3);
+}
+
+.estrellas-display-compacto i {
+    font-size: 0.9rem;
 }
 /* Quitar hover y transiciones */
 .grid-btn-big:hover {
