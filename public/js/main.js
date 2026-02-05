@@ -2656,7 +2656,7 @@ class F1Manager {
                     mejoraTexto = nombreArea;
                     
                     html += '<div class="produccion-slot ' + (lista ? 'produccion-lista' : 'produccion-activa') + '" ';
-                    html += 'onclick="recogerPiezaSiLista(\'' + fabricacion.id + '\', ' + lista + ', ' + i + ')" ';
+                    html += 'onclick="recogerPiezaSiLista(\'' + fabricacion.id + '\', ' + i + ')" ';
                     html += 'title="' + nombreMostrar + ' - Mejora ' + numeroPiezaGlobal + ' de 50">';
                     html += '<div class="produccion-icon">';
                     html += (lista ? '✅' : '');
