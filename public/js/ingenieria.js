@@ -387,6 +387,61 @@ class IngenieriaManager {
             const { error: insertError } = await this.supabase
                 .from('pruebas_pista')
                 .insert([pruebaData]);
+
+            
+            // AÑADIR ESTO ↓ - Dar estrellas si es primera prueba del día
+            if (!insertError) {
+                try {
+                    // Verificar si es primera prueba hoy para esta escudería
+                    const { data: escuderiaActual } = await this.supabase
+                        .from('escuderias')
+                        .select('primera_prueba_hoy')
+                        .eq('id', this.escuderia.id)
+                        .single();
+                    
+                    if (escuderiaActual && !escuderiaActual.primera_prueba_hoy) {
+                        // Obtener estrellas actuales
+                        const { data: escuderiaEstrellas } = await this.supabase
+                            .from('escuderias')
+                            .select('estrellas_semana')
+                            .eq('id', this.escuderia.id)
+                            .single();
+                        
+                        const nuevasEstrellas = (escuderiaEstrellas?.estrellas_semana || 0) + 20;
+                        
+                        // Actualizar en BD
+                        const { error: updateError } = await this.supabase
+                            .from('escuderias')
+                            .update({ 
+                                estrellas_semana: nuevasEstrellas,
+                                primera_prueba_hoy: true
+                            })
+                            .eq('id', this.escuderia.id);
+                        
+                        if (!updateError) {
+                            // Actualizar en el manager principal si está disponible
+                            if (window.f1Manager) {
+                                window.f1Manager.escuderia.estrellas_semana = nuevasEstrellas;
+                                window.f1Manager.escuderia.primera_prueba_hoy = true;
+                                
+                                // Actualizar display
+                                const estrellasElement = document.getElementById('estrellas-value');
+                                if (estrellasElement) {
+                                    estrellasElement.textContent = nuevasEstrellas;
+                                }
+                                
+                                // Notificación
+                                if (window.f1Manager.showNotification) {
+                                    window.f1Manager.showNotification('+20🌟 (prueba de pista)', 'info');
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error dando estrellas por prueba:', error);
+                }
+            }
+            // AÑADIR ESTO ↑            
             
             if (insertError) throw insertError;
             
