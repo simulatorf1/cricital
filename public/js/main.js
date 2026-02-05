@@ -471,7 +471,11 @@ class F1Manager {
                     const nivel = Math.ceil(piezaNum / 5);
                     
                     // Verificar si esta pieza ya está fabricada
-                    const yaFabricada = piezasAreaFabricadasAll.some(p => p.numero_global === piezaNum);
+                    const piezaFabricada = piezasAreaFabricadasAll.find(p => p.numero_global === piezaNum);
+                    const yaFabricada = !!piezaFabricada;
+                    
+                    // Verificar si está comprada en mercado
+                    const esCompradaMercado = piezaFabricada?.comprada_mercado || false;
                     
                     // Verificar si está en fabricación
                     const enFabricacion = fabricacionesAreaActivas.some(f => {
@@ -497,11 +501,21 @@ class F1Manager {
                     const puntosPieza = this.calcularPuntosPieza(area.id, piezaNum);
                     
                     if (yaFabricada) {
-                        // Ya fabricada
-                        html += '<button class="btn-pieza-50 lleno" disabled title="' + nombrePieza + ' - Ya posees esta pieza">';
-                        html += '<i class="fas fa-check"></i>';
-                        html += '<div class="pieza-nombre-50">' + nombrePieza + '</div>';
+                        // Determinar clase CSS basada en si fue comprada o fabricada
+                        const claseCSS = esCompradaMercado ? 'btn-pieza-50 comprada-mercado' : 'btn-pieza-50 lleno';
+                        const icono = esCompradaMercado ? 'fa-shopping-cart' : 'fa-check';
+                        const titulo = esCompradaMercado ? 
+                            `${nombrePieza} - Comprada en mercado (${piezaFabricada.vendedor_original || 'Vendedor'})` : 
+                            `${nombrePieza} - Ya posees esta pieza`;
+                        
+                        html += `<button class="${claseCSS}" disabled title="${titulo}">`;
+                        html += `<i class="fas ${icono}"></i>`;
+                        html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
+                        if (esCompradaMercado) {
+                            html += `<div class="mercado-badge">🛒</div>`;
+                        }
                         html += '</button>';
+                        
                     } else if (enFabricacion) {
                         // En fabricación
                         const fabricacion = fabricacionesAreaActivas.find(f => {
@@ -518,10 +532,11 @@ class F1Manager {
                         const tiempoRestante = fabricacion ? new Date(fabricacion.tiempo_fin) - new Date() : 0;
                         const minutos = Math.ceil(tiempoRestante / (1000 * 60));
                         
-                        html += '<button class="btn-pieza-50 fabricando" disabled title="' + nombrePieza + ' - En fabricación (' + minutos + ' min)">';
+                        html += `<button class="btn-pieza-50 fabricando" disabled title="${nombrePieza} - En fabricación (${minutos} min)">`;
                         html += '<i class="fas fa-spinner fa-spin"></i>';
-                        html += '<div class="pieza-nombre-50">' + nombrePieza + '</div>';
+                        html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
                         html += '</button>';
+                        
                     } else {
                         // Verificar si es la próxima pieza a fabricar
                         const proximaPiezaNoFabricada = !yaFabricada && 
@@ -533,13 +548,13 @@ class F1Manager {
                         
                         html += '<button class="btn-pieza-50 vacio" ';
                         if (puedeFabricar) {
-                            html += 'onclick="iniciarFabricacionTallerDesdeBoton(\'' + area.id + '\', ' + nivel + ')"';
+                            html += `onclick="iniciarFabricacionTallerDesdeBoton('${area.id}', ${nivel})"`;
                         } else {
                             html += ' disabled';
                         }
-                        html += ' title="' + nombrePieza + ' - Nivel ' + nivel + '">';
+                        html += ` title="${nombrePieza} - Nivel ${nivel}">`;
                         html += '<i class="fas fa-plus"></i>';
-                        html += '<div class="pieza-nombre-50">' + nombrePieza + '</div>';
+                        html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
                         html += '</button>';
                     }
                 }
