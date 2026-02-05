@@ -4091,4 +4091,117 @@ setTimeout(() => {
     
     // También puedes añadir una versión alternativa por si acaso
     window.goToAlmacen = window.irAlAlmacenDesdePiezas;    
+    
+    // ============================================
+    // AÑADIR ESTO - FUNCIÓN EXPLICACIÓN ESTRELLAS
+    // ============================================
+    window.mostrarExplicacionEstrellas = function() {
+        // Crear elemento de explicación
+        const explicacion = document.createElement('div');
+        explicacion.id = 'explicacion-estrellas';
+        explicacion.innerHTML = `
+            <div style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+                border: 3px solid #FFD700;
+                border-radius: 15px;
+                padding: 25px;
+                z-index: 9999;
+                max-width: 500px;
+                width: 90%;
+                box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+                color: white;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            ">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 3rem; color: #FFD700; margin-bottom: 10px;">🌟</div>
+                    <h2 style="color: #FFD700; margin: 0 0 5px 0; font-size: 1.5rem;">BONUS DE PATROCINIO</h2>
+                    <div style="color: #00d2be; font-size: 1.2rem; font-weight: bold;">Tu compromiso = Más financiación</div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <p style="font-size: 1rem; line-height: 1.5; margin-bottom: 15px;">
+                        <strong>Los patrocinadores</strong> premian tu dedicación diaria a la escudería. 
+                        Cuanto más te impliques en desarrollar el coche, más fondos te aportarán.
+                    </p>
+                    
+                    <div style="background: rgba(255, 215, 0, 0.1); border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>✅ Conectar cada día</span>
+                            <span style="color: #FFD700; font-weight: bold;">+5🌟</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>🔧 Fabricar primera pieza del día</span>
+                            <span style="color: #FFD700; font-weight: bold;">+10🌟</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>🏎️ Realizar prueba en pista</span>
+                            <span style="color: #FFD700; font-weight: bold;">+20🌟</span>
+                        </div>
+                    </div>
+                    
+                    <p style="font-size: 1rem; line-height: 1.5; margin-bottom: 15px;">
+                        <strong>Máximo diario: 35🌟</strong> (si haces las 3 acciones)<br>
+                        <strong>Conversión:</strong> Cada estrella = <span style="color: #4CAF50; font-weight: bold;">€2,000</span>
+                    </p>
+                    
+                    <div style="background: rgba(0, 210, 190, 0.1); border-radius: 10px; padding: 15px; text-align: center;">
+                        <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 5px;">PAGO AUTOMÁTICO</div>
+                        <div style="color: #00d2be; font-weight: bold; font-size: 1.1rem;">
+                            Cada domingo a las 23:00, tus estrellas se convierten en dinero
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; color: #888; font-size: 0.9rem;">
+                    Esta ventana se cerrará en 5 segundos...
+                </div>
+            </div>
+            <div style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                z-index: 9998;
+            " onclick="cerrarExplicacionEstrellas()"></div>
+        `;
+        
+        document.body.appendChild(explicacion);
+        
+        // Cerrar automáticamente después de 5 segundos
+        setTimeout(() => {
+            cerrarExplicacionEstrellas();
+        }, 5000);
+    };
+    
+    window.cerrarExplicacionEstrellas = function() {
+        const explicacion = document.getElementById('explicacion-estrellas');
+        if (explicacion) {
+            explicacion.remove();
+        }
+        // También remover el fondo oscuro
+        const backdrops = document.querySelectorAll('body > div');
+        backdrops.forEach(div => {
+            if (div.style.position === 'fixed' && 
+                div.style.background === 'rgba(0, 0, 0, 0.8)') {
+                div.remove();
+            }
+        });
+    };
+    
+    // Cerrar con ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            window.cerrarExplicacionEstrellas();
+        }
+    });
+    // ============================================
+    // FIN FUNCIÓN EXPLICACIÓN ESTRELLAS
+    // ============================================
+    
 })();
