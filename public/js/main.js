@@ -2903,57 +2903,11 @@ window.irAlTallerDesdeProduccion = function() {
     }
 };
 
-window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
-    console.log("🔧 Recogiendo pieza:", { fabricacionId, lista });
-    
-    if (!lista) {
-        if (window.f1Manager && window.f1Manager.showNotification) {
-            window.f1Manager.showNotification("⏳ La pieza aún está en producción", "info");
-        }
-        
-        try {
-            const { data: fabricacion } = await window.supabase
-                .from('fabricacion_actual')
-                .select('*')
-                .eq('id', fabricacionId)
-                .single();
-                
-            if (fabricacion) {
-                const ahora = new Date();
-                const tiempoFin = new Date(fabricacion.tiempo_fin);
-                const tiempoRestante = tiempoFin - ahora;
-                const tiempoFormateado = tiempoRestante > 0 ? 
-                    window.f1Manager?.formatTime(tiempoRestante) : "Finalizando...";
-                
-                // Obtener número GLOBAL de la próxima pieza (no solo del nivel)
-                const { data: todasPiezasArea } = await window.supabase
-                    .from('almacen_piezas')
-                    .select('numero_global')
-                    .eq('escuderia_id', fabricacion.escuderia_id)
-                    .eq('area', fabricacion.area)
-                    .order('numero_global', { ascending: true });
-                
-                const siguienteNumeroGlobal = (todasPiezasArea?.length || 0) + 1;
-                let nombrePiezaMostrar = window.f1Manager?.getNombreArea(fabricacion.area) || fabricacion.area;
-                
-                // Usar el nombre personalizado si existe
-                if (window.f1Manager && window.f1Manager.nombresPiezas && 
-                    window.f1Manager.nombresPiezas[fabricacion.area]) {
-                    const nombresArea = window.f1Manager.nombresPiezas[fabricacion.area];
-                    if (siguienteNumeroGlobal <= nombresArea.length) {
-                        nombrePiezaMostrar = nombresArea[siguienteNumeroGlobal - 1];
-                    }
-                }
-                
-                alert('🔄 ' + nombrePiezaMostrar + '\nMejora ' + siguienteNumeroGlobal + ' de 50\nNivel ' + fabricacion.nivel + '\nTiempo restante: ' + tiempoFormateado);
-            }
-        } catch (error) {
-            console.error("Error obteniendo info:", error);
-        }
-        return;
-    }
+window.recogerPiezaSiLista = async function(fabricacionId, slotIndex) {
+    console.log("🔧 Recogiendo pieza:", fabricacionId);
     
     try {
+        // 1. OBTENER ESTADO ACTUAL DESDE LA BD (verificación en tiempo real)
         const { data: fabricacion, error: fetchError } = await window.supabase
             .from('fabricacion_actual')
             .select('*')
@@ -2962,7 +2916,113 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         
         if (fetchError) throw fetchError;
         
-        // ===== NUEVO: Calcular número global =====
+        // 2. VERIFICAR SI ESTÁ LISTA EN TIEMPO REAL
+        const ahora = new Date();
+        const tiempoFin = new Date(fabricacion.tiempo_fin);
+        const tiempoRestante = tiempoFin - ahora;
+        const realmenteLista = tiempoRestante <= 0;
+        
+        if (!realmenteLista) {
+            // Solo mostrar información, NO notificación molesta
+            const tiempoFormateado = tiempoRestante > 0 ? 
+                window.f1Manager?.formatTime(tiempoRestante) : "Finalizando...";
+            
+            // Obtener número GLOBAL de la próxima pieza
+            const { data: todasPiezasArea } = await window.supabase
+                .from('almacen_piezas')
+                .select('numero_global')
+                .eq('escuderia_id', fabricacion.escuderia_id)
+                .eq('area', fabricacion.area)
+                .order('numero_global', { ascending: true });
+            
+            const siguienteNumeroGlobal = (todasPiezasArea?.length || 0) + 1;
+            let nombrePiezaMostrar = window.f1Manager?.getNombreArea(fabricacion.area) || fabricacion.area;
+            
+            // Usar el nombre personalizado si existe
+            if (window.f1Manager && window.f1Manager.nombresPiezas && 
+                window.f1Manager.nombresPiezas[fabricacion.area]) {
+                const nombresArea = window.f1Manager.nombresPiezas[fabricacion.area];
+                if (siguienteNumeroGlobal <= nombresArea.length) {
+                    nombrePiezaMostrar = nombresArea[siguienteNumeroGlobal - 1];
+                }
+            }
+            
+            // Crear modal informativo (no alert)
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.85);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                cursor: pointer;
+            `;
+            
+            const contenido = document.createElement('div');
+            contenido.style.cssText = `
+                background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+                border: 2px solid #FF9800;
+                border-radius: 10px;
+                padding: 20px;
+                max-width: 350px;
+                width: 90%;
+                color: white;
+                cursor: default;
+                box-shadow: 0 0 30px rgba(255, 152, 0, 0.3);
+            `;
+            
+            contenido.innerHTML = `
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <div style="font-size: 2rem; color: #FF9800; margin-bottom: 5px;">🔄</div>
+                    <h3 style="color: #FF9800; margin: 0 0 10px 0; font-size: 1.1rem;">EN PRODUCCIÓN</h3>
+                </div>
+                
+                <div style="background: rgba(255, 152, 0, 0.1); padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                    <div style="font-weight: bold; color: white; font-size: 1rem; margin-bottom: 5px;">${nombrePiezaMostrar}</div>
+                    <div style="color: #aaa; font-size: 0.85rem;">Mejora ${siguienteNumeroGlobal} de 50</div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <div style="text-align: center;">
+                        <div style="color: #00d2be; font-weight: bold; font-size: 0.9rem;">NIVEL</div>
+                        <div style="color: white; font-size: 1.2rem; font-weight: bold;">${fabricacion.nivel}</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: #00d2be; font-weight: bold; font-size: 0.9rem;">ÁREA</div>
+                        <div style="color: white; font-size: 0.9rem;">${window.f1Manager?.getNombreArea(fabricacion.area) || fabricacion.area}</div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 6px; border: 1px solid rgba(255, 152, 0, 0.3);">
+                    <div style="color: #FFD700; font-weight: bold; margin-bottom: 5px;">⏱️ TIEMPO RESTANTE</div>
+                    <div style="color: white; font-size: 1.3rem; font-weight: bold; font-family: 'Orbitron', sans-serif;">${tiempoFormateado}</div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px; color: #888; font-size: 0.8rem;">
+                    Haz clic fuera para cerrar
+                </div>
+            `;
+            
+            contenido.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            
+            modal.appendChild(contenido);
+            modal.addEventListener('click', () => {
+                modal.remove();
+            });
+            
+            document.body.appendChild(modal);
+            return;
+        }
+        
+        // 3. SI ESTÁ LISTA, PROCEDER CON LA RECOGIDA
+        // ===== Calcular número global =====
         // 1. Obtener todas las piezas de esta área
         const { data: todasPiezasArea } = await window.supabase
             .from('almacen_piezas')
@@ -2973,7 +3033,6 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         // 2. Encontrar el siguiente número global
         let maxNumeroGlobal = 0;
         if (todasPiezasArea && todasPiezasArea.length > 0) {
-            // Buscar el máximo numero_global existente
             todasPiezasArea.forEach(p => {
                 if (p.numero_global && p.numero_global > maxNumeroGlobal) {
                     maxNumeroGlobal = p.numero_global;
@@ -2981,7 +3040,8 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
             });
         }
         const nuevoNumeroGlobal = maxNumeroGlobal + 1;
-        // ===== AÑADIR ESTO =====
+        
+        // 3. Nombre del componente
         let componente = `${fabricacion.area} Mejora ${nuevoNumeroGlobal}`;
         if (window.f1Manager && window.f1Manager.nombresPiezas && 
             window.f1Manager.nombresPiezas[fabricacion.area]) {
@@ -2990,18 +3050,16 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
                 componente = nombresArea[nuevoNumeroGlobal - 1];
             }
         }
-        // ===== FIN AÑADIR =====        
         
-        // ===== 3. Calcular puntos =====
+        // 4. Calcular puntos
         let puntosTotales;
         if (window.f1Manager && window.f1Manager.calcularPuntosPieza) {
-            // Pasar areaId y numeroPiezaGlobal
             puntosTotales = window.f1Manager.calcularPuntosPieza(fabricacion.area, nuevoNumeroGlobal);
         } else {
             puntosTotales = calcularPuntosBase(fabricacion.area, fabricacion.nivel, nuevoNumeroGlobal);
         }
         
-        // ===== 4. Insertar con numero_global =====
+        // 5. Insertar en almacén
         const { error: insertError } = await window.supabase
             .from('almacen_piezas')
             .insert([{
@@ -3024,6 +3082,7 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         
         console.log("✅ Pieza añadida a almacen_piezas");
         
+        // 6. Marcar fabricación como completada
         const { error: updateError } = await window.supabase
             .from('fabricacion_actual')
             .update({ 
@@ -3035,11 +3094,8 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         
         console.log("✅ Fabricación marcada como completada");
         
-        // Calcular qué número de pieza es dentro del nivel (1-5)
-        const numeroPiezaEnNivel = ((nuevoNumeroGlobal - 1) % 5) + 1;
+        // 7. Obtener nombre personalizado para notificación
         const nombreArea = window.f1Manager?.getNombreArea(fabricacion.area) || fabricacion.area;
-        
-        // Obtener nombre personalizado
         let nombrePiezaNotif = nombreArea;
         if (window.f1Manager && window.f1Manager.nombresPiezas && 
             window.f1Manager.nombresPiezas[fabricacion.area]) {
@@ -3049,10 +3105,12 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
             }
         }
         
+        // 8. Mostrar notificación de éxito
         if (window.f1Manager && window.f1Manager.showNotification) {
             window.f1Manager.showNotification('✅ ' + nombrePiezaNotif + ' recogida\n+' + puntosTotales + ' puntos técnicos', 'success');
         }
         
+        // 9. Actualizar interfaces
         if (window.f1Manager) {
             if (window.f1Manager.productionUpdateTimer) {
                 clearInterval(window.f1Manager.productionUpdateTimer);
