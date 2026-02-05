@@ -1618,7 +1618,7 @@ class F1Manager {
                             <i class="fas fa-coins"></i>
                             <span id="money-value">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
                         </div>
-                        <div class="estrellas-display-compacto" title="Bonus patrocinio: se convierte en € cada domingo">
+                        <div class="estrellas-display-compacto" onclick="mostrarExplicacionEstrellas()" title="Click para más info">
                             <i class="fas fa-star" style="color: #FFD700;"></i>
                             <span id="estrellas-value">${this.escuderia?.estrellas_semana || 0}</span>
                         </div>
