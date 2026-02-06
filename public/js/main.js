@@ -388,7 +388,7 @@ class F1Manager {
                         <button class="tiempo-f1-boton" onclick="window.irAPruebaPista()" 
                                 title="Intenta batir tu récord en una nueva prueba">
                             <i class="fas fa-stopwatch"></i>
-                            NUEVA PRUEBA
+                            TEST
                         </button>
                     </div>
                 `;
