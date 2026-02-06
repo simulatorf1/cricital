@@ -239,12 +239,7 @@ class F1Manager {
                             9, 17, 0, 19, 10, 10, 11, 21, 0, 23, 12, 0, 13, 25, 15, 27, 14, 0,
                             15, 29, 20, 31, 16, 0, 17, 33, 0, 35, 18, 20]
         };
-        // ✅ INICIALIZAR PRESUPUESTO INMEDIATAMENTE
-        this.inicializarPresupuestoManager();
-        
-
-
-        
+  
     }
 
 
