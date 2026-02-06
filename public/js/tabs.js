@@ -373,6 +373,7 @@ class TabManager {
             }
             
             // ======================================================
+            // ======================================================
             // ¡¡PESTAÑA ALMACÉN - VERIFICAR ACTUALIZACIÓN!!
             // ======================================================
             if (tabId === 'almacen' && window.almacenNecesitaActualizar) {
@@ -390,8 +391,8 @@ class TabManager {
                     }
                 }, 300);
             }
-        }
-    }
+        }  // <--- ¡ESTA LLAVE FALTABA!
+    }  // <--- Cierre del método switchTab
     
     loadTabContents() {
         // Precargar contenido de todas las pestañas
