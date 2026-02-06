@@ -1095,7 +1095,12 @@ class F1Manager {
     // ========================
     async iniciarFabricacionTaller(areaId, nivel) {
         console.log('🔧 Iniciando fabricación:', { areaId, nivel });
-        
+        // VERIFICAR PRESUPUESTO MANAGER
+        if (!window.presupuestoManager && window.PresupuestoManager && this.escuderia) {
+            console.log('💰 Creando presupuestoManager automáticamente...');
+            window.presupuestoManager = new window.PresupuestoManager();
+            await window.presupuestoManager.inicializar(this.escuderia.id);
+        }        
         if (!this.escuderia || !this.escuderia.id) {
             this.showNotification('❌ Error: No tienes escudería', 'error');
             return false;
@@ -1476,16 +1481,38 @@ class F1Manager {
             console.log('🔧 Creando fabricacionManager...');
             window.fabricacionManager = new window.FabricacionManager();
         }
-        // INICIALIZAR PRESUPUESTO AUTOMÁTICAMENTE
+
+        // ============================================
+        // NUEVO: INICIALIZAR PRESUPUESTO MANAGER
+        // ============================================
         if (window.PresupuestoManager && !window.presupuestoManager) {
-            console.log('💰 Inicializando presupuestoManager automáticamente...');
+            console.log('💰 Creando presupuestoManager para escudería:', this.escuderia.id);
             window.presupuestoManager = new window.PresupuestoManager();
             
-            if (this.escuderia && this.escuderia.id) {
+            try {
                 await window.presupuestoManager.inicializar(this.escuderia.id);
-                console.log('✅ presupuestoManager inicializado automáticamente');
+                console.log('✅ presupuestoManager inicializado correctamente');
+            } catch (error) {
+                console.error('❌ Error inicializando presupuestoManager:', error);
+                // No fallar todo si presupuesto falla
             }
+        } else if (window.presupuestoManager && !window.presupuestoManager.escuderiaId) {
+            // Si ya existe pero no está inicializado
+            console.log('🔄 PresupuestoManager existe pero sin inicializar, inicializando...');
+            try {
+                await window.presupuestoManager.inicializar(this.escuderia.id);
+                console.log('✅ presupuestoManager inicializado tardíamente');
+            } catch (error) {
+                console.error('❌ Error inicializando presupuestoManager existente:', error);
+            }
+        } else if (window.presupuestoManager) {
+            console.log('✅ presupuestoManager ya está inicializado');
+        } else {
+            console.log('⚠️ PresupuestoManager no disponible en window');
         }
+        // ============================================
+        // FIN NUEVO CÓDIGO
+        // ============================================
 
         
         if (window.fabricacionManager && typeof window.fabricacionManager.inicializar === 'function') {
