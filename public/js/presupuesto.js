@@ -515,21 +515,28 @@ class PresupuestoManager {
 
     async registrarTransaccion(tipo, cantidad, descripcion, categoria = null, referencia = null) {
         try {
-            if (!this.escuderia || !this.escuderiaId) {
-                console.error('❌ No hay escudería');
+            // ✅ CORREGIDO: Solo chequear this.escuderiaId
+            if (!this.escuderiaId) {
+                console.error('❌ Error: No hay escuderiaId en PresupuestoManager');
+                console.log('Estado:', {
+                    escuderiaId: this.escuderiaId,
+                    escuderia: this.escuderia
+                });
                 return false;
             }
             
             const transaccion = {
-                escuderia_id: this.escuderiaId,
+                escuderia_id: this.escuderiaId,  // ← Usar this.escuderiaId
                 tipo: tipo,
                 cantidad: cantidad,
                 descripcion: descripcion,
                 categoria: categoria || 'otros',
                 referencia: referencia,
                 fecha: new Date().toISOString(),
-                saldo_resultante: this.escuderia.dinero || 0
+                saldo_resultante: 0  // ← Puedes calcular esto o dejarlo como 0
             };
+    
+            console.log('💰 Insertando transacción:', transaccion);
     
             const { error } = await this.supabase
                 .from('transacciones')
@@ -537,12 +544,13 @@ class PresupuestoManager {
     
             if (error) throw error;
             
+            // Agregar a la lista local
             this.transacciones.unshift(transaccion);
-            console.log(`✅ Transacción: ${tipo} ${cantidad}€ - ${descripcion}`);
+            console.log(`✅ Transacción registrada: ${tipo} ${cantidad}€ - ${descripcion}`);
             return true;
             
         } catch (error) {
-            console.error('❌ Error:', error);
+            console.error('❌ Error registrando transacción:', error);
             return false;
         }
     }
