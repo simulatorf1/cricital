@@ -1165,7 +1165,6 @@ class F1Manager {
     // ========================
     async iniciarFabricacionTaller(areaId, nivel) {
         console.log('🔧 Iniciando fabricación:', { areaId, nivel });
-        
         // ⚠️ VERIFICACIÓN CRÍTICA ⚠️
         if (!this.escuderia || !this.escuderia.id) {
             console.error('❌ ERROR CRÍTICO: No hay escudería en this.escuderia');
@@ -1173,9 +1172,29 @@ class F1Manager {
             this.showNotification('❌ Error: No se encontró tu escudería', 'error');
             return false;
         }
+    
+        
+        // VERIFICAR PRESUPUESTO MANAGER
+        if (window.PresupuestoManager) {
+            if (!window.presupuestoManager) {
+                window.presupuestoManager = new window.PresupuestoManager();
+            }
+            
+            // Solo inicializar si tenemos escuderiaId y no está ya inicializado
+            if (this.escuderia && this.escuderia.id && !window.presupuestoManager.escuderiaId) {
+                try {
+                    await window.presupuestoManager.inicializar(this.escuderia.id);
+                } catch (error) {
+                    console.warn('⚠️ Error inicializando presupuesto, continuando sin él:', error);
+                }
+            }
+        }      
+        if (!this.escuderia || !this.escuderia.id) {
+            this.showNotification('❌ Error: No tienes escudería', 'error');
+            return false;
+        }
         
         try {
-            // Verificar límite de fabricaciones
             const { data: fabricacionesActivas, error: errorLimite } = await this.supabase
                 .from('fabricacion_actual')
                 .select('id')
@@ -1189,7 +1208,17 @@ class F1Manager {
                 return false;
             }
             
-            // Calcular número global de pieza
+            const { data: piezasExistentes, error: errorPiezas } = await this.supabase
+                .from('almacen_piezas')
+                .select('id')
+                .eq('escuderia_id', this.escuderia.id)
+                .eq('area', areaId)
+                .eq('nivel', nivel);
+            
+            if (errorPiezas) throw errorPiezas;
+            
+            const numeroPieza = (piezasExistentes?.length || 0) + 1;
+            // Obtener número global de pieza para esta área
             const { data: todasPiezasArea } = await this.supabase
                 .from('almacen_piezas')
                 .select('id')
@@ -1197,25 +1226,41 @@ class F1Manager {
                 .eq('area', areaId);
             
             const numeroPiezaGlobal = (todasPiezasArea?.length || 0) + 1;
-            const numeroPiezaEnNivel = ((numeroPiezaGlobal - 1) % 5) + 1;
+            const numeroPiezaEnNivel = ((numeroPiezaGlobal - 1) % 5) + 1;            
+            console.log('📊 Fabricando pieza ' + numeroPieza + ' para ' + areaId + ' nivel ' + nivel);
             
-            // Calcular costo
-            const costo = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
-            
-            // ✅ VERIFICAR SI TIENE SUFICIENTE DINERO
-            if (this.escuderia.dinero < costo) {
-                this.showNotification('❌ Fondos insuficientes. Necesitas: €' + costo.toLocaleString(), 'error');
-                return false;
-            }
-            
-            // Calcular tiempo de fabricación
             const tiempoMinutos = this.calcularTiempoProgresivo(numeroPiezaGlobal);
             const tiempoMilisegundos = tiempoMinutos * 60 * 1000;
+            console.log('⏱️ Tiempo: ' + tiempoMinutos + ' minutos (' + tiempoMilisegundos + 'ms)');
+            
+            // Calcular costo basado en nivel y número de pieza
+            const costo = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
+            
+            // ✅✅✅ MOVER ESTO AQUÍ - NO RESTAR EL DINERO HASTA DESPUÉS DE CREAR LA FABRICACIÓN
+            // this.escuderia.dinero -= costo;  // ← NO HACER ESTO AQUÍ
+            // await this.updateEscuderiaMoney();  // ← NO HACER ESTO AQUÍ
+            
+            // ✅✅✅ MUEVE ESTO AQUÍ (ARRIBA, ANTES DE USARLO):
+            const nombreArea = this.getNombreArea(areaId);
+            // Obtener nombre personalizado para la notificación
+            let nombrePiezaNotif = nombreArea;
+            if (this.nombresPiezas && this.nombresPiezas[areaId]) {
+                const nombresArea = this.nombresPiezas[areaId];
+                if (numeroPiezaGlobal <= nombresArea.length) {
+                    nombrePiezaNotif = nombresArea[numeroPiezaGlobal - 1];
+                }
+            }
+            console.log('🔍 Nombre de pieza calculado:', nombrePiezaNotif);
             
             const ahora = new Date();
             const tiempoFin = new Date(ahora.getTime() + tiempoMilisegundos);
             
-            // ✅ CREAR FABRICACIÓN EN LA BASE DE DATOS
+            console.log('📅 Tiempos:', {
+                inicio: ahora.toISOString(),
+                fin: tiempoFin.toISOString(),
+                diferenciaMinutos: tiempoMinutos
+            });
+            
             const { data: fabricacion, error: errorCrear } = await this.supabase
                 .from('fabricacion_actual')
                 .insert([{
@@ -1233,28 +1278,18 @@ class F1Manager {
             
             if (errorCrear) throw errorCrear;
             
-            // ✅ SOLO AHORA RESTAR EL DINERO (DESPUÉS DE CREAR CON ÉXITO)
+            // ✅✅✅ AQUÍ ES DONDE DEBES RESTAR EL DINERO - DESPUÉS DE CREAR LA FABRICACIÓN
             this.escuderia.dinero -= costo;
             await this.updateEscuderiaMoney();
             
-            // ✅ REGISTRAR TRANSACCIÓN EN EL PRESUPUESTO
-            const nombreArea = this.getNombreArea(areaId);
-            let nombrePiezaNotif = nombreArea;
-            
-            // Obtener nombre personalizado
-            if (this.nombresPiezas && this.nombresPiezas[areaId]) {
-                const nombresArea = this.nombresPiezas[areaId];
-                if (numeroPiezaGlobal <= nombresArea.length) {
-                    nombrePiezaNotif = nombresArea[numeroPiezaGlobal - 1];
-                }
-            }
-            
-            // Registrar transacción si presupuestoManager está disponible
-            if (window.presupuestoManager && 
-                window.presupuestoManager.escuderiaId && 
-                window.presupuestoManager.registrarTransaccion) {
-                
-                try {
+            // ✅ AHORA SÍ PUEDES USAR nombrePiezaNotif (porque ya existe)
+            // Registrar transacción de presupuesto
+            try {
+                // SOLO registrar si presupuestoManager está INICIALIZADO (tiene escuderiaId)
+                if (window.presupuestoManager && 
+                    window.presupuestoManager.escuderiaId && 
+                    window.presupuestoManager.registrarTransaccion) {
+                    
                     await window.presupuestoManager.registrarTransaccion(
                         'gasto',
                         costo,
@@ -1268,15 +1303,15 @@ class F1Manager {
                         }
                     );
                     console.log('💰 Transacción registrada en presupuesto');
-                } catch (error) {
-                    console.warn('⚠️ No se pudo registrar transacción:', error);
-                    // No fallar la fabricación si falla el registro
+                    
+                } else {
+                    console.log('ℹ️ Presupuesto no disponible, fabricación continúa sin registro');
                 }
-            } else {
-                console.log('ℹ️ Presupuesto no disponible, fabricación continúa sin registro');
+            } catch (error) {
+                console.warn('⚠️ No se pudo registrar transacción:', error);
+                // No fallar la fabricación si el registro de transacción falla
             }
             
-            // ✅ NOTIFICACIÓN AL USUARIO
             const horas = Math.floor(tiempoMinutos / 60);
             const dias = Math.floor(horas / 24);
             let tiempoTexto = '';
@@ -1288,17 +1323,23 @@ class F1Manager {
                 tiempoTexto = tiempoMinutos + ' minutos';
             }
             
-            this.showNotification('✅ ' + nombrePiezaNotif + ' en fabricación - ' + tiempoTexto + ' (€' + costo.toLocaleString() + ')', 'success');
+            const nivelMostrar = "Q" + nivel;
             
-            // ✅ ACTUALIZAR INTERFAZ
-            setTimeout(() => {
-                this.updateProductionMonitor();
-            }, 500);
+            this.showNotification('✅ ' + nombrePiezaNotif + ' en fabricación - ' + tiempoTexto, 'success');                        
+            // ✅ AGREGAR TAMBIÉN AQUÍ para actualizar presupuesto en pantalla:
+            if (window.presupuestoManager && window.presupuestoManager.actualizarVistaPresupuesto) {
+                window.presupuestoManager.actualizarVistaPresupuesto();
+            }
             
-            // ✅ DAR ESTRELLAS SI ES PRIMERA FABRICACIÓN DEL DÍA
+            // AÑADIR ESTO ↓ - Dar estrellas si es primera fabricación del día
             if (!this.escuderia.primera_fabricacion_hoy) {
                 await this.darEstrellasFabricacion();
             }
+            // AÑADIR ESTO ↑
+            
+            setTimeout(() => {
+                this.updateProductionMonitor();
+            }, 500);
             
             return true;
             
