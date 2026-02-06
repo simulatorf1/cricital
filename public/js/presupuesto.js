@@ -537,7 +537,3 @@ class PresupuestoManager {
 
 // Inicialización (IGUAL que tu original)
 window.PresupuestoManager = PresupuestoManager;
-if (!window.presupuestoManager) {
-    window.presupuestoManager = new PresupuestoManager();
-    console.log('💰 PresupuestoManager creado');
-}
