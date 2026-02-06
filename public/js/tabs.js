@@ -250,8 +250,16 @@ class TabManager {
                                 throw new Error('No se encontró la escudería');
                             }
                             
-                            // Inicializar el presupuesto manager
-                            await window.presupuestoManager.inicializar(escuderia);
+                            // === CORRECCIÓN: PASAR SOLO EL ID, NO EL OBJETO ===
+                            const escuderiaId = escuderia.id;
+                            if (!escuderiaId) {
+                                throw new Error('La escudería no tiene ID');
+                            }
+                            
+                            console.log('🔑 Pasando ID a presupuestoManager:', escuderiaId);
+                            
+                            // Inicializar el presupuesto manager CON EL ID
+                            await window.presupuestoManager.inicializar(escuderiaId);
                             
                             // Generar HTML del presupuesto
                             const html = window.presupuestoManager.generarHTMLPresupuesto();
@@ -278,11 +286,7 @@ class TabManager {
                             </div>
                         `;
                     }
-                }, 300);
-                
-                // SALIR del método - no hacer nada más para el presupuesto
-                return;
-            }            
+                }, 300);   
             
             // ======================================================
             // Para TODAS LAS OTRAS pestañas (principal, almacen, etc.)
