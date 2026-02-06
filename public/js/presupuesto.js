@@ -30,9 +30,15 @@ class PresupuestoManager {
         return lunes;
     }
 
-    async inicializar(escuderia) {
-        console.log('💰 Inicializando para:', escuderia.nombre);
-        this.escuderia = escuderia;
+    async inicializar(escuderiaId) {  // ← Cambia el parámetro
+        console.log('💰 Inicializando para escudería ID:', escuderiaId);
+        
+        if (!escuderiaId) {
+            console.error('❌ Error: escuderiaId es requerido');
+            throw new Error('escuderiaId es requerido');
+        }
+        
+        this.escuderiaId = escuderiaId;  // ← Guarda solo el ID
         await this.cargarTransacciones();
         return true;
     }
