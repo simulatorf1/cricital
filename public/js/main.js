@@ -38,6 +38,7 @@ class F1Manager {
         console.log('🚗 Creando F1Manager para:', user.email);
         this.user = user;
         this.escuderia = escuderia;
+        this.escuderiaId = escuderia.id; 
         this.supabase = supabase;
         this.pilotos = [];
         this.carStats = null;
@@ -367,7 +368,7 @@ class F1Manager {
             // 4. Inicializar si no está inicializado
             if (!window.presupuestoManager.escuderiaId) {
                 console.log('🔄 Inicializando presupuestoManager...');
-                await window.presupuestoManager.inicializar(this.escuderia.id);
+                await window.presupuestoManager.inicializar(this.escuderiaId);
                 console.log('✅ presupuestoManager inicializado correctamente');
             } else {
                 console.log('✅ presupuestoManager ya estaba inicializado');
