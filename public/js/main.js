@@ -355,20 +355,65 @@ class F1Manager {
             return;
         }
         
+        // Timeout de seguridad (3 segundos máximo)
+        let timeoutId;
+        const setupTimeout = () => {
+            timeoutId = setTimeout(() => {
+                console.warn('⚠️ Timeout en cargarUltimoTiempoUI - mostrando estado por defecto');
+                container.innerHTML = `
+                    <div class="tiempo-sin-datos">
+                        <div class="tiempo-sin-datos-icon"><i class="fas fa-clock"></i></div>
+                        <div class="tiempo-sin-datos-text">
+                            Tiempo de carga excedido
+                        </div>
+                        <button class="tiempo-f1-boton" onclick="if(window.f1Manager) window.f1Manager.cargarUltimoTiempoUI()">
+                            <i class="fas fa-redo"></i>
+                            REINTENTAR
+                        </button>
+                    </div>
+                `;
+            }, 3000); // 3 segundos
+        };
+        
+        // Limpiar timeout
+        const clearTimeoutSafe = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+        
+        // Estado inicial: cargando (pero breve)
+        container.innerHTML = `
+            <div class="tiempo-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Cargando tiempo...</span>
+            </div>
+        `;
+        
+        // Iniciar timeout
+        setupTimeout();
+        
         try {
             const ultimoTiempo = await this.obtenerUltimoTiempoPrueba();
+            clearTimeoutSafe(); // Éxito, limpiar timeout
             
             if (ultimoTiempo && ultimoTiempo.tiempo_formateado) {
                 // Formatear fecha si existe
                 let fechaTexto = '';
                 if (ultimoTiempo.fecha) {
-                    const fecha = new Date(ultimoTiempo.fecha);
-                    fechaTexto = fecha.toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
+                    try {
+                        const fecha = new Date(ultimoTiempo.fecha);
+                        fechaTexto = fecha.toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch (dateError) {
+                        console.warn('Error formateando fecha:', dateError);
+                        fechaTexto = 'Fecha reciente';
+                    }
                 }
                 
                 container.innerHTML = `
@@ -410,14 +455,16 @@ class F1Manager {
             }
             
         } catch (error) {
+            clearTimeoutSafe(); // Error, limpiar timeout
             console.error('❌ Error cargando último tiempo:', error);
+            
             container.innerHTML = `
                 <div class="tiempo-sin-datos">
                     <div class="tiempo-sin-datos-icon"><i class="fas fa-exclamation-triangle"></i></div>
                     <div class="tiempo-sin-datos-text">
                         Error cargando tiempos
                     </div>
-                    <button class="tiempo-f1-boton" onclick="window.location.reload()">
+                    <button class="tiempo-f1-boton" onclick="if(window.f1Manager) window.f1Manager.cargarUltimoTiempoUI()">
                         <i class="fas fa-redo"></i>
                         REINTENTAR
                     </button>
@@ -1981,29 +2028,33 @@ class F1Manager {
                     btn.addEventListener('click', async (e) => {
                         const tabId = e.currentTarget.dataset.tab;
                         
+                        // 1. Actualizar clases activas
                         document.querySelectorAll('.tab-btn-compacto').forEach(b => b.classList.remove('active'));
                         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                         
                         e.currentTarget.classList.add('active');
                         document.getElementById('tab-' + tabId).classList.add('active');
-                        // SOLO cargar el tiempo si estamos en la pestaña principal
-                        if (tabId === 'principal' && window.f1Manager && window.f1Manager.cargarUltimoTiempoUI) {
-                            setTimeout(() => {
-                                window.f1Manager.cargarUltimoTiempoUI();
-                            }, 300);
-                        }
                         
-                        
+                        // 2. Llamar al tabManager si existe
                         if (window.tabManager && window.tabManager.switchTab) {
                             window.tabManager.switchTab(tabId);
                         }
                         
+                        // 3. SI ES LA PESTAÑA PRINCIPAL, cargar todo su contenido
                         if (tabId === 'principal') {
                             setTimeout(() => {
+                                // Primero cargar contenido principal (piezas, estrategas, producción)
                                 if (window.cargarContenidoPrincipal) {
                                     window.cargarContenidoPrincipal();
                                 }
-                            }, 100);
+                                
+                                // Luego cargar el último tiempo (con un pequeño delay para que no compita)
+                                setTimeout(() => {
+                                    if (window.f1Manager && window.f1Manager.cargarUltimoTiempoUI) {
+                                        window.f1Manager.cargarUltimoTiempoUI();
+                                    }
+                                }, 100);
+                            }, 150);
                         }
                     });
                 });
@@ -4355,6 +4406,37 @@ setTimeout(() => {
     window.goToAlmacen = window.irAlAlmacenDesdePiezas;    
     
     // ============================================
+    // Añade esta función en algún lugar accesible (en la IIFE al final)
+    window.cargarContenidoPrincipal = async function() {
+        console.log('🔧 Cargando contenido principal...');
+        
+        if (window.f1Manager) {
+            // 1. Cargar piezas montadas
+            if (window.f1Manager.cargarPiezasMontadas) {
+                await window.f1Manager.cargarPiezasMontadas();
+            }
+            
+            // 2. Cargar estrategas
+            if (window.f1Manager.loadPilotosContratados) {
+                await window.f1Manager.loadPilotosContratados();
+            }
+            
+            // 3. Cargar producción
+            if (window.f1Manager.updateProductionMonitor) {
+                window.f1Manager.updateProductionMonitor();
+            }
+            
+            // 4. Cargar último tiempo (¡ESTO ES NUEVO!)
+            if (window.f1Manager.cargarUltimoTiempoUI) {
+                await window.f1Manager.cargarUltimoTiempoUI();
+            }
+        }
+    };
+
+
+
+
+     // ============================================   
     // AÑADIR ESTO - FUNCIÓN EXPLICACIÓN ESTRELLAS
     // ============================================
     window.mostrarExplicacionEstrellas = function() {
