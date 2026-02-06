@@ -1143,10 +1143,8 @@ class F1Manager {
             // Calcular costo basado en nivel y número de pieza
             const costo = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
             
-            if (this.escuderia.dinero < costo) {
-                this.showNotification('❌ Fondos insuficientes. Necesitas €' + costo.toLocaleString(), 'error');
-                return false;
-            }
+            this.escuderia.dinero -= costo;
+            await this.updateEscuderiaMoney();
             
             // ✅✅✅ MUEVE ESTO AQUÍ (ARRIBA, ANTES DE USARLO):
             const nombreArea = this.getNombreArea(areaId);
@@ -2671,12 +2669,7 @@ class F1Manager {
     iniciarFabricacion(areaId) {
         console.log('🔧 [DEBUG] === INICIAR FABRICACION ===');
         
-        if (!this.escuderia || this.escuderia.dinero < window.CONFIG.PIECE_COST) {
-            const falta = window.CONFIG.PIECE_COST - (this.escuderia?.dinero || 0);
-            const mensaje = '❌ Fondos insuficientes. Necesitas €' + falta.toLocaleString() + ' más';
-            this.showNotification(mensaje, 'error');
-            return false;
-        }
+
 
         if (!window.fabricacionManager) {
             console.log('⚠️ [DEBUG] fabricacionManager es undefined...');
@@ -4111,11 +4104,7 @@ setTimeout(() => {
             nivelDesdeBoton
         });
         
-        // Verificar dinero primero
-        if (!window.f1Manager.escuderia || window.f1Manager.escuderia.dinero < 10000) {
-            window.f1Manager.showNotification('❌ Fondos insuficientes (necesitas €10,000)', 'error');
-            return false;
-        }
+
         
         // Ejecutar fabricación con el nivel calculado
         const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId, nivelCalculado);
