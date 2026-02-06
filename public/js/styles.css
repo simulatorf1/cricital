@@ -1974,16 +1974,15 @@ html, body {
     text-transform: uppercase;
 }
 
-/* Responsive para móviles - MENOS CAMBIOS */
+/* Responsive para móviles - VERSIÓN CORREGIDA */
 @media (max-width: 768px) {
     .ultimo-tiempo-f1 {
-        margin: 6px 10px 8px 10px;
-        padding: 8px 12px;
-        min-height: 65px;
+        margin: 6px 8px;
+        padding: 10px;
     }
     
     .tiempo-f1-content {
-        gap: 10px;
+        gap: 8px;
     }
     
     .tiempo-f1-valor {
@@ -1998,20 +1997,6 @@ html, body {
     
     .tiempo-f1-label {
         font-size: 0.65rem;
-    }
-}
-
-/* Para pantallas muy pequeñas, entonces sí hacer columna */
-@media (max-width: 480px) {
-    .tiempo-f1-content {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    
-    .tiempo-f1-boton {
-        align-self: flex-end;
-        margin-top: 4px;
     }
 }
 
