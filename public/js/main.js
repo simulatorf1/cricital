@@ -359,37 +359,33 @@ class F1Manager {
             const ultimoTiempo = await this.obtenerUltimoTiempoPrueba();
             
             if (ultimoTiempo && ultimoTiempo.tiempo_formateado) {
-                // Obtener también el mejor tiempo histórico para comparar
-                const { data: mejorTiempoHist } = await this.supabase
-                    .from('pruebas_pista')
-                    .select('tiempo_formateado, mejor_tiempo')
-                    .eq('escuderia_id', this.escuderia.id)
-                    .not('mejor_tiempo', 'is', null)
-                    .order('mejor_tiempo', { ascending: true })
-                    .limit(1)
-                    .maybeSingle();
-                
-                const esNuevoRecord = mejorTiempoHist && 
-                                     ultimoTiempo.mejor_tiempo && 
-                                     ultimoTiempo.mejor_tiempo <= mejorTiempoHist.mejor_tiempo;
+                // Formatear fecha si existe
+                let fechaTexto = '';
+                if (ultimoTiempo.fecha) {
+                    const fecha = new Date(ultimoTiempo.fecha);
+                    fechaTexto = fecha.toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
                 
                 container.innerHTML = `
-                    <div class="tiempo-f1-content ${esNuevoRecord ? 'nuevo-record' : ''}">
+                    <div class="tiempo-f1-content">
                         <div class="tiempo-f1-info">
                             <div class="tiempo-f1-label">
                                 ÚLTIMA VUELTA RÁPIDA
-                                ${esNuevoRecord ? '<span class="record-badge">NUEVO RÉCORD!</span>' : ''}
                             </div>
                             <div class="tiempo-f1-valor">${ultimoTiempo.tiempo_formateado}</div>
-                            <div class="tiempo-f1-pista">Simulación en pista virtual</div>
                             
                             <div class="tiempo-f1-detalles">
-                                <span>📊 Mejor tiempo registrado</span>
+                                <span>${fechaTexto || 'Tiempo registrado'}</span>
                                 <span>🏎️ ${this.escuderia.nombre || 'Tu escudería'}</span>
                             </div>
                         </div>
                         
-                        <button class="tiempo-f1-boton" onclick="window.irAPruebaPista()"
+                        <button class="tiempo-f1-boton" onclick="window.irAPruebaPista()" 
                                 title="Realizar nueva prueba en pista">
                             <i class="fas fa-stopwatch"></i>
                             NUEVA PRUEBA
@@ -402,10 +398,10 @@ class F1Manager {
                     <div class="tiempo-sin-datos">
                         <div class="tiempo-sin-datos-icon">⏱️</div>
                         <div class="tiempo-sin-datos-text">
-                            No hay tiempos registrados<br>
-                            <small>Realiza tu primera prueba en pista</small>
+                            ¡Registra tu primer tiempo!<br>
+                            <small>Realiza una prueba en pista para mostrar tu mejor vuelta aquí</small>
                         </div>
-                        <button class="tiempo-f1-boton" onclick="irAPruebaPista()">
+                        <button class="tiempo-f1-boton" onclick="window.irAPruebaPista()">
                             <i class="fas fa-flag-checkered"></i>
                             PRIMERA PRUEBA
                         </button>
@@ -432,30 +428,51 @@ class F1Manager {
 
     
     // ========================
-    // MÉTODO PARA OBTENER ÚLTIMO TIEMPO DE PRUEBAS
+    // ========================
+    // MÉTODO SIMPLIFICADO PARA OBTENER ÚLTIMO TIEMPO
     // ========================
     async obtenerUltimoTiempoPrueba() {
         try {
             if (!this.escuderia || !this.escuderia.id) {
+                console.log('❌ No hay escudería');
                 return null;
             }
             
+            console.log('🔍 Buscando último tiempo formateado...');
+            
+            // SOLO pedir tiempo_formateado, nada más
             const { data: ultimaPrueba, error } = await this.supabase
                 .from('pruebas_pista')
-                .select('tiempo_formateado, mejor_tiempo')
+                .select('tiempo_formateado, fecha_prueba')  // Solo estas columnas
                 .eq('escuderia_id', this.escuderia.id)
                 .order('fecha_prueba', { ascending: false })
                 .limit(1)
                 .maybeSingle();
             
             if (error) {
-                console.error('Error obteniendo último tiempo:', error);
+                console.error('❌ Error obteniendo último tiempo:', error);
                 return null;
             }
             
-            return ultimaPrueba;
+            console.log('📊 Resultado de consulta:', ultimaPrueba);
+            
+            if (!ultimaPrueba) {
+                console.log('ℹ️ No hay tiempos registrados');
+                return null;
+            }
+            
+            if (!ultimaPrueba.tiempo_formateado) {
+                console.log('⚠️ Hay registro pero tiempo_formateado está vacío:', ultimaPrueba);
+                return null;
+            }
+            
+            return {
+                tiempo_formateado: ultimaPrueba.tiempo_formateado,
+                fecha: ultimaPrueba.fecha_prueba
+            };
+            
         } catch (error) {
-            console.error('Error en obtenerUltimoTiempoPrueba:', error);
+            console.error('❌ Error en obtenerUltimoTiempoPrueba:', error);
             return null;
         }
     }
