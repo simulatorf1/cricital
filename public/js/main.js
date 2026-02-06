@@ -1849,6 +1849,20 @@ class F1Manager {
 
     async cargarDashboardCompleto() {
         console.log('📊 Cargando dashboard COMPACTO con funcionalidad completa...');
+        // ============================================
+        // NUEVO: INICIALIZAR PRESUPUESTO PRIMERO
+        // ============================================
+        console.log('🔄 Intentando inicializar presupuestoManager...');
+        console.log('   Estado escudería:', {
+            tieneEscuderia: !!this.escuderia,
+            escuderiaId: this.escuderia?.id,
+            escuderiaNombre: this.escuderia?.nombre
+        });
+        
+        await this.inicializarPresupuestoManager();
+        // ============================================
+
+        
         
         if (!this.escuderia) {
             console.error('❌ No hay escudería para cargar dashboard');
