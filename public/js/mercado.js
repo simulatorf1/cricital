@@ -161,6 +161,9 @@ class MercadoManager {
                                     ${this.ordenesDisponibles.map(orden => {
                                         const esMiOrden = orden.vendedor_id === this.escuderia.id;
                                         
+                                        // Verificar si ya tiene la pieza (necesitarías cargar esta info)
+                                        // Por ahora, mantenemos la lógica original
+                                        
                                         return `
                                             <tr>
                                                 <td class="pieza-nombre-col">${orden.pieza_nombre}</td>
@@ -928,7 +931,7 @@ class MercadoManager {
                 ${tieneDuplicada ? 
                     `<div class="advertencia-duplicada">
                         <i class="fas fa-exclamation-triangle"></i>
-                        ¡Ya tienes una pieza similar en tu inventario!
+                        ❌ YA TIENES ESTA PIEZA EN TU INVENTARIO
                     </div>` : ''
                 }
             </div>
@@ -937,30 +940,30 @@ class MercadoManager {
                 Tu saldo actual: <strong>${this.escuderia.dinero.toLocaleString()}€</strong>
             </div>
             
-            <!-- BOTÓN DE CONFIRMAR - SIEMPRE PRESENTE -->
+            <!-- BOTONES DEL MODAL -->
             <div class="modal-buttons">
                 <button class="btn-cerrar" onclick="window.mercadoManager.ocultarModales()">
-                    Cancelar
+                    Cerrar
                 </button>
-                <button class="btn-confirmar ${tieneDuplicada ? 'con-advertencia' : ''}" id="btn-confirmar-compra">
-                    ${tieneDuplicada ? '⚠️ Comprar de todas formas' : '✅ Confirmar compra'}
-                </button>
+                <!-- SOLO MOSTRAR BOTÓN DE CONFIRMAR SI NO TIENE LA PIEZA DUPLICADA -->
+                ${!tieneDuplicada ? 
+                    `<button class="btn-confirmar" id="btn-confirmar-compra">
+                        ✅ Confirmar compra
+                    </button>` : ''
+                }
             </div>
         `;
     
         modal.style.display = 'flex';
     
-        // Evento confirmar compra
-        const confirmBtn = document.getElementById('btn-confirmar-compra');
-        if (confirmBtn) {
-            confirmBtn.addEventListener('click', async () => {
-                if (tieneDuplicada) {
-                    if (!confirm('⚠️ Ya tienes una pieza similar.\n¿Estás seguro de comprar esta pieza de todas formas?')) {
-                        return;
-                    }
-                }
-                await this.procesarCompra(orden);
-            });
+        // Solo configurar evento si el botón existe (cuando NO tiene duplicada)
+        if (!tieneDuplicada) {
+            const confirmBtn = document.getElementById('btn-confirmar-compra');
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', async () => {
+                    await this.procesarCompra(orden);
+                });
+            }
         }
     }
 
