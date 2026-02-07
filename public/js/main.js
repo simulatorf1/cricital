@@ -2981,139 +2981,142 @@ class F1Manager {
     }
 
     showNotification(mensaje, tipo = 'success') {
-        console.log(`🔔 SHOWNOTIFICATION: "${mensaje}" - CREANDO...`);
+        console.log(`🔔 NOTIFICACIÓN: "${mensaje}" (${tipo})`);
         
-        // 1. POSICIÓN ASEGURADA (top-left para evitar problemas con right)
-        const notifId = 'f1-notif-' + Date.now();
+        // Crear el elemento
         const notification = document.createElement('div');
-        notification.id = notifId;
         
-        // 2. COLORES
-        const colores = {
-            success: { borde: '#4CAF50', fondo: 'rgba(76, 175, 80, 0.1)', icono: '✅' },
-            error: { borde: '#e10600', fondo: 'rgba(225, 6, 0, 0.1)', icono: '❌' },
-            info: { borde: '#2196F3', fondo: 'rgba(33, 150, 243, 0.1)', icono: 'ℹ️' },
-            warning: { borde: '#FF9800', fondo: 'rgba(255, 152, 0, 0.1)', icono: '⚠️' }
-        };
-        const color = colores[tipo] || colores.info;
+        // TODOS LOS ESTILOS DIRECTAMENTE AQUÍ - CSS COMPLETO
+        notification.style.cssText = `
+            /* POSICIÓN */
+            position: fixed !important;
+            top: 20px !important;
+            left: 20px !important;
+            
+            /* COLORES Y FONDO */
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%) !important;
+            color: white !important;
+            border-left: 5px solid ${tipo === 'success' ? '#4CAF50' : 
+                                   tipo === 'error' ? '#e10600' : 
+                                   tipo === 'info' ? '#2196F3' : '#FF9800'} !important;
+            
+            /* TAMAÑO Y ESPACIADO */
+            padding: 15px 20px !important;
+            border-radius: 8px !important;
+            max-width: 350px !important;
+            min-width: 250px !important;
+            
+            /* TEXTO */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            font-size: 14px !important;
+            line-height: 1.4 !important;
+            
+            /* SOMBRA Y EFECTOS */
+            box-shadow: 0 5px 20px rgba(0,0,0,0.7) !important;
+            backdrop-filter: blur(10px) !important;
+            
+            /* Z-INDEX MÁXIMO */
+            z-index: 2147483647 !important;
+            
+            /* DISPLAY */
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            
+            /* ANIMACIÓN DE ENTRADA */
+            animation: slideIn 0.3s ease forwards !important;
+            
+            /* ASEGURAR VISIBILIDAD */
+            opacity: 1 !important;
+            visibility: visible !important;
+        `;
         
-        // 3. ESTILOS ABSOLUTOS QUE FUNCIONAN (top-left, no top-right)
-        Object.assign(notification.style, {
-            // POSICIÓN GARANTIZADA (izquierda en lugar de derecha)
-            position: 'fixed',
-            top: '20px',
-            left: '20px', // ← ¡IZQUIERDA en lugar de DERECHA!
-            
-            // APARIENCIA
-            background: '#1a1a2e',
-            border: `3px solid ${color.borde}`,
-            borderRadius: '8px',
-            padding: '15px',
-            
-            // Z-INDEX MÁXIMO + backdrop
-            zIndex: '2147483647', // MÁXIMO POSIBLE
-            backdropFilter: 'blur(5px)',
-            
-            // SOMBRA MUY VISIBLE
-            boxShadow: '0 0 30px rgba(0,0,0,0.9), 0 0 0 3px rgba(255,255,255,0.1)',
-            
-            // TAMAÑO
-            maxWidth: '350px',
-            minWidth: '250px',
-            
-            // TEXTO
-            color: 'white',
-            fontFamily: 'Arial, Helvetica, sans-serif',
-            fontSize: '14px',
-            lineHeight: '1.4',
-            
-            // ANIMACIÓN DE ENTRADA
-            transform: 'translateY(0)',
-            opacity: '1',
-            transition: 'all 0.3s ease'
-        });
+        // Añadir animación CSS si no existe
+        if (!document.querySelector('#notif-animations')) {
+            const style = document.createElement('style');
+            style.id = 'notif-animations';
+            style.textContent = `
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(-100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                @keyframes slideOut {
+                    from {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateX(-100%);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
         
-        // 4. CONTENIDO SIMPLE Y CLARO
+        // Icono según tipo
+        let icono = 'ℹ️';
+        if (tipo === 'success') icono = '✅';
+        if (tipo === 'error') icono = '❌';
+        if (tipo === 'warning') icono = '⚠️';
+        
+        // Contenido HTML
         notification.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="font-size: 24px;">${color.icono}</div>
-                <div style="flex: 1;">
-                    <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px; color: ${color.borde}">
-                        ${tipo === 'success' ? 'ÉXITO' : 
-                          tipo === 'error' ? 'ERROR' : 
-                          tipo === 'info' ? 'INFORMACIÓN' : 'ADVERTENCIA'}
-                    </div>
-                    <div>${mensaje}</div>
+            <div style="font-size: 24px; flex-shrink: 0;">${icono}</div>
+            <div style="flex: 1;">
+                <div style="font-weight: bold; margin-bottom: 4px; color: ${tipo === 'success' ? '#4CAF50' : 
+                                                                           tipo === 'error' ? '#e10600' : 
+                                                                           tipo === 'info' ? '#2196F3' : '#FF9800'}">
+                    ${tipo.toUpperCase()}
                 </div>
-                <div style="cursor: pointer; font-size: 20px; padding: 0 5px;" 
-                     onclick="this.parentElement.parentElement.style.opacity='0'; 
-                              setTimeout(()=>this.parentElement.parentElement.remove(), 300)">
-                    ×
-                </div>
+                <div>${mensaje}</div>
+            </div>
+            <div style="cursor: pointer; font-size: 18px; padding: 0 5px; opacity: 0.7;"
+                 onclick="this.parentElement.style.animation='slideOut 0.3s ease forwards'; 
+                          setTimeout(()=>this.parentElement.remove(), 300)">
+                ×
             </div>
         `;
         
-        // 5. AÑADIR AL DOM (AL PRINCIPIO DEL BODY)
-        document.body.insertBefore(notification, document.body.firstChild);
+        // Añadir al DOM
+        document.body.appendChild(notification);
+        console.log(`✅ Notificación creada en: top:20px, left:20px`);
         
-        console.log(`✅ Notificación creada: ${notifId}`);
-        console.log(`📍 Posición: left:20px, top:20px, z-index:2147483647`);
-        
-        // 6. ANIMACIÓN DE ENTRADA (desde arriba)
-        notification.style.transform = 'translateY(-100px)';
-        notification.style.opacity = '0';
-        
-        setTimeout(() => {
-            notification.style.transform = 'translateY(0)';
-            notification.style.opacity = '1';
-        }, 10);
-        
-        // 7. FORZAR VISIBILIDAD EXTRA
-        // Añadir borde intermitente para destacar
-        let blinkCount = 0;
-        const blinkInterval = setInterval(() => {
-            if (blinkCount < 3) {
-                notification.style.boxShadow = notification.style.boxShadow.includes('yellow') 
-                    ? '0 0 30px rgba(0,0,0,0.9)'
-                    : '0 0 30px rgba(0,0,0,0.9), 0 0 0 3px yellow';
-                blinkCount++;
-            } else {
-                clearInterval(blinkInterval);
-            }
-        }, 300);
-        
-        // 8. AUTO-ELIMINAR después de 4 segundos
+        // Auto-eliminar después de 3 segundos
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateY(-100px)';
+                notification.style.animation = 'slideOut 0.3s ease forwards';
                 setTimeout(() => {
                     if (notification.parentNode) {
                         notification.parentNode.removeChild(notification);
-                        console.log(`🗑️ Notificación ${notifId} eliminada`);
                     }
                 }, 300);
             }
-        }, 4000);
+        }, 3000);
         
-        // 9. SONIDO (opcional pero efectivo)
+        // Sonido de notificación (opcional)
         try {
-            // Beep simple
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
             
             oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            gainNode.connect(audioContext.destination);
             
-            oscillator.frequency.value = tipo === 'success' ? 1000 : 800;
+            oscillator.frequency.value = 800;
             oscillator.type = 'sine';
             
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
             
-            oscillator.start(audioCtx.currentTime);
-            oscillator.stop(audioCtx.currentTime + 0.2);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
         } catch (e) {
             // Silencio si falla
         }
