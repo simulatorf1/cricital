@@ -2267,9 +2267,7 @@ class F1Manager {
                         
 
 
-                        <!-- FOOTER FIJO - SIEMPRE VISIBLE -->
-                        // REEMPLAZA EL FOOTER COMPLETO (~línea 2800-2900) CON ESTA VERSIÓN:
-                        
+
                         <!-- FOOTER FIJO - SIEMPRE VISIBLE -->
                         <footer class="dashboard-footer" style="
                             position: sticky;
@@ -2309,42 +2307,6 @@ class F1Manager {
                                 </button>
                             </nav>
                         </footer>
-                        
-                        <script>
-                            // AÑADE ESTOS ESTILOS PARA LA PESTAÑA DE SALIR
-                            if (!document.querySelector('#estilo-tab-salir')) {
-                                const style = document.createElement('style');
-                                style.id = 'estilo-tab-salir';
-                                style.innerHTML = `
-                                    .tab-btn-salir {
-                                        background: rgba(225, 6, 0, 0.15) !important;
-                                        border: 1px solid rgba(225, 6, 0, 0.4) !important;
-                                        color: #e10600 !important;
-                                    }
-                                    
-                                    .tab-btn-salir:hover {
-                                        background: rgba(225, 6, 0, 0.25) !important;
-                                        border-color: #e10600 !important;
-                                    }
-                                    
-                                    .tab-btn-salir.active {
-                                        background: rgba(225, 6, 0, 0.3) !important;
-                                        border-color: #e10600 !important;
-                                        box-shadow: 0 0 10px rgba(225, 6, 0, 0.3);
-                                    }
-                                    
-                                    /* Asegurar que todas las pestañas tengan el mismo tamaño */
-                                    .tabs-compactas button {
-                                        flex: 1;
-                                        min-width: 0;
-                                        max-width: 110px;
-                                        padding: 6px 4px;
-                                        font-size: 0.75rem;
-                                    }
-                                `;
-                                document.head.appendChild(style);
-                            }
-                        </script>
                     </div>
                 </div>
             </div>
