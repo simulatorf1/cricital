@@ -845,7 +845,7 @@ class TabManager {
             // Mostrar estado de carga
             tablaBody.innerHTML = `
                 <tr class="loading-row">
-                    <td colspan="3" style="text-align: center; padding: 30px;">
+                    <td colspan="4" style="text-align: center; padding: 30px;">
                         <div class="cargando-clasificacion">
                             <i class="fas fa-spinner fa-spin fa-lg"></i>
                             <p>Consultando base de datos...</p>
@@ -854,110 +854,109 @@ class TabManager {
                 </tr>
             `;
             
-            let query = supabase
+            // 1. OBTENER TODAS LAS ESCUDERÍAS
+            const { data: todasEscuderias, error: errorEscuderias } = await supabase
                 .from('escuderias')
-                .select(`
-                    id, 
-                    nombre, 
-                    dinero, 
-                    puntos,
-                    pruebas_pista!inner (
-                        tiempo_formateado,
-                        creado_en
-                    )
-                `);
+                .select('id, nombre, dinero, puntos');
             
-            // Si ordenamos por vuelta rápida, necesitamos una consulta especial
-            if (columnaOrden === 'vuelta_rapida') {
-                // Primero obtener todas las escuderías con su mejor vuelta
-                const { data: todasEscuderias, error: errorEscuderias } = await supabase
-                    .from('escuderias')
-                    .select('id, nombre, dinero, puntos');
-                
-                if (errorEscuderias) throw errorEscuderias;
-                
-                // Para cada escudería, obtener su mejor vuelta
-                const escuderiasConVuelta = await Promise.all(
-                    todasEscuderias.map(async (escuderia) => {
-                        // Obtener la mejor vuelta (menor tiempo) de pruebas_pista
+            if (errorEscuderias) throw errorEscuderias;
+            
+            if (!todasEscuderias || todasEscuderias.length === 0) {
+                tablaBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: #888;">
+                            <i class="fas fa-database fa-2x"></i>
+                            <p style="margin-top: 10px;">No hay escuderías registradas</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // 2. PARA CADA ESCUDERÍA, OBTENER SU MEJOR VUELTA
+            const escuderiasConVuelta = await Promise.all(
+                todasEscuderias.map(async (escuderia) => {
+                    try {
+                        // Obtener la mejor vuelta (tiempo más bajo)
                         const { data: mejorVuelta, error: errorVuelta } = await supabase
                             .from('pruebas_pista')
-                            .select('tiempo_formateado, tiempo_segundos')
+                            .select('tiempo_formateado, tiempo_vuelta')  // <-- CAMBIADO A tiempo_vuelta
                             .eq('escuderia_id', escuderia.id)
-                            .order('tiempo_segundos', { ascending: true })
+                            .order('tiempo_vuelta', { ascending: true }) // <-- CAMBIADO A tiempo_vuelta
                             .limit(1)
                             .single();
                         
+                        // Si hay error o no hay vuelta, usar valores por defecto
+                        if (errorVuelta || !mejorVuelta) {
+                            return {
+                                ...escuderia,
+                                vuelta_rapida: 'Sin vuelta',
+                                tiempo_vuelta: 999999 // Valor muy alto para ordenar al final
+                            };
+                        }
+                        
                         return {
                             ...escuderia,
-                            vuelta_rapida: mejorVuelta?.tiempo_formateado || null,
-                            tiempo_segundos: mejorVuelta?.tiempo_segundos || 9999 // Valor alto si no tiene vuelta
+                            vuelta_rapida: mejorVuelta.tiempo_formateado || 'Sin vuelta',
+                            tiempo_vuelta: mejorVuelta.tiempo_vuelta || 999999  // <-- CAMBIADO
                         };
-                    })
-                );
-                
-                // Ordenar por tiempo de vuelta
-                escuderiasConVuelta.sort((a, b) => {
-                    if (orden === 'asc') {
-                        // Mejores vueltas primero (menor tiempo)
-                        return a.tiempo_segundos - b.tiempo_segundos;
-                    } else {
-                        // Peores vueltas primero (mayor tiempo)
-                        return b.tiempo_segundos - a.tiempo_segundos;
+                        
+                    } catch (error) {
+                        console.warn(`⚠️ Error obteniendo vuelta para ${escuderia.nombre}:`, error);
+                        return {
+                            ...escuderia,
+                            vuelta_rapida: 'Sin vuelta',
+                            tiempo_vuelta: 999999  // <-- CAMBIADO
+                        };
                     }
-                });
-                
-                // Generar HTML con los datos
-                this.generarTablaClasificacion(tablaBody, escuderiasConVuelta, columnaOrden, orden);
-                return;
-                
-            } else {
-                // Ordenamiento normal por dinero o nombre
-                query = query.order(columnaOrden, { ascending: orden === 'asc' });
-                
-                const { data: escuderias, error } = await query;
-                
-                if (error) throw error;
-                
-                if (!escuderias || escuderias.length === 0) {
-                    tablaBody.innerHTML = `
-                        <tr>
-                            <td colspan="3" style="text-align: center; padding: 40px; color: #888;">
-                                <i class="fas fa-database fa-2x"></i>
-                                <p style="margin-top: 10px;">No hay escuderías registradas</p>
-                            </td>
-                        </tr>
-                    `;
-                    return;
-                }
-                
-                // Para cada escudería, obtener su mejor vuelta
-                const escuderiasConVuelta = await Promise.all(
-                    escuderias.map(async (escuderia) => {
-                        const { data: mejorVuelta } = await supabase
-                            .from('pruebas_pista')
-                            .select('tiempo_formateado, tiempo_segundos')
-                            .eq('escuderia_id', escuderia.id)
-                            .order('tiempo_segundos', { ascending: true })
-                            .limit(1)
-                            .single();
-                        
-                        return {
-                            ...escuderia,
-                            vuelta_rapida: mejorVuelta?.tiempo_formateado || 'Sin vuelta',
-                            tiempo_segundos: mejorVuelta?.tiempo_segundos || 9999
-                        };
-                    })
-                );
-                
-                this.generarTablaClasificacion(tablaBody, escuderiasConVuelta, columnaOrden, orden);
+                })
+            );
+            
+            // 3. ORDENAR SEGÚN EL CRITERIO
+            let escuderiasOrdenadas;
+            
+            switch(columnaOrden) {
+                case 'dinero':
+                    escuderiasOrdenadas = escuderiasConVuelta.sort((a, b) => {
+                        return orden === 'desc' ? b.dinero - a.dinero : a.dinero - b.dinero;
+                    });
+                    break;
+                    
+                case 'nombre':
+                    escuderiasOrdenadas = escuderiasConVuelta.sort((a, b) => {
+                        const nombreA = a.nombre || '';
+                        const nombreB = b.nombre || '';
+                        return orden === 'asc' 
+                            ? nombreA.localeCompare(nombreB)
+                            : nombreB.localeCompare(nombreA);
+                    });
+                    break;
+                    
+                case 'vuelta_rapida':
+                    escuderiasOrdenadas = escuderiasConVuelta.sort((a, b) => {
+                        if (orden === 'asc') {
+                            // Mejores vueltas primero (tiempo más bajo)
+                            return a.tiempo_vuelta - b.tiempo_vuelta;  // <-- CAMBIADO
+                        } else {
+                            // Peores vueltas primero (tiempo más alto)
+                            return b.tiempo_vuelta - a.tiempo_vuelta;  // <-- CAMBIADO
+                        }
+                    });
+                    break;
+                    
+                default:
+                    // Por defecto: ordenar por dinero descendente
+                    escuderiasOrdenadas = escuderiasConVuelta.sort((a, b) => b.dinero - a.dinero);
             }
+            
+            // 4. GENERAR LA TABLA
+            this.generarTablaClasificacion(tablaBody, escuderiasOrdenadas, columnaOrden, orden);
             
         } catch (error) {
             console.error('❌ Error cargando clasificación:', error);
             tablaBody.innerHTML = `
                 <tr class="error-row">
-                    <td colspan="3" style="text-align: center; padding: 40px; color: #f44336;">
+                    <td colspan="4" style="text-align: center; padding: 40px; color: #f44336;">
                         <i class="fas fa-exclamation-triangle fa-2x"></i>
                         <p style="margin-top: 10px;">Error al cargar la clasificación</p>
                         <p style="font-size: 0.9em; margin-top: 5px;">${error.message || 'Intenta de nuevo más tarde'}</p>
