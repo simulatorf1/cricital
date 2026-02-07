@@ -1591,8 +1591,8 @@ class TabManager {
             // 9. NOTIFICACIÓN
             if (window.f1Manager?.showNotification) {
                 const mensaje = piezaEquipadaActual ? 
-                    `🔄 ${piezaNueva.area} actualizada (+${puntosSumar} pts)` :
-                    `✅ ${piezaNueva.area} equipada (+${puntosSumar} pts)`;
+                    `🔄 ${piezaNueva.area} actualizada` :  // ← CAMBIADO
+                    `✅ ${piezaNueva.area} equipada`;      // ← CAMBIADO
                 window.f1Manager.showNotification(mensaje, 'success');
             }
             
