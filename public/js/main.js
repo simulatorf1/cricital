@@ -2933,22 +2933,40 @@ class F1Manager {
     }
 
     showNotification(mensaje, tipo = 'success') {
+        // Crear elemento
         const notification = document.createElement('div');
-        notification.className = 'notification ' + tipo;
         
+        // Estilos INLINE para garantizar que se vea
+        notification.style.cssText = `
+            position: fixed !important;
+            top: 20px !important;
+            right: 20px !important;
+            background: #1a1a2e !important;
+            border-left: 4px solid ${tipo === 'success' ? '#4CAF50' : tipo === 'error' ? '#e10600' : tipo === 'info' ? '#2196F3' : '#FF9800'} !important;
+            color: white !important;
+            padding: 12px 16px !important;
+            border-radius: 6px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            z-index: 99999 !important;
+            animation: slideIn 0.3s ease !important;
+            max-width: 300px !important;
+            font-family: 'Segoe UI', sans-serif !important;
+        `;
+        
+        // Icono
         let icono = 'info-circle';
         if (tipo === 'success') icono = 'check-circle';
         if (tipo === 'error') icono = 'exclamation-circle';
         if (tipo === 'info') icono = 'info-circle';
         if (tipo === 'warning') icono = 'exclamation-triangle';
         
-        notification.innerHTML = '<i class="fas fa-' + icono + '"></i><span>' + mensaje + '</span>';
+        notification.innerHTML = `<i class="fas fa-${icono}"></i><span>${mensaje}</span>`;
         
         // Añadir al body
         document.body.appendChild(notification);
-        
-        // Forzar que los estilos se apliquen
-        notification.style.display = 'flex';
         
         // Eliminar después de 2 segundos
         setTimeout(() => {
