@@ -410,6 +410,61 @@ class F1Manager {
 
     // ========================
     // ========================
+    // MÉTODOS PARA EL DESGASTE DE PIEZAS
+    // ========================
+    
+    async calcularDesgastePieza(piezaId) {
+        try {
+            // Obtener datos actuales de la pieza
+            const { data: pieza, error } = await this.supabase
+                .from('almacen_piezas')
+                .select('desgaste_actual, ultima_actualizacion_desgaste, fabricada_en')
+                .eq('id', piezaId)
+                .single();
+            
+            if (error || !pieza) return 100;
+            
+            let desgasteActual = pieza.desgaste_actual || 100;
+            let ultimaActualizacion = new Date(pieza.ultima_actualizacion_desgaste || pieza.fabricada_en || new Date());
+            const ahora = new Date();
+            
+            // Calcular horas transcurridas desde la última actualización
+            const horasTranscurridas = (ahora - ultimaActualizacion) / (1000 * 60 * 60);
+            
+            // Si han pasado más de 1 hora, calcular desgaste (4.1667% por hora para llegar a 0 en 24h)
+            if (horasTranscurridas >= 1) {
+                const desgastePorHora = 4.1667; // 100% / 24 horas
+                const desgastePerdido = horasTranscurridas * desgastePorHora;
+                
+                desgasteActual = Math.max(0, desgasteActual - desgastePerdido);
+                
+                // Actualizar en la base de datos
+                await this.supabase
+                    .from('almacen_piezas')
+                    .update({ 
+                        desgaste_actual: desgasteActual,
+                        ultima_actualizacion_desgaste: ahora.toISOString()
+                    })
+                    .eq('id', piezaId);
+            }
+            
+            return desgasteActual;
+            
+        } catch (error) {
+            console.error('Error calculando desgaste:', error);
+            return 100;
+        }
+    }
+    
+    getColorDesgaste(porcentaje) {
+        if (porcentaje > 70) return '#4CAF50';        // Verde
+        if (porcentaje > 40) return '#FF9800';        // Naranja
+        if (porcentaje > 0) return '#e10600';         // Rojo (F1)
+        return '#666';                                 // Gris (completamente desgastado)
+    }
+
+    
+    // ========================
     // INICIALIZAR PRESUPUESTO MANAGER (GARANTIZADO) - VERSIÓN CORREGIDA
     // ========================
     async inicializarPresupuestoManager() {
@@ -1811,7 +1866,17 @@ class F1Manager {
                 if (this.cargarUltimoTiempoUI) {
                     this.cargarUltimoTiempoUI();
                 }
-            }, 30000)
+            }, 30000),
+            // === NUEVO: Actualizar desgaste cada 5 minutos ===
+            desgaste: setInterval(() => {
+                // Solo actualizar si estamos en la pestaña principal
+                const tabPrincipal = document.getElementById('tab-principal');
+                if (tabPrincipal && tabPrincipal.classList.contains('active')) {
+                    if (this.cargarPiezasMontadas) {
+                        this.cargarPiezasMontadas();
+                    }
+                }
+            }, 300000) // 5 minutos     
             
         };
         
@@ -1870,6 +1935,8 @@ class F1Manager {
             let puntosTotales = 0;
             let html = '';
             
+     
+            
             areas.forEach(area => {
                 const pieza = piezasPorArea[area.id];
                 
@@ -1884,16 +1951,51 @@ class F1Manager {
                         nombreMostrar = this.nombresPiezas[area.id][pieza.numero_global - 1];
                     }
                     
-                    // Crear contenido: solo el nombre de la pieza (sin icono, sin área)
-                    html += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="${area.nombre}: ${nombreMostrar}">`;
+                    // === NUEVO: Calcular desgaste ===
+                    const desgaste = await this.calcularDesgastePieza(pieza.id);
+                    const desgastePorcentaje = Math.max(0, Math.min(100, desgaste));
+                    const desgasteColor = this.getColorDesgaste(desgastePorcentaje);
+                    const necesitaMantenimiento = desgastePorcentaje <= 0;
+                    const costoMantenimiento = necesitaMantenimiento ? 100000 : 0;
+                    
+                    // Crear contenido con barra de desgaste
+                    html += `<div class="boton-area-vacia" onclick="mantenerPiezaEquipada('${pieza.id}', ${necesitaMantenimiento}, ${costoMantenimiento})" title="${area.nombre}: ${nombreMostrar}\nDesgaste: ${desgastePorcentaje.toFixed(0)}%">`;
+                    
+                    // Nombre de la pieza
                     html += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${nombreMostrar}</div>`;
-                    html += `</div>`;
+                    
+                    // === NUEVO: Barra de desgaste ===
+                    html += `<div style="
+                        width: 100%;
+                        height: 4px;
+                        background: rgba(255,255,255,0.1);
+                        border-radius: 2px;
+                        margin-top: 3px;
+                        overflow: hidden;
+                    ">
+                        <div style="
+                            width: ${desgastePorcentaje}%;
+                            height: 100%;
+                            background: ${desgasteColor};
+                            border-radius: 2px;
+                            transition: width 0.3s ease;
+                        "></div>
+                    </div>`;
+                    
+                    // Indicador si necesita mantenimiento
+                    if (necesitaMantenimiento) {
+                        html += `<div style="font-size: 0.55rem; color: #e10600; margin-top: 2px; font-weight: bold;">¡MANTENIMIENTO! (€100K)</div>`;
+                    } else if (desgastePorcentaje < 30) {
+                        html += `<div style="font-size: 0.55rem; color: #FF9800; margin-top: 2px;">Desgaste: ${desgastePorcentaje.toFixed(0)}%</div>`;
+                    }
+                    
+                    html += '</button>';
                     
                 } else {
-                    // Para huecos vacíos
+                    // Para huecos vacíos (mantener como estaba)
                     html += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="${area.nombre}: Sin pieza equipada">`;
                     html += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">${area.nombre}<br><small style="font-size: 0.6rem;">Vacío</small></div>`;
-                    html += `</div>`;
+                    html += '</div>';
                 }
             });
             
@@ -4752,6 +4854,103 @@ setTimeout(() => {
         } else {
             console.warn('⚠️ No se encontró la pestaña de almacén');
             alert('Redirigiendo al almacén...');
+        }
+    };
+    // ========================
+    // FUNCIÓN PARA MANTENER PIEZAS EQUIPADAS
+    // ========================
+    window.mantenerPiezaEquipada = async function(piezaId, necesitaMantenimiento, costo) {
+        console.log('🔧 Manteniendo pieza:', { piezaId, necesitaMantenimiento, costo });
+        
+        if (necesitaMantenimiento && costo > 0) {
+            // Verificar si tiene dinero suficiente
+            if (!window.f1Manager || !window.f1Manager.escuderia || window.f1Manager.escuderia.dinero < costo) {
+                if (window.f1Manager && window.f1Manager.showNotification) {
+                    window.f1Manager.showNotification(`❌ Dinero insuficiente. Necesitas €${costo.toLocaleString()}`, 'error');
+                }
+                return;
+            }
+            
+            // Confirmar pago
+            const confirmar = confirm(`⚠️ Esta pieza está completamente desgastada.\n\n¿Deseas pagar €${costo.toLocaleString()} para realizar mantenimiento?`);
+            
+            if (!confirmar) {
+                return;
+            }
+            
+            // Restar dinero
+            const dineroAnterior = window.f1Manager.escuderia.dinero;
+            window.f1Manager.escuderia.dinero -= costo;
+            
+            // Actualizar dinero en BD
+            const { error: dineroError } = await supabase
+                .from('escuderias')
+                .update({ dinero: window.f1Manager.escuderia.dinero })
+                .eq('id', window.f1Manager.escuderia.id);
+            
+            if (dineroError) {
+                console.error('Error actualizando dinero:', dineroError);
+                window.f1Manager.escuderia.dinero = dineroAnterior;
+                window.f1Manager.showNotification('❌ Error en el pago', 'error');
+                return;
+            }
+            
+            // Actualizar UI de dinero
+            const moneyElement = document.getElementById('money-value');
+            if (moneyElement) {
+                moneyElement.textContent = '€' + window.f1Manager.escuderia.dinero.toLocaleString();
+            }
+            
+            // Registrar transacción en presupuesto si existe
+            if (window.presupuestoManager && window.presupuestoManager.registrarTransaccion) {
+                try {
+                    await window.presupuestoManager.registrarTransaccion(
+                        'gasto',
+                        costo,
+                        'Mantenimiento de pieza',
+                        'mantenimiento',
+                        { pieza_id: piezaId }
+                    );
+                } catch (error) {
+                    console.warn('No se pudo registrar transacción:', error);
+                }
+            }
+        }
+        
+        // Restaurar desgaste al 100%
+        try {
+            const ahora = new Date();
+            const { error } = await supabase
+                .from('almacen_piezas')
+                .update({ 
+                    desgaste_actual: 100,
+                    ultima_actualizacion_desgaste: ahora.toISOString()
+                })
+                .eq('id', piezaId);
+            
+            if (error) throw error;
+            
+            // Mostrar notificación apropiada
+            if (window.f1Manager && window.f1Manager.showNotification) {
+                if (necesitaMantenimiento) {
+                    window.f1Manager.showNotification(`✅ Pieza restaurada por €${costo.toLocaleString()}`, 'success');
+                } else {
+                    window.f1Manager.showNotification('✅ Pieza mantenida (gratis)', 'success');
+                }
+            }
+            
+            // Actualizar la vista
+            setTimeout(async () => {
+                if (window.f1Manager && window.f1Manager.cargarPiezasMontadas) {
+                    await window.f1Manager.cargarPiezasMontadas();
+                }
+            }, 500);
+            
+        } catch (error) {
+            console.error('Error manteniendo pieza:', error);
+            if (window.f1Manager && window.f1Manager.showNotification) {
+                window.f1Manager.showNotification('❌ Error en mantenimiento', 'error');
+            }
         }
     };
     
