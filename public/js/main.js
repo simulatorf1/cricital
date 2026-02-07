@@ -2208,7 +2208,7 @@ class F1Manager {
                 </div>
                 
                 <!-- FOOTER FIJO - SIEMPRE VISIBLE -->
-                // FOOTER FIJO - SIEMPRE VISIBLE
+
                 <footer class="dashboard-footer" style="
                     position: sticky;
                     bottom: 0;
@@ -2216,10 +2216,7 @@ class F1Manager {
                     border-top: 1px solid rgba(0, 210, 190, 0.3);
                     z-index: 1000;
                 ">
-                    <div class="user-info-compacto">
-                        <i class="fas fa-user-circle"></i>
-                        <span>${this.user.email?.split('@')[0] || 'Usuario'}</span>
-                    </div>
+
                     
                     <!-- 4 PESTAÑAS ABAJO - USANDO LA MISMA CLASE QUE ARRIBA -->
                     <nav class="tabs-compactas" style="flex: 1; justify-content: center; margin: 0 10px;">
