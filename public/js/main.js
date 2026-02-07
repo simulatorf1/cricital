@@ -2077,179 +2077,209 @@ class F1Manager {
         `;
 
         document.body.innerHTML = `
-            <div id="app" style="min-height: 100vh; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); box-sizing: border-box;">
-                <header class="dashboard-header-compacto" style="padding-top: env(safe-area-inset-top);">
-                    <div class="header-left-compacto">
-                        <div class="logo-compacto">
-                            <i class="fas fa-flag-checkered"></i>
-                            <span id="escuderia-nombre">${this.escuderia.nombre}</span>
-                        </div>
-                        <div class="money-display-compacto">
-                            <i class="fas fa-coins"></i>
-                            <span id="money-value">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
-                        </div>
-                        <div class="estrellas-display-compacto" onclick="mostrarExplicacionEstrellas()" title="Click para más info">
-                            <i class="fas fa-star" style="color: #FFD700;"></i>
-                            <span id="estrellas-value">${this.escuderia?.estrellas_semana || 0}</span>
-                        </div>
-                    </div>
-                    
-                    <!-- 4 PESTAÑAS ARRIBA -->
-                    <nav class="tabs-compactas">
-                        <button class="tab-btn-compacto active" data-tab="principal">
-                            <i class="fas fa-home"></i> Principal
-                        </button>
-                        <button class="tab-btn-compacto" data-tab="taller">
-                            <i class="fas fa-tools"></i> Taller
-                        </button>
-                        <button class="tab-btn-compacto" data-tab="almacen">
-                            <i class="fas fa-warehouse"></i> Almacén
-                        </button>
-                        <button class="tab-btn-compacto" data-tab="ingenieria">
-                            <i class="fas fa-flask"></i> Ingeniería
-                        </button>
-                    </nav>
-                  
-                </header>
-                
-                <!-- CONTENIDO PRINCIPAL (SOLO ESTO CAMBIARÁ CON LAS PESTAÑAS) -->
-                <div id="main-content-area" style="flex: 1; overflow-y: auto;">
-                    <div id="tab-principal" class="tab-content active">
-
-                        <!-- ======================== -->
-                        <!-- NUEVO: ÚLTIMO TIEMPO F1 (SOLO EN PRINCIPAL) -->
-                        <!-- ======================== -->
-                        <div id="ultimo-tiempo-container" class="ultimo-tiempo-f1">
-                            <div class="tiempo-loading">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                <span>Cargando últimos tiempos...</span>
+            <div id="black-wrapper" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: black;
+                z-index: 0;
+            ">
+                <div id="inner-game-container" style="
+                    position: absolute;
+                    top: 35px;
+                    bottom: 35px;
+                    left: 0;
+                    right: 0;
+                    overflow: hidden;
+                ">
+                    <div id="app" style="
+                        position: absolute;
+                        top: 0;
+                        bottom: 0;
+                        left: 0;
+                        right: 0;
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        flex-direction: column;
+                        margin: 0;
+                        padding: 0;
+                    ">
+                        <header class="dashboard-header-compacto">
+                            <div class="header-left-compacto">
+                                <div class="logo-compacto">
+                                    <i class="fas fa-flag-checkered"></i>
+                                    <span id="escuderia-nombre">${this.escuderia.nombre}</span>
+                                </div>
+                                <div class="money-display-compacto">
+                                    <i class="fas fa-coins"></i>
+                                    <span id="money-value">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
+                                </div>
+                                <div class="estrellas-display-compacto" onclick="mostrarExplicacionEstrellas()" title="Click para más info">
+                                    <i class="fas fa-star" style="color: #FFD700;"></i>
+                                    <span id="estrellas-value">${this.escuderia?.estrellas_semana || 0}</span>
+                                </div>
                             </div>
-                        </div>                    
-                        <div class="three-columns-layout">
-                            <div class="col-estrategas">
-                                <div class="section-header">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <h2><i class="fas fa-users"></i> ESTRATEGAS</h2>
-                                        <button class="btn-gestionar-estrategas" onclick="gestionarEstrategas()" style="
-                                            background: rgba(0,210,190,0.1);
-                                            border: 1px solid rgba(0,210,190,0.4);
-                                            color: #00d2be;
-                                            border-radius: 4px;
-                                            font-size: 0.7rem;
-                                            padding: 2px 6px;
-                                            cursor: pointer;
-                                            display: flex;
-                                            align-items: center;
-                                            gap: 3px;
-                                            white-space: nowrap;
-                                        ">
-                                            <i class="fas fa-cog"></i> GESTIONAR
-                                        </button>
+                            
+                            <!-- 4 PESTAÑAS ARRIBA -->
+                            <nav class="tabs-compactas">
+                                <button class="tab-btn-compacto active" data-tab="principal">
+                                    <i class="fas fa-home"></i> Principal
+                                </button>
+                                <button class="tab-btn-compacto" data-tab="taller">
+                                    <i class="fas fa-tools"></i> Taller
+                                </button>
+                                <button class="tab-btn-compacto" data-tab="almacen">
+                                    <i class="fas fa-warehouse"></i> Almacén
+                                </button>
+                                <button class="tab-btn-compacto" data-tab="ingenieria">
+                                    <i class="fas fa-flask"></i> Ingeniería
+                                </button>
+                            </nav>
+                          
+                        </header>
+                        
+                        <!-- CONTENIDO PRINCIPAL (SOLO ESTO CAMBIARÁ CON LAS PESTAÑAS) -->
+                        <div id="main-content-area" style="flex: 1; overflow-y: auto;">
+                            <div id="tab-principal" class="tab-content active">
+
+                                <!-- ======================== -->
+                                <!-- NUEVO: ÚLTIMO TIEMPO F1 (SOLO EN PRINCIPAL) -->
+                                <!-- ======================== -->
+                                <div id="ultimo-tiempo-container" class="ultimo-tiempo-f1">
+                                    <div class="tiempo-loading">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <span>Cargando últimos tiempos...</span>
                                     </div>
-                                    <span class="badge" id="contador-estrategas">0/4</span>
+                                </div>                    
+                                <div class="three-columns-layout">
+                                    <div class="col-estrategas">
+                                        <div class="section-header">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <h2><i class="fas fa-users"></i> ESTRATEGAS</h2>
+                                                <button class="btn-gestionar-estrategas" onclick="gestionarEstrategas()" style="
+                                                    background: rgba(0,210,190,0.1);
+                                                    border: 1px solid rgba(0,210,190,0.4);
+                                                    color: #00d2be;
+                                                    border-radius: 4px;
+                                                    font-size: 0.7rem;
+                                                    padding: 2px 6px;
+                                                    cursor: pointer;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    gap: 3px;
+                                                    white-space: nowrap;
+                                                ">
+                                                    <i class="fas fa-cog"></i> GESTIONAR
+                                                </button>
+                                            </div>
+                                            <span class="badge" id="contador-estrategas">0/4</span>
+                                        </div>
+                                        
+                                        <div id="pilotos-container" class="pilotos-container">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-countdown">
+                                        ${countdownHTML}
+                                    </div>
+                                    
+                                    <div class="col-fabrica">
+                                        <div class="monitor-fabrica">
+                                            <div class="section-header">
+                                                <h2><i class="fas fa-industry"></i> PRODUCCIÓN</h2>
+                                                <div id="alerta-almacen" class="alerta-almacen" style="display: none;">
+                                                    <i class="fas fa-bell"></i>
+                                                    <span>¡Piezas nuevas en almacén!</span>
+                                                </div>
+                                            </div>
+                                            <div id="produccion-actual" class="produccion-actual">
+                                                <div id="produccion-slots" class="produccion-slots" style="
+                                                    display: grid;
+                                                    grid-template-columns: repeat(2, 1fr);
+                                                    grid-template-rows: repeat(2, 1fr);
+                                                    gap: 8px;
+                                                    height: 100%;
+                                                    padding: 5px;
+                                                ">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div id="pilotos-container" class="pilotos-container">
-                                </div>
-                            </div>
-                            
-                            <div class="col-countdown">
-                                ${countdownHTML}
-                            </div>
-                            
-                            <div class="col-fabrica">
-                                <div class="monitor-fabrica">
+                                <section class="piezas-montadas">
                                     <div class="section-header">
-                                        <h2><i class="fas fa-industry"></i> PRODUCCIÓN</h2>
-                                        <div id="alerta-almacen" class="alerta-almacen" style="display: none;">
-                                            <i class="fas fa-bell"></i>
-                                            <span>¡Piezas nuevas en almacén!</span>
-                                        </div>
+                                        <h2><i class="fas fa-car"></i> PIEZAS MONTADAS EN EL COCHE</h2>
                                     </div>
-                                    <div id="produccion-actual" class="produccion-actual">
-                                        <div id="produccion-slots" class="produccion-slots" style="
-                                            display: grid;
-                                            grid-template-columns: repeat(2, 1fr);
-                                            grid-template-rows: repeat(2, 1fr);
-                                            gap: 8px;
-                                            height: 100%;
-                                            padding: 5px;
-                                        ">
-                                        </div>
+                                    
+                                    <div id="grid-piezas-montadas" class="grid-11-columns">
                                     </div>
+                                </section>
+                            </div>
+                            
+                            <div id="tab-taller" class="tab-content"></div>
+                            <div id="tab-almacen" class="tab-content"></div>
+                            <div id="tab-ingenieria" class="tab-content"></div>
+                            
+                            <!-- PESTAÑAS ABAJO (inicialmente ocultas) -->
+                            <div id="tab-mercado" class="tab-content">
+                                <div class="mercado-cargando">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Cargando mercado...</p>
                                 </div>
                             </div>
+                            <div id="tab-pronosticos" class="tab-content"></div>
+                            <div id="tab-presupuesto" class="tab-content"></div>
+                            <div id="tab-clasificacion" class="tab-content"></div>
                         </div>
                         
-                        <section class="piezas-montadas">
-                            <div class="section-header">
-                                <h2><i class="fas fa-car"></i> PIEZAS MONTADAS EN EL COCHE</h2>
-                            </div>
+                        <!-- FOOTER FIJO - SIEMPRE VISIBLE -->
+
+                        <footer class="dashboard-footer" style="
+                            position: sticky;
+                            bottom: 0;
+                            background: #1a1a2e;
+                            border-top: 1px solid rgba(0, 210, 190, 0.3);
+                            z-index: 1000;
+                        ">
+
                             
-                            <div id="grid-piezas-montadas" class="grid-11-columns">
-                            </div>
-                        </section>
+                            <!-- 4 PESTAÑAS ABAJO - USANDO LA MISMA CLASE QUE ARRIBA -->
+                            <nav class="tabs-compactas" style="flex: 1; justify-content: center; margin: 0 10px;">
+                                <button class="tab-btn-compacto" data-tab="mercado">
+                                    <i class="fas fa-shopping-cart"></i> Mercado
+                                </button>
+                                <button class="tab-btn-compacto" data-tab="pronosticos">
+                                    <i class="fas fa-chart-line"></i> Pronósticos
+                                </button>
+                                <button class="tab-btn-compacto" data-tab="presupuesto">
+                                    <i class="fas fa-chart-pie"></i> Presupuesto
+                                </button>
+                                <button class="tab-btn-compacto" data-tab="clasificacion">
+                                    <i class="fas fa-medal"></i> Clasificación
+                                </button>
+                            </nav>
+                            
+                            <button class="logout-btn-compacto" id="logout-btn-visible" title="Cerrar sesión" style="
+                                background: rgba(225, 6, 0, 0.1);
+                                border: 1px solid rgba(225, 6, 0, 0.3);
+                                color: #e10600;
+                                padding: 4px 10px;
+                                border-radius: 8px;
+                                font-size: 0.8rem;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                gap: 5px;
+                            ">
+                                <i class="fas fa-sign-out-alt"></i> Salir
+                            </button>
+                        </footer>
                     </div>
-                    
-                    <div id="tab-taller" class="tab-content"></div>
-                    <div id="tab-almacen" class="tab-content"></div>
-                    <div id="tab-ingenieria" class="tab-content"></div>
-                    
-                    <!-- PESTAÑAS ABAJO (inicialmente ocultas) -->
-                    <div id="tab-mercado" class="tab-content">
-                        <div class="mercado-cargando">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <p>Cargando mercado...</p>
-                        </div>
-                    </div>
-                    <div id="tab-pronosticos" class="tab-content"></div>
-                    <div id="tab-presupuesto" class="tab-content"></div>
-                    <div id="tab-clasificacion" class="tab-content"></div>
                 </div>
-                
-                <!-- FOOTER FIJO - SIEMPRE VISIBLE -->
-
-                <footer class="dashboard-footer" style="
-                    position: sticky;
-                    bottom: env(safe-area-inset-bottom);
-                    padding-bottom: env(safe-area-inset-bottom);
-                    background: #1a1a2e;
-                    border-top: 1px solid rgba(0, 210, 190, 0.3);
-                    z-index: 1000;
-                ">
-
-                    
-                    <!-- 4 PESTAÑAS ABAJO - USANDO LA MISMA CLASE QUE ARRIBA -->
-                    <nav class="tabs-compactas" style="flex: 1; justify-content: center; margin: 0 10px;">
-                        <button class="tab-btn-compacto" data-tab="mercado">
-                            <i class="fas fa-shopping-cart"></i> Mercado
-                        </button>
-                        <button class="tab-btn-compacto" data-tab="pronosticos">
-                            <i class="fas fa-chart-line"></i> Pronósticos
-                        </button>
-                        <button class="tab-btn-compacto" data-tab="presupuesto">
-                            <i class="fas fa-chart-pie"></i> Presupuesto
-                        </button>
-                        <button class="tab-btn-compacto" data-tab="clasificacion">
-                            <i class="fas fa-medal"></i> Clasificación
-                        </button>
-                    </nav>
-                    
-                    <button class="logout-btn-compacto" id="logout-btn-visible" title="Cerrar sesión" style="
-                        background: rgba(225, 6, 0, 0.1);
-                        border: 1px solid rgba(225, 6, 0, 0.3);
-                        color: #e10600;
-                        padding: 4px 10px;
-                        border-radius: 8px;
-                        font-size: 0.8rem;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        gap: 5px;
-                    ">
-                        <i class="fas fa-sign-out-alt"></i> Salir
-                    </button>
-                </footer>
             </div>
 
             
