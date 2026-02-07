@@ -2078,7 +2078,7 @@ class F1Manager {
 
         document.body.innerHTML = `
             <div id="app" style="min-height: 100vh; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); box-sizing: border-box;">
-                <header class="dashboard-header-compacto">
+                <header class="dashboard-header-compacto" style="padding-top: env(safe-area-inset-top);">
                     <div class="header-left-compacto">
                         <div class="logo-compacto">
                             <i class="fas fa-flag-checkered"></i>
@@ -2211,7 +2211,8 @@ class F1Manager {
 
                 <footer class="dashboard-footer" style="
                     position: sticky;
-                    bottom: 0;
+                    bottom: env(safe-area-inset-bottom);
+                    padding-bottom: env(safe-area-inset-bottom);
                     background: #1a1a2e;
                     border-top: 1px solid rgba(0, 210, 190, 0.3);
                     z-index: 1000;
