@@ -259,6 +259,23 @@ html, body {
     font-family: 'Courier New', monospace;
 }
 
+.tab-btn-salir {
+    background: rgba(225, 6, 0, 0.15) !important;
+    border: 1px solid rgba(225, 6, 0, 0.4) !important;
+    color: #e10600 !important;
+}
+
+.tab-btn-salir:hover {
+    background: rgba(225, 6, 0, 0.25) !important;
+    border-color: #e10600 !important;
+}
+
+.tab-btn-salir.active {
+    background: rgba(225, 6, 0, 0.3) !important;
+    border-color: #e10600 !important;
+    box-shadow: 0 0 10px rgba(225, 6, 0, 0.3);
+}
+
 
 
 /* ========================
