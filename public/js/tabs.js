@@ -904,11 +904,11 @@ class TabManager {
                 } else {
                     escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => {
                         if (orden === 'desc') {
-                            // Peores vueltas primero (mayor tiempo)
-                            return b.tiempo_vuelta - a.tiempo_vuelta;
-                        } else {
-                            // Mejores vueltas primero (menor tiempo)
+                            // Mejores vueltas primero (menor tiempo) - INVERTIDO
                             return a.tiempo_vuelta - b.tiempo_vuelta;
+                        } else {
+                            // Peores vueltas primero (mayor tiempo) - INVERTIDO
+                            return b.tiempo_vuelta - a.tiempo_vuelta;
                         }
                     });
                 }
