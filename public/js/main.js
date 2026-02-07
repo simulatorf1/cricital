@@ -2981,131 +2981,153 @@ class F1Manager {
     }
 
     showNotification(mensaje, tipo = 'success') {
-        console.log(`🔔 [SHOWNOTIFICATION-ORIGINAL] ${tipo}: ${mensaje}`);
+        console.log(`🔔 [SHOWNOTIFICATION-FIXED] Mostrando: "${mensaje}" (${tipo})`);
         
-        // Asegurar que FontAwesome esté cargado
-        if (!document.querySelector('#font-awesome-check')) {
-            const link = document.createElement('link');
-            link.id = 'font-awesome-check';
-            link.rel = 'stylesheet';
-            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css';
-            document.head.appendChild(link);
-        }
+        // 1. Crear ID único
+        const notifId = 'notif-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         
-        // Crear elemento
+        // 2. Crear elemento DIV
         const notification = document.createElement('div');
-        notification.id = 'f1-notification-' + Date.now();
+        notification.id = notifId;
         
-        // Asegurar estilos de animación
-        if (!document.querySelector('#notification-animations')) {
-            const style = document.createElement('style');
-            style.id = 'notification-animations';
-            style.textContent = `
-                @keyframes notificationSlideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                @keyframes notificationSlideOut {
-                    from { transform: translateX(0); opacity: 1; }
-                    to { transform: translateX(100%); opacity: 0; }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        // Colores según tipo
-        let colorBorde, colorIcono;
-        switch(tipo) {
-            case 'success':
-                colorBorde = '#4CAF50';
-                colorIcono = '#4CAF50';
-                break;
-            case 'error':
-                colorBorde = '#e10600';
-                colorIcono = '#e10600';
-                break;
-            case 'info':
-                colorBorde = '#2196F3';
-                colorIcono = '#2196F3';
-                break;
-            case 'warning':
-                colorBorde = '#FF9800';
-                colorIcono = '#FF9800';
-                break;
-            default:
-                colorBorde = '#00d2be';
-                colorIcono = '#00d2be';
-        }
-        
-        // Icono
-        let icono;
-        switch(tipo) {
-            case 'success': icono = 'fa-check-circle'; break;
-            case 'error': icono = 'fa-exclamation-circle'; break;
-            case 'info': icono = 'fa-info-circle'; break;
-            case 'warning': icono = 'fa-exclamation-triangle'; break;
-            default: icono = 'fa-info-circle';
-        }
-        
-        // ESTILOS MEJORADOS - SIN !important, solo inline
+        // 3. ESTILOS ABSOLUTOS QUE SÍ FUNCIONAN
         Object.assign(notification.style, {
+            // POSICIÓN ABSOLUTA
             position: 'fixed',
             top: '20px',
             right: '20px',
+            
+            // COLORES Y APARIENCIA
             background: 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%)',
-            borderLeft: `5px solid ${colorBorde}`,
+            borderLeft: tipo === 'success' ? '5px solid #4CAF50' : 
+                       tipo === 'error' ? '5px solid #e10600' : 
+                       tipo === 'info' ? '5px solid #2196F3' : '5px solid #FF9800',
             color: 'white',
             padding: '15px 20px',
             borderRadius: '8px',
             boxShadow: '0 5px 20px rgba(0,0,0,0.5)',
-            zIndex: '99999',
+            
+            // Z-INDEX MÁXIMO
+            zIndex: '2147483647', // ← ¡MÁXIMO POSIBLE!
+            
+            // DISPLAY VISIBLE
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
+            opacity: '1',
+            visibility: 'visible',
+            
+            // TAMAÑO Y TIPOGRAFÍA
             maxWidth: '400px',
             minWidth: '300px',
-            fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-            backdropFilter: 'blur(10px)',
-            animation: 'notificationSlideIn 0.3s ease forwards',
-            WebkitAnimation: 'notificationSlideIn 0.3s ease forwards'
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '14px',
+            lineHeight: '1.4',
+            
+            // ANIMACIÓN
+            transform: 'translateX(0)',
+            transition: 'transform 0.3s ease, opacity 0.3s ease'
         });
         
+        // 4. ICONO según tipo
+        let iconoHTML = '📢';
+        if (tipo === 'success') iconoHTML = '✅';
+        if (tipo === 'error') iconoHTML = '❌';
+        if (tipo === 'info') iconoHTML = 'ℹ️';
+        if (tipo === 'warning') iconoHTML = '⚠️';
+        
+        // 5. CONTENIDO SIMPLE (sin FontAwesome por si falla)
         notification.innerHTML = `
-            <i class="fas ${icono}" style="font-size: 1.5rem; color: ${colorIcono};"></i>
+            <div style="font-size: 24px;">${iconoHTML}</div>
             <div style="flex: 1;">
-                <div style="font-weight: bold; margin-bottom: 4px;">${tipo.toUpperCase()}</div>
-                <div style="font-size: 0.95rem; line-height: 1.4;">${mensaje}</div>
+                <div style="font-weight: bold; margin-bottom: 5px; text-transform: uppercase;">
+                    ${tipo === 'success' ? 'ÉXITO' : 
+                      tipo === 'error' ? 'ERROR' : 
+                      tipo === 'info' ? 'INFORMACIÓN' : 'ADVERTENCIA'}
+                </div>
+                <div>${mensaje}</div>
             </div>
-            <i class="fas fa-times" style="cursor: pointer; opacity: 0.7;" onclick="this.parentElement.remove()"></i>
+            <div style="cursor: pointer; font-size: 18px;" onclick="document.getElementById('${notifId}').remove()">
+                ✕
+            </div>
         `;
         
-        // Añadir al body (PERO al principio para que esté encima)
-        document.body.insertBefore(notification, document.body.firstChild);
+        // 6. DEBUG EN CONSOLA
+        console.log(`🎯 Notificación creada con ID: ${notifId}`);
+        console.log(`📏 Posición: top:20px, right:20px, z-index:2147483647`);
+        console.log(`👁️ Estilos aplicados:`, notification.style.cssText);
         
-        // Auto-eliminar después de 3 segundos
+        // 7. AÑADIR AL DOM DE FORMA SEGURA
+        try {
+            // Intentar añadir al body
+            document.body.appendChild(notification);
+            console.log(`✅ Añadida al DOM. Parent:`, notification.parentNode);
+            
+            // Forzar redibujado
+            notification.offsetHeight;
+            
+            // Verificar si es visible
+            const rect = notification.getBoundingClientRect();
+            console.log(`📐 Dimensiones: ${rect.width}x${rect.height}, Visible: ${rect.width > 0 && rect.height > 0}`);
+            
+        } catch (error) {
+            console.error('❌ Error añadiendo notificación:', error);
+            // Fallback: usar alert
+            alert(`🔔 ${tipo.toUpperCase()}: ${mensaje}`);
+            return null;
+        }
+        
+        // 8. TEMPORIZADOR PARA ELIMINAR
+        const tiempoVisible = 3000; // 3 segundos
         const timeoutId = setTimeout(() => {
-            notification.style.animation = 'notificationSlideOut 0.3s ease forwards';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 3000);
-        
-        // Permitir cerrar manualmente
-        notification.addEventListener('click', (e) => {
-            if (e.target.classList.contains('fa-times') || e.target.closest('.fa-times')) {
-                clearTimeout(timeoutId);
-                notification.style.animation = 'notificationSlideOut 0.3s ease forwards';
+            if (notification.parentNode) {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
                 setTimeout(() => {
                     if (notification.parentNode) {
                         notification.parentNode.removeChild(notification);
+                        console.log(`🗑️ Notificación ${notifId} eliminada`);
+                    }
+                }, 300);
+            }
+        }, tiempoVisible);
+        
+        // 9. PERMITIR CERRAR MANUALMENTE
+        notification.addEventListener('click', function(e) {
+            if (e.target.textContent === '✕' || e.target.closest('div[onclick]')) {
+                clearTimeout(timeoutId);
+                this.style.opacity = '0';
+                this.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (this.parentNode) {
+                        this.parentNode.removeChild(this);
                     }
                 }, 300);
             }
         });
         
-        console.log(`✅ Notificación creada: ${notification.id}`);
+        // 10. SONIDO DE NOTIFICACIÓN (opcional)
+        try {
+            // Crear un beep simple
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = tipo === 'success' ? 800 : tipo === 'error' ? 400 : 600;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        } catch (e) {
+            // Silencioso si no funciona el audio
+        }
+        
         return notification;
     }
     async updateEscuderiaMoney() {
