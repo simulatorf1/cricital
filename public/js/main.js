@@ -1854,17 +1854,17 @@ class F1Manager {
             });
             
             const areas = [
-                { id: 'suelo', nombre: 'Suelo', icono: '🏎️' },
-                { id: 'motor', nombre: 'Motor', icono: '⚙️' },
-                { id: 'aleron_delantero', nombre: 'Alerón Del.', icono: '🪽' },
-                { id: 'caja_cambios', nombre: 'Caja Cambios', icono: '🔄' },
-                { id: 'pontones', nombre: 'Pontones', icono: '📦' },
-                { id: 'suspension', nombre: 'Suspensión', icono: '⚖️' },
-                { id: 'aleron_trasero', nombre: 'Alerón Tras.', icono: '🌪️' },
-                { id: 'chasis', nombre: 'Chasis', icono: '📊' },
-                { id: 'frenos', nombre: 'Frenos', icono: '🛑' },
-                { id: 'volante', nombre: 'Volante', icono: '🎮' },
-                { id: 'electronica', nombre: 'Electrónica', icono: '💡' }
+                { id: 'suelo', nombre: 'Suelo' },
+                { id: 'motor', nombre: 'Motor' },
+                { id: 'aleron_delantero', nombre: 'Alerón Del.' },
+                { id: 'caja_cambios', nombre: 'Caja Cambios' },
+                { id: 'pontones', nombre: 'Pontones' },
+                { id: 'suspension', nombre: 'Suspensión' },
+                { id: 'aleron_trasero', nombre: 'Alerón Tras.' },
+                { id: 'chasis', nombre: 'Chasis' },
+                { id: 'frenos', nombre: 'Frenos' },
+                { id: 'volante', nombre: 'Volante' },
+                { id: 'electronica', nombre: 'Electrónica' }
             ];
             
             let puntosTotales = 0;
@@ -1877,33 +1877,50 @@ class F1Manager {
                     puntosTotales += pieza.puntos_base || 0;
                     
                     // Obtener nombre personalizado de la pieza
-                    let nombreMostrar = pieza.componente || area.nombre;
+                    let nombreMostrar = pieza.componente || 'Pieza ' + area.nombre;
                     if (pieza.numero_global && this.nombresPiezas && 
                         this.nombresPiezas[area.id] && 
                         pieza.numero_global <= this.nombresPiezas[area.id].length) {
                         nombreMostrar = this.nombresPiezas[area.id][pieza.numero_global - 1];
                     }
                     
-                    // Crear contenido con área arriba y pieza abajo
-                    html += '<div class="boton-area-montada" onclick="irAlAlmacenDesdePiezas()" title="' + area.nombre + ': ' + nombreMostrar + '">';
-                    html += '<div class="icono-area">' + area.icono + '</div>';
-                    html += '<div class="area-pieza-info">';
-                    html += '<div class="area-nombre-titulo">' + area.nombre + '</div>';
-                    html += '<div class="pieza-nombre-detalle">' + nombreMostrar + '</div>';
-                    html += '</div>';
-                    html += '</div>';
+                    // Crear contenido: solo el nombre de la pieza (sin icono, sin área)
+                    html += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="${area.nombre}: ${nombreMostrar}">`;
+                    html += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${nombreMostrar}</div>`;
+                    html += `</div>`;
+                    
                 } else {
-                    html += '<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="Sin pieza - Click para equipar">';
-                    html += '<div class="icono-area">+</div>';
-                    html += '<div class="area-pieza-info">';
-                    html += '<div class="area-nombre-titulo">' + area.nombre + '</div>';
-                    html += '<div class="pieza-nombre-detalle" style="color: #888; font-size: 0.8rem;">Vacío</div>';
-                    html += '</div>';
-                    html += '</div>';
+                    // Para huecos vacíos
+                    html += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="${area.nombre}: Sin pieza equipada">`;
+                    html += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">${area.nombre}<br><small style="font-size: 0.6rem;">Vacío</small></div>`;
+                    html += `</div>`;
                 }
             });
             
             contenedor.innerHTML = html;
+            
+            // Aplicar estilos inline adicionales para altura reducida
+            const botones = contenedor.querySelectorAll('.boton-area-vacia');
+            botones.forEach(boton => {
+                boton.style.height = '50px'; // Altura reducida
+                boton.style.display = 'flex';
+                boton.style.alignItems = 'center';
+                boton.style.justifyContent = 'center';
+                boton.style.padding = '5px 8px';
+                
+                // Para botones con pieza equipada
+                const texto = boton.querySelector('div');
+                if (texto && texto.textContent && !texto.textContent.includes('Vacío')) {
+                    boton.style.background = 'linear-gradient(135deg, rgba(0, 210, 190, 0.1) 0%, rgba(0, 210, 190, 0.2) 100%)';
+                    boton.style.border = '2px solid #00d2be';
+                    boton.style.borderStyle = 'solid';
+                    texto.style.color = 'white';
+                    texto.style.fontWeight = '600';
+                } else {
+                    boton.style.background = 'rgba(100, 100, 100, 0.1)';
+                    boton.style.border = '2px dashed rgba(255, 255, 255, 0.2)';
+                }
+            });
             
             const puntosElement = document.getElementById('puntos-totales-montadas');
             if (puntosElement) {
@@ -1922,15 +1939,27 @@ class F1Manager {
         
         let html = '';
         areas.forEach(area => {
-            html += '<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()">';
-            html += '<div class="icono-area">+</div>';
-            html += '<div class="nombre-area">' + area + '</div>';
-            html += '<div style="font-size:0.7rem; color:#888; margin-top:5px;">Vacío</div>';
-            html += '</div>';
+            html += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()">`;
+            html += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">${area}<br><small style="font-size: 0.6rem;">Vacío</small></div>`;
+            html += `</div>`;
         });
         
         contenedor.innerHTML = html;
+        
+        // Aplicar estilos inline
+        const botones = contenedor.querySelectorAll('.boton-area-vacia');
+        botones.forEach(boton => {
+            boton.style.height = '50px';
+            boton.style.display = 'flex';
+            boton.style.alignItems = 'center';
+            boton.style.justifyContent = 'center';
+            boton.style.padding = '5px 8px';
+            boton.style.background = 'rgba(100, 100, 100, 0.1)';
+            boton.style.border = '2px dashed rgba(255, 255, 255, 0.2)';
+        });
     }
+    
+
 
     async loadPilotosContratados() {
         if (!this.escuderia || !this.escuderia.id || !this.supabase) {
