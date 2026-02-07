@@ -937,7 +937,15 @@ class MercadoManager {
                 Tu saldo actual: <strong>${this.escuderia.dinero.toLocaleString()}€</strong>
             </div>
             
-
+            <!-- BOTÓN DE CONFIRMAR - SIEMPRE PRESENTE -->
+            <div class="modal-buttons">
+                <button class="btn-cerrar" onclick="window.mercadoManager.ocultarModales()">
+                    Cancelar
+                </button>
+                <button class="btn-confirmar ${tieneDuplicada ? 'con-advertencia' : ''}" id="btn-confirmar-compra">
+                    ${tieneDuplicada ? '⚠️ Comprar de todas formas' : '✅ Confirmar compra'}
+                </button>
+            </div>
         `;
     
         modal.style.display = 'flex';
