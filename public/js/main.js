@@ -2981,47 +2981,132 @@ class F1Manager {
     }
 
     showNotification(mensaje, tipo = 'success') {
+        console.log(`🔔 [SHOWNOTIFICATION-ORIGINAL] ${tipo}: ${mensaje}`);
+        
+        // Asegurar que FontAwesome esté cargado
+        if (!document.querySelector('#font-awesome-check')) {
+            const link = document.createElement('link');
+            link.id = 'font-awesome-check';
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+        
         // Crear elemento
         const notification = document.createElement('div');
+        notification.id = 'f1-notification-' + Date.now();
         
-        // Estilos INLINE para garantizar que se vea
-        notification.style.cssText = `
-            position: fixed !important;
-            top: 20px !important;
-            right: 20px !important;
-            background: #1a1a2e !important;
-            border-left: 4px solid ${tipo === 'success' ? '#4CAF50' : tipo === 'error' ? '#e10600' : tipo === 'info' ? '#2196F3' : '#FF9800'} !important;
-            color: white !important;
-            padding: 12px 16px !important;
-            border-radius: 6px !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 10px !important;
-            z-index: 99999 !important;
-            animation: slideIn 0.3s ease !important;
-            max-width: 300px !important;
-            font-family: 'Segoe UI', sans-serif !important;
-        `;
+        // Asegurar estilos de animación
+        if (!document.querySelector('#notification-animations')) {
+            const style = document.createElement('style');
+            style.id = 'notification-animations';
+            style.textContent = `
+                @keyframes notificationSlideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes notificationSlideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Colores según tipo
+        let colorBorde, colorIcono;
+        switch(tipo) {
+            case 'success':
+                colorBorde = '#4CAF50';
+                colorIcono = '#4CAF50';
+                break;
+            case 'error':
+                colorBorde = '#e10600';
+                colorIcono = '#e10600';
+                break;
+            case 'info':
+                colorBorde = '#2196F3';
+                colorIcono = '#2196F3';
+                break;
+            case 'warning':
+                colorBorde = '#FF9800';
+                colorIcono = '#FF9800';
+                break;
+            default:
+                colorBorde = '#00d2be';
+                colorIcono = '#00d2be';
+        }
         
         // Icono
-        let icono = 'info-circle';
-        if (tipo === 'success') icono = 'check-circle';
-        if (tipo === 'error') icono = 'exclamation-circle';
-        if (tipo === 'info') icono = 'info-circle';
-        if (tipo === 'warning') icono = 'exclamation-triangle';
+        let icono;
+        switch(tipo) {
+            case 'success': icono = 'fa-check-circle'; break;
+            case 'error': icono = 'fa-exclamation-circle'; break;
+            case 'info': icono = 'fa-info-circle'; break;
+            case 'warning': icono = 'fa-exclamation-triangle'; break;
+            default: icono = 'fa-info-circle';
+        }
         
-        notification.innerHTML = `<i class="fas fa-${icono}"></i><span>${mensaje}</span>`;
+        // ESTILOS MEJORADOS - SIN !important, solo inline
+        Object.assign(notification.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            background: 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%)',
+            borderLeft: `5px solid ${colorBorde}`,
+            color: 'white',
+            padding: '15px 20px',
+            borderRadius: '8px',
+            boxShadow: '0 5px 20px rgba(0,0,0,0.5)',
+            zIndex: '99999',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            maxWidth: '400px',
+            minWidth: '300px',
+            fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+            backdropFilter: 'blur(10px)',
+            animation: 'notificationSlideIn 0.3s ease forwards',
+            WebkitAnimation: 'notificationSlideIn 0.3s ease forwards'
+        });
         
-        // Añadir al body
-        document.body.appendChild(notification);
+        notification.innerHTML = `
+            <i class="fas ${icono}" style="font-size: 1.5rem; color: ${colorIcono};"></i>
+            <div style="flex: 1;">
+                <div style="font-weight: bold; margin-bottom: 4px;">${tipo.toUpperCase()}</div>
+                <div style="font-size: 0.95rem; line-height: 1.4;">${mensaje}</div>
+            </div>
+            <i class="fas fa-times" style="cursor: pointer; opacity: 0.7;" onclick="this.parentElement.remove()"></i>
+        `;
         
-        // Eliminar después de 2 segundos
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
+        // Añadir al body (PERO al principio para que esté encima)
+        document.body.insertBefore(notification, document.body.firstChild);
+        
+        // Auto-eliminar después de 3 segundos
+        const timeoutId = setTimeout(() => {
+            notification.style.animation = 'notificationSlideOut 0.3s ease forwards';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+        
+        // Permitir cerrar manualmente
+        notification.addEventListener('click', (e) => {
+            if (e.target.classList.contains('fa-times') || e.target.closest('.fa-times')) {
+                clearTimeout(timeoutId);
+                notification.style.animation = 'notificationSlideOut 0.3s ease forwards';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
             }
-        }, 2000);
+        });
+        
+        console.log(`✅ Notificación creada: ${notification.id}`);
+        return notification;
     }
     async updateEscuderiaMoney() {
         if (!this.escuderia) return;
