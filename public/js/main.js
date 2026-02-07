@@ -1312,8 +1312,8 @@ class F1Manager {
                 }
             }
             
-            // NOTIFICACIÓN 2: Información de lo que se va a fabricar
-            this.showNotification(`📦 Preparando: ${nombrePiezaNotif}`, 'info');
+            // ✅ NOTIFICACIÓN 1: "🔧 Preparando fabricación..." (LA QUE QUIERES)
+            this.showNotification('🔧 Preparando fabricación...', 'info');
             
             const ahora = new Date();
             const tiempoFin = new Date(ahora.getTime() + tiempoMilisegundos);
@@ -1356,21 +1356,6 @@ class F1Manager {
             this.escuderia.dinero -= costo;
             await this.updateEscuderiaMoney();
             
-            // NOTIFICACIÓN 3: ¡FABRICACIÓN INICIADA!
-            this.showNotification(
-                `✅ ${nombrePiezaNotif} en fabricación\n` +
-                `⏱️ ${tiempoTexto}\n` +
-                `💰 Costo: €${costo.toLocaleString()}`,
-                'success'
-            );
-            
-            // NOTIFICACIÓN 4: Dinero restante
-            this.showNotification(
-                `💶 Dinero restante: €${this.escuderia.dinero.toLocaleString()}\n` +
-                `📉 Gastado: €${costo.toLocaleString()}`,
-                'info'
-            );
-            
             // Registrar transacción de presupuesto
             try {
                 if (window.presupuestoManager && 
@@ -1412,7 +1397,7 @@ class F1Manager {
                 await this.darEstrellasFabricacion();
             } else {
                 console.log('ℹ️ Ya no es primera fabricación del día');
-                this.showNotification('📅 Ya fabricaste hoy, sin estrellas adicionales', 'info');
+                // ❌ ELIMINADA: this.showNotification('📅 Ya fabricaste hoy, sin estrellas adicionales', 'info');
             }
             
             // Actualizar monitor de producción
@@ -1420,7 +1405,7 @@ class F1Manager {
                 this.updateProductionMonitor();
             }, 500);
             
-            // NOTIFICACIÓN 6: Recordatorio final
+            // ✅ NOTIFICACIÓN 6: "🏭 Fabricación activa..." (LA QUE QUIERES)
             setTimeout(() => {
                 this.showNotification(
                     `🏭 Fabricación activa: ${nombrePiezaNotif}\n` +
