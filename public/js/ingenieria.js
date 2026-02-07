@@ -430,9 +430,11 @@ class IngenieriaManager {
                                     estrellasElement.textContent = nuevasEstrellas;
                                 }
                                 
-                                // Notificación
-                                if (window.f1Manager.showNotification) {
-                                    window.f1Manager.showNotification('+20🌟 (prueba de pista)', 'info');
+                                // Notificación - SIEMPRE mostrar si dio estrellas
+                                if (window.f1Manager && window.f1Manager.showNotification) {
+                                    // Mostrar siempre, no solo si no hay error
+                                    console.log('🔔 Mostrando notificación de +20 estrellas por prueba');
+                                    window.f1Manager.showNotification('🏎️ +20🌟 (prueba en pista completada)', 'info');
                                 }
                             }
                         }
