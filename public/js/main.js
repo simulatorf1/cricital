@@ -2990,7 +2990,7 @@ class F1Manager {
         // ESTILOS DIRECTOS E INMEDIATOS
         notification.style.position = 'fixed';
         notification.style.top = '20px';
-        notification.style.left = '20px';
+        notification.style.right = '20px'; // Cambiado de left a right
         notification.style.background = '#1a1a2e';
         notification.style.borderLeft = `4px solid ${tipo === 'success' ? '#4CAF50' : tipo === 'error' ? '#e10600' : tipo === 'info' ? '#2196F3' : '#FF9800'}`;
         notification.style.color = 'white';
@@ -3003,6 +3003,9 @@ class F1Manager {
         notification.style.zIndex = '2147483647';
         notification.style.maxWidth = '300px';
         notification.style.fontFamily = 'Arial, sans-serif';
+        notification.style.transition = 'all 0.3s ease'; // Transición suave para todo
+        notification.style.opacity = '0'; // Inicialmente invisible
+        notification.style.transform = 'translateX(50px)'; // Inicialmente desplazado
         
         // Icono
         let icono = '🔔';
@@ -3016,16 +3019,46 @@ class F1Manager {
         // Añadir al body
         document.body.appendChild(notification);
         
+        // Calcular posición basada en notificaciones existentes
+        const notificacionesExistentes = document.querySelectorAll('[style*="position: fixed"][style*="right: 20px"]');
+        let topPosicion = 20;
+        
+        notificacionesExistentes.forEach(notif => {
+            if (notif !== notification) {
+                topPosicion += notif.offsetHeight + 10; // 10px de separación
+            }
+        });
+        
+        // Aplicar posición y hacer visible
+        notification.style.top = `${topPosicion}px`;
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+        
+        // Función para actualizar posiciones cuando se elimina una notificación
+        const actualizarPosiciones = () => {
+            const todasNotificaciones = document.querySelectorAll('[style*="position: fixed"][style*="right: 20px"]');
+            let nuevaTopPosicion = 20;
+            
+            todasNotificaciones.forEach(notif => {
+                notif.style.transition = 'top 0.3s ease';
+                notif.style.top = `${nuevaTopPosicion}px`;
+                nuevaTopPosicion += notif.offsetHeight + 10;
+            });
+        };
+        
         // Eliminar después de 3 segundos
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.style.opacity = '0';
-                notification.style.transition = 'opacity 0.5s';
+                notification.style.transform = 'translateX(50px)';
+                
                 setTimeout(() => {
                     if (notification.parentNode) {
                         notification.parentNode.removeChild(notification);
+                        // Actualizar posiciones de las notificaciones restantes
+                        actualizarPosiciones();
                     }
-                }, 500);
+                }, 300);
             }
         }, 3000);
         
