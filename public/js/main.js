@@ -1935,10 +1935,12 @@ class F1Manager {
             let puntosTotales = 0;
             let html = '';
             
-     
-            
-            areas.forEach(area => {
+            // ====== ¡CORRECCIÓN AQUÍ! ======
+            // Usamos Promise.all para esperar todos los cálculos de desgaste
+            const promesas = areas.map(async (area) => {
                 const pieza = piezasPorArea[area.id];
+                
+                let areaHTML = '';
                 
                 if (pieza) {
                     puntosTotales += pieza.puntos_base || 0;
@@ -1951,7 +1953,7 @@ class F1Manager {
                         nombreMostrar = this.nombresPiezas[area.id][pieza.numero_global - 1];
                     }
                     
-                    // === NUEVO: Calcular desgaste ===
+                    // === Calcular desgaste ===
                     const desgaste = await this.calcularDesgastePieza(pieza.id);
                     const desgastePorcentaje = Math.max(0, Math.min(100, desgaste));
                     const desgasteColor = this.getColorDesgaste(desgastePorcentaje);
@@ -1959,13 +1961,13 @@ class F1Manager {
                     const costoMantenimiento = necesitaMantenimiento ? 100000 : 0;
                     
                     // Crear contenido con barra de desgaste
-                    html += `<div class="boton-area-vacia" onclick="mantenerPiezaEquipada('${pieza.id}', ${necesitaMantenimiento}, ${costoMantenimiento})" title="${area.nombre}: ${nombreMostrar}\nDesgaste: ${desgastePorcentaje.toFixed(0)}%">`;
+                    areaHTML += `<div class="boton-area-vacia" onclick="mantenerPiezaEquipada('${pieza.id}', ${necesitaMantenimiento}, ${costoMantenimiento})" title="${area.nombre}: ${nombreMostrar}\nDesgaste: ${desgastePorcentaje.toFixed(0)}%">`;
                     
                     // Nombre de la pieza
-                    html += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${nombreMostrar}</div>`;
+                    areaHTML += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${nombreMostrar}</div>`;
                     
-                    // === NUEVO: Barra de desgaste ===
-                    html += `<div style="
+                    // Barra de desgaste
+                    areaHTML += `<div style="
                         width: 100%;
                         height: 4px;
                         background: rgba(255,255,255,0.1);
@@ -1984,20 +1986,26 @@ class F1Manager {
                     
                     // Indicador si necesita mantenimiento
                     if (necesitaMantenimiento) {
-                        html += `<div style="font-size: 0.55rem; color: #e10600; margin-top: 2px; font-weight: bold;">¡MANTENIMIENTO! (€100K)</div>`;
+                        areaHTML += `<div style="font-size: 0.55rem; color: #e10600; margin-top: 2px; font-weight: bold;">¡MANTENIMIENTO! (€100K)</div>`;
                     } else if (desgastePorcentaje < 30) {
-                        html += `<div style="font-size: 0.55rem; color: #FF9800; margin-top: 2px;">Desgaste: ${desgastePorcentaje.toFixed(0)}%</div>`;
+                        areaHTML += `<div style="font-size: 0.55rem; color: #FF9800; margin-top: 2px;">Desgaste: ${desgastePorcentaje.toFixed(0)}%</div>`;
                     }
                     
-                    html += '</button>';
+                    areaHTML += '</div>';
                     
                 } else {
-                    // Para huecos vacíos (mantener como estaba)
-                    html += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="${area.nombre}: Sin pieza equipada">`;
-                    html += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">${area.nombre}<br><small style="font-size: 0.6rem;">Vacío</small></div>`;
-                    html += '</div>';
+                    // Para huecos vacíos
+                    areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="${area.nombre}: Sin pieza equipada">`;
+                    areaHTML += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">${area.nombre}<br><small style="font-size: 0.6rem;">Vacío</small></div>`;
+                    areaHTML += '</div>';
                 }
+                
+                return areaHTML;
             });
+            
+            // Esperar a que todas las promesas se resuelvan
+            const resultados = await Promise.all(promesas);
+            html = resultados.join('');
             
             contenedor.innerHTML = html;
             
