@@ -272,11 +272,11 @@ class F1Manager {
             const hoy = new Date().toISOString().split('T')[0];
             console.log('📅 Hoy:', hoy, 'Último login:', this.escuderia.ultimo_login_dia);
             
-            // Verificar si ya recibió estrellas hoy
+            // VERIFICAR SI YA CONECTÓ HOY
             if (this.escuderia.ultimo_login_dia === hoy) {
-                console.log('ℹ️ Ya recibiste estrellas hoy');
-                // Mostrar notificación informativa de todos modos
-                this.showNotification('✅ Ya conectaste hoy', 'info');
+                console.log('ℹ️ Ya conectó hoy - Mostrar bienvenida');
+                // CAMBIADO: En lugar de "Ya conectaste hoy"
+                this.showNotification('🏎️ ¡Bienvenido a la escudería, jefe!', 'info');
                 return;
             }
             
