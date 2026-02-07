@@ -2208,6 +2208,7 @@ class F1Manager {
                 </div>
                 
                 <!-- FOOTER FIJO - SIEMPRE VISIBLE -->
+                // FOOTER FIJO - SIEMPRE VISIBLE
                 <footer class="dashboard-footer" style="
                     position: sticky;
                     bottom: 0;
@@ -2250,9 +2251,6 @@ class F1Manager {
                     ">
                         <i class="fas fa-sign-out-alt"></i> Salir
                     </button>
-                    <div style="font-size: 0.7rem; color: #666;">
-                        CRITICAL LAP v1.0
-                    </div>
                 </footer>
             </div>
 
