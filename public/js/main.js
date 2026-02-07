@@ -2077,7 +2077,7 @@ class F1Manager {
         `;
 
         document.body.innerHTML = `
-            <div id="app" style="min-height: 100vh; display: flex; flex-direction: column;">
+            <div id="app" style="min-height: 100vh; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); box-sizing: border-box;">
                 <header class="dashboard-header-compacto">
                     <div class="header-left-compacto">
                         <div class="logo-compacto">
