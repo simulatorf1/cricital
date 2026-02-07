@@ -2274,8 +2274,9 @@ class F1Manager {
                             border-top: 1px solid rgba(0, 210, 190, 0.3);
                             z-index: 1000;
                         ">
-                        
-                            <!-- 5 PESTAÑAS ABAJO - AHORA INCLUYE "SALIR" -->
+
+                            
+                            <!-- 4 PESTAÑAS ABAJO - USANDO LA MISMA CLASE QUE ARRIBA -->
                             <nav class="tabs-compactas" style="flex: 1; justify-content: center; margin: 0 10px;">
                                 <button class="tab-btn-compacto" data-tab="mercado">
                                     <i class="fas fa-shopping-cart"></i> Mercado
@@ -2289,15 +2290,22 @@ class F1Manager {
                                 <button class="tab-btn-compacto" data-tab="clasificacion">
                                     <i class="fas fa-medal"></i> Clasificación
                                 </button>
-                                <!-- NUEVA PESTAÑA "SALIR" CON ESTILOS ROJOS -->
-                                <button class="tab-btn-compacto" id="logout-tab-btn" title="Cerrar sesión" style="
-                                    background: rgba(225, 6, 0, 0.1);
-                                    border: 1px solid rgba(225, 6, 0, 0.3);
-                                    color: #e10600;
-                                ">
-                                    <i class="fas fa-sign-out-alt"></i> Salir
-                                </button>
                             </nav>
+                            
+                            <button class="logout-btn-compacto" id="logout-btn-visible" title="Cerrar sesión" style="
+                                background: rgba(225, 6, 0, 0.1);
+                                border: 1px solid rgba(225, 6, 0, 0.3);
+                                color: #e10600;
+                                padding: 4px 10px;
+                                border-radius: 8px;
+                                font-size: 0.8rem;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                gap: 5px;
+                            ">
+                                <i class="fas fa-sign-out-alt"></i> Salir
+                            </button>
                         </footer>
                     </div>
                 </div>
@@ -2347,9 +2355,9 @@ class F1Manager {
                     });
                 });
                 
-                const logoutTabBtn = document.getElementById('logout-tab-btn');
-                if (logoutTabBtn) {
-                    logoutTabBtn.addEventListener('click', async (e) => {
+                const logoutBtn = document.getElementById('logout-btn-visible');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', async (e) => {
                         e.preventDefault();
                         try {
                             const supabaseClient = window.supabase;
