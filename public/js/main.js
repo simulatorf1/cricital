@@ -4108,8 +4108,8 @@ window.addEventListener('auth-completado', (evento) => {
         
         window.f1Manager = new F1Manager(user, escuderia, supabase);
         
-        // Crear una función async autónoma para manejar la inicialización
-        (async () => {
+        // Usar una IIFE async para manejar toda la inicialización
+        (async function inicializarSistemas() {
             try {
                 // Inicializar ingenieriaManager
                 if (window.IngenieriaManager && !window.ingenieriaManager) {
@@ -4123,24 +4123,31 @@ window.addEventListener('auth-completado', (evento) => {
                     }
                 }
                 
-                // Inicializar mercadoManager
+                // Inicializar mercadoManager usando .then() para evitar problemas
                 if (window.MercadoManager) {
                     console.log('🔧 Inicializando mercadoManager con escudería:', escuderia.id);
                     if (!window.mercadoManager) {
                         window.mercadoManager = new window.MercadoManager();
                     }
-                    await window.mercadoManager.inicializar(escuderia); // ← Ahora está bien
-                    console.log('✅ mercadoManager inicializado');
-                } else {
-                    console.error('❌ MercadoManager no está disponible');
+                    
+                    // Manejar la promesa sin await problemático
+                    window.mercadoManager.inicializar(escuderia)
+                        .then(() => {
+                            console.log('✅ mercadoManager inicializado');
+                        })
+                        .catch(error => {
+                            console.error('❌ Error inicializando mercadoManager:', error);
+                        });
                 }
                 
+                // Verificar si mostrar tutorial
                 if (!escuderia.tutorial_completado) {
                     console.log('📚 Mostrando tutorial...');
                     window.tutorialManager = new TutorialManager(window.f1Manager);
                     window.tutorialManager.iniciar();
                 } else {
                     console.log('✅ Tutorial ya completado, cargando dashboard...');
+                    
                     // Simular progreso de carga
                     actualizarProgresoCarga(30, "Cargando escudería...");
                     await new Promise(resolve => setTimeout(resolve, 800));
@@ -4154,19 +4161,34 @@ window.addEventListener('auth-completado', (evento) => {
                     actualizarProgresoCarga(100, "¡Listo!");
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     
-                    // Ocultar pantalla de carga antes de cargar el dashboard
+                    // Ocultar pantalla de carga
                     ocultarPantallaCarga();
                     
-                    await window.f1Manager.cargarDashboardCompleto();
+                    // Cargar dashboard
+                    if (window.f1Manager.cargarDashboardCompleto) {
+                        await window.f1Manager.cargarDashboardCompleto();
+                    }
                 }
             } catch (error) {
-                console.error('❌ Error durante la inicialización:', error);
-                // Manejar error...
+                console.error('❌ Error crítico durante la inicialización:', error);
+                // Mostrar error al usuario
+                document.body.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0a0a0f; color: white; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; font-family: Arial, sans-serif; z-index: 99999;">
+                        <h1 style="color: #e10600; font-size: 2.5rem; margin-bottom: 20px;">❌ ERROR DE INICIALIZACIÓN</h1>
+                        <div style="background: rgba(225, 6, 0, 0.1); padding: 20px; border-radius: 10px; border: 2px solid #e10600; max-width: 600px; margin-bottom: 30px;">
+                            <h3 style="color: #ff4444; margin-top: 0;">Detalles del error:</h3>
+                            <p style="font-family: monospace; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; overflow: auto;">${error.message}</p>
+                        </div>
+                        <button onclick="location.reload()" style="padding: 15px 30px; background: linear-gradient(135deg, #e10600, #ff4444); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.2s;">
+                            <i class="fas fa-redo" style="margin-right: 10px;"></i> REINTENTAR
+                        </button>
+                        <p style="margin-top: 20px; color: #888; font-size: 0.9rem;">Si el problema persiste, contacta con soporte técnico.</p>
+                    </div>
+                `;
             }
-        })(); // ← Ejecutar inmediatamente
+        })(); // <-- Ejecutar inmediatamente
     }
 });
-
 // Añade estas funciones auxiliares después del event listener:
 
 function mostrarPantallaCargaInicial() {
