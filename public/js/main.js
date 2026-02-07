@@ -2939,16 +2939,24 @@ class F1Manager {
         let icono = 'info-circle';
         if (tipo === 'success') icono = 'check-circle';
         if (tipo === 'error') icono = 'exclamation-circle';
+        if (tipo === 'info') icono = 'info-circle';
+        if (tipo === 'warning') icono = 'exclamation-triangle';
         
         notification.innerHTML = '<i class="fas fa-' + icono + '"></i><span>' + mensaje + '</span>';
         
+        // Añadir al body
         document.body.appendChild(notification);
         
+        // Forzar que los estilos se apliquen
+        notification.style.display = 'flex';
+        
+        // Eliminar después de 2 segundos
         setTimeout(() => {
-            notification.remove();
-        }, 5000);
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 2000);
     }
-
     async updateEscuderiaMoney() {
         if (!this.escuderia) return;
         
