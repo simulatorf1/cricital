@@ -808,7 +808,7 @@ class TabManager {
     
     
     // ===== NUEVO MÉTODO PARA CARGAR CLASIFICACIÓN =====
-    async loadClasificacionData(tipo = 'dinero', orden = 'desc') {
+    async loadClasificacionData(tipo = 'dinero', orden = 'asc') {
         console.log(`📊 Cargando clasificación: ${tipo} - ${orden}`);
         
         const tablaBody = document.getElementById('tabla-clasificacion-body');
@@ -896,20 +896,19 @@ class TabManager {
                     );
                 }
             } 
-            else if (tipo === 'vuelta') {
+            } else if (tipo === 'vuelta') {
                 if (orden === 'nombre') {
                     escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
                         (a.nombre || '').localeCompare(b.nombre || '')
                     );
                 } else {
                     escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => {
-                        // Para VUELTA invertimos la lógica
                         if (orden === 'desc') {
-                            // MEJORES vueltas primero (menor tiempo)
-                            return a.tiempo_vuelta - b.tiempo_vuelta;  // ← CAMBIADO
+                            // Mejores vueltas primero (menor tiempo)
+                            return a.tiempo_vuelta - b.tiempo_vuelta;
                         } else {
-                            // PEORES vueltas primero (mayor tiempo)
-                            return b.tiempo_vuelta - a.tiempo_vuelta;  // ← CAMBIADO
+                            // Peores vueltas primero (mayor tiempo)
+                            return b.tiempo_vuelta - a.tiempo_vuelta;
                         }
                     });
                 }
