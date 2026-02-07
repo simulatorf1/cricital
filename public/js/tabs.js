@@ -740,30 +740,7 @@ class TabManager {
                         </button>
                     </div>
                 </div>
-                
-                <div class="clasificacion-info-bar">
-                    <div class="info-item">
-                        <i class="fas fa-coins" style="color: #FFD700;"></i>
-                        <div>
-                            <span class="info-label" id="titulo-metrica">Tu dinero actual</span>
-                            <span class="info-value" id="mi-metrica-actual">Cargando...</span>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-trophy" style="color: #FF9800;"></i>
-                        <div>
-                            <span class="info-label">Tu posición</span>
-                            <span class="info-value" id="mi-posicion-actual">Cargando...</span>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-users" style="color: #2196F3;"></i>
-                        <div>
-                            <span class="info-label">Total escuderías</span>
-                            <span class="info-value" id="total-escuderias">Cargando...</span>
-                        </div>
-                    </div>
-                </div>
+
                 
                 <div class="tabla-controls">
                     <div class="ordenamiento-buttons">
@@ -773,9 +750,7 @@ class TabManager {
                         <button class="btn-ordenar" data-order="asc" id="btn-asc">
                             <i class="fas fa-sort-amount-up"></i> Menor a mayor
                         </button>
-                        <button class="btn-ordenar" data-order="nombre" id="btn-nombre">
-                            <i class="fas fa-sort-alpha-down"></i> Nombre A-Z
-                        </button>
+
                     </div>
                     <div class="search-box">
                         <input type="text" id="buscar-escuderia" placeholder="Buscar escudería..." class="search-input">
