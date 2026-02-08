@@ -408,37 +408,56 @@ class F1Manager {
     }
 
 
-    // ========================
-    // ========================
-    // MÉTODOS PARA EL DESGASTE DE PIEZAS
-    // ========================
+
     
+    // ========================
+    // MÉTODO CORREGIDO PARA CALCULAR DESGASTE (24 HORAS REALES)
+    // ========================
     async calcularDesgastePieza(piezaId) {
         try {
             // Obtener datos actuales de la pieza
             const { data: pieza, error } = await this.supabase
                 .from('almacen_piezas')
-                .select('desgaste_actual, ultima_actualizacion_desgaste, fabricada_en')
+                .select('desgaste_actual, montada_en, ultima_actualizacion_desgaste, fabricada_en')
                 .eq('id', piezaId)
                 .single();
             
             if (error || !pieza) return 100;
             
-            let desgasteActual = pieza.desgaste_actual || 100;
-            let ultimaActualizacion = new Date(pieza.ultima_actualizacion_desgaste || pieza.fabricada_en || new Date());
+            // Determinar cuándo se montó (usar montada_en si existe, sino fabricada_en)
+            const fechaMontaje = new Date(pieza.montada_en || pieza.fabricada_en || new Date());
             const ahora = new Date();
             
-            // Calcular horas transcurridas desde la última actualización
-            const horasTranscurridas = (ahora - ultimaActualizacion) / (1000 * 60 * 60);
+            // Calcular minutos transcurridos desde que se montó
+            const minutosTranscurridos = (ahora - fechaMontaje) / (1000 * 60);
             
-            // Si han pasado más de 1 hora, calcular desgaste (4.1667% por hora para llegar a 0 en 24h)
-            if (horasTranscurridas >= 1) {
-                const desgastePorHora = 4.1667; // 100% / 24 horas
-                const desgastePerdido = horasTranscurridas * desgastePorHora;
+            // 24 horas = 1440 minutos
+            const minutosTotales = 1440;
+            
+            // Calcular desgaste actual (100% - porcentaje transcurrido)
+            let desgasteActual = 100 - ((minutosTranscurridos / minutosTotales) * 100);
+            
+            // Asegurar que esté entre 0 y 100
+            desgasteActual = Math.max(0, Math.min(100, desgasteActual));
+            
+            // Si llegó a 0%, ELIMINAR la pieza (destrucción automática)
+            if (desgasteActual <= 0) {
+                console.log(`🗑️ Pieza ${piezaId} destruida por desgaste completo`);
                 
-                desgasteActual = Math.max(0, desgasteActual - desgastePerdido);
+                // Eliminar de la base de datos
+                await this.supabase
+                    .from('almacen_piezas')
+                    .delete()
+                    .eq('id', piezaId);
                 
-                // Actualizar en la base de datos
+                return 0; // Devuelve 0 para indicar que fue destruida
+            }
+            
+            // Solo actualizar en BD si cambió significativamente (cada ~5% para no sobrecargar)
+            const desgasteAnterior = pieza.desgaste_actual || 100;
+            if (Math.abs(desgasteAnterior - desgasteActual) > 5 || 
+                !pieza.ultima_actualizacion_desgaste) {
+                
                 await this.supabase
                     .from('almacen_piezas')
                     .update({ 
@@ -462,7 +481,23 @@ class F1Manager {
         if (porcentaje > 0) return '#e10600';         // Rojo (F1)
         return '#666';                                 // Gris (completamente desgastado)
     }
-
+    // ========================
+    // CALCULAR TIEMPO RESTANTE EN HORAS:MINUTOS
+    // ========================
+    calcularTiempoRestante(porcentajeDesgaste) {
+        // Si ya está destruida
+        if (porcentajeDesgaste <= 0) return "0:00";
+        
+        // Calcular minutos restantes basado en porcentaje
+        // 100% = 1440 minutos, 50% = 720 minutos, etc.
+        const minutosTotales = 1440;
+        const minutosRestantes = (porcentajeDesgaste / 100) * minutosTotales;
+        
+        const horas = Math.floor(minutosRestantes / 60);
+        const minutos = Math.floor(minutosRestantes % 60);
+        
+        return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
+    }
     
     // ========================
     // INICIALIZAR PRESUPUESTO MANAGER (GARANTIZADO) - VERSIÓN CORREGIDA
@@ -1650,7 +1685,10 @@ class F1Manager {
             
             const { error: errorEquipar } = await this.supabase
                 .from('almacen_piezas')
-                .update({ equipada: true })
+                .update({ 
+                    equipada: true,
+                    montada_en: new Date().toISOString()  // ← AÑADIR ESTA LÍNEA
+                })
                 .in('id', idsPiezas);
             
             if (errorEquipar) throw errorEquipar;
@@ -1867,16 +1905,19 @@ class F1Manager {
                     this.cargarUltimoTiempoUI();
                 }
             }, 30000),
-            // === NUEVO: Actualizar desgaste cada 5 minutos ===
+            // === ACTUALIZAR DESGASTE CADA MINUTO EN TIEMPO REAL ===
             desgaste: setInterval(() => {
                 // Solo actualizar si estamos en la pestaña principal
                 const tabPrincipal = document.getElementById('tab-principal');
                 if (tabPrincipal && tabPrincipal.classList.contains('active')) {
                     if (this.cargarPiezasMontadas) {
-                        this.cargarPiezasMontadas();
+                        // Forzar recálculo de desgaste y actualización UI
+                        this.cargarPiezasMontadas().catch(error => {
+                            console.error('Error actualizando desgaste:', error);
+                        });
                     }
                 }
-            }, 300000) // 5 minutos     
+            }, 60000) // 1 MINUTO (no 5 minutos)
             
         };
         
@@ -1957,8 +1998,19 @@ class F1Manager {
                     const desgaste = await this.calcularDesgastePieza(pieza.id);
                     const desgastePorcentaje = Math.max(0, Math.min(100, desgaste));
                     const desgasteColor = this.getColorDesgaste(desgastePorcentaje);
-                    const necesitaMantenimiento = desgastePorcentaje <= 0;
-                    const costoMantenimiento = necesitaMantenimiento ? 100000 : 0;
+                    
+                    // Si la pieza fue destruida (desgaste = 0), no mostrar nada más
+                    if (desgastePorcentaje <= 0) {
+                        // La pieza ya fue eliminada en calcularDesgastePieza()
+                        // Solo mostrar hueco vacío
+                        areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="${area.nombre}: Pieza destruida por desgaste">`;
+                        areaHTML += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #e10600;">${area.nombre}<br><small style="font-size: 0.6rem;">DESTRUIDA</small></div>`;
+                        areaHTML += '</div>';
+                        return areaHTML; // Salir temprano, esta pieza ya no existe
+                    }
+                    
+                    // Si sigue existiendo, mostrar con barra de desgaste
+                    areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="${area.nombre}: ${nombreMostrar}\nDesgaste: ${desgastePorcentaje.toFixed(1)}%\nTiempo restante: ${this.calcularTiempoRestante(desgastePorcentaje)}">`;
                     
                     // Crear contenido con barra de desgaste
                     areaHTML += `<div class="boton-area-vacia" onclick="mantenerPiezaEquipada('${pieza.id}', ${necesitaMantenimiento}, ${costoMantenimiento})" title="${area.nombre}: ${nombreMostrar}\nDesgaste: ${desgastePorcentaje.toFixed(0)}%">`;
@@ -4894,98 +4946,11 @@ setTimeout(() => {
     // ========================
     // FUNCIÓN PARA MANTENER PIEZAS EQUIPADAS
     // ========================
-    window.mantenerPiezaEquipada = async function(piezaId, necesitaMantenimiento, costo) {
-        console.log('🔧 Manteniendo pieza:', { piezaId, necesitaMantenimiento, costo });
-        
-        if (necesitaMantenimiento && costo > 0) {
-            // Verificar si tiene dinero suficiente
-            if (!window.f1Manager || !window.f1Manager.escuderia || window.f1Manager.escuderia.dinero < costo) {
-                if (window.f1Manager && window.f1Manager.showNotification) {
-                    window.f1Manager.showNotification(`❌ Dinero insuficiente. Necesitas €${costo.toLocaleString()}`, 'error');
-                }
-                return;
-            }
-            
-            // Confirmar pago
-            const confirmar = confirm(`⚠️ Esta pieza está completamente desgastada.\n\n¿Deseas pagar €${costo.toLocaleString()} para realizar mantenimiento?`);
-            
-            if (!confirmar) {
-                return;
-            }
-            
-            // Restar dinero
-            const dineroAnterior = window.f1Manager.escuderia.dinero;
-            window.f1Manager.escuderia.dinero -= costo;
-            
-            // Actualizar dinero en BD
-            const { error: dineroError } = await supabase
-                .from('escuderias')
-                .update({ dinero: window.f1Manager.escuderia.dinero })
-                .eq('id', window.f1Manager.escuderia.id);
-            
-            if (dineroError) {
-                console.error('Error actualizando dinero:', dineroError);
-                window.f1Manager.escuderia.dinero = dineroAnterior;
-                window.f1Manager.showNotification('❌ Error en el pago', 'error');
-                return;
-            }
-            
-            // Actualizar UI de dinero
-            const moneyElement = document.getElementById('money-value');
-            if (moneyElement) {
-                moneyElement.textContent = '€' + window.f1Manager.escuderia.dinero.toLocaleString();
-            }
-            
-            // Registrar transacción en presupuesto si existe
-            if (window.presupuestoManager && window.presupuestoManager.registrarTransaccion) {
-                try {
-                    await window.presupuestoManager.registrarTransaccion(
-                        'gasto',
-                        costo,
-                        'Mantenimiento de pieza',
-                        'mantenimiento',
-                        { pieza_id: piezaId }
-                    );
-                } catch (error) {
-                    console.warn('No se pudo registrar transacción:', error);
-                }
-            }
-        }
-        
-        // Restaurar desgaste al 100%
-        try {
-            const ahora = new Date();
-            const { error } = await supabase
-                .from('almacen_piezas')
-                .update({ 
-                    desgaste_actual: 100,
-                    ultima_actualizacion_desgaste: ahora.toISOString()
-                })
-                .eq('id', piezaId);
-            
-            if (error) throw error;
-            
-            // Mostrar notificación apropiada
-            if (window.f1Manager && window.f1Manager.showNotification) {
-                if (necesitaMantenimiento) {
-                    window.f1Manager.showNotification(`✅ Pieza restaurada por €${costo.toLocaleString()}`, 'success');
-                } else {
-                    window.f1Manager.showNotification('✅ Pieza mantenida (gratis)', 'success');
-                }
-            }
-            
-            // Actualizar la vista
-            setTimeout(async () => {
-                if (window.f1Manager && window.f1Manager.cargarPiezasMontadas) {
-                    await window.f1Manager.cargarPiezasMontadas();
-                }
-            }, 500);
-            
-        } catch (error) {
-            console.error('Error manteniendo pieza:', error);
-            if (window.f1Manager && window.f1Manager.showNotification) {
-                window.f1Manager.showNotification('❌ Error en mantenimiento', 'error');
-            }
+    // ========================
+    window.mantenerPiezaEquipada = function(piezaId) {
+        console.log('⚠️ Mantenimiento desactivado - Las piezas se destruyen automáticamente');
+        if (window.f1Manager && window.f1Manager.showNotification) {
+            window.f1Manager.showNotification('❌ Esta pieza ya no existe - Fue destruida por desgaste', 'error');
         }
     };
     
