@@ -127,15 +127,6 @@ const produccionStyles = `
     overflow: hidden;
 }
 
-const produccionStyles = `
-.progress-bar-global {
-    width: 100%;
-    height: 6px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 3px;
-    margin: 5px 0;
-    overflow: hidden;
-}
 
 .progress-fill-global {
     height: 100%;
