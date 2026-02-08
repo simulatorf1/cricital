@@ -731,6 +731,9 @@ class F1Manager {
     // ========================
     // MÉTODO PARA CARGAR PESTAÑA TALLER (MODIFICADO CON 50 BOTONES Y NAVEGACIÓN)
     // ========================
+    // ========================
+    // MÉTODO PARA CARGAR PESTAÑA TALLER (MODIFICADO CON 50 BOTONES Y NAVEGACIÓN) - VERSIÓN CORREGIDA
+    // ========================
     async cargarTabTaller() {
         console.log('🔧 Cargando pestaña taller con 50 botones y navegación...');
         
@@ -794,12 +797,11 @@ class F1Manager {
             html += '</div>';
             html += '</div>';
             
-            // === BARRA DE NAVEGACIÓN FIJA ===
+            // === BARRA DE NAVEGACIÓN RELATIVA (NO STICKY) ===
             html += '<div id="nav-areas-taller" class="nav-areas-fija">';
             html += '<div class="nav-areas-contenedor">';
             
             areas.forEach((area, index) => {
-                // Contar piezas fabricadas para esta área
                 const piezasAreaFabricadas = piezasFabricadas?.filter(p => 
                     p.area === area.id || p.area === area.nombre
                 ) || [];
@@ -830,7 +832,6 @@ class F1Manager {
                 html += '<span class="area-icono-completa">' + area.icono + '</span>';
                 html += '<span class="area-nombre-completa">' + area.nombre + '</span>';
                 
-                // Mostrar progreso
                 const piezasAreaFabricadas = piezasFabricadas?.filter(p => 
                     p.area === area.id || p.area === area.nombre
                 ) || [];
@@ -841,41 +842,30 @@ class F1Manager {
                 
                 html += '<div class="botones-area-completa">';
                 
-                // Obtener todas las piezas fabricadas para esta área
                 const piezasAreaFabricadasAll = piezasFabricadas?.filter(p => 
                     p.area === area.id || p.area === area.nombre
                 ) || [];
                 
-                // Obtener fabricaciones activas para esta área
                 const fabricacionesAreaActivas = fabricacionesActivas?.filter(f => 
                     (f.area === area.id || f.area === area.nombre) && !f.completada
                 ) || [];
                 
                 // Para cada una de las 50 piezas
                 for (let piezaNum = 1; piezaNum <= 50; piezaNum++) {
-                    // Calcular nivel (cada 5 piezas es un nivel)
                     const nivel = Math.ceil(piezaNum / 5);
-                    
-                    // ✅ AÑADIDO: CALCULAR COSTO PARA ESTA PIEZA
                     const numeroPiezaEnNivel = ((piezaNum - 1) % 5) + 1;
                     const costoPieza = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
                     const tieneDinero = this.escuderia.dinero >= costoPieza;
                     
-                    // Verificar si esta pieza ya está fabricada
                     const piezaFabricada = piezasAreaFabricadasAll[piezaNum - 1];
                     const yaFabricada = !!piezaFabricada;
-                    
-                    // Verificar si está comprada en mercado
                     const esCompradaMercado = piezaFabricada?.comprada_mercado || false;
                     
-                    // Verificar si está en fabricación
                     const enFabricacion = fabricacionesAreaActivas.some(f => {
-                        // Calcular qué pieza del nivel estaría fabricando
                         const nivelFabricacion = f.nivel;
                         const rangoInicio = (nivelFabricacion - 1) * 5 + 1;
                         const rangoFin = nivelFabricacion * 5;
                         
-                        // Encontrar la próxima pieza no fabricada en ese nivel
                         const piezasNivelFabricadas = piezasAreaFabricadasAll.filter(p => {
                             const nivelPieza = Math.ceil(p.numero_global / 5);
                             return nivelPieza === nivelFabricacion;
@@ -885,14 +875,10 @@ class F1Manager {
                         return proximaPieza === piezaNum && !yaFabricada;
                     });
                     
-                    // Nombre personalizado para esta pieza
                     const nombrePieza = this.nombresPiezas[area.id]?.[piezaNum - 1] || `${area.nombre} Mejora ${piezaNum}`;
-                    
-                    // Calcular puntos (aunque no se muestren en el botón)
                     const puntosPieza = this.calcularPuntosPieza(area.id, piezaNum);
                     
                     if (yaFabricada) {
-                        // Determinar clase CSS basada en si fue comprada o fabricada
                         const claseCSS = esCompradaMercado ? 'btn-pieza-50 comprada-mercado' : 'btn-pieza-50 lleno';
                         const icono = esCompradaMercado ? 'fa-shopping-cart' : 'fa-check';
                         const titulo = esCompradaMercado ? 
@@ -905,13 +891,11 @@ class F1Manager {
                         if (esCompradaMercado) {
                             html += `<div class="mercado-badge">🛒</div>`;
                         } else {
-                            // ✅ AÑADIDO: MOSTRAR PRECIO
                             html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         }
                         html += '</button>';
                         
                     } else if (enFabricacion) {
-                        // En fabricación
                         const fabricacion = fabricacionesAreaActivas.find(f => {
                             const nivelFabricacion = f.nivel;
                             const rangoInicio = (nivelFabricacion - 1) * 5 + 1;
@@ -929,12 +913,10 @@ class F1Manager {
                         html += `<button class="btn-pieza-50 fabricando" disabled title="${nombrePieza} - En fabricación (${minutos} min)">`;
                         html += '<i class="fas fa-spinner fa-spin"></i>';
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        // ✅ AÑADIDO: MOSTRAR PRECIO
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
                         
                     } else {
-                        // Verificar si es la próxima pieza a fabricar
                         const proximaPiezaNoFabricada = !yaFabricada && 
                             piezaNum === (piezasAreaFabricadasAll.length + 1);
                         
@@ -950,7 +932,6 @@ class F1Manager {
                         html += ` title="${nombrePieza} - Nivel ${nivel} - Costo: €${costoPieza.toLocaleString()}">`;
                         html += '<i class="fas fa-plus"></i>';
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        // ✅ AÑADIDO: MOSTRAR PRECIO
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
                     }
@@ -974,51 +955,80 @@ class F1Manager {
             // Configurar eventos de navegación
             this.configurarNavegacionAreas();
             
-            // Añadir estilos CSS para la nueva disposición
+            // Añadir estilos CSS CORREGIDOS (SIN STICKY PROBLEMÁTICO)
             if (!document.querySelector('#estilos-taller-50')) {
                 const style = document.createElement('style');
                 style.id = 'estilos-taller-50';
                 style.innerHTML = `
-                    /* BARRA DE NAVEGACIÓN FIJA */
-                    .nav-areas-fija {
-                        position: sticky;
-                        top: 0;
-                        z-index: 100;
+                    /* CONTENEDOR PRINCIPAL - AISLADO */
+                    #tab-taller {
+                        height: 100%;
+                        position: relative;
+                        overflow: hidden !important;
+                    }
+                    
+                    #tab-taller .taller-minimalista {
+                        height: 100%;
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    
+                    /* BARRA DE NAVEGACIÓN RELATIVA (NO STICKY) */
+                    #tab-taller .nav-areas-fija {
+                        position: relative !important; /* CAMBIADO: era sticky */
+                        top: 0 !important;
+                        z-index: 10 !important; /* REDUCIDO: era 100 */
                         background: rgba(10, 15, 30, 0.95);
                         backdrop-filter: blur(10px);
                         border-bottom: 2px solid rgba(0, 210, 190, 0.3);
                         padding: 8px 0;
                         margin-bottom: 15px;
+                        flex-shrink: 0;
                     }
                     
-                    .nav-areas-contenedor {
+                    #tab-taller .nav-areas-contenedor {
                         display: grid;
                         grid-template-columns: repeat(6, 1fr);
                         gap: 6px;
                         max-width: 100%;
                         overflow-x: auto;
                         padding: 0 5px;
+                        scrollbar-width: thin;
+                        scrollbar-color: #00d2be rgba(255,255,255,0.1);
+                    }
+                    
+                    #tab-taller .nav-areas-contenedor::-webkit-scrollbar {
+                        height: 4px;
+                    }
+                    
+                    #tab-taller .nav-areas-contenedor::-webkit-scrollbar-track {
+                        background: rgba(255,255,255,0.1);
+                    }
+                    
+                    #tab-taller .nav-areas-contenedor::-webkit-scrollbar-thumb {
+                        background: #00d2be;
+                        border-radius: 2px;
                     }
                     
                     @media (min-width: 1200px) {
-                        .nav-areas-contenedor {
+                        #tab-taller .nav-areas-contenedor {
                             grid-template-columns: repeat(11, 1fr);
                         }
                     }
                     
                     @media (max-width: 1199px) and (min-width: 768px) {
-                        .nav-areas-contenedor {
+                        #tab-taller .nav-areas-contenedor {
                             grid-template-columns: repeat(6, 1fr);
                         }
                     }
                     
                     @media (max-width: 767px) {
-                        .nav-areas-contenedor {
+                        #tab-taller .nav-areas-contenedor {
                             grid-template-columns: repeat(4, 1fr);
                         }
                     }
                     
-                    .nav-area-btn {
+                    #tab-taller .nav-area-btn {
                         display: flex;
                         flex-direction: column;
                         align-items: center;
@@ -1033,24 +1043,24 @@ class F1Manager {
                         color: white;
                     }
                     
-                    .nav-area-btn:hover {
+                    #tab-taller .nav-area-btn:hover {
                         background: rgba(0, 210, 190, 0.2);
                         border-color: #00d2be;
                         transform: translateY(-2px);
                     }
                     
-                    .nav-area-btn.active {
+                    #tab-taller .nav-area-btn.active {
                         background: rgba(0, 210, 190, 0.3);
                         border-color: #00d2be;
                         box-shadow: 0 0 10px rgba(0, 210, 190, 0.3);
                     }
                     
-                    .nav-area-icon {
+                    #tab-taller .nav-area-icon {
                         font-size: 1.3rem;
                         margin-bottom: 4px;
                     }
                     
-                    .nav-area-nombre {
+                    #tab-taller .nav-area-nombre {
                         font-size: 0.7rem;
                         font-weight: bold;
                         margin-bottom: 4px;
@@ -1058,7 +1068,7 @@ class F1Manager {
                         line-height: 1.1;
                     }
                     
-                    .nav-area-progreso {
+                    #tab-taller .nav-area-progreso {
                         width: 90%;
                         height: 4px;
                         background: rgba(255, 255, 255, 0.1);
@@ -1066,7 +1076,7 @@ class F1Manager {
                         overflow: hidden;
                     }
                     
-                    .nav-area-progreso-fill {
+                    #tab-taller .nav-area-progreso-fill {
                         height: 100%;
                         background: linear-gradient(90deg, #00d2be, #4CAF50);
                         border-radius: 2px;
@@ -1074,23 +1084,25 @@ class F1Manager {
                     }
                     
                     /* CONTENEDOR DESPLAZABLE */
-                    .contenedor-areas-desplazable {
-                        max-height: calc(100vh - 200px);
-                        overflow-y: auto;
+                    #tab-taller .contenedor-areas-desplazable {
+                        flex: 1;
+                        overflow-y: auto !important;
+                        overflow-x: hidden;
                         padding-right: 5px;
+                        max-height: none !important;
+                        position: relative;
                     }
                     
                     /* ÁREAS INDIVIDUALES */
-                    .area-completa {
+                    #tab-taller .area-completa {
                         margin-bottom: 25px;
                         padding: 15px;
                         background: rgba(0, 0, 0, 0.3);
                         border-radius: 8px;
                         border: 1px solid rgba(0, 210, 190, 0.2);
-                        scroll-margin-top: 100px; /* Para que al hacer scroll quede debajo de la barra fija */
                     }
                     
-                    .area-header-completa {
+                    #tab-taller .area-header-completa {
                         display: flex;
                         align-items: center;
                         gap: 10px;
@@ -1099,17 +1111,17 @@ class F1Manager {
                         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                     }
                     
-                    .area-icono-completa {
+                    #tab-taller .area-icono-completa {
                         font-size: 1.5rem;
                     }
                     
-                    .area-nombre-completa {
+                    #tab-taller .area-nombre-completa {
                         font-weight: bold;
                         color: #00d2be;
                         font-size: 1.1rem;
                     }
                     
-                    .area-progreso-badge {
+                    #tab-taller .area-progreso-badge {
                         margin-left: auto;
                         background: rgba(0, 210, 190, 0.2);
                         color: #00d2be;
@@ -1119,31 +1131,31 @@ class F1Manager {
                         font-weight: bold;
                     }
                     
-                    .botones-area-completa {
+                    #tab-taller .botones-area-completa {
                         display: grid;
                         grid-template-columns: repeat(5, 1fr);
                         gap: 8px;
                     }
                     
                     @media (max-width: 1200px) {
-                        .botones-area-completa {
+                        #tab-taller .botones-area-completa {
                             grid-template-columns: repeat(4, 1fr);
                         }
                     }
                     
                     @media (max-width: 900px) {
-                        .botones-area-completa {
+                        #tab-taller .botones-area-completa {
                             grid-template-columns: repeat(3, 1fr);
                         }
                     }
                     
                     @media (max-width: 600px) {
-                        .botones-area-completa {
+                        #tab-taller .botones-area-completa {
                             grid-template-columns: repeat(2, 1fr);
                         }
                     }
                     
-                    .btn-pieza-50 {
+                    #tab-taller .btn-pieza-50 {
                         height: 80px;
                         display: flex;
                         flex-direction: column;
@@ -1160,38 +1172,38 @@ class F1Manager {
                         position: relative;
                     }
                     
-                    .btn-pieza-50:hover:not(:disabled) {
+                    #tab-taller .btn-pieza-50:hover:not(:disabled) {
                         border-color: #00d2be;
                         background: rgba(0, 210, 190, 0.1);
                         transform: translateY(-2px);
                     }
                     
-                    .btn-pieza-50:disabled {
+                    #tab-taller .btn-pieza-50:disabled {
                         opacity: 0.6;
                         cursor: not-allowed;
                     }
                     
-                    .btn-pieza-50.lleno {
+                    #tab-taller .btn-pieza-50.lleno {
                         border-color: #4CAF50;
                         background: rgba(76, 175, 80, 0.1);
                     }
                     
-                    .btn-pieza-50.fabricando {
+                    #tab-taller .btn-pieza-50.fabricando {
                         border-color: #FF9800;
                         background: rgba(255, 152, 0, 0.1);
                     }
                     
-                    .btn-pieza-50.vacio {
+                    #tab-taller .btn-pieza-50.vacio {
                         border-color: #666;
                         background: rgba(100, 100, 100, 0.1);
                     }
                     
-                    .btn-pieza-50 i {
+                    #tab-taller .btn-pieza-50 i {
                         font-size: 1.2rem;
                         margin-bottom: 5px;
                     }
                     
-                    .pieza-nombre-50 {
+                    #tab-taller .pieza-nombre-50 {
                         font-size: 0.7rem;
                         line-height: 1.1;
                         max-height: 32px;
@@ -1202,8 +1214,7 @@ class F1Manager {
                         -webkit-box-orient: vertical;
                     }
                     
-                    /* ✅ AÑADIDO: ESTILOS PARA PRECIOS */
-                    .pieza-precio-50 {
+                    #tab-taller .pieza-precio-50 {
                         font-size: 0.65rem;
                         margin-top: 3px;
                         color: #FFD700;
@@ -1215,30 +1226,48 @@ class F1Manager {
                         width: 100%;
                     }
                     
-                    .btn-pieza-50.comprada-mercado {
-                        border-color: #FF9800; /* Naranja para piezas compradas */
+                    #tab-taller .btn-pieza-50.comprada-mercado {
+                        border-color: #FF9800;
                         background: rgba(255, 152, 0, 0.1);
                         color: #FF9800;
                     }
                     
-                    .btn-pieza-50.comprada-mercado:hover {
+                    #tab-taller .btn-pieza-50.comprada-mercado:hover {
                         border-color: #FFB74D;
                         background: rgba(255, 152, 0, 0.2);
                     }
                     
-                    .btn-pieza-50.comprada-mercado i {
+                    #tab-taller .btn-pieza-50.comprada-mercado i {
                         color: #FF9800;
                     }
                     
-                    .mercado-badge {
+                    #tab-taller .mercado-badge {
                         position: absolute;
                         top: 2px;
                         right: 2px;
                         font-size: 0.6rem;
                         color: #FF9800;
                     }
+                    
+                    /* GARANTIZAR QUE NO INTERFIERA CON EL LAYOUT GLOBAL */
+                    .dashboard-header-compacto {
+                        position: relative !important;
+                        z-index: 1000 !important;
+                    }
+                    
+                    .dashboard-footer {
+                        position: sticky !important;
+                        bottom: 0 !important;
+                        z-index: 999 !important;
+                    }
                 `;
                 document.head.appendChild(style);
+            }
+            
+            // LIMPIAR ESTILOS PROBLEMÁTICOS ANTERIORES
+            const estiloAnterior = document.querySelector('style[id^="estilos-taller"]:not(#estilos-taller-50)');
+            if (estiloAnterior) {
+                estiloAnterior.remove();
             }
             
         } catch (error) {
