@@ -731,8 +731,11 @@ class F1Manager {
     // ========================
     // MÉTODO PARA CARGAR PESTAÑA TALLER (MODIFICADO CON 50 BOTONES Y NAVEGACIÓN)
     // ========================
+    // ========================
+    // MÉTODO PARA CARGAR PESTAÑA TALLER (MODIFICADO - SIN BOTONES FLOTANTES)
+    // ========================
     async cargarTabTaller() {
-        console.log('🔧 Cargando pestaña taller con 50 botones y navegación...');
+        console.log('🔧 Cargando pestaña taller con 50 botones FIJOS...');
         
         const container = document.getElementById('tab-taller');
         if (!container) {
@@ -794,7 +797,7 @@ class F1Manager {
             html += '</div>';
             html += '</div>';
             
-            // === BARRA DE NAVEGACIÓN FIJA ===
+            // === BARRA DE NAVEGACIÓN FIJA SIMPLIFICADA ===
             html += '<div id="nav-areas-taller" class="nav-areas-fija">';
             html += '<div class="nav-areas-contenedor">';
             
@@ -820,7 +823,7 @@ class F1Manager {
             html += '</div>'; // Cierra nav-areas-contenedor
             html += '</div>'; // Cierra nav-areas-fija
             
-            // === CONTENEDOR DE ÁREAS DESPLAZABLE ===
+            // === CONTENEDOR DE ÁREAS DESPLAZABLE SIMPLE ===
             html += '<div id="contenedor-areas-taller" class="contenedor-areas-desplazable">';
             
             // Para cada área
@@ -856,7 +859,7 @@ class F1Manager {
                     // Calcular nivel (cada 5 piezas es un nivel)
                     const nivel = Math.ceil(piezaNum / 5);
                     
-                    // ✅ AÑADIDO: CALCULAR COSTO PARA ESTA PIEZA
+                    // ✅ CALCULAR COSTO PARA ESTA PIEZA
                     const numeroPiezaEnNivel = ((piezaNum - 1) % 5) + 1;
                     const costoPieza = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
                     const tieneDinero = this.escuderia.dinero >= costoPieza;
@@ -888,7 +891,7 @@ class F1Manager {
                     // Nombre personalizado para esta pieza
                     const nombrePieza = this.nombresPiezas[area.id]?.[piezaNum - 1] || `${area.nombre} Mejora ${piezaNum}`;
                     
-                    // Calcular puntos (aunque no se muestren en el botón)
+                    // Calcular puntos
                     const puntosPieza = this.calcularPuntosPieza(area.id, piezaNum);
                     
                     if (yaFabricada) {
@@ -905,7 +908,7 @@ class F1Manager {
                         if (esCompradaMercado) {
                             html += `<div class="mercado-badge">🛒</div>`;
                         } else {
-                            // ✅ AÑADIDO: MOSTRAR PRECIO
+                            // ✅ MOSTRAR PRECIO
                             html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         }
                         html += '</button>';
@@ -929,7 +932,7 @@ class F1Manager {
                         html += `<button class="btn-pieza-50 fabricando" disabled title="${nombrePieza} - En fabricación (${minutos} min)">`;
                         html += '<i class="fas fa-spinner fa-spin"></i>';
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        // ✅ AÑADIDO: MOSTRAR PRECIO
+                        // ✅ MOSTRAR PRECIO
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
                         
@@ -950,7 +953,7 @@ class F1Manager {
                         html += ` title="${nombrePieza} - Nivel ${nivel} - Costo: €${costoPieza.toLocaleString()}">`;
                         html += '<i class="fas fa-plus"></i>';
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        // ✅ AÑADIDO: MOSTRAR PRECIO
+                        // ✅ MOSTRAR PRECIO
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
                     }
@@ -974,21 +977,24 @@ class F1Manager {
             // Configurar eventos de navegación
             this.configurarNavegacionAreas();
             
-            // Añadir estilos CSS para la nueva disposición
-            if (!document.querySelector('#estilos-taller-50')) {
+            // Añadir estilos CSS CORREGIDOS
+            if (!document.querySelector('#estilos-taller-fijo')) {
                 const style = document.createElement('style');
-                style.id = 'estilos-taller-50';
+                style.id = 'estilos-taller-fijo';
                 style.innerHTML = `
-                    /* BARRA DE NAVEGACIÓN FIJA */
+                    /* BARRA DE NAVEGACIÓN FIJA - POSICIÓN ABSOLUTA */
                     .nav-areas-fija {
-                        position: sticky;
+                        position: absolute;
                         top: 0;
+                        left: 0;
+                        right: 0;
                         z-index: 100;
-                        background: rgba(10, 15, 30, 0.95);
-                        backdrop-filter: blur(10px);
+                        background: rgba(10, 15, 30, 0.98);
                         border-bottom: 2px solid rgba(0, 210, 190, 0.3);
                         padding: 8px 0;
                         margin-bottom: 15px;
+                        height: 85px;
+                        overflow: hidden;
                     }
                     
                     .nav-areas-contenedor {
@@ -998,6 +1004,8 @@ class F1Manager {
                         max-width: 100%;
                         overflow-x: auto;
                         padding: 0 5px;
+                        height: 100%;
+                        -webkit-overflow-scrolling: touch;
                     }
                     
                     @media (min-width: 1200px) {
@@ -1031,18 +1039,18 @@ class F1Manager {
                         transition: all 0.2s;
                         min-height: 60px;
                         color: white;
+                        position: relative;
                     }
                     
                     .nav-area-btn:hover {
                         background: rgba(0, 210, 190, 0.2);
                         border-color: #00d2be;
-                        transform: translateY(-2px);
                     }
                     
                     .nav-area-btn.active {
                         background: rgba(0, 210, 190, 0.3);
                         border-color: #00d2be;
-                        box-shadow: 0 0 10px rgba(0, 210, 190, 0.3);
+                        box-shadow: 0 0 8px rgba(0, 210, 190, 0.3);
                     }
                     
                     .nav-area-icon {
@@ -1056,6 +1064,7 @@ class F1Manager {
                         margin-bottom: 4px;
                         text-align: center;
                         line-height: 1.1;
+                        white-space: nowrap;
                     }
                     
                     .nav-area-progreso {
@@ -1064,6 +1073,9 @@ class F1Manager {
                         background: rgba(255, 255, 255, 0.1);
                         border-radius: 2px;
                         overflow: hidden;
+                        position: absolute;
+                        bottom: 4px;
+                        left: 5%;
                     }
                     
                     .nav-area-progreso-fill {
@@ -1073,11 +1085,17 @@ class F1Manager {
                         transition: width 0.3s ease;
                     }
                     
-                    /* CONTENEDOR DESPLAZABLE */
+                    /* CONTENEDOR DESPLAZABLE - POSICIÓN FIJA */
                     .contenedor-areas-desplazable {
-                        max-height: calc(100vh - 200px);
+                        position: absolute;
+                        top: 85px; /* Justo debajo de la barra de navegación */
+                        bottom: 0;
+                        left: 0;
+                        right: 0;
                         overflow-y: auto;
-                        padding-right: 5px;
+                        -webkit-overflow-scrolling: touch;
+                        padding: 10px;
+                        padding-bottom: 100px; /* Espacio extra para scroll */
                     }
                     
                     /* ÁREAS INDIVIDUALES */
@@ -1087,7 +1105,7 @@ class F1Manager {
                         background: rgba(0, 0, 0, 0.3);
                         border-radius: 8px;
                         border: 1px solid rgba(0, 210, 190, 0.2);
-                        scroll-margin-top: 100px; /* Para que al hacer scroll quede debajo de la barra fija */
+                        scroll-margin-top: 100px;
                     }
                     
                     .area-header-completa {
@@ -1119,6 +1137,7 @@ class F1Manager {
                         font-weight: bold;
                     }
                     
+                    /* BOTONES DE PIEZAS - DISPOSICIÓN FIJA */
                     .botones-area-completa {
                         display: grid;
                         grid-template-columns: repeat(5, 1fr);
@@ -1163,7 +1182,6 @@ class F1Manager {
                     .btn-pieza-50:hover:not(:disabled) {
                         border-color: #00d2be;
                         background: rgba(0, 210, 190, 0.1);
-                        transform: translateY(-2px);
                     }
                     
                     .btn-pieza-50:disabled {
@@ -1202,7 +1220,7 @@ class F1Manager {
                         -webkit-box-orient: vertical;
                     }
                     
-                    /* ✅ AÑADIDO: ESTILOS PARA PRECIOS */
+                    /* ESTILOS PARA PRECIOS */
                     .pieza-precio-50 {
                         font-size: 0.65rem;
                         margin-top: 3px;
@@ -1216,7 +1234,7 @@ class F1Manager {
                     }
                     
                     .btn-pieza-50.comprada-mercado {
-                        border-color: #FF9800; /* Naranja para piezas compradas */
+                        border-color: #FF9800;
                         background: rgba(255, 152, 0, 0.1);
                         color: #FF9800;
                     }
@@ -1236,6 +1254,26 @@ class F1Manager {
                         right: 2px;
                         font-size: 0.6rem;
                         color: #FF9800;
+                    }
+                    
+                    /* TALLER HEADER - FIJO EN SU LUGAR */
+                    .taller-header-mini {
+                        position: absolute;
+                        top: -40px; /* Fuera de la vista, en el header principal */
+                        display: none; /* Ocultamos porque ya está en el header principal */
+                    }
+                    
+                    /* CONTENEDOR PRINCIPAL DEL TALLER */
+                    .taller-minimalista {
+                        position: relative;
+                        height: 100%;
+                    }
+                    
+                    /* PREVENIR DESPLAZAMIENTOS INESPERADOS */
+                    #tab-taller {
+                        position: relative;
+                        height: 100%;
+                        overflow: hidden;
                     }
                 `;
                 document.head.appendChild(style);
