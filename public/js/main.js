@@ -787,14 +787,21 @@ class F1Manager {
             const fabricacionesCount = fabricacionesActivas?.length || 0;
             
             let html = '<div class="taller-minimalista">';
+            // === BARRA DE NAVEGACIÓN FIJA - FUERA DEL CONTENEDOR PRINCIPAL ===
+            html += '<div id="nav-areas-taller" class="nav-areas-fija">';
+            html += '<div class="nav-areas-contenedor">';
+                
+            // Botones de navegación...
+            html += '</div>';
+            html += '</div>'; // Cierra nav-areas-fija
+                
+            // === AHORA SÍ EL CONTENIDO DEL TALLER ===
             html += '<div class="taller-header-mini">';
             html += '<h2><i class="fas fa-tools"></i> TALLER DE FABRICACIÓN</h2>';
             html += '<div class="fabricaciones-activas-mini">';
             html += '<span class="badge-fabricacion">' + fabricacionesCount + '/4 fabricando</span>';
             html += '</div>';
             html += '</div>';
-            
-            // === BARRA DE NAVEGACIÓN FIJA - FUERA del contenedor desplazable ===
             html += '</div>'; // Cierra taller-minimalista ANTES de la barra fija
             html += '<div id="nav-areas-taller" class="nav-areas-fija">';
             html += '<div class="nav-areas-contenedor">';
@@ -984,15 +991,23 @@ class F1Manager {
                 style.innerHTML = `
                     /* BARRA DE NAVEGACIÓN FIJA */
                     
+                    /* Barra fija del taller - POSICIÓN FIXA */
                     .nav-areas-fija {
-                        position: sticky;
-                        top: env(safe-area-inset-top, 0px) !important; /* ← CAMBIADO de top: 0 */
-                        z-index: 100;
-                        background: rgba(10, 15, 30, 0.95);
+                        position: fixed !important;
+                        top: calc(50px + env(safe-area-inset-top, 10px)) !important;
+                        left: 0;
+                        right: 0;
+                        z-index: 99; /* UN POCO MENOS que el header principal (z-index: 100) */
+                        background: rgba(10, 15, 30, 0.98);
                         backdrop-filter: blur(10px);
                         border-bottom: 2px solid rgba(0, 210, 190, 0.3);
                         padding: 8px 0;
-                        margin-bottom: 15px;
+                        margin: 0;
+                    }
+                    
+                    /* El header del taller necesita margen para la barra fija */
+                    .taller-header-mini {
+                        margin-top: 60px !important; /* Espacio para la barra fija */
                     }
                     .nav-areas-contenedor {
                         display: grid;
@@ -1256,17 +1271,23 @@ class F1Manager {
                     }
             
                     /* Barra fija del taller - POSICIÓN FIXA, NO STICKY */
+                    /* Barra fija del taller - POSICIÓN FIXA */
                     .nav-areas-fija {
                         position: fixed !important;
                         top: calc(50px + env(safe-area-inset-top, 10px)) !important;
                         left: 0;
                         right: 0;
-                        z-index: 100;
+                        z-index: 99; /* UN POCO MENOS que el header principal (z-index: 100) */
                         background: rgba(10, 15, 30, 0.98);
                         backdrop-filter: blur(10px);
                         border-bottom: 2px solid rgba(0, 210, 190, 0.3);
                         padding: 8px 0;
                         margin: 0;
+                    }
+                    
+                    /* El header del taller necesita margen para la barra fija */
+                    .taller-header-mini {
+                        margin-top: 60px !important; /* Espacio para la barra fija */
                     }
                     
                     /* Contenedor desplazable necesita espacio para la barra fija */
