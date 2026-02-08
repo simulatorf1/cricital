@@ -1244,44 +1244,66 @@ html, body {
     display: none;
 }
 
-/* Estilos restantes (mantenidos) */
+/* ===== ESTILOS BASE PARA AMBOS ===== */
 .boton-area-montada, .boton-area-vacia {
     background: rgba(255, 255, 255, 0.03) !important;
     border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 6px !important;
     padding: 8px 6px !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    height: 85px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    height: 85px !important;
     min-height: 85px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
 }
 
+/* ===== SOLO PARA PIEZAS MONTADAS (EQUIPADAS) ===== */
 .boton-area-montada {
-    border-color: white !important;  ← BLANCO
-    border-style: solid !important;  ← LÍNEA LLENA
-    border-width: 2px !important;    ← 2px DE GROSOR
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.25) 100%) !important;
+    border: 2px solid white !important;  /* ← LÍNEA LLENA BLANCA 2px */
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.15) 0%, 
+        rgba(255, 255, 255, 0.25) 100%) !important;
+    color: white !important;
 }
 
 .boton-area-montada:hover {
-    border-color: rgba(0, 210, 190, 0.5) !important;
-    background: rgba(0, 210, 190, 0.08) !important;
-    transform: translateY(-1px);
+    border-color: white !important;  /* ← MANTENER BLANCO EN HOVER */
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.25) 0%, 
+        rgba(255, 255, 255, 0.35) 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1) !important;
 }
 
+/* ===== SOLO PARA HUECOS VACÍOS ===== */
 .boton-area-vacia {
-    border-style: dashed !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    background: rgba(255, 255, 255, 0.015) !important;
+    border: 2px dashed rgba(255, 255, 255, 0.2) !important;  /* ← PUNTEADO GRIS */
+    background: rgba(100, 100, 100, 0.1) !important;
+    color: #888 !important;
 }
 
 .boton-area-vacia:hover {
-    border-color: rgba(0, 210, 190, 0.4) !important;
+    border-color: rgba(0, 210, 190, 0.4) !important;  /* ← AZUL EN HOVER */
     background: rgba(0, 210, 190, 0.05) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ===== CLASE EXTRA PARA PIEZAS DESTRUIDAS ===== */
+.boton-area-vacia.pieza-destruida {
+    border: 2px dashed #e10600 !important;  /* ← ROJO PUNTEADO */
+    background: rgba(225, 6, 0, 0.1) !important;
+    color: #e10600 !important;
+}
+
+.boton-area-vacia.pieza-destruida:hover {
+    border-color: #ff4444 !important;
+    background: rgba(255, 68, 68, 0.15) !important;
 }
 
 .icono-area {
