@@ -2249,7 +2249,7 @@ class F1Manager {
 
                 <div id="inner-game-container" style="
                     position: absolute;
-                    top: env(safe-area-inset-top, 10px);
+                    top: env(safe-area-inset-top, 40px);
                     bottom: env(safe-area-inset-bottom, 10px);
                     left: env(safe-area-inset-left, 0);
                     right: env(safe-area-inset-right, 0);
