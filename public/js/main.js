@@ -4426,7 +4426,129 @@ setTimeout(() => {
         
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     };
+    window.mostrarModalContratacion = function(huecoNumero) {
+        // Verificar si ya existe un modal
+        if (document.getElementById('modal-contratacion')) {
+            document.getElementById('modal-contratacion').remove();
+        }
+        
+        const modalHTML = `
+            <div id="modal-contratacion" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.9);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            ">
+                <div style="
+                    background: #1a1a2e;
+                    padding: 20px;
+                    border-radius: 10px;
+                    border: 2px solid #00d2be;
+                    max-width: 400px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                ">
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 15px;
+                    ">
+                        <h3 style="color: #00d2be; margin: 0;">Contratar Estratega</h3>
+                        <button onclick="document.getElementById('modal-contratacion').remove()" style="
+                            background: none;
+                            border: none;
+                            color: #aaa;
+                            font-size: 1.2rem;
+                            cursor: pointer;
+                        ">✕</button>
+                    </div>
+                    
+                    <p style="color: white; margin-bottom: 20px;">Selecciona un estratega para el hueco ${huecoNumero}:</p>
+                    
+                    <div style="margin: 20px 0;">
+                        <button onclick="contratarEstrategaFicticio(1, ${huecoNumero})" style="
+                            width: 100%;
+                            padding: 12px;
+                            margin: 8px 0;
+                            background: rgba(0,210,190,0.1);
+                            border: 1px solid #00d2be;
+                            color: white;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        ">
+                            <span>🕐 Analista de Tiempos</span>
+                            <span style="color: #FFD700;">+15%</span>
+                        </button>
+                        
+                        <button onclick="contratarEstrategaFicticio(2, ${huecoNumero})" style="
+                            width: 100%;
+                            padding: 12px;
+                            margin: 8px 0;
+                            background: rgba(0,210,190,0.1);
+                            border: 1px solid #00d2be;
+                            color: white;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        ">
+                            <span>🌧️ Meteorólogo</span>
+                            <span style="color: #FFD700;">+20%</span>
+                        </button>
+                        
+                        <button onclick="contratarEstrategaFicticio(3, ${huecoNumero})" style="
+                            width: 100%;
+                            padding: 12px;
+                            margin: 8px 0;
+                            background: rgba(0,210,190,0.1);
+                            border: 1px solid #00d2be;
+                            color: white;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        ">
+                            <span>🔧 Experto en Fiabilidad</span>
+                            <span style="color: #FFD700;">+18%</span>
+                        </button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button onclick="document.getElementById('modal-contratacion').remove()" style="
+                            flex: 1;
+                            padding: 10px;
+                            background: transparent;
+                            border: 1px solid #666;
+                            color: #aaa;
+                            border-radius: 5px;
+                            cursor: pointer;
+                        ">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    };
     
+    // ========================
+    // FUNCIÓN PARA CONTRATAR ESTRATEGA (YA EXISTÍA)
+    // ========================    
     window.contratarEstrategaFicticio = function(tipo, hueco) {
         const estrategas = {
             1: { nombre: "Analista Tiempos", especialidad: "Análisis", bono: 15 },
