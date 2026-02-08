@@ -1056,7 +1056,51 @@ class F1Manager {
                         background: rgba(255, 152, 0, 0.1);
                         color: #FF9800;
                     }
+                    .tab-btn-secundario {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        background: rgba(0, 210, 190, 0.1);
+                        border: 1px solid rgba(0, 210, 190, 0.3);
+                        border-radius: 8px;
+                        color: #00d2be;
+                        padding: 6px 4px;
+                        font-size: 0.7rem;
+                        cursor: pointer;
+                        min-height: 45px;
+                        width: 100%;
+                    }
                     
+                    .tab-btn-secundario:hover {
+                        background: rgba(0, 210, 190, 0.2);
+                    }
+                    
+                    .tab-btn-secundario.active {
+                        background: rgba(0, 210, 190, 0.3);
+                        color: white;
+                    }
+                    
+                    .tab-btn-secundario i {
+                        font-size: 1rem;
+                        margin-bottom: 3px;
+                    }
+                    
+                    /* ESTILO ESPECIAL PARA BOTÓN SALIR */
+                    .tab-btn-secundario.tab-btn-salir {
+                        background: rgba(225, 6, 0, 0.1);
+                        border-color: rgba(225, 6, 0, 0.3);
+                        color: #ff4444;
+                    }
+                    
+                    .tab-btn-secundario.tab-btn-salir:hover {
+                        background: rgba(225, 6, 0, 0.2);
+                    }
+                    
+                    .tab-btn-secundario.tab-btn-salir.active {
+                        background: rgba(225, 6, 0, 0.3);
+                        color: white;
+                    }                    
                     .mercado-badge {
                         position: absolute;
                         top: 2px;
