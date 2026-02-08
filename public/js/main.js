@@ -408,24 +408,36 @@ class F1Manager {
     }
 
 
-
-    
-    // ========================
-    // MÉTODO CORREGIDO PARA CALCULAR DESGASTE (24 HORAS REALES)
+    // MÉTODO CORREGIDO PARA CALCULAR DESGASTE (24 HORAS REALES) - VERSIÓN FIX
     // ========================
     async calcularDesgastePieza(piezaId) {
         try {
-            // Obtener datos actuales de la pieza
+            // Obtener datos actuales de la pieza - CONSULTA CORREGIDA
             const { data: pieza, error } = await this.supabase
                 .from('almacen_piezas')
                 .select('desgaste_actual, montada_en, ultima_actualizacion_desgaste, fabricada_en')
-                .eq('id', piezaId)
+                .eq('id', piezaId)  // ← CORRECTO: Usar .eq() no parámetro en URL
                 .single();
             
-            if (error || !pieza) return 100;
+            if (error || !pieza) {
+                console.error('Error obteniendo datos de pieza:', error);
+                return 0; // Si no existe, considerar destruida
+            }
+            
+            // Si la pieza ya tiene desgaste 0, considerarla destruida
+            if (pieza.desgaste_actual === 0) {
+                console.log(`⚠️ Pieza ${piezaId} ya marcada como destruida`);
+                return 0;
+            }
             
             // Determinar cuándo se montó (usar montada_en si existe, sino fabricada_en)
-            const fechaMontaje = new Date(pieza.montada_en || pieza.fabricada_en || new Date());
+            const fechaMontajeStr = pieza.montada_en || pieza.fabricada_en;
+            if (!fechaMontajeStr) {
+                console.warn(`Pieza ${piezaId} sin fecha de montaje, usando ahora`);
+                return 100;
+            }
+            
+            const fechaMontaje = new Date(fechaMontajeStr);
             const ahora = new Date();
             
             // Calcular minutos transcurridos desde que se montó
@@ -440,15 +452,27 @@ class F1Manager {
             // Asegurar que esté entre 0 y 100
             desgasteActual = Math.max(0, Math.min(100, desgasteActual));
             
+            console.log(`📊 Pieza ${piezaId}: ${minutosTranscurridos.toFixed(1)} min transcurridos, desgaste: ${desgasteActual.toFixed(1)}%`);
+            
             // Si llegó a 0%, ELIMINAR la pieza (destrucción automática)
             if (desgasteActual <= 0) {
-                console.log(`🗑️ Pieza ${piezaId} destruida por desgaste completo`);
+                console.log(`🗑️ Pieza ${piezaId} destruida por desgaste completo (${minutosTranscurridos.toFixed(1)} minutos)`);
                 
-                // Eliminar de la base de datos
-                await this.supabase
-                    .from('almacen_piezas')
-                    .delete()
-                    .eq('id', piezaId);
+                try {
+                    // Eliminar de la base de datos
+                    const { error: deleteError } = await this.supabase
+                        .from('almacen_piezas')
+                        .delete()
+                        .eq('id', piezaId);
+                    
+                    if (deleteError) {
+                        console.error('Error eliminando pieza:', deleteError);
+                    } else {
+                        console.log(`✅ Pieza ${piezaId} eliminada correctamente`);
+                    }
+                } catch (deleteErr) {
+                    console.error('Excepción al eliminar:', deleteErr);
+                }
                 
                 return 0; // Devuelve 0 para indicar que fue destruida
             }
@@ -458,20 +482,26 @@ class F1Manager {
             if (Math.abs(desgasteAnterior - desgasteActual) > 5 || 
                 !pieza.ultima_actualizacion_desgaste) {
                 
-                await this.supabase
-                    .from('almacen_piezas')
-                    .update({ 
-                        desgaste_actual: desgasteActual,
-                        ultima_actualizacion_desgaste: ahora.toISOString()
-                    })
-                    .eq('id', piezaId);
+                try {
+                    await this.supabase
+                        .from('almacen_piezas')
+                        .update({ 
+                            desgaste_actual: desgasteActual,
+                            ultima_actualizacion_desgaste: ahora.toISOString()
+                        })
+                        .eq('id', piezaId);
+                    
+                    console.log(`📝 Pieza ${piezaId} actualizada: ${desgasteAnterior}% → ${desgasteActual.toFixed(1)}%`);
+                } catch (updateErr) {
+                    console.error('Error actualizando desgaste:', updateErr);
+                }
             }
             
             return desgasteActual;
             
         } catch (error) {
             console.error('Error calculando desgaste:', error);
-            return 100;
+            return 100; // Por defecto, considerar nueva
         }
     }
     
