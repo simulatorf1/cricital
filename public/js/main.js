@@ -2052,7 +2052,13 @@ class F1Manager {
                     
                 } else {
                     // Para huecos vacíos
-                    areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="${area.nombre}: Sin pieza equipada">`;
+                    areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" 
+                        title="${area.nombre}: Sin pieza - Click para ir al Almacén y equipar">
+                        <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">
+                            ${area.nombre}<br>
+                            <small style="font-size: 0.6rem;">Vacío</small>
+                        </div>
+                    </div>`;
                     areaHTML += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">${area.nombre}<br><small style="font-size: 0.6rem;">Vacío</small></div>`;
                     areaHTML += '</div>';
                 }
