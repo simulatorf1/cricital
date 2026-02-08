@@ -2011,10 +2011,11 @@ class F1Manager {
                     const tiempoRestante = this.calcularTiempoRestante(desgastePorcentaje);
                     
                     // Crear contenido con barra de desgaste (SOLO UN DIV)
-                    areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" 
+                    areaHTML += `<div class="boton-area-vacia" onclick="restaurarPiezaEquipada('${pieza.id}')" 
                         title="${area.nombre}: ${nombreMostrar}
-            Desgaste: ${desgastePorcentaje.toFixed(1)}%
-            Tiempo restante: ${tiempoRestante}">`;
+                    Desgaste: ${desgastePorcentaje.toFixed(1)}%
+                    Tiempo restante: ${tiempoRestante}
+                    CLICK para restaurar al 100%">`;
                     
                     // Nombre de la pieza
                     areaHTML += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${nombreMostrar}</div>`;
@@ -4989,7 +4990,59 @@ setTimeout(() => {
         }
     };
 
-
+    // ========================
+    // FUNCIÓN PARA RESTAURAR PIEZA EQUIPADA AL 100%
+    // ========================
+    window.restaurarPiezaEquipada = async function(piezaId) {
+        console.log('🔄 Restaurando pieza:', piezaId);
+        
+        if (!window.f1Manager || !window.f1Manager.supabase) {
+            console.error('❌ No hay F1Manager o Supabase');
+            return;
+        }
+        
+        try {
+            const ahora = new Date().toISOString();
+            
+            // Actualizar la pieza: desgaste 100% y REINICIAR montada_en
+            const { error } = await window.f1Manager.supabase
+                .from('almacen_piezas')
+                .update({ 
+                    desgaste_actual: 100,
+                    montada_en: ahora,  // Reiniciar contador de 24h
+                    ultima_actualizacion_desgaste: ahora
+                })
+                .eq('id', piezaId);
+            
+            if (error) {
+                console.error('❌ Error restaurando pieza:', error);
+                if (window.f1Manager.showNotification) {
+                    window.f1Manager.showNotification('❌ Error restaurando pieza', 'error');
+                }
+                return;
+            }
+            
+            console.log('✅ Pieza restaurada al 100%');
+            
+            // Mostrar notificación
+            if (window.f1Manager && window.f1Manager.showNotification) {
+                window.f1Manager.showNotification('✅ Pieza restaurada al 100%', 'success');
+            }
+            
+            // Actualizar la vista inmediatamente (sin cambiar de pestaña)
+            setTimeout(() => {
+                if (window.f1Manager && window.f1Manager.cargarPiezasMontadas) {
+                    window.f1Manager.cargarPiezasMontadas();
+                }
+            }, 300);
+            
+        } catch (error) {
+            console.error('❌ Error en restaurarPiezaEquipada:', error);
+            if (window.f1Manager && window.f1Manager.showNotification) {
+                window.f1Manager.showNotification('❌ Error restaurando', 'error');
+            }
+        }
+    };
 
 
      // ============================================   
