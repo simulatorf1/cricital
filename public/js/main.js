@@ -1966,28 +1966,21 @@ class F1Manager {
         }
     }
 
+    // ========================
+    // DASHBOARD CON HEADER REORGANIZADO
+    // ========================
     async cargarDashboardCompleto() {
-        console.log('📊 Cargando dashboard COMPACTO con funcionalidad completa...');
-        // ============================================
-        // NUEVO: INICIALIZAR PRESUPUESTO PRIMERO
-        // ============================================
-        console.log('🔄 Intentando inicializar presupuestoManager...');
-        console.log('   Estado escudería:', {
-            tieneEscuderia: !!this.escuderia,
-            escuderiaId: this.escuderia?.id,
-            escuderiaNombre: this.escuderia?.nombre
-        });
+        console.log('📊 Cargando dashboard con header reorganizado...');
         
+        // Inicializar presupuesto
         await this.inicializarPresupuestoManager();
-        // ============================================
-
-        
         
         if (!this.escuderia) {
             console.error('❌ No hay escudería para cargar dashboard');
             return;
         }
-
+    
+        await this.verificarRecompensaLoginDiario();
         await this.cargarProximoGP();
         
         function formatearFecha(fechaStr) {
@@ -1999,7 +1992,7 @@ class F1Manager {
             };
             return fecha.toLocaleDateString('es-ES', opciones);
         }
-                
+                    
         const countdownHTML = `
             <div class="countdown-f1-container">
                 <div class="countdown-header-f1">
@@ -2062,7 +2055,7 @@ class F1Manager {
                 </button>
             </div>
         `;
-
+    
         document.body.innerHTML = `
             <div id="black-wrapper" style="
                 position: fixed;
@@ -2073,15 +2066,15 @@ class F1Manager {
                 background: black;
                 z-index: 0;
             ">
-
+    
                 <div id="inner-game-container" style="
                     position: absolute;
-                    top: env(safe-area-inset-top, 40px);
+                    top: env(safe-area-inset-top, 10px);
                     bottom: env(safe-area-inset-bottom, 10px);
                     left: env(safe-area-inset-left, 0);
                     right: env(safe-area-inset-right, 0);
                     overflow: hidden;
-                    height: calc(100vh - env(safe-area-inset-top, 40px) - env(safe-area-inset-bottom, 10px));
+                    height: calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px));
                 ">
                     <div id="app" style="
                         position: absolute;
@@ -2096,53 +2089,131 @@ class F1Manager {
                         margin: 0;
                         padding: 0;
                     ">
-                        <header class="dashboard-header-compacto" style="padding-top: 35px; padding-bottom: 15px; height: 60px;">
-                            <div class="header-left-compacto">
-                                <div class="logo-compacto">
-                                    <i class="fas fa-flag-checkered"></i>
-                                    <span id="escuderia-nombre">${this.escuderia.nombre}</span>
-                                </div>
-                                <div class="money-display-compacto">
-                                    <i class="fas fa-coins"></i>
-                                    <span id="money-value">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
-                                </div>
-                                <div class="estrellas-display-compacto" onclick="mostrarExplicacionEstrellas()" title="Click para más info">
-                                    <i class="fas fa-star" style="color: #FFD700;"></i>
-                                    <span id="estrellas-value">${this.escuderia?.estrellas_semana || 0}</span>
+                        <!-- HEADER PRINCIPAL CON NOMBRE DEL EQUIPO -->
+                        <header class="dashboard-header-compacto" style="
+                            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                            border-bottom: 3px solid #00d2be;
+                            padding: 12px 15px;
+                            z-index: 1000;
+                        ">
+                            <div class="header-top-row" style="
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                margin-bottom: 10px;
+                            ">
+                                <div class="logo-compacto" style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 10px;
+                                    color: white;
+                                    font-size: 1.4rem;
+                                    font-weight: bold;
+                                    font-family: 'Orbitron', sans-serif;
+                                    text-align: center;
+                                ">
+                                    <i class="fas fa-flag-checkered" style="color: #00d2be; font-size: 1.3rem;"></i>
+                                    <span id="escuderia-nombre" style="color: white;">${this.escuderia.nombre}</span>
                                 </div>
                             </div>
                             
-                            <!-- 4 PESTAÑAS ARRIBA -->
-                            <nav class="tabs-compactas">
-                                <button class="tab-btn-compacto active" data-tab="principal">
-                                    <i class="fas fa-home"></i> Principal
-                                </button>
-                                <button class="tab-btn-compacto" data-tab="taller">
-                                    <i class="fas fa-tools"></i> Taller
-                                </button>
-                                <button class="tab-btn-compacto" data-tab="almacen">
-                                    <i class="fas fa-warehouse"></i> Almacén
-                                </button>
-                                <button class="tab-btn-compacto" data-tab="ingenieria">
-                                    <i class="fas fa-flask"></i> Ingeniería
-                                </button>
-                            </nav>
-                          
+                            <!-- FILA INFERIOR CON DINERO Y ESTRELLAS -->
+                            <div class="header-bottom-row" style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                gap: 15px;
+                            ">
+                                <div class="money-display-compacto" style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                    background: rgba(0, 0, 0, 0.4);
+                                    border: 2px solid #FFD700;
+                                    border-radius: 8px;
+                                    padding: 8px 12px;
+                                    color: white;
+                                    flex: 1;
+                                    min-width: 0;
+                                    overflow: hidden;
+                                ">
+                                    <i class="fas fa-coins" style="color: #FFD700; font-size: 1.1rem;"></i>
+                                    <span id="money-value" style="
+                                        font-weight: bold;
+                                        font-size: 0.95rem;
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
+                                        color: #FFD700;
+                                    ">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
+                                </div>
+                                
+                                <div class="estrellas-display-compacto" onclick="mostrarExplicacionEstrellas()" 
+                                    title="Click para más info" style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                    background: rgba(0, 0, 0, 0.4);
+                                    border: 2px solid #FF9800;
+                                    border-radius: 8px;
+                                    padding: 8px 12px;
+                                    color: white;
+                                    flex: 1;
+                                    min-width: 0;
+                                    overflow: hidden;
+                                    cursor: pointer;
+                                ">
+                                    <i class="fas fa-star" style="color: #FFD700; font-size: 1.1rem;"></i>
+                                    <span id="estrellas-value" style="
+                                        font-weight: bold;
+                                        font-size: 0.95rem;
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
+                                        color: #FFD700;
+                                    ">${this.escuderia?.estrellas_semana || 0}</span>
+                                </div>
+                            </div>
                         </header>
                         
-                        <!-- CONTENIDO PRINCIPAL (SOLO ESTO CAMBIARÁ CON LAS PESTAÑAS) -->
-                        <div id="main-content-area" style="flex: 1; overflow-y: auto;">
+                        <!-- 4 PESTAÑAS PRINCIPALES -->
+                        <nav class="tabs-principales" style="
+                            display: flex;
+                            background: rgba(10, 15, 30, 0.95);
+                            border-bottom: 2px solid rgba(0, 210, 190, 0.3);
+                            padding: 8px 5px;
+                            z-index: 999;
+                        ">
+                            <button class="tab-btn-compacto active" data-tab="principal" style="flex: 1;">
+                                <i class="fas fa-home"></i> Principal
+                            </button>
+                            <button class="tab-btn-compacto" data-tab="taller" style="flex: 1;">
+                                <i class="fas fa-tools"></i> Taller
+                            </button>
+                            <button class="tab-btn-compacto" data-tab="almacen" style="flex: 1;">
+                                <i class="fas fa-warehouse"></i> Almacén
+                            </button>
+                            <button class="tab-btn-compacto" data-tab="ingenieria" style="flex: 1;">
+                                <i class="fas fa-flask"></i> Ingeniería
+                            </button>
+                        </nav>
+                      
+                        <!-- CONTENIDO PRINCIPAL -->
+                        <div id="main-content-area" style="
+                            flex: 1;
+                            overflow-y: auto;
+                            -webkit-overflow-scrolling: touch;
+                            padding-bottom: 70px;
+                        ">
                             <div id="tab-principal" class="tab-content active">
-
-                                <!-- ======================== -->
-                                <!-- NUEVO: ÚLTIMO TIEMPO F1 (SOLO EN PRINCIPAL) -->
-                                <!-- ======================== -->
+                                <!-- ÚLTIMO TIEMPO F1 -->
                                 <div id="ultimo-tiempo-container" class="ultimo-tiempo-f1">
                                     <div class="tiempo-loading">
                                         <i class="fas fa-spinner fa-spin"></i>
                                         <span>Cargando últimos tiempos...</span>
                                     </div>
-                                </div>                    
+                                </div>
+                                
                                 <div class="three-columns-layout">
                                     <div class="col-estrategas">
                                         <div class="section-header">
@@ -2222,7 +2293,7 @@ class F1Manager {
                             <div id="tab-almacen" class="tab-content"></div>
                             <div id="tab-ingenieria" class="tab-content"></div>
                             
-                            <!-- PESTAÑAS ABAJO (inicialmente ocultas) -->
+                            <!-- PESTAÑAS SECUNDARIAS -->
                             <div id="tab-mercado" class="tab-content">
                                 <div class="mercado-cargando">
                                     <i class="fas fa-spinner fa-spin"></i>
@@ -2233,45 +2304,47 @@ class F1Manager {
                             <div id="tab-presupuesto" class="tab-content"></div>
                             <div id="tab-clasificacion" class="tab-content"></div>
                         </div>
-                        
-
-
-
-                        <!-- FOOTER FIJO - SIEMPRE VISIBLE -->
+    
+                        <!-- FOOTER FIJO CON 5 PESTAÑAS SECUNDARIAS -->
                         <footer class="dashboard-footer" style="
-                            position: sticky;
+                            position: fixed;
                             bottom: 0;
-                            background: #1a1a2e;
-                            border-top: 1px solid rgba(0, 210, 190, 0.3);
+                            left: 0;
+                            right: 0;
+                            background: #0f3460;
+                            border-top: 2px solid rgba(0, 210, 190, 0.5);
                             z-index: 1000;
-                            display: flex;
-                            justify-content: center;
-                            padding: 8px 10px;
+                            padding: 8px 5px;
+                            height: 60px;
                         ">
-                            
-                            <!-- 5 PESTAÑAS ABAJO (AHORA SALIR ES UNA PESTAÑA MÁS) -->
-                            <nav class="tabs-compactas" style="
+                            <nav class="tabs-secundarias" style="
                                 display: flex;
                                 justify-content: center;
-                                gap: 8px;
+                                gap: 6px;
                                 width: 100%;
-                                max-width: 600px;
+                                height: 100%;
                             ">
-                                <button class="tab-btn-compacto" data-tab="mercado">
+                                <button class="tab-btn-secundario" data-tab="mercado" style="flex: 1;">
                                     <i class="fas fa-shopping-cart"></i> Mercado
                                 </button>
-                                <button class="tab-btn-compacto" data-tab="pronosticos">
+                                <button class="tab-btn-secundario" data-tab="pronosticos" style="flex: 1;">
                                     <i class="fas fa-chart-line"></i> Pronósticos
                                 </button>
-                                <button class="tab-btn-compacto" data-tab="presupuesto">
+                                <button class="tab-btn-secundario" data-tab="presupuesto" style="flex: 1;">
                                     <i class="fas fa-chart-pie"></i> Presupuesto
                                 </button>
-                                <button class="tab-btn-compacto" data-tab="clasificacion">
+                                <button class="tab-btn-secundario" data-tab="clasificacion" style="flex: 1;">
                                     <i class="fas fa-medal"></i> Clasificación
                                 </button>
                                 
-                                <!-- NUEVA PESTAÑA "SALIR" EN ROJO -->
-                                <button class="tab-btn-compacto tab-btn-salir" id="logout-btn-visible" title="Cerrar sesión">
+                                <!-- PESTAÑA SALIR EN ROJO -->
+                                <button class="tab-btn-secundario tab-btn-salir" id="logout-btn-visible" 
+                                        title="Cerrar sesión" style="
+                                        flex: 1;
+                                        background: rgba(225, 6, 0, 0.2);
+                                        border-color: #e10600;
+                                        color: #ff4444;
+                                ">
                                     <i class="fas fa-sign-out-alt"></i> Salir
                                 </button>
                             </nav>
@@ -2279,8 +2352,8 @@ class F1Manager {
                     </div>
                 </div>
             </div>
-
-            
+    
+            <!-- SCRIPTS -->
             <script>
                 setTimeout(() => {
                     const loadingScreen = document.getElementById('loading-screen');
@@ -2289,38 +2362,37 @@ class F1Manager {
                     }
                 }, 1000);
                 
+                // CONFIGURAR EVENTOS DE PESTAÑAS PRINCIPALES
                 document.querySelectorAll('.tab-btn-compacto').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const tabId = e.currentTarget.dataset.tab;
                         
-                        // 1. Actualizar clases activas
+                        // Actualizar clases activas
                         document.querySelectorAll('.tab-btn-compacto').forEach(b => b.classList.remove('active'));
                         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                         
                         e.currentTarget.classList.add('active');
                         document.getElementById('tab-' + tabId).classList.add('active');
-                        // 3. FIX CRÍTICO: Recalcular márgenes para móviles
+                        
+                        // Recalcular márgenes
                         setTimeout(() => {
                             if (window.recalcularMargenesMoviles) {
                                 window.recalcularMargenesMoviles();
                             }
                         }, 200);
                         
-                        
-                        // 2. Llamar al tabManager si existe
+                        // Llamar al tabManager si existe
                         if (window.tabManager && window.tabManager.switchTab) {
                             window.tabManager.switchTab(tabId);
                         }
                         
-                        // 3. SI ES LA PESTAÑA PRINCIPAL, cargar todo su contenido
+                        // Si es la pestaña principal, cargar contenido
                         if (tabId === 'principal') {
                             setTimeout(() => {
-                                // Primero cargar contenido principal (piezas, estrategas, producción)
                                 if (window.cargarContenidoPrincipal) {
                                     window.cargarContenidoPrincipal();
                                 }
                                 
-                                // Luego cargar el último tiempo (con un pequeño delay para que no compita)
                                 setTimeout(() => {
                                     if (window.f1Manager && window.f1Manager.cargarUltimoTiempoUI) {
                                         window.f1Manager.cargarUltimoTiempoUI();
@@ -2331,24 +2403,51 @@ class F1Manager {
                     });
                 });
                 
-                const logoutBtn = document.getElementById('logout-btn-visible');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        try {
-                            const supabaseClient = window.supabase;
-                            if (supabaseClient) {
-                                await supabaseClient.auth.signOut();
-                                console.log('✅ Sesión cerrada');
+                // CONFIGURAR EVENTOS DE PESTAÑAS SECUNDARIAS
+                document.querySelectorAll('.tab-btn-secundario').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const tabId = e.currentTarget.dataset.tab;
+                        
+                        // Si es salir, manejar logout
+                        if (tabId === undefined && e.currentTarget.classList.contains('tab-btn-salir')) {
+                            try {
+                                const supabaseClient = window.supabase;
+                                if (supabaseClient) {
+                                    await supabaseClient.auth.signOut();
+                                    console.log('✅ Sesión cerrada');
+                                    window.location.href = window.location.origin;
+                                }
+                            } catch (error) {
+                                console.error('❌ Error cerrando sesión:', error);
                                 window.location.href = window.location.origin;
                             }
-                        } catch (error) {
-                            console.error('❌ Error cerrando sesión:', error);
-                            window.location.href = window.location.origin;
+                            return;
+                        }
+                        
+                        // Para otras pestañas secundarias
+                        if (tabId) {
+                            // Actualizar clases
+                            document.querySelectorAll('.tab-btn-secundario').forEach(b => b.classList.remove('active'));
+                            e.currentTarget.classList.add('active');
+                            
+                            // Ocultar todas las pestañas
+                            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                            
+                            // Mostrar la pestaña seleccionada
+                            const tabElement = document.getElementById('tab-' + tabId);
+                            if (tabElement) {
+                                tabElement.classList.add('active');
+                            }
+                            
+                            // Llamar al tabManager
+                            if (window.tabManager && window.tabManager.switchTab) {
+                                window.tabManager.switchTab(tabId);
+                            }
                         }
                     });
-                }
+                });
                 
+                // FUNCIONES AUXILIARES
                 window.irAlTallerDesdeProduccion = function() {
                     document.querySelector('[data-tab="taller"]').click();
                 };
@@ -2373,6 +2472,7 @@ class F1Manager {
                     }
                 };
                 
+                // Cargar contenido inicial
                 setTimeout(() => {
                     if (window.cargarContenidoPrincipal) {
                         window.cargarContenidoPrincipal();
