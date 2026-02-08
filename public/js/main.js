@@ -2377,7 +2377,16 @@ class F1Manager {
                                         <h2><i class="fas fa-car"></i> PIEZAS MONTADAS EN EL COCHE</h2>
                                     </div>
                                     
-                                    <div id="grid-piezas-montadas" class="grid-11-columns">
+                                    <div id="grid-piezas-montadas" class="grid-11-columns" style="
+                                        max-height: 280px;
+                                        overflow-y: auto;
+                                        -webkit-overflow-scrolling: touch;
+                                        padding-bottom: 20px;
+                                        display: grid;
+                                        grid-template-columns: repeat(3, 1fr);
+                                        gap: 8px;
+                                        margin-bottom: 15px;
+                                    ">
                                     </div>
                                 </section>
                             </div>
