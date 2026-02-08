@@ -5151,52 +5151,14 @@ setTimeout(() => {
     // FIX PARA MÁRGENES MÓVILES Y SCROLL
     // ========================
     window.recalcularMargenesMoviles = function() {
-        const container = document.getElementById('inner-game-container');
+        // SOLO ajustes de scroll, los márgenes ya están en CSS
         const mainContent = document.getElementById('main-content-area');
         
-        if (!container || !mainContent) return;
-        
-        // 1. Aplicar safe-area-inset dinámicamente
-        const topSafe = 'env(safe-area-inset-top, 10px)';
-        const bottomSafe = 'env(safe-area-inset-bottom, 10px)';
-        
-        container.style.top = topSafe;
-        container.style.bottom = bottomSafe;
-        container.style.height = `calc(100vh - ${topSafe} - ${bottomSafe})`;
-        
-        // 2. Forzar recalculo del layout
-        setTimeout(() => {
-            // Aplicar estilos de scroll a TODOS los contenedores principales
-            const contenedoresScroll = [
-                '#main-content-area',
-                '.contenedor-areas-desplazable',
-                '#grid-piezas-montadas'
-            ];
-            
-            contenedoresScroll.forEach(selector => {
-                const elemento = document.querySelector(selector);
-                if (elemento) {
-                    elemento.style.maxHeight = 'calc(100vh - 180px)';
-                    elemento.style.overflowY = 'auto';
-                    elemento.style.WebkitOverflowScrolling = 'touch';
-                }
-            });
-            
-            // Scroll específico para piezas montadas (11 botones)
-            const gridPiezas = document.getElementById('grid-piezas-montadas');
-            if (gridPiezas) {
-                gridPiezas.style.minHeight = '200px';
-                gridPiezas.style.maxHeight = '300px';
-                gridPiezas.parentElement.style.overflow = 'visible';
-            }
-            
-            // Scroll específico para taller (550 botones)
-            const contenedorTaller = document.querySelector('.contenedor-areas-desplazable');
-            if (contenedorTaller) {
-                contenedorTaller.style.maxHeight = 'calc(100vh - 250px)';
-                contenedorTaller.style.paddingBottom = '100px'; // Espacio extra para scroll
-            }
-        }, 100);
+        if (mainContent) {
+            // Altura dinámica basada en safe-area del CSS
+            const alturaDisponible = 'calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px) - 180px)';
+            mainContent.style.maxHeight = alturaDisponible;
+        }
     };
     
     // Ejecutar al cargar y al cambiar pestañas
