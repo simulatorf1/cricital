@@ -980,9 +980,10 @@ class F1Manager {
                 style.id = 'estilos-taller-50';
                 style.innerHTML = `
                     /* BARRA DE NAVEGACIÓN FIJA */
+                    
                     .nav-areas-fija {
                         position: sticky;
-                        top: 0;
+                        top: env(safe-area-inset-top, 0px) !important; /* ← CAMBIADO de top: 0 */
                         z-index: 100;
                         background: rgba(10, 15, 30, 0.95);
                         backdrop-filter: blur(10px);
@@ -990,7 +991,6 @@ class F1Manager {
                         padding: 8px 0;
                         margin-bottom: 15px;
                     }
-                    
                     .nav-areas-contenedor {
                         display: grid;
                         grid-template-columns: repeat(6, 1fr);
