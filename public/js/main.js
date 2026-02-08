@@ -1240,6 +1240,43 @@ class F1Manager {
                 `;
                 document.head.appendChild(style);
             }
+            // ===== AÑADE ESTO NUEVO INMEDIATAMENTE DESPUÉS =====
+            if (!document.querySelector('#estilos-safe-area')) {
+                const safeAreaStyle = document.createElement('style');
+                safeAreaStyle.id = 'estilos-safe-area';
+                safeAreaStyle.innerHTML = `
+                    /* Márgenes safe-area definitivos - SOLO CSS */
+                    #inner-game-container {
+                        top: env(safe-area-inset-top, 10px) !important;
+                        bottom: env(safe-area-inset-bottom, 10px) !important;
+                        height: calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px)) !important;
+                    }
+            
+                    /* Barra fija del taller RESPETA safe-area */
+                    .nav-areas-fija {
+                        position: sticky;
+                        top: env(safe-area-inset-top, 0px) !important;
+                        z-index: 100;
+                        background: rgba(10, 15, 30, 0.95);
+                        backdrop-filter: blur(10px);
+                        border-bottom: 2px solid rgba(0, 210, 190, 0.3);
+                        padding: 8px 0;
+                        margin-bottom: 15px;
+                    }
+            
+                    /* Header también respeta safe-area */
+                    .dashboard-header-compacto {
+                        padding-top: env(safe-area-inset-top, 10px) !important;
+                    }
+            
+                    /* Footer respeta safe-area inferior */
+                    .dashboard-footer {
+                        padding-bottom: env(safe-area-inset-bottom, 10px) !important;
+                    }
+                `;
+                document.head.appendChild(safeAreaStyle);
+            }
+            
             
         } catch (error) {
             console.error('❌ Error cargando taller con 50 botones:', error);
