@@ -2010,7 +2010,7 @@ class F1Manager {
                     const tiempoRestante = this.calcularTiempoRestante(desgastePorcentaje);
                     
                     // ★★★★ SOLO UN DIV POR PIEZA ★★★★
-                    areaHTML += `<div class="boton-area-vacia" onclick="restaurarPiezaEquipada('${pieza.id}')" 
+                    areaHTML += `<div class="boton-area-montada" onclick="restaurarPiezaEquipada('${pieza.id}')" 
                         
                         title="${area.nombre}: ${nombreMostrar}
             Desgaste: ${desgastePorcentaje.toFixed(1)}%
