@@ -1574,7 +1574,8 @@ class TabManager {
                 const { error: desequiparError } = await supabase
                     .from('almacen_piezas')
                     .update({ 
-                        equipada: false  // ← COLUMNA QUE SÍ EXISTE
+                        equipada: false,  // ← COLUMNA QUE SÍ EXISTE
+                        desmontada_en: new Date().toISOString()                        
                     })
                     .eq('id', piezaEquipadaActual.id);
                 
@@ -1604,7 +1605,10 @@ class TabManager {
             const { error: equiparError } = await supabase
                 .from('almacen_piezas')
                 .update({ 
-                    equipada: true  // ← COLUMNA QUE SÍ EXISTE
+                    equipada: true,  // ← COLUMNA QUE SÍ EXISTE
+                    montada_en: new Date().toISOString(),  // ← NUEVO
+                    desmontada_en: null,                    // ← NUEVO
+                    desgaste_actual: 100                    // ← NUEVO (reiniciar)                    
                 })
                 .eq('id', piezaId);
             
