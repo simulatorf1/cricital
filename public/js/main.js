@@ -1992,12 +1992,11 @@ class F1Manager {
                     const desgaste = await this.calcularDesgastePieza(pieza.id);
                     const desgastePorcentaje = Math.max(0, Math.min(100, desgaste));
                     
-                    // Si la pieza fue destruida (desgaste = 0), no mostrar nada más
+                    // Si la pieza fue destruida (desgaste = 0)
                     if (desgastePorcentaje <= 0) {
-                        // La pieza ya fue eliminada en calcularDesgastePieza()
-                        // Mostrar hueco vacío con indicación de destruida
+                        // Mostrar hueco vacío (porque fue destruida)
                         return `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" 
-                                title="${area.nombre}: Pieza destruida por desgaste"
+                                title="${area.nombre}: Pieza destruida - Click para ir al Almacén"
                                 style="background: rgba(225, 6, 0, 0.1); border: 2px dashed #e10600;">
                                 <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #e10600;">
                                     ${area.nombre}<br>
@@ -2006,52 +2005,42 @@ class F1Manager {
                             </div>`;
                     }
                     
-                    // Si sigue existiendo, calcular color y tiempo
+                    // Si la pieza existe, mostrar con opción de restaurar
                     const desgasteColor = this.getColorDesgaste(desgastePorcentaje);
                     const tiempoRestante = this.calcularTiempoRestante(desgastePorcentaje);
                     
-                    // Crear contenido con barra de desgaste (SOLO UN DIV)
+                    // ★★★★ SOLO UN DIV POR PIEZA ★★★★
                     areaHTML += `<div class="boton-area-vacia" onclick="restaurarPiezaEquipada('${pieza.id}')" 
                         title="${area.nombre}: ${nombreMostrar}
-                    Desgaste: ${desgastePorcentaje.toFixed(1)}%
-                    Tiempo restante: ${tiempoRestante}
-                    CLICK para restaurar al 100%">`;
-                    
-                    // Nombre de la pieza
-                    areaHTML += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${nombreMostrar}</div>`;
-                    
-                    // Barra de desgaste
-                    areaHTML += `<div style="
-                        width: 100%;
-                        height: 4px;
-                        background: rgba(255,255,255,0.1);
-                        border-radius: 2px;
-                        margin-top: 3px;
-                        overflow: hidden;
-                    ">
-                        <div style="
-                            width: ${desgastePorcentaje}%;
-                            height: 100%;
-                            background: ${desgasteColor};
-                            border-radius: 2px;
-                            transition: width 0.3s ease;
-                        "></div>
+            Desgaste: ${desgastePorcentaje.toFixed(1)}%
+            Tiempo restante: ${tiempoRestante}
+            CLICK para restaurar al 100%">
+                        
+                        <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; 
+                            overflow: hidden; text-overflow: ellipsis; display: -webkit-box; 
+                            -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                            ${nombreMostrar}
+                        </div>
+                        
+                        <!-- Barra de desgaste -->
+                        <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); 
+                            border-radius: 2px; margin-top: 3px; overflow: hidden;">
+                            <div style="width: ${desgastePorcentaje}%; height: 100%; 
+                                background: ${desgasteColor}; border-radius: 2px; transition: width 0.3s ease;">
+                            </div>
+                        </div>
+                        
+                        <!-- Texto según desgaste -->
+                        ${desgastePorcentaje < 30 ? 
+                            `<div style="font-size: 0.55rem; color: ${desgastePorcentaje < 10 ? '#e10600' : '#FF9800'}; 
+                                margin-top: 2px; font-weight: bold;">
+                                ${tiempoRestante} restantes
+                            </div>` 
+                            : ''}
                     </div>`;
                     
-                    // Mostrar tiempo restante si es bajo (SIN MANTENIMIENTO)
-                    if (desgastePorcentaje < 30) {
-                        const colorAdvertencia = desgastePorcentaje < 10 ? '#e10600' : '#FF9800';
-                        const textoAdvertencia = desgastePorcentaje < 10 ? '¡POCO TIEMPO!' : 'Desgaste avanzado';
-                        
-                        areaHTML += `<div style="font-size: 0.55rem; color: ${colorAdvertencia}; margin-top: 2px; font-weight: bold;">
-                            ${textoAdvertencia} (${tiempoRestante})
-                        </div>`;
-                    }
-                    
-                    areaHTML += '</div>'; // Cerrar el div principal
-                    
                 } else {
-                    // Para huecos vacíos
+                    // ★★★★ Para huecos vacíos (SIN PIEZA) ★★★★
                     areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" 
                         title="${area.nombre}: Sin pieza - Click para ir al Almacén y equipar">
                         <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">
@@ -2059,8 +2048,6 @@ class F1Manager {
                             <small style="font-size: 0.6rem;">Vacío</small>
                         </div>
                     </div>`;
-                    areaHTML += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">${area.nombre}<br><small style="font-size: 0.6rem;">Vacío</small></div>`;
-                    areaHTML += '</div>';
                 }
                 
                 return areaHTML;
