@@ -2,6 +2,130 @@
 // F1 MANAGER - MAIN.JS COMPLETO (CON TUTORIAL)
 // ========================
 console.log('🏎️ F1 Manager - Sistema principal cargado');
+// ========================
+// CSS CRÍTICO PARA SAFE AREAS EN MÓVILES
+// ========================
+const safeAreaCSS = `
+    /* Contenedor principal respeta áreas seguras del móvil */
+    #black-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: black;
+        z-index: 0;
+        overflow: hidden;
+    }
+    
+    #inner-game-container {
+        position: absolute;
+        top: env(safe-area-inset-top, 10px);
+        bottom: env(safe-area-inset-bottom, 10px);
+        left: env(safe-area-inset-left, 0);
+        right: env(safe-area-inset-right, 0);
+        overflow: hidden;
+        width: 100%;
+        height: calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px));
+        box-sizing: border-box;
+    }
+    
+    /* Header fijo con safe area */
+    .dashboard-header-compacto {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        background: #1a1a2e !important;
+        border-bottom: 1px solid rgba(0, 210, 190, 0.3) !important;
+        padding-top: env(safe-area-inset-top, 10px) !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        padding-bottom: 8px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Footer fijo con safe area */
+    .dashboard-footer {
+        position: sticky !important;
+        bottom: 0 !important;
+        z-index: 1000 !important;
+        background: #1a1a2e !important;
+        border-top: 1px solid rgba(0, 210, 190, 0.3) !important;
+        padding-bottom: env(safe-area-inset-bottom, 10px) !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        padding-top: 8px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Contenido principal con scroll */
+    #main-content-area {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px;
+        box-sizing: border-box;
+        margin-top: 0 !important;
+    }
+    
+    /* Barra de navegación fija del taller */
+    .nav-areas-fija {
+        position: fixed !important;
+        top: calc(80px + env(safe-area-inset-top, 10px)) !important;
+        z-index: 900 !important;
+        background: rgba(10, 15, 30, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border-bottom: 2px solid rgba(0, 210, 190, 0.3);
+        padding: 8px 0;
+        margin: 0 !important;
+        left: 0;
+        right: 0;
+        width: 100% !important;
+    }
+    
+    /* Ajuste para contenido del taller */
+    .contenedor-areas-desplazable {
+        max-height: calc(100vh - 200px - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px)) !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 60px !important;
+        padding-bottom: 20px;
+    }
+    
+    /* Ajuste para pestañas activas */
+    .tab-content.active {
+        display: block !important;
+        height: 100%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+`;
+
+// Inyectar el CSS inmediatamente
+(function injectSafeAreaCSS() {
+    if (!document.querySelector('#safe-area-css')) {
+        const style = document.createElement('style');
+        style.id = 'safe-area-css';
+        style.textContent = safeAreaCSS;
+        document.head.appendChild(style);
+        console.log('✅ CSS Safe Areas inyectado');
+    }
+})();
+
+const produccionStyles = `
+.progress-bar-global {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    margin: 5px 0;
+    overflow: hidden;
+}
 
 const produccionStyles = `
 .progress-bar-global {
@@ -2247,15 +2371,8 @@ class F1Manager {
                 z-index: 0;
             ">
 
-                <div id="inner-game-container" style="
-                    position: absolute;
-                    top: env(safe-area-inset-top, 10px);
-                    bottom: env(safe-area-inset-bottom, 10px);
-                    left: env(safe-area-inset-left, 0);
-                    right: env(safe-area-inset-right, 0);
-                    overflow: hidden;
-                    height: calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px));
-                ">
+                <div id="inner-game-container">
+
                     <div id="app" style="
                         position: absolute;
                         top: 0;
@@ -5147,73 +5264,9 @@ setTimeout(() => {
             }, 1000);
         }
     });    
-    // ========================
-    // FIX PARA MÁRGENES MÓVILES Y SCROLL
-    // ========================
-    window.recalcularMargenesMoviles = function() {
-        const container = document.getElementById('inner-game-container');
-        const mainContent = document.getElementById('main-content-area');
-        
-        if (!container || !mainContent) return;
-        
-        // 1. Aplicar safe-area-inset dinámicamente
-        const topSafe = 'env(safe-area-inset-top, 10px)';
-        const bottomSafe = 'env(safe-area-inset-bottom, 10px)';
-        
-        container.style.top = topSafe;
-        container.style.bottom = bottomSafe;
-        container.style.height = `calc(100vh - ${topSafe} - ${bottomSafe})`;
-        
-        // 2. Forzar recalculo del layout
-        setTimeout(() => {
-            // Aplicar estilos de scroll a TODOS los contenedores principales
-            const contenedoresScroll = [
-                '#main-content-area',
-                '.contenedor-areas-desplazable',
-                '#grid-piezas-montadas'
-            ];
-            
-            contenedoresScroll.forEach(selector => {
-                const elemento = document.querySelector(selector);
-                if (elemento) {
-                    elemento.style.maxHeight = 'calc(100vh - 180px)';
-                    elemento.style.overflowY = 'auto';
-                    elemento.style.WebkitOverflowScrolling = 'touch';
-                }
-            });
-            
-            // Scroll específico para piezas montadas (11 botones)
-            const gridPiezas = document.getElementById('grid-piezas-montadas');
-            if (gridPiezas) {
-                gridPiezas.style.minHeight = '200px';
-                gridPiezas.style.maxHeight = '300px';
-                gridPiezas.parentElement.style.overflow = 'visible';
-            }
-            
-            // Scroll específico para taller (550 botones)
-            const contenedorTaller = document.querySelector('.contenedor-areas-desplazable');
-            if (contenedorTaller) {
-                contenedorTaller.style.maxHeight = 'calc(100vh - 250px)';
-                contenedorTaller.style.paddingBottom = '100px'; // Espacio extra para scroll
-            }
-        }, 100);
-    };
+
     
-    // Ejecutar al cargar y al cambiar pestañas
-    window.addEventListener('load', window.recalcularMargenesMoviles);
-    document.addEventListener('DOMContentLoaded', window.recalcularMargenesMoviles);
-    
-    // Interceptar cambios de pestaña
-    const observerTabChanges = new MutationObserver(() => {
-        if (document.querySelector('.tab-content.active')) {
-            setTimeout(window.recalcularMargenesMoviles, 300);
-        }
-    });
-    
-    observerTabChanges.observe(document.body, { 
-        childList: true, 
-        subtree: true 
-    });
+
 
     
 })();
