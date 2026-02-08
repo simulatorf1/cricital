@@ -726,16 +726,12 @@ class F1Manager {
             return null;
         }
     }
-    
-    
+
     // ========================
-    // MÉTODO PARA CARGAR PESTAÑA TALLER (MODIFICADO CON 50 BOTONES Y NAVEGACIÓN)
-    // ========================
-    // ========================
-    // MÉTODO PARA CARGAR PESTAÑA TALLER (MODIFICADO - SIN BOTONES FLOTANTES)
+    // MÉTODO PARA CARGAR PESTAÑA TALLER (SIMPLIFICADO - SIN BOTONES NI TEXTOS EXTRA)
     // ========================
     async cargarTabTaller() {
-        console.log('🔧 Cargando pestaña taller con 50 botones FIJOS...');
+        console.log('🔧 Cargando pestaña taller simplificada...');
         
         const container = document.getElementById('tab-taller');
         if (!container) {
@@ -787,46 +783,9 @@ class F1Manager {
                 { id: 'electronica', nombre: 'Electrónica', icono: '💡' }
             ];
             
-            const fabricacionesCount = fabricacionesActivas?.length || 0;
+            let html = '';
             
-            let html = '<div class="taller-minimalista">';
-            html += '<div class="taller-header-mini">';
-            html += '<h2><i class="fas fa-tools"></i> TALLER DE FABRICACIÓN</h2>';
-            html += '<div class="fabricaciones-activas-mini">';
-            html += '<span class="badge-fabricacion">' + fabricacionesCount + '/4 fabricando</span>';
-            html += '</div>';
-            html += '</div>';
-            
-            // === BARRA DE NAVEGACIÓN FIJA SIMPLIFICADA ===
-            html += '<div id="nav-areas-taller" class="nav-areas-fija">';
-            html += '<div class="nav-areas-contenedor">';
-            
-            areas.forEach((area, index) => {
-                // Contar piezas fabricadas para esta área
-                const piezasAreaFabricadas = piezasFabricadas?.filter(p => 
-                    p.area === area.id || p.area === area.nombre
-                ) || [];
-                
-                const progreso = piezasAreaFabricadas.length;
-                const porcentaje = (progreso / 50) * 100;
-                
-                html += '<button class="nav-area-btn" data-area="' + area.id + '" ';
-                html += 'title="' + area.nombre + ' (' + progreso + '/50)">';
-                html += '<span class="nav-area-icon">' + area.icono + '</span>';
-                html += '<span class="nav-area-nombre">' + area.nombre + '</span>';
-                html += '<div class="nav-area-progreso">';
-                html += '<div class="nav-area-progreso-fill" style="width: ' + porcentaje + '%"></div>';
-                html += '</div>';
-                html += '</button>';
-            });
-            
-            html += '</div>'; // Cierra nav-areas-contenedor
-            html += '</div>'; // Cierra nav-areas-fija
-            
-            // === CONTENEDOR DE ÁREAS DESPLAZABLE SIMPLE ===
-            html += '<div id="contenedor-areas-taller" class="contenedor-areas-desplazable">';
-            
-            // Para cada área
+            // SOLO LAS ÁREAS DIRECTAMENTE
             for (const area of areas) {
                 html += '<div class="area-completa" id="area-' + area.id + '">';
                 html += '<div class="area-header-completa">';
@@ -839,7 +798,7 @@ class F1Manager {
                 ) || [];
                 const progreso = piezasAreaFabricadas.length;
                 
-                html += '<span class="area-progreso-badge">' + progreso + '/50 mejoras</span>';
+                html += '<span class="area-progreso-badge">' + progreso + '/50</span>';
                 html += '</div>';
                 
                 html += '<div class="botones-area-completa">';
@@ -856,13 +815,12 @@ class F1Manager {
                 
                 // Para cada una de las 50 piezas
                 for (let piezaNum = 1; piezaNum <= 50; piezaNum++) {
-                    // Calcular nivel (cada 5 piezas es un nivel)
+                    // Calcular nivel
                     const nivel = Math.ceil(piezaNum / 5);
                     
-                    // ✅ CALCULAR COSTO PARA ESTA PIEZA
+                    // Calcular costo
                     const numeroPiezaEnNivel = ((piezaNum - 1) % 5) + 1;
                     const costoPieza = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
-                    const tieneDinero = this.escuderia.dinero >= costoPieza;
                     
                     // Verificar si esta pieza ya está fabricada
                     const piezaFabricada = piezasAreaFabricadasAll[piezaNum - 1];
@@ -873,12 +831,8 @@ class F1Manager {
                     
                     // Verificar si está en fabricación
                     const enFabricacion = fabricacionesAreaActivas.some(f => {
-                        // Calcular qué pieza del nivel estaría fabricando
                         const nivelFabricacion = f.nivel;
                         const rangoInicio = (nivelFabricacion - 1) * 5 + 1;
-                        const rangoFin = nivelFabricacion * 5;
-                        
-                        // Encontrar la próxima pieza no fabricada en ese nivel
                         const piezasNivelFabricadas = piezasAreaFabricadasAll.filter(p => {
                             const nivelPieza = Math.ceil(p.numero_global / 5);
                             return nivelPieza === nivelFabricacion;
@@ -891,48 +845,23 @@ class F1Manager {
                     // Nombre personalizado para esta pieza
                     const nombrePieza = this.nombresPiezas[area.id]?.[piezaNum - 1] || `${area.nombre} Mejora ${piezaNum}`;
                     
-                    // Calcular puntos
-                    const puntosPieza = this.calcularPuntosPieza(area.id, piezaNum);
-                    
                     if (yaFabricada) {
-                        // Determinar clase CSS basada en si fue comprada o fabricada
+                        // Pieza fabricada
                         const claseCSS = esCompradaMercado ? 'btn-pieza-50 comprada-mercado' : 'btn-pieza-50 lleno';
                         const icono = esCompradaMercado ? 'fa-shopping-cart' : 'fa-check';
-                        const titulo = esCompradaMercado ? 
-                            `${nombrePieza} - Comprada en mercado (${piezaFabricada.vendedor_original || 'Vendedor'})` : 
-                            `${nombrePieza} - Costo original: €${costoPieza.toLocaleString()}`;
+                        const titulo = nombrePieza;
                         
                         html += `<button class="${claseCSS}" disabled title="${titulo}">`;
                         html += `<i class="fas ${icono}"></i>`;
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        if (esCompradaMercado) {
-                            html += `<div class="mercado-badge">🛒</div>`;
-                        } else {
-                            // ✅ MOSTRAR PRECIO
-                            html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
-                        }
+                        html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
                         
                     } else if (enFabricacion) {
                         // En fabricación
-                        const fabricacion = fabricacionesAreaActivas.find(f => {
-                            const nivelFabricacion = f.nivel;
-                            const rangoInicio = (nivelFabricacion - 1) * 5 + 1;
-                            const piezasNivelFabricadas = piezasAreaFabricadasAll.filter(p => {
-                                const nivelPieza = Math.ceil(p.numero_global / 5);
-                                return nivelPieza === nivelFabricacion;
-                            }).length;
-                            const proximaPieza = rangoInicio + piezasNivelFabricadas;
-                            return proximaPieza === piezaNum;
-                        });
-                        
-                        const tiempoRestante = fabricacion ? new Date(fabricacion.tiempo_fin) - new Date() : 0;
-                        const minutos = Math.ceil(tiempoRestante / (1000 * 60));
-                        
-                        html += `<button class="btn-pieza-50 fabricando" disabled title="${nombrePieza} - En fabricación (${minutos} min)">`;
+                        html += `<button class="btn-pieza-50 fabricando" disabled title="${nombrePieza} - En fabricación">`;
                         html += '<i class="fas fa-spinner fa-spin"></i>';
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        // ✅ MOSTRAR PRECIO
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
                         
@@ -941,8 +870,9 @@ class F1Manager {
                         const proximaPiezaNoFabricada = !yaFabricada && 
                             piezaNum === (piezasAreaFabricadasAll.length + 1);
                         
-                        const puedeFabricar = fabricacionesCount < 4 && 
-                                            proximaPiezaNoFabricada;
+                        // Solo puede fabricar si hay menos de 4 fabricaciones activas
+                        const fabricacionesCount = fabricacionesActivas?.length || 0;
+                        const puedeFabricar = fabricacionesCount < 4 && proximaPiezaNoFabricada;
                         
                         html += '<button class="btn-pieza-50 vacio" ';
                         if (puedeFabricar) {
@@ -950,10 +880,9 @@ class F1Manager {
                         } else {
                             html += ' disabled';
                         }
-                        html += ` title="${nombrePieza} - Nivel ${nivel} - Costo: €${costoPieza.toLocaleString()}">`;
+                        html += ` title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()}">`;
                         html += '<i class="fas fa-plus"></i>';
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        // ✅ MOSTRAR PRECIO
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
                     }
@@ -963,149 +892,28 @@ class F1Manager {
                 html += '</div>'; // Cierra area-completa
             }
             
-            html += '</div>'; // Cierra contenedor-areas-desplazable
-            
-            html += '<div class="taller-info-mini">';
-            html += '<p><i class="fas fa-info-circle"></i> Fabricaciones activas: <strong>' + fabricacionesCount + '/4</strong></p>';
-            html += '<p><i class="fas fa-info-circle"></i> Fabricación secuencial: Solo puedes fabricar la siguiente pieza disponible</p>';
-            html += '<p><i class="fas fa-info-circle"></i> Cada área tiene 50 mejoras progresivas</p>';
-            html += '</div>';
-            html += '</div>';
-            
             container.innerHTML = html;
             
-            // Configurar eventos de navegación
-            this.configurarNavegacionAreas();
-            
-            // Añadir estilos CSS CORREGIDOS
-            if (!document.querySelector('#estilos-taller-fijo')) {
+            // Añadir estilos CSS SIMPLIFICADOS
+            if (!document.querySelector('#estilos-taller-simple')) {
                 const style = document.createElement('style');
-                style.id = 'estilos-taller-fijo';
+                style.id = 'estilos-taller-simple';
                 style.innerHTML = `
-                    /* BARRA DE NAVEGACIÓN FIJA - POSICIÓN ABSOLUTA */
-                    .nav-areas-fija {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        z-index: 100;
-                        background: rgba(10, 15, 30, 0.98);
-                        border-bottom: 2px solid rgba(0, 210, 190, 0.3);
-                        padding: 8px 0;
-                        margin-bottom: 15px;
-                        height: 85px;
-                        overflow: hidden;
-                    }
-                    
-                    .nav-areas-contenedor {
-                        display: grid;
-                        grid-template-columns: repeat(6, 1fr);
-                        gap: 6px;
-                        max-width: 100%;
-                        overflow-x: auto;
-                        padding: 0 5px;
-                        height: 100%;
-                        -webkit-overflow-scrolling: touch;
-                    }
-                    
-                    @media (min-width: 1200px) {
-                        .nav-areas-contenedor {
-                            grid-template-columns: repeat(11, 1fr);
-                        }
-                    }
-                    
-                    @media (max-width: 1199px) and (min-width: 768px) {
-                        .nav-areas-contenedor {
-                            grid-template-columns: repeat(6, 1fr);
-                        }
-                    }
-                    
-                    @media (max-width: 767px) {
-                        .nav-areas-contenedor {
-                            grid-template-columns: repeat(4, 1fr);
-                        }
-                    }
-                    
-                    .nav-area-btn {
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        justify-content: center;
-                        background: rgba(0, 210, 190, 0.1);
-                        border: 1px solid rgba(0, 210, 190, 0.3);
-                        border-radius: 6px;
-                        padding: 8px 4px;
-                        cursor: pointer;
-                        transition: all 0.2s;
-                        min-height: 60px;
-                        color: white;
-                        position: relative;
-                    }
-                    
-                    .nav-area-btn:hover {
-                        background: rgba(0, 210, 190, 0.2);
-                        border-color: #00d2be;
-                    }
-                    
-                    .nav-area-btn.active {
-                        background: rgba(0, 210, 190, 0.3);
-                        border-color: #00d2be;
-                        box-shadow: 0 0 8px rgba(0, 210, 190, 0.3);
-                    }
-                    
-                    .nav-area-icon {
-                        font-size: 1.3rem;
-                        margin-bottom: 4px;
-                    }
-                    
-                    .nav-area-nombre {
-                        font-size: 0.7rem;
-                        font-weight: bold;
-                        margin-bottom: 4px;
-                        text-align: center;
-                        line-height: 1.1;
-                        white-space: nowrap;
-                    }
-                    
-                    .nav-area-progreso {
-                        width: 90%;
-                        height: 4px;
-                        background: rgba(255, 255, 255, 0.1);
-                        border-radius: 2px;
-                        overflow: hidden;
-                        position: absolute;
-                        bottom: 4px;
-                        left: 5%;
-                    }
-                    
-                    .nav-area-progreso-fill {
-                        height: 100%;
-                        background: linear-gradient(90deg, #00d2be, #4CAF50);
-                        border-radius: 2px;
-                        transition: width 0.3s ease;
-                    }
-                    
-                    /* CONTENEDOR DESPLAZABLE - POSICIÓN FIJA */
-                    .contenedor-areas-desplazable {
-                        position: absolute;
-                        top: 85px; /* Justo debajo de la barra de navegación */
-                        bottom: 0;
-                        left: 0;
-                        right: 0;
-                        overflow-y: auto;
-                        -webkit-overflow-scrolling: touch;
+                    /* CONTENEDOR PRINCIPAL */
+                    #tab-taller {
                         padding: 10px;
-                        padding-bottom: 100px; /* Espacio extra para scroll */
+                        overflow-y: auto;
+                        height: calc(100vh - 120px);
+                        -webkit-overflow-scrolling: touch;
                     }
                     
                     /* ÁREAS INDIVIDUALES */
                     .area-completa {
-                        margin-bottom: 25px;
+                        margin-bottom: 20px;
                         padding: 15px;
                         background: rgba(0, 0, 0, 0.3);
                         border-radius: 8px;
                         border: 1px solid rgba(0, 210, 190, 0.2);
-                        scroll-margin-top: 100px;
                     }
                     
                     .area-header-completa {
@@ -1173,15 +981,10 @@ class F1Manager {
                         background: rgba(0, 0, 0, 0.5);
                         color: white;
                         cursor: pointer;
-                        transition: all 0.2s;
                         padding: 8px;
                         text-align: center;
                         position: relative;
-                    }
-                    
-                    .btn-pieza-50:hover:not(:disabled) {
-                        border-color: #00d2be;
-                        background: rgba(0, 210, 190, 0.1);
+                        font-size: 0.9rem;
                     }
                     
                     .btn-pieza-50:disabled {
@@ -1218,12 +1021,11 @@ class F1Manager {
                         display: -webkit-box;
                         -webkit-line-clamp: 2;
                         -webkit-box-orient: vertical;
+                        margin-bottom: 3px;
                     }
                     
-                    /* ESTILOS PARA PRECIOS */
                     .pieza-precio-50 {
                         font-size: 0.65rem;
-                        margin-top: 3px;
                         color: #FFD700;
                         font-weight: bold;
                         background: rgba(255, 215, 0, 0.1);
@@ -1239,15 +1041,6 @@ class F1Manager {
                         color: #FF9800;
                     }
                     
-                    .btn-pieza-50.comprada-mercado:hover {
-                        border-color: #FFB74D;
-                        background: rgba(255, 152, 0, 0.2);
-                    }
-                    
-                    .btn-pieza-50.comprada-mercado i {
-                        color: #FF9800;
-                    }
-                    
                     .mercado-badge {
                         position: absolute;
                         top: 2px;
@@ -1255,33 +1048,13 @@ class F1Manager {
                         font-size: 0.6rem;
                         color: #FF9800;
                     }
-                    
-                    /* TALLER HEADER - FIJO EN SU LUGAR */
-                    .taller-header-mini {
-                        position: absolute;
-                        top: -40px; /* Fuera de la vista, en el header principal */
-                        display: none; /* Ocultamos porque ya está en el header principal */
-                    }
-                    
-                    /* CONTENEDOR PRINCIPAL DEL TALLER */
-                    .taller-minimalista {
-                        position: relative;
-                        height: 100%;
-                    }
-                    
-                    /* PREVENIR DESPLAZAMIENTOS INESPERADOS */
-                    #tab-taller {
-                        position: relative;
-                        height: 100%;
-                        overflow: hidden;
-                    }
                 `;
                 document.head.appendChild(style);
             }
             
         } catch (error) {
-            console.error('❌ Error cargando taller con 50 botones:', error);
-            container.innerHTML = '<div class="error"><h3>❌ Error cargando el taller</h3><p>' + error.message + '</p><button onclick="location.reload()">Reintentar</button></div>';
+            console.error('❌ Error cargando taller:', error);
+            container.innerHTML = '<div class="error"><p>Error cargando el taller</p></div>';
         }
     }
     
