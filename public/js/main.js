@@ -2338,7 +2338,7 @@ class F1Manager {
                         margin: 0;
                         padding: 0;
                     ">
-                        <header class="dashboard-header-compacto">
+                        <header class="dashboard-header-compacto" id="main-header-fixed">
                             <div class="header-left-compacto">
                                 <div class="logo-compacto">
                                     <i class="fas fa-flag-checkered"></i>
@@ -5220,41 +5220,150 @@ setTimeout(() => {
     // FIX PARA MÁRGENES MÓVILES Y SCROLL
     // ========================
     window.recalcularMargenesMoviles = function() {
-        // 1. Contenedor principal
+        console.log('🔄 Recalculando márgenes safe-area...');
+        
+        // 1. Crear/actualizar estilos safe-area con CSS Variables
+        const safeAreaStyles = document.getElementById('estilos-safe-area');
+        const safeTop = '10px';
+        const safeBottom = '10px';
+        
+        const nuevoCSS = `
+            :root {
+                --safe-area-top: ${safeTop};
+                --safe-area-bottom: ${safeBottom};
+            }
+            
+            #inner-game-container {
+                top: var(--safe-area-top) !important;
+                bottom: var(--safe-area-bottom) !important;
+                height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom)) !important;
+            }
+            
+            .dashboard-header-compacto {
+                padding-top: var(--safe-area-top) !important;
+                z-index: 1000 !important;
+                position: relative !important;
+            }
+            
+            .nav-areas-fija {
+                top: calc(50px + var(--safe-area-top)) !important;
+            }
+            
+            .dashboard-footer {
+                padding-bottom: var(--safe-area-bottom) !important;
+            }
+            
+            /* HEADER NUNCA SE OCULTA */
+            header.dashboard-header-compacto {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+            
+            #main-content-area {
+                margin-top: 0 !important;
+            }
+        `;
+        
+        if (safeAreaStyles) {
+            safeAreaStyles.innerHTML = nuevoCSS;
+        } else {
+            const style = document.createElement('style');
+            style.id = 'estilos-safe-area';
+            style.innerHTML = nuevoCSS;
+            document.head.appendChild(style);
+        }
+        
+        // 2. Forzar visibilidad del header INMEDIATAMENTE
+        const header = document.querySelector('.dashboard-header-compacto');
+        if (header) {
+            header.style.display = 'flex';
+            header.style.visibility = 'visible';
+            header.style.opacity = '1';
+            header.style.zIndex = '1000';
+            
+            // Asegurar posición en el DOM
+            const app = document.getElementById('app');
+            const mainContent = document.getElementById('main-content-area');
+            if (app && mainContent && header.parentNode === app) {
+                // El header está en la posición correcta
+                app.insertBefore(header, mainContent);
+            }
+        }
+        
+        // 3. Aplicar alturas a contenedores
         const mainContent = document.getElementById('main-content-area');
         if (mainContent) {
-            const alturaDisponible = 'calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px) - 180px)';
-            mainContent.style.maxHeight = alturaDisponible;
-            mainContent.style.overflowY = 'auto';
-            mainContent.style.WebkitOverflowScrolling = 'touch';
+            mainContent.style.maxHeight = 'calc(100vh - var(--safe-area-top) - var(--safe-area-bottom) - 180px)';
         }
         
-        // 2. Contenedor del taller (si existe)
         const contenedorTaller = document.querySelector('.contenedor-areas-desplazable');
         if (contenedorTaller) {
-            // Altura específica para el taller (tiene barra fija)
-            const alturaTaller = 'calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px) - 250px)';
-            contenedorTaller.style.maxHeight = alturaTaller;
-            contenedorTaller.style.paddingTop = '70px'; // Para la barra fija
-            contenedorTaller.style.overflowY = 'auto';
-            contenedorTaller.style.WebkitOverflowScrolling = 'touch';
+            contenedorTaller.style.maxHeight = 'calc(100vh - var(--safe-area-top) - var(--safe-area-bottom) - 250px)';
+            contenedorTaller.style.paddingTop = '70px';
         }
         
-        // 3. Grid de piezas montadas (si existe)
-        const gridPiezas = document.getElementById('grid-piezas-montadas');
-        if (gridPiezas) {
-            gridPiezas.style.minHeight = '200px';
-            gridPiezas.style.maxHeight = '300px';
-            gridPiezas.style.overflowY = 'auto';
-            gridPiezas.style.WebkitOverflowScrolling = 'touch';
-        }
-        
-        // 4. Forzar reflow para que los cálculos CSS se apliquen
-        document.body.style.overflow = 'hidden';
+        // 4. Forzar reflow
         setTimeout(() => {
-            document.body.style.overflow = '';
+            document.body.style.display = 'none';
+            document.body.offsetHeight; // Trigger reflow
+            document.body.style.display = '';
         }, 50);
+        
+        console.log('✅ Márgenes safe-area aplicados');
     };
+    // ========================
+    // INTERCEPTAR CAMBIOS DE PESTAÑA PARA MANTENER HEADER VISIBLE
+    // ========================
+    (function() {
+        console.log('🔧 Configurando interceptor de cambios de pestaña...');
+        
+        // Interceptar clicks en botones de pestaña
+        document.addEventListener('click', function(e) {
+            const tabBtn = e.target.closest('.tab-btn-compacto');
+            if (tabBtn) {
+                console.log('📁 Cambio de pestaña detectado:', tabBtn.dataset.tab);
+                
+                // Forzar que el header se mantenga visible después del cambio
+                setTimeout(() => {
+                    const header = document.querySelector('.dashboard-header-compacto');
+                    if (header) {
+                        header.style.display = 'flex';
+                        header.style.visibility = 'visible';
+                        header.style.opacity = '1';
+                    }
+                    
+                    // Recalcular márgenes
+                    if (window.recalcularMargenesMoviles) {
+                        window.recalcularMargenesMoviles();
+                    }
+                }, 200);
+            }
+        });
+        
+        // También interceptar el tabManager si existe
+        if (window.tabManager && window.tabManager.switchTab) {
+            const originalSwitchTab = window.tabManager.switchTab;
+            window.tabManager.switchTab = function(tabId) {
+                originalSwitchTab.call(this, tabId);
+                
+                setTimeout(() => {
+                    if (window.recalcularMargenesMoviles) {
+                        window.recalcularMargenesMoviles();
+                    }
+                }, 250);
+            };
+            console.log('✅ Interceptor de tabManager configurado');
+        }
+        
+        // Ejecutar inmediatamente al cargar
+        setTimeout(() => {
+            if (window.recalcularMargenesMoviles) {
+                window.recalcularMargenesMoviles();
+            }
+        }, 1000);
+    })();
+    
     
     // Ejecutar al cargar y al cambiar pestañas
     window.addEventListener('load', window.recalcularMargenesMoviles);
