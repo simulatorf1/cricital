@@ -2011,16 +2011,7 @@ class F1Manager {
                     
                     // ★★★★ SOLO UN DIV POR PIEZA ★★★★
                     areaHTML += `<div class="boton-area-vacia" onclick="restaurarPiezaEquipada('${pieza.id}')" 
-                        style="
-                            background: linear-gradient(135deg, rgba(0, 210, 190, 0.1) 0%, rgba(0, 210, 190, 0.2) 100%);
-                            border: 2px solid white;  // ← CAMBIAR #00d2be POR white
-                            height: 50px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            padding: 5px 8px;
-                            color: white;
-                        "
+                        
                         title="${area.nombre}: ${nombreMostrar}
             Desgaste: ${desgastePorcentaje.toFixed(1)}%
             Tiempo restante: ${tiempoRestante}
@@ -2052,16 +2043,7 @@ class F1Manager {
                 } else {
                     // ★★★★ Para huecos vacíos (SIN PIEZA) ★★★★
                     areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" 
-                        style="
-                            background: rgba(100, 100, 100, 0.1);
-                            border: 2px dashed rgba(255, 255, 255, 0.2);
-                            height: 50px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            padding: 5px 8px;
-                            color: #888;
-                        "
+
                         title="${area.nombre}: Sin pieza - Click para ir al Almacén y equipar">
                         <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">
                             ${area.nombre}<br>
