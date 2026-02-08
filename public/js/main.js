@@ -408,45 +408,41 @@ class F1Manager {
     }
 
 
-    // MÉTODO CORREGIDO PARA CALCULAR DESGASTE (24 HORAS REALES) - VERSIÓN FIX
-    // ========================
-    // ========================
+
     // MÉTODO SIMPLIFICADO: Calcular desgaste desde fabricación
     // ========================
     async calcularDesgastePieza(piezaId) {
         try {
-            // Solo pedimos columnas que EXISTEN
             const { data: pieza, error } = await this.supabase
                 .from('almacen_piezas')
-                .select('desgaste_actual, fabricada_en')
+                .select('id, equipada, montada_en, desgaste_actual')
                 .eq('id', piezaId)
                 .single();
             
-            if (error || !pieza) {
-                console.error('Pieza no encontrada:', piezaId);
-                return 0; // Considerar destruida
+            if (error || !pieza) return 0;
+            
+            // Si NO está equipada → NO tiene desgaste activo
+            if (!pieza.equipada || !pieza.montada_en) {
+                return pieza.desgaste_actual || 100;
             }
             
-            // Si ya tiene desgaste 0, está destruida
-            if (pieza.desgaste_actual === 0) {
-                return 0;
-            }
-            
-            // Usar fecha de fabricación
-            const fechaFabricacion = new Date(pieza.fabricada_en);
+            // Calcular minutos desde que se MONTÓ
+            const fechaMontaje = new Date(pieza.montada_en);
             const ahora = new Date();
+            const minutosMontada = (ahora - fechaMontaje) / (1000 * 60);
             
-            // Calcular minutos transcurridos desde fabricación
-            const minutosTranscurridos = (ahora - fechaFabricacion) / (1000 * 60);
+            // Si lleva menos de 1 minuto montada, mostrar 100%
+            if (minutosMontada < 1) return 100;
             
-            // 24 horas = 1440 minutos
-            const desgasteActual = Math.max(0, 100 - ((minutosTranscurridos / 1440) * 100));
+            // Calcular desgaste (24h = 1440 minutos)
+            let desgasteActual = 100 - ((minutosMontada / 1440) * 100);
+            desgasteActual = Math.max(0, Math.min(100, desgasteActual));
             
-            console.log(`📊 Pieza ${piezaId}: ${minutosTranscurridos.toFixed(0)}min -> ${desgasteActual.toFixed(1)}%`);
+            console.log(`⏱️ Pieza ${piezaId}: montada hace ${minutosMontada.toFixed(0)}min → ${desgasteActual.toFixed(1)}%`);
             
-            // Si llegó a 0%, ELIMINAR
-            if (desgasteActual <= 0) {
-                console.log(`🗑️ Destruyendo pieza ${piezaId}`);
+            // Si llegó a 0% Y está equipada → DESTRUIR
+            if (desgasteActual <= 0 && pieza.equipada) {
+                console.log(`💥 DESTRUCCIÓN: Pieza ${piezaId} completó 24h montada`);
                 await this.supabase
                     .from('almacen_piezas')
                     .delete()
@@ -454,12 +450,13 @@ class F1Manager {
                 return 0;
             }
             
-            // Actualizar si cambió significativamente
-            if (Math.abs((pieza.desgaste_actual || 100) - desgasteActual) > 5) {
+            // Actualizar desgaste en BD si cambió
+            if (Math.abs((pieza.desgaste_actual || 100) - desgasteActual) > 1) {
                 await this.supabase
                     .from('almacen_piezas')
                     .update({ 
-                        desgaste_actual: desgasteActual
+                        desgaste_actual: desgasteActual,
+                        ultima_actualizacion_desgaste: ahora.toISOString()
                     })
                     .eq('id', piezaId);
             }
