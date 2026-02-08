@@ -962,30 +962,86 @@ class F1Manager {
                 style.innerHTML = `
                     /* CONTENEDOR PRINCIPAL - AISLADO */
                     #tab-taller {
-                        height: 100%;
-                        position: relative;
+                        height: 100% !important;
+                        position: relative !important;
                         overflow: hidden !important;
+                        -webkit-overflow-scrolling: touch;
+                        contain: layout style;
                     }
                     
                     #tab-taller .taller-minimalista {
-                        height: 100%;
-                        display: flex;
-                        flex-direction: column;
+                        height: 100% !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        position: relative !important;
+                        overflow: hidden !important;
                     }
                     
-                    /* BARRA DE NAVEGACIÓN RELATIVA (NO STICKY) */
+                    /* BARRA DE NAVEGACIÓN - FIJA PERO SEGURA PARA MÓVILES */
                     #tab-taller .nav-areas-fija {
-                        position: relative !important; /* CAMBIADO: era sticky */
+                        position: sticky !important;
                         top: 0 !important;
-                        z-index: 10 !important; /* REDUCIDO: era 100 */
-                        background: rgba(10, 15, 30, 0.95);
-                        backdrop-filter: blur(10px);
-                        border-bottom: 2px solid rgba(0, 210, 190, 0.3);
-                        padding: 8px 0;
-                        margin-bottom: 15px;
-                        flex-shrink: 0;
+                        z-index: 5 !important; /* MUY BAJO para no interferir */
+                        background: rgba(10, 15, 30, 0.98) !important;
+                        backdrop-filter: blur(10px) !important;
+                        border-bottom: 2px solid rgba(0, 210, 190, 0.3) !important;
+                        padding: 8px 0 !important;
+                        margin-bottom: 15px !important;
+                        flex-shrink: 0 !important;
+                        /* Soporte para safe-area en móviles */
+                        padding-top: max(8px, env(safe-area-inset-top, 8px)) !important;
+                        padding-bottom: max(8px, env(safe-area-inset-bottom, 8px)) !important;
                     }
                     
+                    /* CONTENEDOR PRINCIPAL CON ALTURA SEGURA PARA MÓVILES */
+                    #tab-taller .contenedor-areas-desplazable {
+                        flex: 1 1 auto !important;
+                        overflow-y: auto !important;
+                        overflow-x: hidden !important;
+                        -webkit-overflow-scrolling: touch !important;
+                        /* Altura segura para móviles con barras UI */
+                        height: calc(100vh - 180px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+                        max-height: none !important;
+                        position: relative !important;
+                    }
+                    
+                    /* === MEDIA QUERIES ESPECÍFICAS PARA MÓVILES === */
+                    @media (max-width: 768px) {
+                        #tab-taller {
+                            height: calc(100vh - 120px) !important;
+                        }
+                        
+                        #tab-taller .contenedor-areas-desplazable {
+                            height: calc(100vh - 200px) !important;
+                            padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+                        }
+                        
+                        #tab-taller .nav-areas-fija {
+                            position: -webkit-sticky !important; /* Safari */
+                            position: sticky !important;
+                            top: 0 !important;
+                        }
+                        
+                        /* Reducir grid en móviles muy pequeños */
+                        #tab-taller .botones-area-completa {
+                            grid-template-columns: repeat(2, 1fr) !important;
+                            gap: 6px !important;
+                        }
+                        
+                        #tab-taller .btn-pieza-50 {
+                            height: 70px !important;
+                            font-size: 0.8rem !important;
+                        }
+                    }
+                    
+                    /* Para tablets */
+                    @media (min-width: 769px) and (max-width: 1024px) {
+                        #tab-taller .botones-area-completa {
+                            grid-template-columns: repeat(3, 1fr) !important;
+                        }
+                    }
+                    
+                    /* === EL RESTO DE TUS ESTILOS ORIGINALES (con prefijo #tab-taller) === */
                     #tab-taller .nav-areas-contenedor {
                         display: grid;
                         grid-template-columns: repeat(6, 1fr);
@@ -1081,16 +1137,6 @@ class F1Manager {
                         background: linear-gradient(90deg, #00d2be, #4CAF50);
                         border-radius: 2px;
                         transition: width 0.3s ease;
-                    }
-                    
-                    /* CONTENEDOR DESPLAZABLE */
-                    #tab-taller .contenedor-areas-desplazable {
-                        flex: 1;
-                        overflow-y: auto !important;
-                        overflow-x: hidden;
-                        padding-right: 5px;
-                        max-height: none !important;
-                        position: relative;
                     }
                     
                     /* ÁREAS INDIVIDUALES */
@@ -1248,18 +1294,6 @@ class F1Manager {
                         font-size: 0.6rem;
                         color: #FF9800;
                     }
-                    
-                    /* GARANTIZAR QUE NO INTERFIERA CON EL LAYOUT GLOBAL */
-                    .dashboard-header-compacto {
-                        position: relative !important;
-                        z-index: 1000 !important;
-                    }
-                    
-                    .dashboard-footer {
-                        position: sticky !important;
-                        bottom: 0 !important;
-                        z-index: 999 !important;
-                    }
                 `;
                 document.head.appendChild(style);
             }
@@ -1269,6 +1303,42 @@ class F1Manager {
             if (estiloAnterior) {
                 estiloAnterior.remove();
             }
+            // FIX ESPECÍFICO PARA MÓVILES - Ejecutar después de cargar
+            setTimeout(() => {
+                // Solo aplicar en móviles
+                if (window.innerWidth <= 768) {
+                    console.log('📱 Aplicando fixes específicos para móvil...');
+                    
+                    // 1. Forzar recalculo de alturas
+                    const contenedorTaller = document.getElementById('tab-taller');
+                    const contenedorScroll = document.getElementById('contenedor-areas-taller');
+                    
+                    if (contenedorTaller && contenedorScroll) {
+                        // Usar altura dinámica segura para móviles
+                        const alturaDisponible = window.innerHeight - 120; // Ajusta según tu header/footer
+                        
+                        contenedorTaller.style.height = alturaDisponible + 'px';
+                        contenedorScroll.style.height = (alturaDisponible - 80) + 'px';
+                        
+                        // 2. Prevenir scroll del body cuando se está en el taller
+                        contenedorScroll.addEventListener('touchstart', (e) => {
+                            if (contenedorScroll.scrollTop === 0) {
+                                contenedorScroll.scrollTop = 1;
+                            } else if (contenedorScroll.scrollHeight === contenedorScroll.scrollTop + contenedorScroll.clientHeight) {
+                                contenedorScroll.scrollTop = contenedorScroll.scrollTop - 1;
+                            }
+                        }, { passive: true });
+                        
+                        // 3. Forzar redibujado
+                        contenedorTaller.style.display = 'none';
+                        contenedorTaller.offsetHeight; // Trigger reflow
+                        contenedorTaller.style.display = '';
+                        
+                        console.log('✅ Fixes móviles aplicados');
+                    }
+                }
+            }, 100);
+
             
         } catch (error) {
             console.error('❌ Error cargando taller con 50 botones:', error);
