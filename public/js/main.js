@@ -410,98 +410,65 @@ class F1Manager {
 
     // MÉTODO CORREGIDO PARA CALCULAR DESGASTE (24 HORAS REALES) - VERSIÓN FIX
     // ========================
+    // ========================
+    // MÉTODO SIMPLIFICADO: Calcular desgaste desde fabricación
+    // ========================
     async calcularDesgastePieza(piezaId) {
         try {
-            // Obtener datos actuales de la pieza - CONSULTA CORREGIDA
+            // Solo pedimos columnas que EXISTEN
             const { data: pieza, error } = await this.supabase
                 .from('almacen_piezas')
-                .select('desgaste_actual, montada_en, ultima_actualizacion_desgaste, fabricada_en')
-                .eq('id', piezaId)  // ← CORRECTO: Usar .eq() no parámetro en URL
+                .select('desgaste_actual, fabricada_en')
+                .eq('id', piezaId)
                 .single();
             
             if (error || !pieza) {
-                console.error('Error obteniendo datos de pieza:', error);
-                return 0; // Si no existe, considerar destruida
+                console.error('Pieza no encontrada:', piezaId);
+                return 0; // Considerar destruida
             }
             
-            // Si la pieza ya tiene desgaste 0, considerarla destruida
+            // Si ya tiene desgaste 0, está destruida
             if (pieza.desgaste_actual === 0) {
-                console.log(`⚠️ Pieza ${piezaId} ya marcada como destruida`);
                 return 0;
             }
             
-            // Determinar cuándo se montó (usar montada_en si existe, sino fabricada_en)
-            const fechaMontajeStr = pieza.montada_en || pieza.fabricada_en;
-            if (!fechaMontajeStr) {
-                console.warn(`Pieza ${piezaId} sin fecha de montaje, usando ahora`);
-                return 100;
-            }
-            
-            const fechaMontaje = new Date(fechaMontajeStr);
+            // Usar fecha de fabricación
+            const fechaFabricacion = new Date(pieza.fabricada_en);
             const ahora = new Date();
             
-            // Calcular minutos transcurridos desde que se montó
-            const minutosTranscurridos = (ahora - fechaMontaje) / (1000 * 60);
+            // Calcular minutos transcurridos desde fabricación
+            const minutosTranscurridos = (ahora - fechaFabricacion) / (1000 * 60);
             
             // 24 horas = 1440 minutos
-            const minutosTotales = 1440;
+            const desgasteActual = Math.max(0, 100 - ((minutosTranscurridos / 1440) * 100));
             
-            // Calcular desgaste actual (100% - porcentaje transcurrido)
-            let desgasteActual = 100 - ((minutosTranscurridos / minutosTotales) * 100);
+            console.log(`📊 Pieza ${piezaId}: ${minutosTranscurridos.toFixed(0)}min -> ${desgasteActual.toFixed(1)}%`);
             
-            // Asegurar que esté entre 0 y 100
-            desgasteActual = Math.max(0, Math.min(100, desgasteActual));
-            
-            console.log(`📊 Pieza ${piezaId}: ${minutosTranscurridos.toFixed(1)} min transcurridos, desgaste: ${desgasteActual.toFixed(1)}%`);
-            
-            // Si llegó a 0%, ELIMINAR la pieza (destrucción automática)
+            // Si llegó a 0%, ELIMINAR
             if (desgasteActual <= 0) {
-                console.log(`🗑️ Pieza ${piezaId} destruida por desgaste completo (${minutosTranscurridos.toFixed(1)} minutos)`);
-                
-                try {
-                    // Eliminar de la base de datos
-                    const { error: deleteError } = await this.supabase
-                        .from('almacen_piezas')
-                        .delete()
-                        .eq('id', piezaId);
-                    
-                    if (deleteError) {
-                        console.error('Error eliminando pieza:', deleteError);
-                    } else {
-                        console.log(`✅ Pieza ${piezaId} eliminada correctamente`);
-                    }
-                } catch (deleteErr) {
-                    console.error('Excepción al eliminar:', deleteErr);
-                }
-                
-                return 0; // Devuelve 0 para indicar que fue destruida
+                console.log(`🗑️ Destruyendo pieza ${piezaId}`);
+                await this.supabase
+                    .from('almacen_piezas')
+                    .delete()
+                    .eq('id', piezaId);
+                return 0;
             }
             
-            // Solo actualizar en BD si cambió significativamente (cada ~5% para no sobrecargar)
-            const desgasteAnterior = pieza.desgaste_actual || 100;
-            if (Math.abs(desgasteAnterior - desgasteActual) > 5 || 
-                !pieza.ultima_actualizacion_desgaste) {
-                
-                try {
-                    await this.supabase
-                        .from('almacen_piezas')
-                        .update({ 
-                            desgaste_actual: desgasteActual,
-                            ultima_actualizacion_desgaste: ahora.toISOString()
-                        })
-                        .eq('id', piezaId);
-                    
-                    console.log(`📝 Pieza ${piezaId} actualizada: ${desgasteAnterior}% → ${desgasteActual.toFixed(1)}%`);
-                } catch (updateErr) {
-                    console.error('Error actualizando desgaste:', updateErr);
-                }
+            // Actualizar si cambió significativamente
+            if (Math.abs((pieza.desgaste_actual || 100) - desgasteActual) > 5) {
+                await this.supabase
+                    .from('almacen_piezas')
+                    .update({ 
+                        desgaste_actual: desgasteActual
+                    })
+                    .eq('id', piezaId);
             }
             
             return desgasteActual;
             
         } catch (error) {
             console.error('Error calculando desgaste:', error);
-            return 100; // Por defecto, considerar nueva
+            return 100;
         }
     }
     
