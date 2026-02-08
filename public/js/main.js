@@ -2105,17 +2105,7 @@ class F1Manager {
         
         contenedor.innerHTML = html;
         
-        // Aplicar estilos inline
-        const botones = contenedor.querySelectorAll('.boton-area-vacia');
-        botones.forEach(boton => {
-            boton.style.height = '50px';
-            boton.style.display = 'flex';
-            boton.style.alignItems = 'center';
-            boton.style.justifyContent = 'center';
-            boton.style.padding = '5px 8px';
-            boton.style.background = 'rgba(100, 100, 100, 0.1)';
-            boton.style.border = '2px dashed rgba(255, 255, 255, 0.2)';
-        });
+
     }
     
 
