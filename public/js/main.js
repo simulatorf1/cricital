@@ -2254,7 +2254,7 @@ class F1Manager {
                     left: env(safe-area-inset-left, 0);
                     right: env(safe-area-inset-right, 0);
                     overflow: hidden;
-                    height: calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px));
+                    height: calc(100vh - env(safe-area-inset-top, 40px) - env(safe-area-inset-bottom, 10px));
                 ">
                     <div id="app" style="
                         position: absolute;
