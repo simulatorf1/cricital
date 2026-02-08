@@ -787,22 +787,14 @@ class F1Manager {
             const fabricacionesCount = fabricacionesActivas?.length || 0;
             
             let html = '<div class="taller-minimalista">';
-            // === BARRA DE NAVEGACIÓN FIJA - FUERA DEL CONTENEDOR PRINCIPAL ===
-            html += '<div id="nav-areas-taller" class="nav-areas-fija">';
-            html += '<div class="nav-areas-contenedor">';
-                
-            // Botones de navegación...
-            html += '</div>';
-            html += '</div>'; // Cierra nav-areas-fija
-                
-            // === AHORA SÍ EL CONTENIDO DEL TALLER ===
             html += '<div class="taller-header-mini">';
             html += '<h2><i class="fas fa-tools"></i> TALLER DE FABRICACIÓN</h2>';
             html += '<div class="fabricaciones-activas-mini">';
             html += '<span class="badge-fabricacion">' + fabricacionesCount + '/4 fabricando</span>';
             html += '</div>';
             html += '</div>';
-            html += '</div>'; // Cierra taller-minimalista ANTES de la barra fija
+            
+            // === BARRA DE NAVEGACIÓN FIJA ===
             html += '<div id="nav-areas-taller" class="nav-areas-fija">';
             html += '<div class="nav-areas-contenedor">';
             
@@ -828,8 +820,6 @@ class F1Manager {
             html += '</div>'; // Cierra nav-areas-contenedor
             html += '</div>'; // Cierra nav-areas-fija
             
-            // === VUELVE A ABRIR taller-minimalista para el contenido ===
-            html += '<div class="taller-minimalista">';
             // === CONTENEDOR DE ÁREAS DESPLAZABLE ===
             html += '<div id="contenedor-areas-taller" class="contenedor-areas-desplazable">';
             
@@ -990,25 +980,17 @@ class F1Manager {
                 style.id = 'estilos-taller-50';
                 style.innerHTML = `
                     /* BARRA DE NAVEGACIÓN FIJA */
-                    
-                    /* Barra fija del taller - POSICIÓN FIXA */
                     .nav-areas-fija {
-                        position: fixed !important;
-                        top: calc(50px + env(safe-area-inset-top, 10px)) !important;
-                        left: 0;
-                        right: 0;
-                        z-index: 99; /* UN POCO MENOS que el header principal (z-index: 100) */
-                        background: rgba(10, 15, 30, 0.98);
+                        position: sticky;
+                        top: 0;
+                        z-index: 100;
+                        background: rgba(10, 15, 30, 0.95);
                         backdrop-filter: blur(10px);
                         border-bottom: 2px solid rgba(0, 210, 190, 0.3);
                         padding: 8px 0;
-                        margin: 0;
+                        margin-bottom: 15px;
                     }
                     
-                    /* El header del taller necesita margen para la barra fija */
-                    .taller-header-mini {
-                        margin-top: 60px !important; /* Espacio para la barra fija */
-                    }
                     .nav-areas-contenedor {
                         display: grid;
                         grid-template-columns: repeat(6, 1fr);
@@ -1258,57 +1240,6 @@ class F1Manager {
                 `;
                 document.head.appendChild(style);
             }
-            // ===== AÑADE ESTO NUEVO INMEDIATAMENTE DESPUÉS =====
-            if (!document.querySelector('#estilos-safe-area')) {
-                const safeAreaStyle = document.createElement('style');
-                safeAreaStyle.id = 'estilos-safe-area';
-                safeAreaStyle.innerHTML = `
-                    /* Márgenes safe-area definitivos - SOLO CSS */
-                    #inner-game-container {
-                        top: env(safe-area-inset-top, 10px) !important;
-                        bottom: env(safe-area-inset-bottom, 10px) !important;
-                        height: calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px)) !important;
-                    }
-            
-                    /* Barra fija del taller - POSICIÓN FIXA, NO STICKY */
-                    /* Barra fija del taller - POSICIÓN FIXA */
-                    .nav-areas-fija {
-                        position: fixed !important;
-                        top: calc(50px + env(safe-area-inset-top, 10px)) !important;
-                        left: 0;
-                        right: 0;
-                        z-index: 99; /* UN POCO MENOS que el header principal (z-index: 100) */
-                        background: rgba(10, 15, 30, 0.98);
-                        backdrop-filter: blur(10px);
-                        border-bottom: 2px solid rgba(0, 210, 190, 0.3);
-                        padding: 8px 0;
-                        margin: 0;
-                    }
-                    
-                    /* El header del taller necesita margen para la barra fija */
-                    .taller-header-mini {
-                        margin-top: 60px !important; /* Espacio para la barra fija */
-                    }
-                    
-                    /* Contenedor desplazable necesita espacio para la barra fija */
-                    .contenedor-areas-desplazable {
-                        padding-top: 70px !important;
-                        max-height: calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px) - 180px) !important;
-                    }
-            
-                    /* Header también respeta safe-area */
-                    .dashboard-header-compacto {
-                        padding-top: env(safe-area-inset-top, 10px) !important;
-                    }
-            
-                    /* Footer respeta safe-area inferior */
-                    .dashboard-footer {
-                        padding-bottom: env(safe-area-inset-bottom, 10px) !important;
-                    }
-                `;
-                document.head.appendChild(safeAreaStyle);
-            }
-            
             
         } catch (error) {
             console.error('❌ Error cargando taller con 50 botones:', error);
@@ -2338,7 +2269,7 @@ class F1Manager {
                         margin: 0;
                         padding: 0;
                     ">
-                        <header class="dashboard-header-compacto" id="main-header-fixed">
+                        <header class="dashboard-header-compacto">
                             <div class="header-left-compacto">
                                 <div class="logo-compacto">
                                     <i class="fas fa-flag-checkered"></i>
@@ -5220,150 +5151,53 @@ setTimeout(() => {
     // FIX PARA MÁRGENES MÓVILES Y SCROLL
     // ========================
     window.recalcularMargenesMoviles = function() {
-        console.log('🔄 Recalculando márgenes safe-area...');
-        
-        // 1. Crear/actualizar estilos safe-area con CSS Variables
-        const safeAreaStyles = document.getElementById('estilos-safe-area');
-        const safeTop = '10px';
-        const safeBottom = '10px';
-        
-        const nuevoCSS = `
-            :root {
-                --safe-area-top: ${safeTop};
-                --safe-area-bottom: ${safeBottom};
-            }
-            
-            #inner-game-container {
-                top: var(--safe-area-top) !important;
-                bottom: var(--safe-area-bottom) !important;
-                height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom)) !important;
-            }
-            
-            .dashboard-header-compacto {
-                padding-top: var(--safe-area-top) !important;
-                z-index: 1000 !important;
-                position: relative !important;
-            }
-            
-            .nav-areas-fija {
-                top: calc(50px + var(--safe-area-top)) !important;
-            }
-            
-            .dashboard-footer {
-                padding-bottom: var(--safe-area-bottom) !important;
-            }
-            
-            /* HEADER NUNCA SE OCULTA */
-            header.dashboard-header-compacto {
-                display: flex !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-            }
-            
-            #main-content-area {
-                margin-top: 0 !important;
-            }
-        `;
-        
-        if (safeAreaStyles) {
-            safeAreaStyles.innerHTML = nuevoCSS;
-        } else {
-            const style = document.createElement('style');
-            style.id = 'estilos-safe-area';
-            style.innerHTML = nuevoCSS;
-            document.head.appendChild(style);
-        }
-        
-        // 2. Forzar visibilidad del header INMEDIATAMENTE
-        const header = document.querySelector('.dashboard-header-compacto');
-        if (header) {
-            header.style.display = 'flex';
-            header.style.visibility = 'visible';
-            header.style.opacity = '1';
-            header.style.zIndex = '1000';
-            
-            // Asegurar posición en el DOM
-            const app = document.getElementById('app');
-            const mainContent = document.getElementById('main-content-area');
-            if (app && mainContent && header.parentNode === app) {
-                // El header está en la posición correcta
-                app.insertBefore(header, mainContent);
-            }
-        }
-        
-        // 3. Aplicar alturas a contenedores
+        const container = document.getElementById('inner-game-container');
         const mainContent = document.getElementById('main-content-area');
-        if (mainContent) {
-            mainContent.style.maxHeight = 'calc(100vh - var(--safe-area-top) - var(--safe-area-bottom) - 180px)';
-        }
         
-        const contenedorTaller = document.querySelector('.contenedor-areas-desplazable');
-        if (contenedorTaller) {
-            contenedorTaller.style.maxHeight = 'calc(100vh - var(--safe-area-top) - var(--safe-area-bottom) - 250px)';
-            contenedorTaller.style.paddingTop = '70px';
-        }
+        if (!container || !mainContent) return;
         
-        // 4. Forzar reflow
+        // 1. Aplicar safe-area-inset dinámicamente
+        const topSafe = 'env(safe-area-inset-top, 10px)';
+        const bottomSafe = 'env(safe-area-inset-bottom, 10px)';
+        
+        container.style.top = topSafe;
+        container.style.bottom = bottomSafe;
+        container.style.height = `calc(100vh - ${topSafe} - ${bottomSafe})`;
+        
+        // 2. Forzar recalculo del layout
         setTimeout(() => {
-            document.body.style.display = 'none';
-            document.body.offsetHeight; // Trigger reflow
-            document.body.style.display = '';
-        }, 50);
-        
-        console.log('✅ Márgenes safe-area aplicados');
+            // Aplicar estilos de scroll a TODOS los contenedores principales
+            const contenedoresScroll = [
+                '#main-content-area',
+                '.contenedor-areas-desplazable',
+                '#grid-piezas-montadas'
+            ];
+            
+            contenedoresScroll.forEach(selector => {
+                const elemento = document.querySelector(selector);
+                if (elemento) {
+                    elemento.style.maxHeight = 'calc(100vh - 180px)';
+                    elemento.style.overflowY = 'auto';
+                    elemento.style.WebkitOverflowScrolling = 'touch';
+                }
+            });
+            
+            // Scroll específico para piezas montadas (11 botones)
+            const gridPiezas = document.getElementById('grid-piezas-montadas');
+            if (gridPiezas) {
+                gridPiezas.style.minHeight = '200px';
+                gridPiezas.style.maxHeight = '300px';
+                gridPiezas.parentElement.style.overflow = 'visible';
+            }
+            
+            // Scroll específico para taller (550 botones)
+            const contenedorTaller = document.querySelector('.contenedor-areas-desplazable');
+            if (contenedorTaller) {
+                contenedorTaller.style.maxHeight = 'calc(100vh - 250px)';
+                contenedorTaller.style.paddingBottom = '100px'; // Espacio extra para scroll
+            }
+        }, 100);
     };
-    // ========================
-    // INTERCEPTAR CAMBIOS DE PESTAÑA PARA MANTENER HEADER VISIBLE
-    // ========================
-    (function() {
-        console.log('🔧 Configurando interceptor de cambios de pestaña...');
-        
-        // Interceptar clicks en botones de pestaña
-        document.addEventListener('click', function(e) {
-            const tabBtn = e.target.closest('.tab-btn-compacto');
-            if (tabBtn) {
-                console.log('📁 Cambio de pestaña detectado:', tabBtn.dataset.tab);
-                
-                // Forzar que el header se mantenga visible después del cambio
-                setTimeout(() => {
-                    const header = document.querySelector('.dashboard-header-compacto');
-                    if (header) {
-                        header.style.display = 'flex';
-                        header.style.visibility = 'visible';
-                        header.style.opacity = '1';
-                    }
-                    
-                    // Recalcular márgenes
-                    if (window.recalcularMargenesMoviles) {
-                        window.recalcularMargenesMoviles();
-                    }
-                }, 200);
-            }
-        });
-        
-        // También interceptar el tabManager si existe
-        if (window.tabManager && window.tabManager.switchTab) {
-            const originalSwitchTab = window.tabManager.switchTab;
-            window.tabManager.switchTab = function(tabId) {
-                originalSwitchTab.call(this, tabId);
-                
-                setTimeout(() => {
-                    if (window.recalcularMargenesMoviles) {
-                        window.recalcularMargenesMoviles();
-                    }
-                }, 250);
-            };
-            console.log('✅ Interceptor de tabManager configurado');
-        }
-        
-        // Ejecutar inmediatamente al cargar
-        setTimeout(() => {
-            if (window.recalcularMargenesMoviles) {
-                window.recalcularMargenesMoviles();
-            }
-        }, 1000);
-    })();
-    
     
     // Ejecutar al cargar y al cambiar pestañas
     window.addEventListener('load', window.recalcularMargenesMoviles);
