@@ -2072,7 +2072,7 @@ class F1Manager {
                 const texto = boton.querySelector('div');
                 if (texto && texto.textContent && !texto.textContent.includes('Vacío')) {
                     boton.style.background = 'linear-gradient(135deg, rgba(0, 210, 190, 0.1) 0%, rgba(0, 210, 190, 0.2) 100%)';
-                    boton.style.border = '2px solid #00d2be';
+                    boton.style.border = '2px solid white';  // ← LÍNEA LLENA BLANCA
                     boton.style.borderStyle = 'solid';
                     texto.style.color = 'white';
                     texto.style.fontWeight = '600';
