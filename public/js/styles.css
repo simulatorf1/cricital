@@ -1261,8 +1261,10 @@ html, body {
 }
 
 .boton-area-montada {
-    border-color: rgba(0, 210, 190, 0.25) !important;
-    background: rgba(0, 210, 190, 0.04) !important;
+    border-color: white !important;  ← BLANCO
+    border-style: solid !important;  ← LÍNEA LLENA
+    border-width: 2px !important;    ← 2px DE GROSOR
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.25) 100%) !important;
 }
 
 .boton-area-montada:hover {
