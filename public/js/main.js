@@ -2269,7 +2269,7 @@ class F1Manager {
                         margin: 0;
                         padding: 0;
                     ">
-                        <header class="dashboard-header-compacto">
+                        <header class="dashboard-header-compacto" style="padding-top: 35px; padding-bottom: 15px; height: 60px;">
                             <div class="header-left-compacto">
                                 <div class="logo-compacto">
                                     <i class="fas fa-flag-checkered"></i>
