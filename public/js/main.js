@@ -265,18 +265,31 @@ class F1Manager {
     // RECOMPENSA LOGIN DIARIO
     // ========================
     // Añadir después de otros métodos similares
+    // ========================
+    // RECOMPENSA LOGIN DIARIO - VERSIÓN CORREGIDA (NO DUPLICADA)
+    // ========================
     async verificarRecompensaLoginDiario() {
-        console.log('🌟 [LOGIN] Ejecutando verificarRecompensaLoginDiario');
+        // VERIFICAR SI YA SE EJECUTÓ HOY
+        const hoy = new Date().toISOString().split('T')[0];
+        
+        // Variable global para evitar múltiples ejecuciones
+        if (window.loginVerificadoHoy === hoy) {
+            console.log('ℹ️ Login ya verificado hoy, omitiendo...');
+            return;
+        }
+        
+        console.log('🌟 [LOGIN] Ejecutando verificarRecompensaLoginDiario - PRIMERA EJECUCIÓN');
         
         try {
-            const hoy = new Date().toISOString().split('T')[0];
             console.log('📅 Hoy:', hoy, 'Último login:', this.escuderia.ultimo_login_dia);
             
             // VERIFICAR SI YA CONECTÓ HOY
             if (this.escuderia.ultimo_login_dia === hoy) {
                 console.log('ℹ️ Ya conectó hoy - Mostrar bienvenida');
-                // CAMBIADO: En lugar de "Ya conectaste hoy"
                 this.showNotification('¡Bienvenido a la escudería, jefe!');
+                
+                // Marcar como verificado
+                window.loginVerificadoHoy = hoy;
                 return;
             }
             
@@ -308,9 +321,12 @@ class F1Manager {
                 estrellasElement.textContent = nuevasEstrellas;
             }
             
-            // ✅✅✅ ¡¡¡NOTIFICACIÓN OBLIGATORIA!!!
+            // ✅ NOTIFICACIÓN ÚNICA
             console.log('🔔 Mostrando notificación de +5 estrellas');
             this.showNotification('🌟 +5🌟 (bonus diario)', 'info');
+            
+            // Marcar como verificado para hoy
+            window.loginVerificadoHoy = hoy;
             
         } catch (error) {
             console.error('❌ Error en verificarRecompensaLoginDiario:', error);
