@@ -794,7 +794,8 @@ class F1Manager {
             html += '</div>';
             html += '</div>';
             
-            // === BARRA DE NAVEGACIÓN FIJA ===
+            // === BARRA DE NAVEGACIÓN FIJA - FUERA del contenedor desplazable ===
+            html += '</div>'; // Cierra taller-minimalista ANTES de la barra fija
             html += '<div id="nav-areas-taller" class="nav-areas-fija">';
             html += '<div class="nav-areas-contenedor">';
             
@@ -820,6 +821,8 @@ class F1Manager {
             html += '</div>'; // Cierra nav-areas-contenedor
             html += '</div>'; // Cierra nav-areas-fija
             
+            // === VUELVE A ABRIR taller-minimalista para el contenido ===
+            html += '<div class="taller-minimalista">';
             // === CONTENEDOR DE ÁREAS DESPLAZABLE ===
             html += '<div id="contenedor-areas-taller" class="contenedor-areas-desplazable">';
             
@@ -1252,16 +1255,24 @@ class F1Manager {
                         height: calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px)) !important;
                     }
             
-                    /* Barra fija del taller RESPETA safe-area */
+                    /* Barra fija del taller - POSICIÓN FIXA, NO STICKY */
                     .nav-areas-fija {
-                        position: sticky;
-                        top: env(safe-area-inset-top, 0px) !important;
+                        position: fixed !important;
+                        top: calc(50px + env(safe-area-inset-top, 10px)) !important;
+                        left: 0;
+                        right: 0;
                         z-index: 100;
-                        background: rgba(10, 15, 30, 0.95);
+                        background: rgba(10, 15, 30, 0.98);
                         backdrop-filter: blur(10px);
                         border-bottom: 2px solid rgba(0, 210, 190, 0.3);
                         padding: 8px 0;
-                        margin-bottom: 15px;
+                        margin: 0;
+                    }
+                    
+                    /* Contenedor desplazable necesita espacio para la barra fija */
+                    .contenedor-areas-desplazable {
+                        padding-top: 70px !important;
+                        max-height: calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px) - 180px) !important;
                     }
             
                     /* Header también respeta safe-area */
@@ -5188,14 +5199,40 @@ setTimeout(() => {
     // FIX PARA MÁRGENES MÓVILES Y SCROLL
     // ========================
     window.recalcularMargenesMoviles = function() {
-        // SOLO ajustes de scroll, los márgenes ya están en CSS
+        // 1. Contenedor principal
         const mainContent = document.getElementById('main-content-area');
-        
         if (mainContent) {
-            // Altura dinámica basada en safe-area del CSS
             const alturaDisponible = 'calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px) - 180px)';
             mainContent.style.maxHeight = alturaDisponible;
+            mainContent.style.overflowY = 'auto';
+            mainContent.style.WebkitOverflowScrolling = 'touch';
         }
+        
+        // 2. Contenedor del taller (si existe)
+        const contenedorTaller = document.querySelector('.contenedor-areas-desplazable');
+        if (contenedorTaller) {
+            // Altura específica para el taller (tiene barra fija)
+            const alturaTaller = 'calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px) - 250px)';
+            contenedorTaller.style.maxHeight = alturaTaller;
+            contenedorTaller.style.paddingTop = '70px'; // Para la barra fija
+            contenedorTaller.style.overflowY = 'auto';
+            contenedorTaller.style.WebkitOverflowScrolling = 'touch';
+        }
+        
+        // 3. Grid de piezas montadas (si existe)
+        const gridPiezas = document.getElementById('grid-piezas-montadas');
+        if (gridPiezas) {
+            gridPiezas.style.minHeight = '200px';
+            gridPiezas.style.maxHeight = '300px';
+            gridPiezas.style.overflowY = 'auto';
+            gridPiezas.style.WebkitOverflowScrolling = 'touch';
+        }
+        
+        // 4. Forzar reflow para que los cálculos CSS se apliquen
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            document.body.style.overflow = '';
+        }, 50);
     };
     
     // Ejecutar al cargar y al cambiar pestañas
