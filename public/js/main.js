@@ -2006,7 +2006,7 @@ class F1Manager {
             let puntosTotales = 0;
             let html = '';
             
-            // ====== ¡CORRECCIÓN AQUÍ! ======
+            // ====== ¡CORRECCIÓN DEFINITIVA! ======
             // Usamos Promise.all para esperar todos los cálculos de desgaste
             const promesas = areas.map(async (area) => {
                 const pieza = piezasPorArea[area.id];
@@ -2027,23 +2027,30 @@ class F1Manager {
                     // === Calcular desgaste ===
                     const desgaste = await this.calcularDesgastePieza(pieza.id);
                     const desgastePorcentaje = Math.max(0, Math.min(100, desgaste));
-                    const desgasteColor = this.getColorDesgaste(desgastePorcentaje);
                     
                     // Si la pieza fue destruida (desgaste = 0), no mostrar nada más
                     if (desgastePorcentaje <= 0) {
                         // La pieza ya fue eliminada en calcularDesgastePieza()
-                        // Solo mostrar hueco vacío
-                        areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="${area.nombre}: Pieza destruida por desgaste">`;
-                        areaHTML += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #e10600;">${area.nombre}<br><small style="font-size: 0.6rem;">DESTRUIDA</small></div>`;
-                        areaHTML += '</div>';
-                        return areaHTML; // Salir temprano, esta pieza ya no existe
+                        // Mostrar hueco vacío con indicación de destruida
+                        return `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" 
+                                title="${area.nombre}: Pieza destruida por desgaste"
+                                style="background: rgba(225, 6, 0, 0.1); border: 2px dashed #e10600;">
+                                <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #e10600;">
+                                    ${area.nombre}<br>
+                                    <small style="font-size: 0.6rem; font-weight: bold;">DESTRUIDA</small>
+                                </div>
+                            </div>`;
                     }
                     
-                    // Si sigue existiendo, mostrar con barra de desgaste
-                    areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" title="${area.nombre}: ${nombreMostrar}\nDesgaste: ${desgastePorcentaje.toFixed(1)}%\nTiempo restante: ${this.calcularTiempoRestante(desgastePorcentaje)}">`;
+                    // Si sigue existiendo, calcular color y tiempo
+                    const desgasteColor = this.getColorDesgaste(desgastePorcentaje);
+                    const tiempoRestante = this.calcularTiempoRestante(desgastePorcentaje);
                     
-                    // Crear contenido con barra de desgaste
-                    areaHTML += `<div class="boton-area-vacia" onclick="mantenerPiezaEquipada('${pieza.id}', ${necesitaMantenimiento}, ${costoMantenimiento})" title="${area.nombre}: ${nombreMostrar}\nDesgaste: ${desgastePorcentaje.toFixed(0)}%">`;
+                    // Crear contenido con barra de desgaste (SOLO UN DIV)
+                    areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" 
+                        title="${area.nombre}: ${nombreMostrar}
+            Desgaste: ${desgastePorcentaje.toFixed(1)}%
+            Tiempo restante: ${tiempoRestante}">`;
                     
                     // Nombre de la pieza
                     areaHTML += `<div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${nombreMostrar}</div>`;
@@ -2066,14 +2073,17 @@ class F1Manager {
                         "></div>
                     </div>`;
                     
-                    // Indicador si necesita mantenimiento
-                    if (necesitaMantenimiento) {
-                        areaHTML += `<div style="font-size: 0.55rem; color: #e10600; margin-top: 2px; font-weight: bold;">¡MANTENIMIENTO! (€100K)</div>`;
-                    } else if (desgastePorcentaje < 30) {
-                        areaHTML += `<div style="font-size: 0.55rem; color: #FF9800; margin-top: 2px;">Desgaste: ${desgastePorcentaje.toFixed(0)}%</div>`;
+                    // Mostrar tiempo restante si es bajo (SIN MANTENIMIENTO)
+                    if (desgastePorcentaje < 30) {
+                        const colorAdvertencia = desgastePorcentaje < 10 ? '#e10600' : '#FF9800';
+                        const textoAdvertencia = desgastePorcentaje < 10 ? '¡POCO TIEMPO!' : 'Desgaste avanzado';
+                        
+                        areaHTML += `<div style="font-size: 0.55rem; color: ${colorAdvertencia}; margin-top: 2px; font-weight: bold;">
+                            ${textoAdvertencia} (${tiempoRestante})
+                        </div>`;
                     }
                     
-                    areaHTML += '</div>';
+                    areaHTML += '</div>'; // Cerrar el div principal
                     
                 } else {
                     // Para huecos vacíos
