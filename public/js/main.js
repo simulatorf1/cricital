@@ -2122,7 +2122,8 @@ class F1Manager {
                                 display: flex;
                                 justify-content: space-between;
                                 align-items: center;
-                                gap: 15px;
+                                gap: 10px;  /* ← REDUCE EL GAP */
+                                overflow: visible;  /* ← AÑADE ESTO */
                             ">
                                 <div class="money-display-compacto" style="
                                     display: flex;
@@ -2131,11 +2132,11 @@ class F1Manager {
                                     background: rgba(0, 0, 0, 0.4);
                                     border: 2px solid #FFD700;
                                     border-radius: 8px;
-                                    padding: 8px 12px;
+                                    padding: 8px 15px;
                                     color: white;
-                                    flex: 1;
-                                    min-width: 0;
-                                    overflow: hidden;
+                                    flex-shrink: 0;  /* ← CAMBIA ESTO */
+                                    white-space: nowrap;  /* ← AÑADE ESTO */
+
                                 ">
                                     <i class="fas fa-coins" style="color: #FFD700; font-size: 1.1rem;"></i>
                                     <span id="money-value" style="
