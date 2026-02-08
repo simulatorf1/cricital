@@ -2246,13 +2246,15 @@ class F1Manager {
                 background: black;
                 z-index: 0;
             ">
+
                 <div id="inner-game-container" style="
                     position: absolute;
-                    top: 35px;
-                    bottom: 35px;
-                    left: 0;
-                    right: 0;
+                    top: env(safe-area-inset-top, 10px);
+                    bottom: env(safe-area-inset-bottom, 10px);
+                    left: env(safe-area-inset-left, 0);
+                    right: env(safe-area-inset-right, 0);
                     overflow: hidden;
+                    height: calc(100vh - env(safe-area-inset-top, 10px) - env(safe-area-inset-bottom, 10px));
                 ">
                     <div id="app" style="
                         position: absolute;
@@ -2461,6 +2463,13 @@ class F1Manager {
                         
                         e.currentTarget.classList.add('active');
                         document.getElementById('tab-' + tabId).classList.add('active');
+                        // 3. FIX CRÍTICO: Recalcular márgenes para móviles
+                        setTimeout(() => {
+                            if (window.recalcularMargenesMoviles) {
+                                window.recalcularMargenesMoviles();
+                            }
+                        }, 200);
+                        
                         
                         // 2. Llamar al tabManager si existe
                         if (window.tabManager && window.tabManager.switchTab) {
@@ -5129,4 +5138,73 @@ setTimeout(() => {
             }, 1000);
         }
     });    
+    // ========================
+    // FIX PARA MÁRGENES MÓVILES Y SCROLL
+    // ========================
+    window.recalcularMargenesMoviles = function() {
+        const container = document.getElementById('inner-game-container');
+        const mainContent = document.getElementById('main-content-area');
+        
+        if (!container || !mainContent) return;
+        
+        // 1. Aplicar safe-area-inset dinámicamente
+        const topSafe = 'env(safe-area-inset-top, 10px)';
+        const bottomSafe = 'env(safe-area-inset-bottom, 10px)';
+        
+        container.style.top = topSafe;
+        container.style.bottom = bottomSafe;
+        container.style.height = `calc(100vh - ${topSafe} - ${bottomSafe})`;
+        
+        // 2. Forzar recalculo del layout
+        setTimeout(() => {
+            // Aplicar estilos de scroll a TODOS los contenedores principales
+            const contenedoresScroll = [
+                '#main-content-area',
+                '.contenedor-areas-desplazable',
+                '#grid-piezas-montadas'
+            ];
+            
+            contenedoresScroll.forEach(selector => {
+                const elemento = document.querySelector(selector);
+                if (elemento) {
+                    elemento.style.maxHeight = 'calc(100vh - 180px)';
+                    elemento.style.overflowY = 'auto';
+                    elemento.style.WebkitOverflowScrolling = 'touch';
+                }
+            });
+            
+            // Scroll específico para piezas montadas (11 botones)
+            const gridPiezas = document.getElementById('grid-piezas-montadas');
+            if (gridPiezas) {
+                gridPiezas.style.minHeight = '200px';
+                gridPiezas.style.maxHeight = '300px';
+                gridPiezas.parentElement.style.overflow = 'visible';
+            }
+            
+            // Scroll específico para taller (550 botones)
+            const contenedorTaller = document.querySelector('.contenedor-areas-desplazable');
+            if (contenedorTaller) {
+                contenedorTaller.style.maxHeight = 'calc(100vh - 250px)';
+                contenedorTaller.style.paddingBottom = '100px'; // Espacio extra para scroll
+            }
+        }, 100);
+    };
+    
+    // Ejecutar al cargar y al cambiar pestañas
+    window.addEventListener('load', window.recalcularMargenesMoviles);
+    document.addEventListener('DOMContentLoaded', window.recalcularMargenesMoviles);
+    
+    // Interceptar cambios de pestaña
+    const observerTabChanges = new MutationObserver(() => {
+        if (document.querySelector('.tab-content.active')) {
+            setTimeout(window.recalcularMargenesMoviles, 300);
+        }
+    });
+    
+    observerTabChanges.observe(document.body, { 
+        childList: true, 
+        subtree: true 
+    });
+
+    
 })();
