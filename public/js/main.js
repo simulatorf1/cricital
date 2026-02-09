@@ -2243,7 +2243,7 @@ class F1Manager {
                             </button>
                         </nav>
                         
-                        // INMEDIATAMENTE DESPUÉS, AÑADE ESTO:
+
                         <!-- PESTAÑAS SECUNDARIAS - MOVIDAS ARRIBA -->
                         <nav class="tabs-secundarias" style="
                             display: flex;
