@@ -747,7 +747,7 @@ class F1Manager {
     // MÉTODO PARA CARGAR PESTAÑA TALLER (SIMPLIFICADO - SIN BOTONES NI TEXTOS EXTRA)
     // ========================
     async cargarTabTaller() {
-        console.log('🔧 Cargando pestaña taller simplificada...');
+        console.log('🔧 Cargando pestaña taller con filtros...');
         
         const container = document.getElementById('tab-taller');
         if (!container) {
@@ -800,6 +800,28 @@ class F1Manager {
             ];
             
             let html = '';
+            
+            // ====== 1. FILTROS POR ÁREA (11 BOTONES FIJOS) ======
+            html += '<div class="filtros-areas-taller">';
+            html += '<div class="filtros-header">';
+            html += '<span class="filtros-titulo"><i class="fas fa-filter"></i> FILTRAR POR ÁREA:</span>';
+            html += '<button class="btn-mostrar-todas" onclick="mostrarTodasAreasTaller()">';
+            html += '<i class="fas fa-eye"></i> Mostrar todas';
+            html += '</button>';
+            html += '</div>';
+            
+            html += '<div class="filtros-botones">';
+            areas.forEach(area => {
+                html += `<button class="filtro-area-btn" data-area="${area.id}" onclick="filtrarAreaTaller('${area.id}')">`;
+                html += `<span class="filtro-icono">${area.icono}</span>`;
+                html += `<span class="filtro-nombre">${area.nombre}</span>`;
+                html += '</button>';
+            });
+            html += '</div>';
+            html += '</div>';
+            
+            // ====== 2. CONTENEDOR PARA LAS ÁREAS (CON SCROLL) ======
+            html += '<div class="contenedor-areas-taller" id="contenedor-areas-taller">';
             
             // SOLO LAS ÁREAS DIRECTAMENTE
             for (const area of areas) {
@@ -908,209 +930,171 @@ class F1Manager {
                 html += '</div>'; // Cierra area-completa
             }
             
+            html += '</div>'; // Cierra contenedor-areas-taller
+            
             container.innerHTML = html;
             
-            // Añadir estilos CSS SIMPLIFICADOS
-            if (!document.querySelector('#estilos-taller-simple')) {
+            // Añadir estilos CSS para los filtros
+            if (!document.querySelector('#estilos-taller-filtros')) {
                 const style = document.createElement('style');
-                style.id = 'estilos-taller-simple';
+                style.id = 'estilos-taller-filtros';
                 style.innerHTML = `
-                    /* CONTENEDOR PRINCIPAL */
-                    #tab-taller {
+                    /* === FILTROS DE ÁREA === */
+                    .filtros-areas-taller {
+                        background: rgba(10, 15, 30, 0.95);
+                        border-bottom: 2px solid rgba(0, 210, 190, 0.3);
                         padding: 10px;
-                        overflow-y: auto;
-                        height: calc(100vh - 120px);
-                        -webkit-overflow-scrolling: touch;
-                    }
-                    
-                    /* ÁREAS INDIVIDUALES */
-                    .area-completa {
-                        margin-bottom: 20px;
-                        padding: 15px;
-                        background: rgba(0, 0, 0, 0.3);
+                        margin-bottom: 10px;
                         border-radius: 8px;
-                        border: 1px solid rgba(0, 210, 190, 0.2);
+                        position: sticky;
+                        top: 0;
+                        z-index: 100;
                     }
                     
-                    .area-header-completa {
+                    .filtros-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 10px;
+                    }
+                    
+                    .filtros-titulo {
+                        color: #00d2be;
+                        font-weight: bold;
+                        font-size: 0.9rem;
                         display: flex;
                         align-items: center;
-                        gap: 10px;
-                        margin-bottom: 15px;
-                        padding-bottom: 10px;
-                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                    }
-                    
-                    .area-icono-completa {
-                        font-size: 1.5rem;
-                    }
-                    
-                    .area-nombre-completa {
-                        font-weight: bold;
-                        color: #00d2be;
-                        font-size: 1.1rem;
-                    }
-                    
-                    .area-progreso-badge {
-                        margin-left: auto;
-                        background: rgba(0, 210, 190, 0.2);
-                        color: #00d2be;
-                        padding: 4px 8px;
-                        border-radius: 12px;
-                        font-size: 0.8rem;
-                        font-weight: bold;
-                    }
-                    
-                    /* BOTONES DE PIEZAS - DISPOSICIÓN FIJA */
-                    .botones-area-completa {
-                        display: grid;
-                        grid-template-columns: repeat(5, 1fr);
                         gap: 8px;
                     }
                     
+                    .btn-mostrar-todas {
+                        background: rgba(0, 210, 190, 0.1);
+                        border: 1px solid rgba(0, 210, 190, 0.3);
+                        color: #00d2be;
+                        padding: 6px 10px;
+                        border-radius: 5px;
+                        font-size: 0.7rem;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
+                    }
+                    
+                    .btn-mostrar-todas:hover {
+                        background: rgba(0, 210, 190, 0.2);
+                    }
+                    
+                    .filtros-botones {
+                        display: grid;
+                        grid-template-columns: repeat(6, 1fr);
+                        gap: 5px;
+                    }
+                    
                     @media (max-width: 1200px) {
-                        .botones-area-completa {
+                        .filtros-botones {
                             grid-template-columns: repeat(4, 1fr);
                         }
                     }
                     
-                    @media (max-width: 900px) {
-                        .botones-area-completa {
+                    @media (max-width: 800px) {
+                        .filtros-botones {
                             grid-template-columns: repeat(3, 1fr);
                         }
                     }
                     
-                    @media (max-width: 600px) {
-                        .botones-area-completa {
+                    @media (max-width: 500px) {
+                        .filtros-botones {
                             grid-template-columns: repeat(2, 1fr);
                         }
                     }
                     
-                    .btn-pieza-50 {
-                        height: 80px;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        justify-content: center;
-                        border: 2px solid rgba(0, 210, 190, 0.3);
-                        border-radius: 6px;
-                        background: rgba(0, 0, 0, 0.5);
-                        color: white;
-                        cursor: pointer;
-                        padding: 8px;
-                        text-align: center;
-                        position: relative;
-                        font-size: 0.9rem;
-                    }
-                    
-                    .btn-pieza-50:disabled {
-                        opacity: 0.6;
-                        cursor: not-allowed;
-                    }
-                    
-                    .btn-pieza-50.lleno {
-                        border-color: #4CAF50;
-                        background: rgba(76, 175, 80, 0.1);
-                    }
-                    
-                    .btn-pieza-50.fabricando {
-                        border-color: #FF9800;
-                        background: rgba(255, 152, 0, 0.1);
-                    }
-                    
-                    .btn-pieza-50.vacio {
-                        border-color: #666;
-                        background: rgba(100, 100, 100, 0.1);
-                    }
-                    
-                    .btn-pieza-50 i {
-                        font-size: 1.2rem;
-                        margin-bottom: 5px;
-                    }
-                    
-                    .pieza-nombre-50 {
-                        font-size: 0.7rem;
-                        line-height: 1.1;
-                        max-height: 32px;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        display: -webkit-box;
-                        -webkit-line-clamp: 2;
-                        -webkit-box-orient: vertical;
-                        margin-bottom: 3px;
-                    }
-                    
-                    .pieza-precio-50 {
-                        font-size: 0.65rem;
-                        color: #FFD700;
-                        font-weight: bold;
-                        background: rgba(255, 215, 0, 0.1);
-                        padding: 2px 5px;
-                        border-radius: 3px;
-                        text-align: center;
-                        width: 100%;
-                    }
-                    
-                    .btn-pieza-50.comprada-mercado {
-                        border-color: #FF9800;
-                        background: rgba(255, 152, 0, 0.1);
-                        color: #FF9800;
-                    }
-                    .tab-btn-secundario {
+                    .filtro-area-btn {
                         display: flex;
                         flex-direction: column;
                         align-items: center;
                         justify-content: center;
                         background: rgba(0, 210, 190, 0.1);
                         border: 1px solid rgba(0, 210, 190, 0.3);
-                        border-radius: 8px;
+                        border-radius: 6px;
                         color: #00d2be;
-                        padding: 6px 4px;
+                        padding: 8px 5px;
                         font-size: 0.7rem;
                         cursor: pointer;
-                        min-height: 45px;
-                        width: 100%;
+                        min-height: 50px;
+                        transition: all 0.2s ease;
                     }
                     
-                    .tab-btn-secundario:hover {
+                    .filtro-area-btn:hover {
                         background: rgba(0, 210, 190, 0.2);
+                        transform: translateY(-2px);
                     }
                     
-                    .tab-btn-secundario.active {
+                    .filtro-area-btn.active {
                         background: rgba(0, 210, 190, 0.3);
                         color: white;
+                        font-weight: bold;
+                        border-color: #00d2be;
                     }
                     
-                    .tab-btn-secundario i {
-                        font-size: 1rem;
+                    .filtro-icono {
+                        font-size: 1.2rem;
                         margin-bottom: 3px;
                     }
                     
-                    /* ESTILO ESPECIAL PARA BOTÓN SALIR */
-                    .tab-btn-secundario.tab-btn-salir {
-                        background: rgba(225, 6, 0, 0.1);
-                        border-color: rgba(225, 6, 0, 0.3);
-                        color: #ff4444;
+                    .filtro-nombre {
+                        font-size: 0.65rem;
+                        line-height: 1.1;
+                        text-align: center;
                     }
                     
-                    .tab-btn-secundario.tab-btn-salir:hover {
-                        background: rgba(225, 6, 0, 0.2);
+                    /* === CONTENEDOR CON SCROLL === */
+                    .contenedor-areas-taller {
+                        max-height: calc(100vh - 250px);
+                        overflow-y: auto;
+                        -webkit-overflow-scrolling: touch;
+                        padding-bottom: 20px;
                     }
                     
-                    .tab-btn-secundario.tab-btn-salir.active {
-                        background: rgba(225, 6, 0, 0.3);
-                        color: white;
-                    }                    
-                    .mercado-badge {
-                        position: absolute;
-                        top: 2px;
-                        right: 2px;
-                        font-size: 0.6rem;
-                        color: #FF9800;
+                    /* ÁREA OCULTA POR DEFECTO (excepto la primera) */
+                    .area-completa {
+                        margin-bottom: 20px;
+                        padding: 15px;
+                        background: rgba(0, 0, 0, 0.3);
+                        border-radius: 8px;
+                        border: 1px solid rgba(0, 210, 190, 0.2);
+                        /* NO añadas display: block aquí, se controla con JavaScript */
                     }
+                    
+                    /* Mostrar todas las áreas si no hay filtro activo */
+                    .sin-filtro .area-completa {
+                        display: block;
+                    }
+                    
+                    /* Mostrar solo el área filtrada */
+                    .area-completa.visible {
+                        display: block;
+                    }
+                    
+                    /* Estilos existentes del taller (mantener) */
+                    ${document.querySelector('#estilos-taller-simple') ? '' : `
+                        /* CONTENEDOR PRINCIPAL */
+                        #tab-taller {
+                            padding: 10px;
+                            overflow-y: auto;
+                            height: calc(100vh - 120px);
+                            -webkit-overflow-scrolling: touch;
+                        }
+                        
+                        /* ... (el resto de tus estilos existentes del taller) ... */
+                    `}
                 `;
                 document.head.appendChild(style);
             }
+            
+            // Mostrar todas las áreas por defecto
+            setTimeout(() => {
+                mostrarTodasAreasTaller();
+            }, 100);
             
         } catch (error) {
             console.error('❌ Error cargando taller:', error);
@@ -5100,7 +5084,75 @@ setTimeout(() => {
             }
         }
     };
-
+    // ========================
+    // FUNCIONES DE FILTRADO PARA EL TALLER
+    // ========================
+    window.filtrarAreaTaller = function(areaId) {
+        console.log('🔍 Filtrando por área:', areaId);
+        
+        // 1. Remover clase activa de todos los botones de filtro
+        document.querySelectorAll('.filtro-area-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // 2. Activar el botón clickeado
+        const btnActivo = document.querySelector(`.filtro-area-btn[data-area="${areaId}"]`);
+        if (btnActivo) {
+            btnActivo.classList.add('active');
+        }
+        
+        // 3. Remover clase de mostrar todas del contenedor
+        const contenedor = document.getElementById('contenedor-areas-taller');
+        if (contenedor) {
+            contenedor.classList.remove('sin-filtro');
+        }
+        
+        // 4. Ocultar todas las áreas
+        document.querySelectorAll('.area-completa').forEach(area => {
+            area.classList.remove('visible');
+        });
+        
+        // 5. Mostrar solo el área seleccionada
+        const areaSeleccionada = document.getElementById(`area-${areaId}`);
+        if (areaSeleccionada) {
+            areaSeleccionada.classList.add('visible');
+            
+            // Hacer scroll suave hasta el área
+            setTimeout(() => {
+                areaSeleccionada.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }, 100);
+        }
+    };
+    
+    window.mostrarTodasAreasTaller = function() {
+        console.log('👁️ Mostrando todas las áreas');
+        
+        // 1. Desactivar todos los botones de filtro
+        document.querySelectorAll('.filtro-area-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // 2. Añadir clase de mostrar todas al contenedor
+        const contenedor = document.getElementById('contenedor-areas-taller');
+        if (contenedor) {
+            contenedor.classList.add('sin-filtro');
+        }
+        
+        // 3. Mostrar todas las áreas
+        document.querySelectorAll('.area-completa').forEach(area => {
+            area.classList.add('visible');
+        });
+        
+        // 4. Scroll al inicio
+        setTimeout(() => {
+            if (contenedor) {
+                contenedor.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }, 100);
+    };
 
      // ============================================   
     // AÑADIR ESTO - FUNCIÓN EXPLICACIÓN ESTRELLAS
