@@ -2605,12 +2605,45 @@ class F1Manager {
                 };
                 
                 window.gestionarEstrategas = function() {
+                    console.log('🎯 Click en GESTIONAR - Usando nuevo sistema');
+                    
+                    // 1. Usar el nuevo EstrategiaManager si existe
                     if (window.estrategiaManager && window.estrategiaManager.mostrarGestionCompleta) {
+                        console.log('✅ Usando EstrategiaManager nuevo');
                         window.estrategiaManager.mostrarGestionCompleta();
-                    } else if (window.f1Manager && window.f1Manager.estrategiaManager) {
+                        return;
+                    }
+                    
+                    // 2. Si no, usar el de f1Manager
+                    if (window.f1Manager && window.f1Manager.estrategiaManager) {
+                        console.log('✅ Usando estrategiaManager de f1Manager');
                         window.f1Manager.estrategiaManager.mostrarGestionCompleta();
+                        return;
+                    }
+                    
+                    // 3. Crear instancia si no existe
+                    if (window.EstrategiaManager && window.f1Manager) {
+                        console.log('⚡ Creando EstrategiaManager al vuelo');
+                        try {
+                            window.f1Manager.estrategiaManager = new window.EstrategiaManager(window.f1Manager);
+                            window.estrategiaManager = window.f1Manager.estrategiaManager;
+                            
+                            // Inicializar rápidamente
+                            window.estrategiaManager.inicializar().then(() => {
+                                window.estrategiaManager.mostrarGestionCompleta();
+                            });
+                            return;
+                        } catch (error) {
+                            console.error('❌ Error creando EstrategiaManager:', error);
+                        }
+                    }
+                    
+                    // 4. Fallback al sistema viejo (solo si todo falla)
+                    console.warn('⚠️ Usando sistema viejo como fallback');
+                    if (window.f1Manager && window.f1Manager.mostrarModalContratacion) {
+                        window.f1Manager.mostrarModalContratacion();
                     } else {
-                        alert('Sistema de estrategas cargando...');
+                        alert('Sistema de estrategas no disponible. Recarga la página.');
                     }
                 };
                 
