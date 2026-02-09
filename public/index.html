@@ -44,18 +44,17 @@
             const scripts = [
                 'js/config.js',
                 'js/auth.js',
-                'js/fabricacion.js',  // PRIMERO las clases
+                'js/fabricacion.js',
                 'js/almacen.js', 
                 'js/mercado.js',
                 'js/presupuesto.js',
                 'js/pronosticos.js',
-                'js/integracion.js',   // PRIMERO las clases
-                'js/tutorial.js',  
-                'js/main.js',          // LUEGO main que las usa
+                'js/integracion.js',
+                'js/tutorial.js',
+                'js/estrategia.js',  // ← MOVERLO AQUÍ (ANTES de main.js)
+                'js/main.js',        // ← Ahora main.js puede usar EstrategiaManager
                 'js/tabs.js', 
-                'js/ingenieria.js',
-                'js/estrategia.js' 
-                
+                'js/ingenieria.js'
             ];
             
             let cargados = 0;
