@@ -744,12 +744,27 @@ class EstrategiaManager {
         document.body.appendChild(modal);
     }
 
+
     // ========================
-    // DESPEDIR ESTRATEGA
+    // DESPEDIR ESTRATEGA (VERSIÓN CORREGIDA)
     // ========================
-    async despedirEstratega(contratacionId, index) {
+    async despedirEstratega(contratacionId, index = null) {
+        // Si solo se pasa el ID, buscar el índice
+        if (index === null) {
+            index = this.estrategasContratados.findIndex(c => c.id === contratacionId);
+            if (index === -1) {
+                console.error('❌ Estratega no encontrado con ID:', contratacionId);
+                this.f1Manager.showNotification('❌ Estratega no encontrado', 'error');
+                return;
+            }
+        }
+        
         const contratacion = this.estrategasContratados[index];
-        if (!contratacion) return;
+        if (!contratacion) {
+            console.error('❌ Contratación no encontrada en índice:', index);
+            this.f1Manager.showNotification('❌ Error al encontrar estratega', 'error');
+            return;
+        }
         
         const estratega = contratacion.estratega;
         const costoDespido = estratega.sueldo_semanal * 3;
