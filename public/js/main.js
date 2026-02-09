@@ -4590,12 +4590,6 @@ setTimeout(() => {
         return null;
     };
     
-    window.gestionarEstrategas = function() {
-        alert('Mostrar pantalla completa de gestión de estrategas');
-        if (window.tabManager && window.tabManager.switchTab) {
-            window.tabManager.switchTab('equipo');
-        }
-    };
     
     window.iniciarFabricacionTaller = function(areaId, nivel) {
         if (window.f1Manager && window.f1Manager.iniciarFabricacionTaller) {
