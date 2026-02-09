@@ -313,11 +313,14 @@ class EstrategiaManager {
             } else {
                 html += `
                     <div class="produccion-slot estratega-vacio" 
-                         onclick="window.estrategiaManager.mostrarModalContratacion(${i})">
+                         style="cursor: default; opacity: 0.7;" 
+                         title="Usa el botón GESTIONAR para contratar">
                         <div class="slot-content">
-                            <i class="fas fa-plus" style="font-size: 1.2rem; color: #666; margin-bottom: 5px;"></i>
-                            <span style="display: block; font-size: 0.75rem; color: #888;">Slot ${i + 1}</span>
-                            <span style="display: block; font-size: 0.65rem; color: #aaa; margin-top: 2px;">Vacío</span>
+                            <i class="fas fa-lock" style="font-size: 1.2rem; color: #444; margin-bottom: 5px;"></i>
+                            <span style="display: block; font-size: 0.75rem; color: #555;">Slot ${i + 1}</span>
+                            <span style="display: block; font-size: 0.65rem; color: #666; margin-top: 2px;">
+                                Usa "GESTIONAR"
+                            </span>
                         </div>
                     </div>
                 `;
@@ -1703,42 +1706,6 @@ if (!window.gestionarEstrategas) {
     console.log('✅ Función gestionarEstrategas() registrada globalmente');
 }
 
-// También registrar función para slots vacíos
-if (!window.contratarNuevoEstratega) {
-    window.contratarNuevoEstratega = function(hueco) {
-        console.log('🆕 Contratar estratega para hueco:', hueco);
-        
-        if (window.estrategiaManager && window.estrategiaManager.mostrarModalContratacion) {
-            window.estrategiaManager.mostrarModalContratacion(hueco);
-        } else if (window.f1Manager && window.f1Manager.mostrarModalContratacion) {
-            window.f1Manager.mostrarModalContratacion(hueco);
-        } else {
-            alert('Sistema de contratación no disponible');
-        }
-    };
-}
 
-// ============================================
-// FUNCIÓN DE COMPATIBILIDAD - Para evitar conflicto durante carga
-// ============================================
-
-window.mostrarModalContratacion = function(huecoNumero) {
-    console.log('🔧 mostrarModalContratacion llamado - Redirigiendo al nuevo sistema');
-    
-    if (window.estrategiaManager && window.estrategiaManager.mostrarModalContratacion) {
-        window.estrategiaManager.mostrarModalContratacion(huecoNumero);
-    } else {
-        alert('Sistema de estrategas cargando...\nPor favor, usa el botón "GESTIONAR"');
-    }
-};
-
-// Sobrescribir cualquier función antigua
-if (window.f1Manager) {
-    // Desactivar función antigua
-    window.f1Manager.mostrarModalContratacion = function(huecoNumero) {
-        console.log('🔄 Función antigua redirigida al nuevo sistema');
-        window.mostrarModalContratacion(huecoNumero);
-    };
-}
 
 console.log('✅ Sistema de estrategas - Compatibilidad establecida');
