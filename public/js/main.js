@@ -57,7 +57,7 @@ class F1Manager {
         }
         
         this.supabase = supabase;
-
+        this.pilotos = [];
         this.carStats = null;
         this.proximoGP = null;
         this.estrategiaManager = null;
