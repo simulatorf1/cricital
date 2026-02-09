@@ -109,6 +109,44 @@ class EstrategiaManager {
             console.warn('⚠️ Error verificando BD estrategas:', error);
         }
     }
+
+    calcularProximoPago() {
+        const ahora = new Date();
+        const proximoDomingo = new Date(ahora);
+        
+        // Calcular días hasta próximo domingo (0 = domingo)
+        let diasHastaDomingo = 0;
+        if (ahora.getDay() !== 0) { // Si no es domingo
+            diasHastaDomingo = 7 - ahora.getDay();
+        } else {
+            // Si es domingo pero antes de las 23:59, paga hoy
+            if (ahora.getHours() < 23 || (ahora.getHours() === 23 && ahora.getMinutes() < 59)) {
+                diasHastaDomingo = 0;
+            } else {
+                // Si es domingo después de 23:59, paga el próximo domingo
+                diasHastaDomingo = 7;
+            }
+        }
+        
+        proximoDomingo.setDate(ahora.getDate() + diasHastaDomingo);
+        proximoDomingo.setHours(23, 59, 59, 999);
+        
+        return proximoDomingo.toISOString();
+    }
+    
+    // Función para formatear fecha de pago
+    formatearFechaPago(fechaISO) {
+        const fecha = new Date(fechaISO);
+        const opciones = { 
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        return fecha.toLocaleDateString('es-ES', opciones);
+    }
+
     
     async cargarCatalogoEstrategas() {
         try {
@@ -464,21 +502,29 @@ class EstrategiaManager {
             return;
         }
         
-        // Verificar dinero
-        if (this.escuderia.dinero < estratega.sueldo_semanal) {
-            this.f1Manager.showNotification(`❌ Dinero insuficiente. Necesitas €${estratega.sueldo_semanal.toLocaleString()}`, 'error');
-            return;
-        }
+        // ✅ ELIMINAR verificación de dinero - Contratación GRATIS
+        // ❌ QUITAR ESTO:
+        // if (this.escuderia.dinero < estratega.sueldo_semanal) {
+        //     this.f1Manager.showNotification(`❌ Dinero insuficiente. Necesitas €${estratega.sueldo_semanal.toLocaleString()}`, 'error');
+        //     return;
+        // }
         
-        // Confirmación
-        if (!confirm(`¿Contratar a ${estratega.nombre} por €${estratega.sueldo_semanal.toLocaleString()}/semana?\n\n• Bono: +${estratega.porcentaje_bono}% en ${estratega.especialidad_nombre}\n• Pago automático cada domingo\n• Despido anticipado: Penalización 3× sueldo`)) {
+        // Confirmación (MOSTRAR que el pago será DOMINGO)
+        if (!confirm(`¿Contratar a ${estratega.nombre}?\n\n` +
+                     `• Especialidad: ${estratega.especialidad_nombre}\n` +
+                     `• Bono: +${estratega.porcentaje_bono}%\n` +
+                     `• Sueldo: €${estratega.sueldo_semanal.toLocaleString()}/semana\n` +
+                     `\n💰 **PRIMER PAGO: DOMINGO 23:59**\n` +
+                     `✅ Contratación GRATIS ahora\n` +
+                     `✅ Pago automático cada domingo\n` +
+                     `❌ Despido anticipado: Penalización 3× sueldo`)) {
             return;
         }
         
         try {
             const fechaInicio = new Date().toISOString();
             
-            // Insertar en BD
+            // Insertar en BD (SIN restar dinero)
             const { data, error } = await this.supabase
                 .from('estrategas_contrataciones')
                 .insert([{
@@ -488,25 +534,31 @@ class EstrategiaManager {
                     fecha_proximo_pago: this.calcularProximoPago(),
                     estado: 'activo',
                     slot_asignado: slotIndex,
-                    total_pagado: 0,
+                    total_pagado: 0,  // ← CERO pagado inicialmente
                     penalizaciones_pagadas: 0
                 }])
                 .select();
             
             if (error) throw error;
             
-            // Restar dinero (primer pago inmediato)
-            this.escuderia.dinero -= estratega.sueldo_semanal;
-            await this.f1Manager.updateEscuderiaMoney();
+            // ✅ NO RESTAR DINERO - Contratación GRATIS
+            // ❌ QUITAR ESTO:
+            // this.escuderia.dinero -= estratega.sueldo_semanal;
+            // await this.f1Manager.updateEscuderiaMoney();
             
-            // Registrar transacción de presupuesto
+            // ✅ Registrar transacción de CONTRATO (no gasto)
             if (window.presupuestoManager && window.presupuestoManager.registrarTransaccion) {
                 await window.presupuestoManager.registrarTransaccion(
-                    'gasto',
-                    estratega.sueldo_semanal,
-                    `Sueldo semanal ${estratega.nombre}`,
+                    'contrato',  // ← NUEVO TIPO, no "gasto"
+                    0,           // ← CERO euros ahora
+                    `Contrato ${estratega.nombre}`,
                     'estrategas',
-                    { estratega_id: estratega.id, especialidad: estratega.especialidad }
+                    { 
+                        estratega_id: estratega.id, 
+                        especialidad: estratega.especialidad,
+                        sueldo_semanal: estratega.sueldo_semanal,
+                        primer_pago_domingo: true 
+                    }
                 );
             }
             
@@ -520,9 +572,12 @@ class EstrategiaManager {
             const modal = document.getElementById('modal-contratacion-estrategas');
             if (modal) modal.remove();
             
-            // Notificación
+            // Notificación (informar que pago será DOMINGO)
             this.f1Manager.showNotification(
-                `✅ ${estratega.nombre} contratado\n💰 -€${estratega.sueldo_semanal.toLocaleString()}/semana\n✨ +${estratega.porcentaje_bono}% bono`,
+                `✅ ${estratega.nombre} contratado\n` +
+                `✨ +${estratega.porcentaje_bono}% bono\n` +
+                `📅 Primer pago: Domingo 23:59\n` +
+                `💰 €${estratega.sueldo_semanal.toLocaleString()}/semana`,
                 'success'
             );
             
@@ -531,7 +586,6 @@ class EstrategiaManager {
             this.f1Manager.showNotification('❌ Error al contratar estratega', 'error');
         }
     }
-
     // ========================
     // CALCULAR PRÓXIMO PAGO (DOMINGO 23:59)
     // ========================
@@ -780,10 +834,10 @@ class EstrategiaManager {
         
         if (!esDomingo || !esHoraPago) return;
         
-        console.log('💰 Procesando pagos automáticos de estrategas...');
+        console.log('💰 DOMINGO 23:59 - Procesando pagos automáticos de estrategas...');
         
         try {
-            // Obtener estrategas activos
+            // Obtener estrategas activos con próximo pago HOY
             const { data: contrataciones, error } = await this.supabase
                 .from('estrategas_contrataciones')
                 .select(`
@@ -791,50 +845,57 @@ class EstrategiaManager {
                     estratega:estrategas_catalogo(*)
                 `)
                 .eq('escuderia_id', this.escuderia.id)
-                .eq('estado', 'activo');
+                .eq('estado', 'activo')
+                .lte('fecha_proximo_pago', new Date().toISOString()); // Pago vencido HOY
             
             if (error) throw error;
             
-            if (!contrataciones || contrataciones.length === 0) return;
+            if (!contrataciones || contrataciones.length === 0) {
+                console.log('ℹ️ No hay estrategas con pago pendiente hoy');
+                return;
+            }
             
             let totalCobrado = 0;
             let estrategasRenovados = 0;
             let estrategasIdos = 0;
+            let notificacionDetalles = '';
             
             for (const contratacion of contrataciones) {
                 const estratega = contratacion.estratega;
                 const sueldo = estratega.sueldo_semanal;
                 
-                // Verificar si hay dinero
+                // Verificar si hay dinero HOY (domingo)
                 if (this.escuderia.dinero >= sueldo) {
-                    // COBRAR y RENOVAR
+                    // ✅ HAY DINERO → COBRAR y RENOVAR
                     this.escuderia.dinero -= sueldo;
                     totalCobrado += sueldo;
                     estrategasRenovados++;
                     
-                    // Actualizar contrato
+                    // Actualizar contrato (renovar 1 semana más)
                     await this.supabase
                         .from('estrategas_contrataciones')
                         .update({
-                            fecha_inicio_contrato: new Date().toISOString(),
+                            fecha_inicio_contrato: new Date().toISOString(), // Reiniciar semana
                             fecha_proximo_pago: this.calcularProximoPago(),
                             total_pagado: (contratacion.total_pagado || 0) + sueldo
                         })
                         .eq('id', contratacion.id);
                     
-                    // Registrar transacción
+                    // Registrar transacción de PAGO
                     if (window.presupuestoManager) {
                         await window.presupuestoManager.registrarTransaccion(
                             'gasto',
                             sueldo,
-                            `Renovación ${estratega.nombre}`,
+                            `Pago semanal ${estratega.nombre}`,
                             'estrategas',
-                            { estratega_id: estratega.id, tipo: 'renovacion' }
+                            { estratega_id: estratega.id, tipo: 'pago_semanal' }
                         );
                     }
                     
+                    notificacionDetalles += `✅ ${estratega.nombre}: -€${sueldo.toLocaleString()}\n`;
+                    
                 } else {
-                    // NO HAY DINERO → Estratega se va
+                    // ❌ NO HAY DINERO → Estratega se va
                     estrategasIdos++;
                     
                     await this.supabase
@@ -842,13 +903,15 @@ class EstrategiaManager {
                         .update({
                             estado: 'finalizado',
                             fecha_fin_contrato: new Date().toISOString(),
-                            motivo_fin: 'falta_pago'
+                            motivo_fin: 'falta_pago_domingo'
                         })
                         .eq('id', contratacion.id);
+                    
+                    notificacionDetalles += `👋 ${estratega.nombre}: Se fue (sin dinero)\n`;
                 }
             }
             
-            // Actualizar dinero en BD
+            // Actualizar dinero en BD si se cobró algo
             if (totalCobrado > 0) {
                 await this.f1Manager.updateEscuderiaMoney();
             }
@@ -857,24 +920,28 @@ class EstrategiaManager {
             await this.cargarEstrategasContratados();
             this.actualizarUIEstrategas();
             
-            // Notificación resumen
+            // Notificación resumen DOMINGO
             let mensaje = '';
             if (estrategasRenovados > 0) {
-                mensaje += `✅ ${estrategasRenovados} estratega(s) renovado(s)\n💰 -€${totalCobrado.toLocaleString()}`;
+                mensaje += `**DOMINGO - PAGOS AUTOMÁTICOS:**\n`;
+                mensaje += `✅ ${estrategasRenovados} estratega(s) renovado(s)\n`;
+                mensaje += `💰 Total: -€${totalCobrado.toLocaleString()}\n\n`;
+                mensaje += notificacionDetalles;
             }
             if (estrategasIdos > 0) {
-                if (mensaje) mensaje += '\n\n';
-                mensaje += `👋 ${estrategasIdos} estratega(s) se fueron por falta de pago`;
+                if (mensaje) mensaje += '\n';
+                mensaje += `❌ ${estrategasIdos} estratega(s) se fueron\n`;
+                mensaje += `💸 Motivo: Fondos insuficientes\n`;
             }
             
             if (mensaje) {
                 this.f1Manager.showNotification(mensaje, estrategasIdos > 0 ? 'warning' : 'info');
             }
             
-            console.log(`💰 Pagos procesados: ${estrategasRenovados} renovados, ${estrategasIdos} idos`);
+            console.log(`💰 Pagos dominicales: ${estrategasRenovados} renovados, ${estrategasIdos} idos`);
             
         } catch (error) {
-            console.error('❌ Error procesando pagos automáticos:', error);
+            console.error('❌ Error procesando pagos dominicales:', error);
         }
     }
 
