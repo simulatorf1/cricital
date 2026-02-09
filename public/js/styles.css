@@ -2324,20 +2324,22 @@ html, body {
 }
 
 .tab-btn-compacto {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 6px 10px !important;
-    color: #aaa;
-    font-family: 'Roboto', sans-serif;
-    font-size: 0.75rem !important
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap !important;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 5px;
-    flex-shrink: 0;
+    justify-content: center;
+    background: rgba(0, 210, 190, 0.1);  /* Mismo fondo */
+    border: 1px solid rgba(0, 210, 190, 0.3);  /* Mismo borde */
+    border-radius: 8px;  /* Mismo radio */
+    color: #00d2be;  /* Mismo color de texto */
+    padding: 6px 4px;  /* Mismo padding */
+    font-size: 0.7rem;  /* Mismo tamaño de fuente */
+    cursor: pointer;
+    min-height: 45px;  /* Misma altura mínima */
+    width: 100%;  /* Mismo ancho */
+    transition: all 0.2s ease;  /* Misma transición */
+    border: none;  /* IMPORTANTE: elimina cualquier borde por defecto */
+    outline: none;  /* Elimina outline por defecto */
 }
 
 .tab-btn-compacto.active {
