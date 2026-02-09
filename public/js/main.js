@@ -1725,7 +1725,29 @@ class F1Manager {
             // Exponer al global para acceso desde botones
             window.estrategiaManager = this.estrategiaManager;
         }
+        console.log('🧠 Inicializando sistema de estrategas...');
         
+        if (window.EstrategiaManager) {
+            // Crear instancia si no existe
+            if (!window.estrategiaManager) {
+                window.estrategiaManager = new window.EstrategiaManager(this);
+                console.log('✅ EstrategiaManager creado');
+            }
+            
+            // Inicializar
+            try {
+                await window.estrategiaManager.inicializar();
+                console.log('✅ Sistema de estrategas inicializado');
+                
+                // Asignar a f1Manager para acceso fácil
+                this.estrategiaManager = window.estrategiaManager;
+                
+            } catch (error) {
+                console.error('❌ Error inicializando estrategas:', error);
+            }
+        } else {
+            console.warn('⚠️ EstrategiaManager no disponible');
+        }        
         // ============================================
         // NUEVO: INICIALIZAR PRESUPUESTO MANAGER (VERSIÓN CORREGIDA)
         // ============================================
