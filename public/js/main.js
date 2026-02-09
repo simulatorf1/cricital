@@ -2242,6 +2242,40 @@ class F1Manager {
                                 <i class="fas fa-flask"></i> Ingeniería
                             </button>
                         </nav>
+                        
+                        // INMEDIATAMENTE DESPUÉS, AÑADE ESTO:
+                        <!-- PESTAÑAS SECUNDARIAS - MOVIDAS ARRIBA -->
+                        <nav class="tabs-secundarias" style="
+                            display: flex;
+                            background: #0f3460;
+                            border-bottom: 2px solid rgba(0, 210, 190, 0.3);
+                            padding: 8px 5px;
+                            z-index: 998;
+                        ">
+                            <button class="tab-btn-secundario" data-tab="mercado" style="flex: 1;">
+                                <i class="fas fa-shopping-cart"></i> Mercado
+                            </button>
+                            <button class="tab-btn-secundario" data-tab="pronosticos" style="flex: 1;">
+                                <i class="fas fa-chart-line"></i> Pronósticos
+                            </button>
+                            <button class="tab-btn-secundario" data-tab="presupuesto" style="flex: 1;">
+                                <i class="fas fa-chart-pie"></i> Presupuesto
+                            </button>
+                            <button class="tab-btn-secundario" data-tab="clasificacion" style="flex: 1;">
+                                <i class="fas fa-medal"></i> Clasificación
+                            </button>
+                            
+                            <!-- PESTAÑA SALIR EN ROJO -->
+                            <button class="tab-btn-secundario tab-btn-salir" id="logout-btn-visible" 
+                                    title="Cerrar sesión" style="
+                                    flex: 1;
+                                    background: rgba(225, 6, 0, 0.2);
+                                    border-color: #e10600;
+                                    color: #ff4444;
+                            ">
+                                <i class="fas fa-sign-out-alt"></i> Salir
+                            </button>
+                        </nav>
                       
                         <!-- CONTENIDO PRINCIPAL -->
                         <div id="main-content-area" style="
@@ -2350,50 +2384,7 @@ class F1Manager {
                             <div id="tab-clasificacion" class="tab-content"></div>
                         </div>
     
-                        <!-- FOOTER FIJO CON 5 PESTAÑAS SECUNDARIAS -->
-                        <footer class="dashboard-footer" style="
-                            position: fixed;
-                            bottom: 0;
-                            left: 0;
-                            right: 0;
-                            background: #0f3460;
-                            border-top: 2px solid rgba(0, 210, 190, 0.5);
-                            z-index: 1000;
-                            padding: 8px 5px;
-                            height: 60px;
-                        ">
-                            <nav class="tabs-secundarias" style="
-                                display: flex;
-                                justify-content: center;
-                                gap: 6px;
-                                width: 100%;
-                                height: 100%;
-                            ">
-                                <button class="tab-btn-secundario" data-tab="mercado" style="flex: 1;">
-                                    <i class="fas fa-shopping-cart"></i> Mercado
-                                </button>
-                                <button class="tab-btn-secundario" data-tab="pronosticos" style="flex: 1;">
-                                    <i class="fas fa-chart-line"></i> Pronósticos
-                                </button>
-                                <button class="tab-btn-secundario" data-tab="presupuesto" style="flex: 1;">
-                                    <i class="fas fa-chart-pie"></i> Presupuesto
-                                </button>
-                                <button class="tab-btn-secundario" data-tab="clasificacion" style="flex: 1;">
-                                    <i class="fas fa-medal"></i> Clasificación
-                                </button>
-                                
-                                <!-- PESTAÑA SALIR EN ROJO -->
-                                <button class="tab-btn-secundario tab-btn-salir" id="logout-btn-visible" 
-                                        title="Cerrar sesión" style="
-                                        flex: 1;
-                                        background: rgba(225, 6, 0, 0.2);
-                                        border-color: #e10600;
-                                        color: #ff4444;
-                                ">
-                                    <i class="fas fa-sign-out-alt"></i> Salir
-                                </button>
-                            </nav>
-                        </footer>
+
                     </div>
                 </div>
             </div>
