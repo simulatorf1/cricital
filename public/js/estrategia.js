@@ -1571,3 +1571,68 @@ class EstrategiaManager {
 
 // Exportar al global
 window.EstrategiaManager = EstrategiaManager;
+// ============================================
+// AL FINAL DE TU estrategia.js (después de la clase EstrategiaManager)
+// ============================================
+
+// Exportar la función gestionarEstrategas al scope global
+if (!window.gestionarEstrategas) {
+    window.gestionarEstrategas = function() {
+        console.log('🎯 Click en GESTIONAR - Desde estrategia.js');
+        
+        // Asegurar que EstrategiaManager existe
+        if (!window.EstrategiaManager) {
+            console.error('❌ EstrategiaManager no disponible');
+            alert('Sistema de estrategas no cargado. Recarga la página.');
+            return;
+        }
+        
+        // Asegurar que f1Manager existe
+        if (!window.f1Manager) {
+            console.error('❌ f1Manager no disponible');
+            alert('Error: Sistema principal no cargado.');
+            return;
+        }
+        
+        // Crear o usar instancia existente
+        if (!window.estrategiaManager) {
+            console.log('⚡ Creando nueva instancia de EstrategiaManager');
+            window.estrategiaManager = new window.EstrategiaManager(window.f1Manager);
+            window.f1Manager.estrategiaManager = window.estrategiaManager;
+        }
+        
+        // Inicializar si no está inicializado
+        if (!window.estrategiaManager.escuderia) {
+            console.log('🔧 Inicializando EstrategiaManager...');
+            window.estrategiaManager.inicializar().then(() => {
+                window.estrategiaManager.mostrarGestionCompleta();
+            }).catch(error => {
+                console.error('❌ Error inicializando:', error);
+                alert('Error inicializando sistema de estrategas: ' + error.message);
+            });
+        } else {
+            // Ya está inicializado, mostrar directamente
+            window.estrategiaManager.mostrarGestionCompleta();
+        }
+    };
+    
+    console.log('✅ Función gestionarEstrategas() registrada globalmente');
+}
+
+// También registrar función para slots vacíos
+if (!window.contratarNuevoEstratega) {
+    window.contratarNuevoEstratega = function(hueco) {
+        console.log('🆕 Contratar estratega para hueco:', hueco);
+        
+        if (window.estrategiaManager && window.estrategiaManager.mostrarModalContratacion) {
+            window.estrategiaManager.mostrarModalContratacion(hueco);
+        } else if (window.f1Manager && window.f1Manager.mostrarModalContratacion) {
+            window.f1Manager.mostrarModalContratacion(hueco);
+        } else {
+            alert('Sistema de contratación no disponible');
+        }
+    };
+}
+
+// ============================================
+
