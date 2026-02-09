@@ -801,7 +801,8 @@ class F1Manager {
             
             let html = '';
             
-            // ====== 1. FILTROS POR ÁREA (11 BOTONES PEQUEÑOS EN GRID 4x3) ======
+
+            // ====== 1. FILTROS POR ÁREA (11 BOTONES COMPACTOS 5x3) ======
             html += '<div class="filtros-areas-taller">';
             html += '<div class="filtros-header">';
             html += '<span class="filtros-titulo"><i class="fas fa-filter"></i> ÁREAS:</span>';
@@ -813,7 +814,6 @@ class F1Manager {
             html += '<div class="filtros-botones-grid">';
             areas.forEach(area => {
                 html += `<button class="filtro-area-btn-mini" data-area="${area.id}" onclick="filtrarAreaTaller('${area.id}')">`;
-                html += `<span class="filtro-icono-mini">${area.icono}</span>`;
                 html += `<span class="filtro-nombre-mini">${area.nombre}</span>`;
                 html += '</button>';
             });
@@ -921,12 +921,13 @@ class F1Manager {
                 const style = document.createElement('style');
                 style.id = 'estilos-filtros-taller';
                 style.innerHTML = `
-                    /* === FILTROS DE ÁREA (COMPACTO 4x3) === */
+
+                    /* === FILTROS DE ÁREA (COMPACTO 5x3) === */
                     .filtros-areas-taller {
                         background: rgba(10, 15, 30, 0.95);
                         border-bottom: 2px solid rgba(0, 210, 190, 0.2);
-                        padding: 6px 8px;
-                        margin-bottom: 8px;
+                        padding: 5px 8px;
+                        margin-bottom: 6px;
                         border-radius: 6px;
                         position: sticky;
                         top: 0;
@@ -953,7 +954,7 @@ class F1Manager {
                         background: rgba(0, 210, 190, 0.1);
                         border: 1px solid rgba(0, 210, 190, 0.2);
                         color: #00d2be;
-                        padding: 4px 8px;
+                        padding: 3px 6px;
                         border-radius: 4px;
                         font-size: 0.65rem;
                         cursor: pointer;
@@ -961,46 +962,53 @@ class F1Manager {
                         align-items: center;
                         gap: 4px;
                         min-height: auto;
-                        height: 24px;
+                        height: 22px;
                     }
                     
                     .btn-mostrar-todas:hover {
                         background: rgba(0, 210, 190, 0.2);
                     }
                     
-                    /* GRID 4x3 para 11 botones */
+                    /* GRID 5 columnas, 3 filas (para 11 botones) */
                     .filtros-botones-grid {
                         display: grid;
-                        grid-template-columns: repeat(4, 1fr);
+                        grid-template-columns: repeat(5, 1fr);
                         grid-template-rows: repeat(3, auto);
-                        gap: 4px;
+                        gap: 3px;
                     }
                     
-                    /* Última fila con 3 botones (4 + 4 + 3 = 11) */
-                    .filtros-botones-grid button:nth-child(9) {
+                    /* Distribución: 5 + 5 + 1 = 11 botones */
+                    /* Última fila con solo 1 botón en la primera columna */
+                    .filtros-botones-grid button:nth-child(11) {
                         grid-column: 1;
                     }
-                    .filtros-botones-grid button:nth-child(10) {
-                        grid-column: 2;
-                    }
-                    .filtros-botones-grid button:nth-child(11) {
-                        grid-column: 3;
+                    
+                    /* Responsive: 4 columnas en tablets */
+                    @media (max-width: 1024px) {
+                        .filtros-botones-grid {
+                            grid-template-columns: repeat(4, 1fr);
+                            grid-template-rows: repeat(3, auto);
+                        }
+                        .filtros-botones-grid button:nth-child(9) {
+                            grid-column: 1;
+                        }
+                        .filtros-botones-grid button:nth-child(10) {
+                            grid-column: 2;
+                        }
+                        .filtros-botones-grid button:nth-child(11) {
+                            grid-column: 3;
+                        }
                     }
                     
+                    /* Responsive: 3 columnas en móviles grandes */
                     @media (max-width: 768px) {
                         .filtros-botones-grid {
                             grid-template-columns: repeat(3, 1fr);
                             grid-template-rows: repeat(4, auto);
                         }
-                        
-                        .filtros-botones-grid button:nth-child(10) {
-                            grid-column: 1;
-                        }
-                        .filtros-botones-grid button:nth-child(11) {
-                            grid-column: 2;
-                        }
                     }
                     
+                    /* Responsive: 2 columnas en móviles pequeños */
                     @media (max-width: 480px) {
                         .filtros-botones-grid {
                             grid-template-columns: repeat(2, 1fr);
@@ -1008,28 +1016,28 @@ class F1Manager {
                         }
                     }
                     
-                    /* BOTONES DE FILTRO COMPACTOS */
+                    /* BOTONES DE FILTRO SUPER COMPACTOS */
                     .filtro-area-btn-mini {
                         display: flex;
-                        flex-direction: column;
                         align-items: center;
                         justify-content: center;
                         background: rgba(0, 210, 190, 0.08);
                         border: 1px solid rgba(0, 210, 190, 0.15);
-                        border-radius: 5px;
+                        border-radius: 4px;
                         color: #00d2be;
                         padding: 4px 2px;
                         font-size: 0.6rem;
                         cursor: pointer;
-                        min-height: 40px;
-                        max-height: 45px;
+                        min-height: 32px;
+                        max-height: 35px;
                         transition: all 0.2s ease;
                         overflow: hidden;
+                        white-space: nowrap;
+                        width: 100%; /* Importante: ocupar todo el ancho de la celda */
                     }
                     
                     .filtro-area-btn-mini:hover {
                         background: rgba(0, 210, 190, 0.15);
-                        transform: translateY(-1px);
                     }
                     
                     .filtro-area-btn-mini.active {
@@ -1039,19 +1047,15 @@ class F1Manager {
                         font-weight: bold;
                     }
                     
-                    .filtro-icono-mini {
-                        font-size: 0.9rem;
-                        margin-bottom: 2px;
-                    }
-                    
                     .filtro-nombre-mini {
-                        font-size: 0.55rem;
+                        font-size: 0.6rem;
                         line-height: 1;
                         text-align: center;
                         white-space: nowrap;
                         overflow: hidden;
                         text-overflow: ellipsis;
                         max-width: 100%;
+                        padding: 0 2px;
                     }
                     
                     /* === CONTENEDOR CON SCROLL === */
