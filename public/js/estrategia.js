@@ -717,7 +717,7 @@ class EstrategiaManager {
                 </div>
                 
                 <div style="display: flex; gap: 10px;">
-                    <button onclick="window.estrategiaManager.despedirEstratega(${contratacion.id}, ${index})"
+                    <button onclick="window.estrategiaManager.despedirEstratega('${contratacion.id}', ${index})"
                             style="flex: 1; padding: 12px; background: rgba(225,6,0,0.2); 
                                    border: 2px solid #e10600; color: #e10600; border-radius: 6px; 
                                    cursor: pointer; font-weight: bold; font-size: 0.9rem;">
