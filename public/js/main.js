@@ -60,6 +60,7 @@ class F1Manager {
         this.pilotos = [];
         this.carStats = null;
         this.proximoGP = null;
+        this.estrategiaManager = null;
         
         // Nombres personalizados para cada pieza de cada área (50 por área)
         this.nombresPiezas = {
@@ -1714,6 +1715,17 @@ class F1Manager {
             window.fabricacionManager = new window.FabricacionManager();
         }
 
+        // NUEVO: Inicializar sistema de estrategas
+        if (window.EstrategiaManager) {
+            console.log('🧠 Creando estrategiaManager...');
+            this.estrategiaManager = new window.EstrategiaManager(this);
+            await this.estrategiaManager.inicializar();
+            console.log('✅ Sistema de estrategas inicializado');
+            
+            // Exponer al global para acceso desde botones
+            window.estrategiaManager = this.estrategiaManager;
+        }
+        
         // ============================================
         // NUEVO: INICIALIZAR PRESUPUESTO MANAGER (VERSIÓN CORREGIDA)
         // ============================================
@@ -2070,6 +2082,14 @@ class F1Manager {
 
 
     async loadPilotosContratados() {
+        // Si existe el nuevo sistema, usarlo
+        if (this.estrategiaManager) {
+            await this.estrategiaManager.cargarEstrategasContratados();
+            this.estrategiaManager.actualizarUIEstrategas();
+            return;
+        }
+        
+        // Código antiguo como fallback
         if (!this.escuderia || !this.escuderia.id || !this.supabase) {
             console.log('❌ No hay escudería o supabase');
             return;
@@ -2585,8 +2605,12 @@ class F1Manager {
                 };
                 
                 window.gestionarEstrategas = function() {
-                    if (window.f1Manager && window.f1Manager.mostrarModalContratacion) {
-                        window.f1Manager.mostrarModalContratacion();
+                    if (window.estrategiaManager && window.estrategiaManager.mostrarGestionCompleta) {
+                        window.estrategiaManager.mostrarGestionCompleta();
+                    } else if (window.f1Manager && window.f1Manager.estrategiaManager) {
+                        window.f1Manager.estrategiaManager.mostrarGestionCompleta();
+                    } else {
+                        alert('Sistema de estrategas cargando...');
                     }
                 };
                 
@@ -4274,6 +4298,14 @@ window.addEventListener('auth-completado', (evento) => {
                     if (window.f1Manager.cargarDashboardCompleto) {
                         await window.f1Manager.cargarDashboardCompleto();
                     }
+                setTimeout(async () => {
+                    if (window.f1Manager && !window.f1Manager.estrategiaManager && window.EstrategiaManager) {
+                        window.f1Manager.estrategiaManager = new window.EstrategiaManager(window.f1Manager);
+                        await window.f1Manager.estrategiaManager.inicializar();
+                        window.estrategiaManager = window.f1Manager.estrategiaManager;
+                        console.log('✅ EstrategiaManager inicializado en auth-completado');
+                    }
+                }, 2000);                    
                 }
             } catch (error) {
                 console.error('❌ Error crítico durante la inicialización:', error);
