@@ -4,6 +4,42 @@
 // ========================
 console.log('🧠 Cargando sistema de estrategas...');
 
+// ============================================
+// LIMPIAR DATOS ANTIGUOS INMEDIATAMENTE
+// ============================================
+
+// 1. Limpiar cualquier dato antiguo en f1Manager
+if (window.f1Manager) {
+    console.log('🧹 Limpiando datos antiguos de estrategas...');
+    window.f1Manager.pilotos = []; // Vaciar array antiguo
+    
+    // Desactivar funciones antiguas
+    if (window.f1Manager.updatePilotosUI) {
+        const originalUpdatePilotosUI = window.f1Manager.updatePilotosUI;
+        window.f1Manager.updatePilotosUI = function() {
+            console.log('🔄 UpdatePilotosUI bloqueado - Usando nuevo sistema');
+            // No hacer nada, el nuevo sistema manejará esto
+        };
+    }
+}
+
+// 2. Limpiar UI si ya existe
+setTimeout(() => {
+    const container = document.getElementById('pilotos-container');
+    if (container) {
+        container.innerHTML = '<div class="produccion-slots"><div class="slot-cargando"><i class="fas fa-spinner fa-spin"></i><span>Cargando sistema de estrategas...</span></div></div>';
+    }
+    
+    const contador = document.getElementById('contador-estrategas');
+    if (contador) {
+        contador.textContent = '...';
+    }
+}, 100);
+
+// ============================================
+// CONTINÚA CON LA CLASE EstrategiaManager...
+// ============================================
+
 class EstrategiaManager {
     constructor(f1Manager) {
         this.f1Manager = f1Manager;
@@ -1571,6 +1607,58 @@ class EstrategiaManager {
 
 // Exportar al global
 window.EstrategiaManager = EstrategiaManager;
+
+// ============================================
+// AÑADIR ESTILOS PARA ESTADO DE CARGA (¡FALTABA ESTO!)
+// ============================================
+if (!document.getElementById('estilos-estrategas-carga')) {
+    const style = document.createElement('style');
+    style.id = 'estilos-estrategas-carga';
+    style.innerHTML = `
+        .slot-cargando {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 20px;
+            color: #00d2be;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .slot-cargando i {
+            font-size: 1.5rem;
+        }
+        
+        .estratega-slot-antiguo {
+            opacity: 0.5;
+            filter: grayscale(100%);
+            pointer-events: none;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ============================================
+// LIMPIAR DATOS ANTIGUOS INMEDIATAMENTE (¡RECOMENDADO!)
+// ============================================
+// Añade esto también para evitar ver datos viejos:
+setTimeout(() => {
+    // Limpiar UI si ya existe durante la carga
+    const container = document.getElementById('pilotos-container');
+    if (container && !container.innerHTML.includes('slot-cargando')) {
+        container.innerHTML = `
+            <div class="produccion-slots">
+                <div class="slot-cargando">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Cargando sistema de estrategas...</span>
+                </div>
+            </div>
+        `;
+    }
+}, 50);
+
 // ============================================
 // AL FINAL DE TU estrategia.js (después de la clase EstrategiaManager)
 // ============================================
@@ -1635,4 +1723,26 @@ if (!window.contratarNuevoEstratega) {
 }
 
 // ============================================
+// FUNCIÓN DE COMPATIBILIDAD - Para evitar conflicto durante carga
+// ============================================
 
+window.mostrarModalContratacion = function(huecoNumero) {
+    console.log('🔧 mostrarModalContratacion llamado - Redirigiendo al nuevo sistema');
+    
+    if (window.estrategiaManager && window.estrategiaManager.mostrarModalContratacion) {
+        window.estrategiaManager.mostrarModalContratacion(huecoNumero);
+    } else {
+        alert('Sistema de estrategas cargando...\nPor favor, usa el botón "GESTIONAR"');
+    }
+};
+
+// Sobrescribir cualquier función antigua
+if (window.f1Manager) {
+    // Desactivar función antigua
+    window.f1Manager.mostrarModalContratacion = function(huecoNumero) {
+        console.log('🔄 Función antigua redirigida al nuevo sistema');
+        window.mostrarModalContratacion(huecoNumero);
+    };
+}
+
+console.log('✅ Sistema de estrategas - Compatibilidad establecida');
