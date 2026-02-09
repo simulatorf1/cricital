@@ -2104,39 +2104,75 @@ class F1Manager {
 
 
     async loadPilotosContratados() {
-        // Si existe el nuevo sistema, usarlo
-        if (this.estrategiaManager) {
-            await this.estrategiaManager.cargarEstrategasContratados();
-            this.estrategiaManager.actualizarUIEstrategas();
+        console.log('👥 Cargando estrategas contratados...');
+        
+        // 1. SI existe el nuevo sistema, usarlo SOLO
+        if (window.estrategiaManager) {
+            console.log('✅ Usando nuevo sistema de estrategas');
+            await window.estrategiaManager.cargarEstrategasContratados();
+            window.estrategiaManager.actualizarUIEstrategas();
             return;
         }
         
-        // Código antiguo como fallback
-        if (!this.escuderia || !this.escuderia.id || !this.supabase) {
-            console.log('❌ No hay escudería o supabase');
-            return;
+        // 2. SI no, crear instancia del nuevo sistema
+        if (window.EstrategiaManager && window.f1Manager) {
+            console.log('⚡ Creando EstrategiaManager...');
+            try {
+                window.estrategiaManager = new window.EstrategiaManager(window.f1Manager);
+                this.estrategiaManager = window.estrategiaManager;
+                
+                // Inicializar
+                await window.estrategiaManager.inicializar();
+                console.log('✅ Nuevo sistema inicializado');
+                
+                // Actualizar UI
+                window.estrategiaManager.actualizarUIEstrategas();
+                return;
+            } catch (error) {
+                console.error('❌ Error con nuevo sistema:', error);
+            }
         }
-    
-        try {
-            console.log('👥 Cargando ingenieros contratados...');
-            const { data: ingenieros, error } = await this.supabase
-                .from('ingenieros_contratados')
-                .select('*')
-                .eq('escuderia_id', this.escuderia.id)
-                .eq('activo', true)
-                .order('contratado_en', { ascending: false });
-    
-            if (error) throw error;
-    
-            this.pilotos = ingenieros || [];
-            console.log('✅ ' + this.pilotos.length + ' ingeniero(s) cargado(s)');
-            
-            this.updatePilotosUI();
-            
-        } catch (error) {
-            this.pilotos = [];
-            console.error('❌ Error cargando ingenieros:', error);
-            this.updatePilotosUI();
+        
+        // 3. SOLO como ÚLTIMO recurso, usar sistema antiguo (pero vacío)
+        console.log('⚠️ Usando sistema antiguo (vacío)');
+        this.pilotos = []; // ← VACÍO, para que no muestre datos antiguos
+        this.updatePilotosUI();
+        
+        // Mostrar slots vacíos
+        const container = document.getElementById('pilotos-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="produccion-slots">
+                    <div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(0)">
+                        <div class="slot-content">
+                            <i class="fas fa-plus"></i>
+                            <span>Slot 1</span>
+                            <span class="slot-disponible">Vacío</span>
+                        </div>
+                    </div>
+                    <div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(1)">
+                        <div class="slot-content">
+                            <i class="fas fa-plus"></i>
+                            <span>Slot 2</span>
+                            <span class="slot-disponible">Vacío</span>
+                        </div>
+                    </div>
+                    <div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(2)">
+                        <div class="slot-content">
+                            <i class="fas fa-plus"></i>
+                            <span>Slot 3</span>
+                            <span class="slot-disponible">Vacío</span>
+                        </div>
+                    </div>
+                    <div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(3)">
+                        <div class="slot-content">
+                            <i class="fas fa-plus"></i>
+                            <span>Slot 4</span>
+                            <span class="slot-disponible">Vacío</span>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
     }
 
@@ -3196,51 +3232,59 @@ class F1Manager {
 
     updatePilotosUI() {
         const container = document.getElementById('pilotos-container');
+        const contador = document.getElementById('contador-estrategas');
+        
         if (!container) {
             console.error('❌ No se encontró #pilotos-container');
             return;
         }
         
-        const estrategasContratados = this.pilotos || [];
-        
-        const contadorElement = document.getElementById('contador-estrategas');
-        if (contadorElement) {
-            contadorElement.textContent = estrategasContratados.length + '/4';
+        // 1. SI existe el nuevo sistema, DEJAR que él maneje la UI
+        if (window.estrategiaManager && window.estrategiaManager.actualizarUIEstrategas) {
+            console.log('🔄 EstrategiaManager manejará la UI');
+            // No hacer nada aquí, el nuevo sistema lo hará
+            return;
         }
         
-        // QUITAR LOS ESTILOS INLINE CON !important
-        let html = '<div class="produccion-slots">';  // CAMBIADO: Sin style
+        // 2. SI no, mostrar slots vacíos
+        console.log('⚠️ Mostrando slots vacíos (sistema antiguo desactivado)');
         
-        for (let i = 0; i < 4; i++) {
-            const estratega = estrategasContratados[i];
-            
-            if (estratega) {
-                // CAMBIADO: Sin style="height: 80px !important;"
-                html += '<div class="produccion-slot estratega-slot" onclick="mostrarInfoEstratega(' + i + ')">';
-                html += '<div class="slot-content">';
-                html += '<div class="estratega-icon" style="font-size: 1.1rem; color: #00d2be; margin-bottom: 5px;">';
-                html += '<i class="fas fa-user-tie"></i>';
-                html += '</div>';
-                html += '<span style="display: block; font-size: 0.75rem; color: white; font-weight: bold; margin-bottom: 2px;">' + (estratega.nombre || 'Estratega') + '</span>';
-                html += '<span style="display: block; font-size: 0.65rem; color: #FFD700;">€' + (estratega.salario || 0).toLocaleString() + '/mes</span>';
-                html += '<span style="display: block; font-size: 0.6rem; color: #aaa; margin-top: 2px;">' + (estratega.especialidad || 'General') + '</span>';
-                html += '</div>';
-                html += '</div>';
-            } else {
-                // CAMBIADO: Sin style="height: 80px !important;"
-                html += '<div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(' + i + ')">';
-                html += '<div class="slot-content">';
-                html += '<i class="fas fa-plus" style="font-size: 1.1rem; color: #666; margin-bottom: 5px;"></i>';
-                html += '<span style="display: block; font-size: 0.75rem; color: #888;">Slot ' + (i + 1) + '</span>';
-                html += '<span style="display: block; font-size: 0.65rem; color: #aaa; margin-top: 2px;">Vacío</span>';
-                html += '</div>';
-                html += '</div>';
-            }
+        if (contador) {
+            contador.textContent = '0/4';
         }
         
-        html += '</div>';
-        
-        container.innerHTML = html;
+        container.innerHTML = `
+            <div class="produccion-slots">
+                <div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(0)">
+                    <div class="slot-content">
+                        <i class="fas fa-plus"></i>
+                        <span>Slot 1</span>
+                        <span class="slot-disponible">Vacío</span>
+                    </div>
+                </div>
+                <div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(1)">
+                    <div class="slot-content">
+                        <i class="fas fa-plus"></i>
+                        <span>Slot 2</span>
+                        <span class="slot-disponible">Vacío</span>
+                    </div>
+                </div>
+                <div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(2)">
+                    <div class="slot-content">
+                        <i class="fas fa-plus"></i>
+                        <span>Slot 3</span>
+                        <span class="slot-disponible">Vacío</span>
+                    </div>
+                </div>
+                <div class="produccion-slot estratega-vacio" onclick="contratarNuevoEstratega(3)">
+                    <div class="slot-content">
+                        <i class="fas fa-plus"></i>
+                        <span>Slot 4</span>
+                        <span class="slot-disponible">Vacío</span>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     getIniciales(nombre) {
         if (!nombre) return "??";
