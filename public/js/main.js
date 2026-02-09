@@ -801,36 +801,35 @@ class F1Manager {
             
             let html = '';
             
-            // ====== 1. FILTROS POR ÁREA (11 BOTONES FIJOS) ======
+            // ====== 1. FILTROS POR ÁREA (11 BOTONES PEQUEÑOS EN GRID 4x3) ======
             html += '<div class="filtros-areas-taller">';
             html += '<div class="filtros-header">';
-            html += '<span class="filtros-titulo"><i class="fas fa-filter"></i> FILTRAR POR ÁREA:</span>';
+            html += '<span class="filtros-titulo"><i class="fas fa-filter"></i> ÁREAS:</span>';
             html += '<button class="btn-mostrar-todas" onclick="mostrarTodasAreasTaller()">';
-            html += '<i class="fas fa-eye"></i> Mostrar todas';
+            html += '<i class="fas fa-eye"></i> Todas';
             html += '</button>';
             html += '</div>';
             
-            html += '<div class="filtros-botones">';
+            html += '<div class="filtros-botones-grid">';
             areas.forEach(area => {
-                html += `<button class="filtro-area-btn" data-area="${area.id}" onclick="filtrarAreaTaller('${area.id}')">`;
-                html += `<span class="filtro-icono">${area.icono}</span>`;
-                html += `<span class="filtro-nombre">${area.nombre}</span>`;
+                html += `<button class="filtro-area-btn-mini" data-area="${area.id}" onclick="filtrarAreaTaller('${area.id}')">`;
+                html += `<span class="filtro-icono-mini">${area.icono}</span>`;
+                html += `<span class="filtro-nombre-mini">${area.nombre}</span>`;
                 html += '</button>';
             });
             html += '</div>';
             html += '</div>';
             
-            // ====== 2. CONTENEDOR PARA LAS ÁREAS (CON SCROLL) ======
+            // ====== 2. CONTENEDOR PARA LAS ÁREAS ======
             html += '<div class="contenedor-areas-taller" id="contenedor-areas-taller">';
             
-            // SOLO LAS ÁREAS DIRECTAMENTE
+            // ÁREAS (se mantienen igual)
             for (const area of areas) {
                 html += '<div class="area-completa" id="area-' + area.id + '">';
                 html += '<div class="area-header-completa">';
                 html += '<span class="area-icono-completa">' + area.icono + '</span>';
                 html += '<span class="area-nombre-completa">' + area.nombre + '</span>';
                 
-                // Mostrar progreso
                 const piezasAreaFabricadas = piezasFabricadas?.filter(p => 
                     p.area === area.id || p.area === area.nombre
                 ) || [];
@@ -841,33 +840,23 @@ class F1Manager {
                 
                 html += '<div class="botones-area-completa">';
                 
-                // Obtener todas las piezas fabricadas para esta área
                 const piezasAreaFabricadasAll = piezasFabricadas?.filter(p => 
                     p.area === area.id || p.area === area.nombre
                 ) || [];
                 
-                // Obtener fabricaciones activas para esta área
                 const fabricacionesAreaActivas = fabricacionesActivas?.filter(f => 
                     (f.area === area.id || f.area === area.nombre) && !f.completada
                 ) || [];
                 
-                // Para cada una de las 50 piezas
                 for (let piezaNum = 1; piezaNum <= 50; piezaNum++) {
-                    // Calcular nivel
                     const nivel = Math.ceil(piezaNum / 5);
-                    
-                    // Calcular costo
                     const numeroPiezaEnNivel = ((piezaNum - 1) % 5) + 1;
                     const costoPieza = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
                     
-                    // Verificar si esta pieza ya está fabricada
                     const piezaFabricada = piezasAreaFabricadasAll[piezaNum - 1];
                     const yaFabricada = !!piezaFabricada;
-                    
-                    // Verificar si está comprada en mercado
                     const esCompradaMercado = piezaFabricada?.comprada_mercado || false;
                     
-                    // Verificar si está en fabricación
                     const enFabricacion = fabricacionesAreaActivas.some(f => {
                         const nivelFabricacion = f.nivel;
                         const rangoInicio = (nivelFabricacion - 1) * 5 + 1;
@@ -880,23 +869,19 @@ class F1Manager {
                         return proximaPieza === piezaNum && !yaFabricada;
                     });
                     
-                    // Nombre personalizado para esta pieza
                     const nombrePieza = this.nombresPiezas[area.id]?.[piezaNum - 1] || `${area.nombre} Mejora ${piezaNum}`;
                     
                     if (yaFabricada) {
-                        // Pieza fabricada
                         const claseCSS = esCompradaMercado ? 'btn-pieza-50 comprada-mercado' : 'btn-pieza-50 lleno';
                         const icono = esCompradaMercado ? 'fa-shopping-cart' : 'fa-check';
-                        const titulo = nombrePieza;
                         
-                        html += `<button class="${claseCSS}" disabled title="${titulo}">`;
+                        html += `<button class="${claseCSS}" disabled title="${nombrePieza}">`;
                         html += `<i class="fas ${icono}"></i>`;
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
                         
                     } else if (enFabricacion) {
-                        // En fabricación
                         html += `<button class="btn-pieza-50 fabricando" disabled title="${nombrePieza} - En fabricación">`;
                         html += '<i class="fas fa-spinner fa-spin"></i>';
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
@@ -904,11 +889,8 @@ class F1Manager {
                         html += '</button>';
                         
                     } else {
-                        // Verificar si es la próxima pieza a fabricar
                         const proximaPiezaNoFabricada = !yaFabricada && 
                             piezaNum === (piezasAreaFabricadasAll.length + 1);
-                        
-                        // Solo puede fabricar si hay menos de 4 fabricaciones activas
                         const fabricacionesCount = fabricacionesActivas?.length || 0;
                         const puedeFabricar = fabricacionesCount < 4 && proximaPiezaNoFabricada;
                         
@@ -934,18 +916,18 @@ class F1Manager {
             
             container.innerHTML = html;
             
-            // Añadir estilos CSS para los filtros
-            if (!document.querySelector('#estilos-taller-filtros')) {
+            // Añadir solo los estilos de filtro, NO modificar los existentes
+            if (!document.querySelector('#estilos-filtros-taller')) {
                 const style = document.createElement('style');
-                style.id = 'estilos-taller-filtros';
+                style.id = 'estilos-filtros-taller';
                 style.innerHTML = `
-                    /* === FILTROS DE ÁREA === */
+                    /* === FILTROS DE ÁREA (COMPACTO 4x3) === */
                     .filtros-areas-taller {
                         background: rgba(10, 15, 30, 0.95);
-                        border-bottom: 2px solid rgba(0, 210, 190, 0.3);
-                        padding: 10px;
-                        margin-bottom: 10px;
-                        border-radius: 8px;
+                        border-bottom: 2px solid rgba(0, 210, 190, 0.2);
+                        padding: 6px 8px;
+                        margin-bottom: 8px;
+                        border-radius: 6px;
                         position: sticky;
                         top: 0;
                         z-index: 100;
@@ -955,114 +937,135 @@ class F1Manager {
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
-                        margin-bottom: 10px;
+                        margin-bottom: 6px;
                     }
                     
                     .filtros-titulo {
                         color: #00d2be;
                         font-weight: bold;
-                        font-size: 0.9rem;
+                        font-size: 0.75rem;
                         display: flex;
                         align-items: center;
-                        gap: 8px;
+                        gap: 5px;
                     }
                     
                     .btn-mostrar-todas {
                         background: rgba(0, 210, 190, 0.1);
-                        border: 1px solid rgba(0, 210, 190, 0.3);
+                        border: 1px solid rgba(0, 210, 190, 0.2);
                         color: #00d2be;
-                        padding: 6px 10px;
-                        border-radius: 5px;
-                        font-size: 0.7rem;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        font-size: 0.65rem;
                         cursor: pointer;
                         display: flex;
                         align-items: center;
-                        gap: 5px;
+                        gap: 4px;
+                        min-height: auto;
+                        height: 24px;
                     }
                     
                     .btn-mostrar-todas:hover {
                         background: rgba(0, 210, 190, 0.2);
                     }
                     
-                    .filtros-botones {
+                    /* GRID 4x3 para 11 botones */
+                    .filtros-botones-grid {
                         display: grid;
-                        grid-template-columns: repeat(6, 1fr);
-                        gap: 5px;
+                        grid-template-columns: repeat(4, 1fr);
+                        grid-template-rows: repeat(3, auto);
+                        gap: 4px;
                     }
                     
-                    @media (max-width: 1200px) {
-                        .filtros-botones {
-                            grid-template-columns: repeat(4, 1fr);
-                        }
+                    /* Última fila con 3 botones (4 + 4 + 3 = 11) */
+                    .filtros-botones-grid button:nth-child(9) {
+                        grid-column: 1;
+                    }
+                    .filtros-botones-grid button:nth-child(10) {
+                        grid-column: 2;
+                    }
+                    .filtros-botones-grid button:nth-child(11) {
+                        grid-column: 3;
                     }
                     
-                    @media (max-width: 800px) {
-                        .filtros-botones {
+                    @media (max-width: 768px) {
+                        .filtros-botones-grid {
                             grid-template-columns: repeat(3, 1fr);
+                            grid-template-rows: repeat(4, auto);
+                        }
+                        
+                        .filtros-botones-grid button:nth-child(10) {
+                            grid-column: 1;
+                        }
+                        .filtros-botones-grid button:nth-child(11) {
+                            grid-column: 2;
                         }
                     }
                     
-                    @media (max-width: 500px) {
-                        .filtros-botones {
+                    @media (max-width: 480px) {
+                        .filtros-botones-grid {
                             grid-template-columns: repeat(2, 1fr);
+                            grid-template-rows: repeat(6, auto);
                         }
                     }
                     
-                    .filtro-area-btn {
+                    /* BOTONES DE FILTRO COMPACTOS */
+                    .filtro-area-btn-mini {
                         display: flex;
                         flex-direction: column;
                         align-items: center;
                         justify-content: center;
-                        background: rgba(0, 210, 190, 0.1);
-                        border: 1px solid rgba(0, 210, 190, 0.3);
-                        border-radius: 6px;
+                        background: rgba(0, 210, 190, 0.08);
+                        border: 1px solid rgba(0, 210, 190, 0.15);
+                        border-radius: 5px;
                         color: #00d2be;
-                        padding: 8px 5px;
-                        font-size: 0.7rem;
+                        padding: 4px 2px;
+                        font-size: 0.6rem;
                         cursor: pointer;
-                        min-height: 50px;
+                        min-height: 40px;
+                        max-height: 45px;
                         transition: all 0.2s ease;
+                        overflow: hidden;
                     }
                     
-                    .filtro-area-btn:hover {
-                        background: rgba(0, 210, 190, 0.2);
-                        transform: translateY(-2px);
+                    .filtro-area-btn-mini:hover {
+                        background: rgba(0, 210, 190, 0.15);
+                        transform: translateY(-1px);
                     }
                     
-                    .filtro-area-btn.active {
-                        background: rgba(0, 210, 190, 0.3);
+                    .filtro-area-btn-mini.active {
+                        background: rgba(0, 210, 190, 0.25);
                         color: white;
-                        font-weight: bold;
                         border-color: #00d2be;
+                        font-weight: bold;
                     }
                     
-                    .filtro-icono {
-                        font-size: 1.2rem;
-                        margin-bottom: 3px;
+                    .filtro-icono-mini {
+                        font-size: 0.9rem;
+                        margin-bottom: 2px;
                     }
                     
-                    .filtro-nombre {
-                        font-size: 0.65rem;
-                        line-height: 1.1;
+                    .filtro-nombre-mini {
+                        font-size: 0.55rem;
+                        line-height: 1;
                         text-align: center;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        max-width: 100%;
                     }
                     
                     /* === CONTENEDOR CON SCROLL === */
                     .contenedor-areas-taller {
-                        max-height: calc(100vh - 250px);
+                        max-height: calc(100vh - 200px);
                         overflow-y: auto;
                         -webkit-overflow-scrolling: touch;
-                        padding-bottom: 20px;
+                        padding-bottom: 10px;
                     }
                     
-                    /* ÁREA OCULTA POR DEFECTO (excepto la primera) */
+                    /* Control de visibilidad de áreas */
                     .area-completa {
-                        margin-bottom: 20px;
-                        padding: 15px;
-                        background: rgba(0, 0, 0, 0.3);
-                        border-radius: 8px;
-                        border: 1px solid rgba(0, 210, 190, 0.2);
-                        /* NO añadas display: block aquí, se controla con JavaScript */
+                        /* Mantiene todos los estilos existentes del taller */
+                        display: none; /* Oculto por defecto */
                     }
                     
                     /* Mostrar todas las áreas si no hay filtro activo */
@@ -1074,21 +1077,167 @@ class F1Manager {
                     .area-completa.visible {
                         display: block;
                     }
-                    
-                    /* Estilos existentes del taller (mantener) */
-                    ${document.querySelector('#estilos-taller-simple') ? '' : `
-                        /* CONTENEDOR PRINCIPAL */
-                        #tab-taller {
-                            padding: 10px;
-                            overflow-y: auto;
-                            height: calc(100vh - 120px);
-                            -webkit-overflow-scrolling: touch;
-                        }
-                        
-                        /* ... (el resto de tus estilos existentes del taller) ... */
-                    `}
                 `;
                 document.head.appendChild(style);
+            }
+            
+            // Asegurar que los estilos existentes del taller se carguen
+            if (!document.querySelector('#estilos-taller-simple')) {
+                // Copia EXACTA de tus estilos existentes del taller (línea ~1400-1500)
+                const styleExistente = document.createElement('style');
+                styleExistente.id = 'estilos-taller-simple';
+                styleExistente.innerHTML = `
+                    /* CONTENEDOR PRINCIPAL */
+                    #tab-taller {
+                        padding: 10px;
+                        overflow-y: auto;
+                        height: calc(100vh - 120px);
+                        -webkit-overflow-scrolling: touch;
+                    }
+                    
+                    /* ÁREAS INDIVIDUALES */
+                    .area-completa {
+                        margin-bottom: 20px;
+                        padding: 15px;
+                        background: rgba(0, 0, 0, 0.3);
+                        border-radius: 8px;
+                        border: 1px solid rgba(0, 210, 190, 0.2);
+                    }
+                    
+                    .area-header-completa {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        margin-bottom: 15px;
+                        padding-bottom: 10px;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    }
+                    
+                    .area-icono-completa {
+                        font-size: 1.5rem;
+                    }
+                    
+                    .area-nombre-completa {
+                        font-weight: bold;
+                        color: #00d2be;
+                        font-size: 1.1rem;
+                    }
+                    
+                    .area-progreso-badge {
+                        margin-left: auto;
+                        background: rgba(0, 210, 190, 0.2);
+                        color: #00d2be;
+                        padding: 4px 8px;
+                        border-radius: 12px;
+                        font-size: 0.8rem;
+                        font-weight: bold;
+                    }
+                    
+                    /* BOTONES DE PIEZAS - DISPOSICIÓN FIJA */
+                    .botones-area-completa {
+                        display: grid;
+                        grid-template-columns: repeat(5, 1fr);
+                        gap: 8px;
+                    }
+                    
+                    @media (max-width: 1200px) {
+                        .botones-area-completa {
+                            grid-template-columns: repeat(4, 1fr);
+                        }
+                    }
+                    
+                    @media (max-width: 900px) {
+                        .botones-area-completa {
+                            grid-template-columns: repeat(3, 1fr);
+                        }
+                    }
+                    
+                    @media (max-width: 600px) {
+                        .botones-area-completa {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                    }
+                    
+                    .btn-pieza-50 {
+                        height: 80px;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        border: 2px solid rgba(0, 210, 190, 0.3);
+                        border-radius: 6px;
+                        background: rgba(0, 0, 0, 0.5);
+                        color: white;
+                        cursor: pointer;
+                        padding: 8px;
+                        text-align: center;
+                        position: relative;
+                        font-size: 0.9rem;
+                    }
+                    
+                    .btn-pieza-50:disabled {
+                        opacity: 0.6;
+                        cursor: not-allowed;
+                    }
+                    
+                    .btn-pieza-50.lleno {
+                        border-color: #4CAF50;
+                        background: rgba(76, 175, 80, 0.1);
+                    }
+                    
+                    .btn-pieza-50.fabricando {
+                        border-color: #FF9800;
+                        background: rgba(255, 152, 0, 0.1);
+                    }
+                    
+                    .btn-pieza-50.vacio {
+                        border-color: #666;
+                        background: rgba(100, 100, 100, 0.1);
+                    }
+                    
+                    .btn-pieza-50 i {
+                        font-size: 1.2rem;
+                        margin-bottom: 5px;
+                    }
+                    
+                    .pieza-nombre-50 {
+                        font-size: 0.7rem;
+                        line-height: 1.1;
+                        max-height: 32px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        display: -webkit-box;
+                        -webkit-line-clamp: 2;
+                        -webkit-box-orient: vertical;
+                        margin-bottom: 3px;
+                    }
+                    
+                    .pieza-precio-50 {
+                        font-size: 0.65rem;
+                        color: #FFD700;
+                        font-weight: bold;
+                        background: rgba(255, 215, 0, 0.1);
+                        padding: 2px 5px;
+                        border-radius: 3px;
+                        text-align: center;
+                        width: 100%;
+                    }
+                    
+                    .btn-pieza-50.comprada-mercado {
+                        border-color: #FF9800;
+                        background: rgba(255, 152, 0, 0.1);
+                        color: #FF9800;
+                    }
+                    
+                    .mercado-badge {
+                        position: absolute;
+                        top: 2px;
+                        right: 2px;
+                        font-size: 0.6rem;
+                        color: #FF9800;
+                    }
+                `;
+                document.head.appendChild(styleExistente);
             }
             
             // Mostrar todas las áreas por defecto
@@ -1100,7 +1249,7 @@ class F1Manager {
             console.error('❌ Error cargando taller:', error);
             container.innerHTML = '<div class="error"><p>Error cargando el taller</p></div>';
         }
-    }
+    }    
     
     // ========================
     // CONFIGURAR NAVEGACIÓN ENTRE ÁREAS
@@ -5091,12 +5240,12 @@ setTimeout(() => {
         console.log('🔍 Filtrando por área:', areaId);
         
         // 1. Remover clase activa de todos los botones de filtro
-        document.querySelectorAll('.filtro-area-btn').forEach(btn => {
+        document.querySelectorAll('.filtro-area-btn-mini').forEach(btn => {
             btn.classList.remove('active');
         });
         
         // 2. Activar el botón clickeado
-        const btnActivo = document.querySelector(`.filtro-area-btn[data-area="${areaId}"]`);
+        const btnActivo = document.querySelector(`.filtro-area-btn-mini[data-area="${areaId}"]`);
         if (btnActivo) {
             btnActivo.classList.add('active');
         }
@@ -5131,7 +5280,7 @@ setTimeout(() => {
         console.log('👁️ Mostrando todas las áreas');
         
         // 1. Desactivar todos los botones de filtro
-        document.querySelectorAll('.filtro-area-btn').forEach(btn => {
+        document.querySelectorAll('.filtro-area-btn-mini').forEach(btn => {
             btn.classList.remove('active');
         });
         
