@@ -276,7 +276,57 @@ html, body {
     box-shadow: 0 0 10px rgba(225, 6, 0, 0.3);
 }
 
+/* === BOTONES SECUNDARIOS (Mercado, Pronósticos, etc) === */
+.tabs-secundarias {
+    display: flex;
+    background: #0f3460;
+    border-bottom: 2px solid rgba(0, 210, 190, 0.3);
+    padding: 8px 5px;
+    z-index: 998;
+    gap: 6px;
+}
 
+.tab-btn-secundario {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 210, 190, 0.1);
+    border: 1px solid rgba(0, 210, 190, 0.3);
+    border-radius: 8px;
+    color: #00d2be;
+    padding: 6px 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    min-height: 45px;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.tab-btn-secundario:hover {
+    background: rgba(0, 210, 190, 0.2);
+}
+
+.tab-btn-secundario.active {
+    background: rgba(0, 210, 190, 0.3);
+    color: white;
+}
+
+/* ESTILO ESPECIAL PARA BOTÓN SALIR */
+.tab-btn-secundario.tab-btn-salir {
+    background: rgba(225, 6, 0, 0.1);
+    border-color: rgba(225, 6, 0, 0.3);
+    color: #ff4444;
+}
+
+.tab-btn-secundario.tab-btn-salir:hover {
+    background: rgba(225, 6, 0, 0.2);
+}
+
+.tab-btn-secundario.tab-btn-salir.active {
+    background: rgba(225, 6, 0, 0.3);
+    color: white;
+}
 
 /* ========================
    3. ESTILOS DE REGISTRO
