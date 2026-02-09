@@ -109,119 +109,48 @@ class EstrategiaManager {
             console.warn('⚠️ Error verificando BD estrategas:', error);
         }
     }
-
-    // ========================
-    // CREAR TABLAS Y DATOS INICIALES
-    // ========================
-    async crearTablasEstrategas() {
-        // Tabla de catálogo (110 estrategas)
-        const estrategasBase = this.generarCatalogo110Estrategas();
-        
-        // Insertar en BD (esto es solo simulación - en realidad necesitarías migración SQL)
-        console.log(`📊 Generados ${estrategasBase.length} estrategas base`);
-        
-        // Guardar en localStorage temporalmente si no hay BD
-        localStorage.setItem('f1_estrategas_catalogo', JSON.stringify(estrategasBase));
-        
-        // Tabla de contrataciones la manejará Supabase con migraciones
-    }
-
-    // ========================
-    // GENERAR 110 ESTRATEGAS
-    // ========================
-    generarCatalogo110Estrategas() {
-        const nombres = [
-            'Luca', 'Marco', 'Giovanni', 'Francesco', 'Antonio', 'Andrea', 'Matteo', 'Stefano', 'Roberto', 'Alessandro',
-            'James', 'John', 'Robert', 'Michael', 'David', 'Richard', 'Charles', 'Thomas', 'Christopher', 'Daniel',
-            'Pierre', 'Jean', 'Claude', 'Louis', 'François', 'Henri', 'Jacques', 'Michel', 'Philippe', 'Alain',
-            'Carlos', 'Fernando', 'Sergio', 'Miguel', 'Javier', 'Manuel', 'José', 'Juan', 'Antonio', 'Francisco',
-            'Max', 'Sebastian', 'Lewis', 'Kimi', 'Valtteri', 'Nico', 'Jenson', 'Mika', 'Damon', 'Nigel'
-        ];
-        
-        const apellidos = [
-            'Rossi', 'Bianchi', 'Ferrari', 'Russo', 'Romano', 'Gallo', 'Costa', 'Fontana', 'Conti', 'Esposito',
-            'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
-            'Martin', 'Bernard', 'Dubois', 'Thomas', 'Robert', 'Richard', 'Petit', 'Durand', 'Leroy', 'Moreau',
-            'Garcia', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Perez', 'Sanchez', 'Ramirez', 'Torres',
-            'Verstappen', 'Hamilton', 'Vettel', 'Raikkonen', 'Bottas', 'Rosberg', 'Button', 'Hakkinen', 'Hill', 'Mansell'
-        ];
-        
-        const nacionalidades = ['🇮🇹', '🇬🇧', '🇫🇷', '🇪🇸', '🇩🇪', '🇫🇮', '🇳🇱', '🇦🇺', '🇺🇸', '🇧🇷'];
-        
-        const estrategas = [];
-        let idCounter = 1;
-        
-        // 10 estrategas por cada una de las 11 especialidades = 110
-        this.especialidades.forEach((especialidad, espIndex) => {
-            for (let i = 0; i < 10; i++) {
-                const nombre = nombres[(espIndex * 10 + i) % nombres.length];
-                const apellido = apellidos[(espIndex * 10 + i) % apellidos.length];
-                const nacionalidad = nacionalidades[(espIndex + i) % nacionalidades.length];
-                
-                // Sueldo: 100.000€ - 2.000.000€ (progresivo por nivel)
-                const nivel = i + 1; // 1 a 10
-                const sueldoBase = 100000; // 100K
-                const sueldoSemanal = sueldoBase * Math.pow(1.5, nivel - 1);
-                
-                // Bonificación: +10% a +200% (progresivo por nivel)
-                const bonoBase = 10; // 10%
-                const porcentajeBono = bonoBase * nivel * 2; // 10%, 20%, 30%... 200%
-                
-                estrategas.push({
-                    id: idCounter++,
-                    nombre: `${nombre} ${apellido}`,
-                    nombre_corto: nombre,
-                    apellidos: apellido,
-                    nacionalidad: nacionalidad,
-                    especialidad: especialidad.id,
-                    especialidad_nombre: especialidad.nombre,
-                    icono: especialidad.icono,
-                    sueldo_semanal: Math.round(sueldoSemanal),
-                    porcentaje_bono: porcentajeBono,
-                    experiencia_años: 5 + nivel,
-                    equipo_anterior: ['Ferrari', 'Mercedes', 'Red Bull', 'McLaren', 'Alpine'][(espIndex + i) % 5],
-                    descripcion: `Experto en ${especialidad.desc.toLowerCase()}. ${nivel * 10}% de acierto histórico.`,
-                    disponible: true
-                });
-            }
-        });
-        
-        return estrategas;
-    }
-
-    // ========================
-    // CARGAR CATÁLOGO DESDE BD
-    // ========================
+    
     async cargarCatalogoEstrategas() {
         try {
-            // Intentar cargar desde BD
+            console.log('📚 Cargando catálogo desde Supabase...');
+            
+            // SOLO cargar desde BD
             const { data, error } = await this.supabase
                 .from('estrategas_catalogo')
                 .select('*')
                 .eq('disponible', true)
-                .order('especialidad', { ascending: true });
+                .order('especialidad', { ascending: true })
+                .order('sueldo_semanal', { ascending: true });
             
-            if (error || !data || data.length === 0) {
-                // Usar datos locales
-                const localData = localStorage.getItem('f1_estrategas_catalogo');
-                if (localData) {
-                    this.catalogoEstrategas = JSON.parse(localData);
-                } else {
-                    // Generar por primera vez
-                    this.catalogoEstrategas = this.generarCatalogo110Estrategas();
-                    localStorage.setItem('f1_estrategas_catalogo', JSON.stringify(this.catalogoEstrategas));
-                }
-            } else {
-                this.catalogoEstrategas = data;
+            if (error) {
+                console.error('❌ Error cargando catálogo:', error);
+                throw error; // NO usar datos locales
             }
             
-            console.log(`📚 Catálogo cargado: ${this.catalogoEstrategas.length} estrategas disponibles`);
+            if (!data || data.length === 0) {
+                console.error('🚨 CRÍTICO: Tabla estrategas_catalogo VACÍA');
+                throw new Error('No hay estrategas disponibles en la base de datos');
+            }
+            
+            this.catalogoEstrategas = data;
+            console.log(`✅ Catálogo cargado: ${this.catalogoEstrategas.length} estrategas desde BD`);
             
         } catch (error) {
-            console.error('❌ Error cargando catálogo:', error);
-            this.catalogoEstrategas = this.generarCatalogo110Estrategas();
+            console.error('❌ Error fatal cargando catálogo:', error);
+            
+            // Mostrar error al usuario
+            if (this.f1Manager && this.f1Manager.showNotification) {
+                this.f1Manager.showNotification(
+                    '❌ Error: Base de datos de estrategas vacía\nContacta al administrador',
+                    'error'
+                );
+            }
+            
+            this.catalogoEstrategas = [];
+            throw error; // Propagar el error
         }
     }
+ 
 
     // ========================
     // CARGAR ESTRATEGAS CONTRATADOS
