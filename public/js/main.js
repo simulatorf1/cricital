@@ -2244,35 +2244,25 @@ class F1Manager {
                         </nav>
                         
 
+
                         <!-- PESTAÑAS SECUNDARIAS - MOVIDAS ARRIBA -->
-                        <nav class="tabs-secundarias" style="
-                            display: flex;
-                            background: #0f3460;
-                            border-bottom: 2px solid rgba(0, 210, 190, 0.3);
-                            padding: 8px 5px;
-                            z-index: 998;
-                        ">
-                            <button class="tab-btn-secundario" data-tab="mercado" style="flex: 1;">
+                        <nav class="tabs-secundarias">
+                            <button class="tab-btn-secundario" data-tab="mercado">
                                 <i class="fas fa-shopping-cart"></i> Mercado
                             </button>
-                            <button class="tab-btn-secundario" data-tab="pronosticos" style="flex: 1;">
+                            <button class="tab-btn-secundario" data-tab="pronosticos">
                                 <i class="fas fa-chart-line"></i> Pronósticos
                             </button>
-                            <button class="tab-btn-secundario" data-tab="presupuesto" style="flex: 1;">
+                            <button class="tab-btn-secundario" data-tab="presupuesto">
                                 <i class="fas fa-chart-pie"></i> Presupuesto
                             </button>
-                            <button class="tab-btn-secundario" data-tab="clasificacion" style="flex: 1;">
+                            <button class="tab-btn-secundario" data-tab="clasificacion">
                                 <i class="fas fa-medal"></i> Clasificación
                             </button>
                             
                             <!-- PESTAÑA SALIR EN ROJO -->
                             <button class="tab-btn-secundario tab-btn-salir" id="logout-btn-visible" 
-                                    title="Cerrar sesión" style="
-                                    flex: 1;
-                                    background: rgba(225, 6, 0, 0.2);
-                                    border-color: #e10600;
-                                    color: #ff4444;
-                            ">
+                                    title="Cerrar sesión">
                                 <i class="fas fa-sign-out-alt"></i> Salir
                             </button>
                         </nav>
