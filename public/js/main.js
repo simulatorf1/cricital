@@ -802,13 +802,10 @@ class F1Manager {
             let html = '';
             
 
-            // ====== 1. FILTROS POR ÁREA (11 BOTONES COMPACTOS 5x3) ======
+            // ====== 1. FILTROS POR ÁREA (11 BOTONES COMPACTOS) ======
             html += '<div class="filtros-areas-taller">';
             html += '<div class="filtros-header">';
             html += '<span class="filtros-titulo"><i class="fas fa-filter"></i> ÁREAS:</span>';
-            html += '<button class="btn-mostrar-todas" onclick="mostrarTodasAreasTaller()">';
-            html += '<i class="fas fa-eye"></i> Todas';
-            html += '</button>';
             html += '</div>';
             
             html += '<div class="filtros-botones-grid">';
@@ -922,7 +919,7 @@ class F1Manager {
                 style.id = 'estilos-filtros-taller';
                 style.innerHTML = `
 
-                    /* === FILTROS DE ÁREA (COMPACTO 5x3) === */
+                     /* === FILTROS DE ÁREA (4 columnas) === */
                     .filtros-areas-taller {
                         background: rgba(10, 15, 30, 0.95);
                         border-bottom: 2px solid rgba(0, 210, 190, 0.2);
@@ -935,9 +932,6 @@ class F1Manager {
                     }
                     
                     .filtros-header {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
                         margin-bottom: 6px;
                     }
                     
@@ -950,65 +944,42 @@ class F1Manager {
                         gap: 5px;
                     }
                     
-                    .btn-mostrar-todas {
-                        background: rgba(0, 210, 190, 0.1);
-                        border: 1px solid rgba(0, 210, 190, 0.2);
-                        color: #00d2be;
-                        padding: 3px 6px;
-                        border-radius: 4px;
-                        font-size: 0.65rem;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        gap: 4px;
-                        min-height: auto;
-                        height: 22px;
-                    }
-                    
-                    .btn-mostrar-todas:hover {
-                        background: rgba(0, 210, 190, 0.2);
-                    }
-                    
-                    /* GRID 5 columnas, 3 filas (para 11 botones) */
+                    /* GRID 4 columnas, 3 filas (para 11 botones: 4+4+3) */
                     .filtros-botones-grid {
                         display: grid;
-                        grid-template-columns: repeat(5, 1fr);
+                        grid-template-columns: repeat(4, 1fr);
                         grid-template-rows: repeat(3, auto);
                         gap: 3px;
                     }
                     
-                    /* Distribución: 5 + 5 + 1 = 11 botones */
-                    /* Última fila con solo 1 botón en la primera columna */
-                    .filtros-botones-grid button:nth-child(11) {
+                    /* Distribución: 4 + 4 + 3 = 11 botones */
+                    /* Última fila con 3 botones ocupando columnas 1, 2, 3 */
+                    .filtros-botones-grid button:nth-child(9) {
                         grid-column: 1;
                     }
-                    
-                    /* Responsive: 4 columnas en tablets */
-                    @media (max-width: 1024px) {
-                        .filtros-botones-grid {
-                            grid-template-columns: repeat(4, 1fr);
-                            grid-template-rows: repeat(3, auto);
-                        }
-                        .filtros-botones-grid button:nth-child(9) {
-                            grid-column: 1;
-                        }
-                        .filtros-botones-grid button:nth-child(10) {
-                            grid-column: 2;
-                        }
-                        .filtros-botones-grid button:nth-child(11) {
-                            grid-column: 3;
-                        }
+                    .filtros-botones-grid button:nth-child(10) {
+                        grid-column: 2;
+                    }
+                    .filtros-botones-grid button:nth-child(11) {
+                        grid-column: 3;
                     }
                     
-                    /* Responsive: 3 columnas en móviles grandes */
+                    /* Responsive: 3 columnas en tablets */
                     @media (max-width: 768px) {
                         .filtros-botones-grid {
                             grid-template-columns: repeat(3, 1fr);
                             grid-template-rows: repeat(4, auto);
                         }
+                        
+                        .filtros-botones-grid button:nth-child(10) {
+                            grid-column: 1;
+                        }
+                        .filtros-botones-grid button:nth-child(11) {
+                            grid-column: 2;
+                        }
                     }
                     
-                    /* Responsive: 2 columnas en móviles pequeños */
+                    /* Responsive: 2 columnas en móviles */
                     @media (max-width: 480px) {
                         .filtros-botones-grid {
                             grid-template-columns: repeat(2, 1fr);
@@ -1016,7 +987,7 @@ class F1Manager {
                         }
                     }
                     
-                    /* BOTONES DE FILTRO SUPER COMPACTOS */
+                    /* BOTONES DE FILTRO - ANCHO COMPARTIDO IGUAL */
                     .filtro-area-btn-mini {
                         display: flex;
                         align-items: center;
@@ -1028,12 +999,10 @@ class F1Manager {
                         padding: 4px 2px;
                         font-size: 0.6rem;
                         cursor: pointer;
-                        min-height: 32px;
-                        max-height: 35px;
+                        height: 32px;
                         transition: all 0.2s ease;
                         overflow: hidden;
                         white-space: nowrap;
-                        width: 100%; /* Importante: ocupar todo el ancho de la celda */
                     }
                     
                     .filtro-area-btn-mini:hover {
