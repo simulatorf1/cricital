@@ -892,37 +892,18 @@ class F1Manager {
                         const fabricacionesCount = fabricacionesActivas?.length || 0;
                         const puedeFabricar = fabricacionesCount < 4 && proximaPiezaNoFabricada;
                         
-                        // ✅ AÑADE ESTA VERIFICACIÓN EXTRA
-                        const yaTieneEstaPieza = piezasAreaFabricadasAll.some(p => 
-                            p.numero_global === piezaNum
-                        );
-                        
-                        // ✅ NO mostrar botón si ya tiene esta pieza exacta
-                        if (yaTieneEstaPieza) {
-                            // Mostrar como ya fabricada
-                            html += `<button class="btn-pieza-50 lleno" disabled title="${nombrePieza}">`;
-                            html += `<i class="fas fa-check"></i>`;
-                            html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                            html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
-                            html += '</button>';
-                        } else if (puedeFabricar) {
-                            // Solo mostrar como fabricable si es la próxima
-                            html += '<button class="btn-pieza-50 vacio" ';
-                            html += `onclick="iniciarFabricacionTallerDesdeBoton('${area.id}', ${nivel})"`;
-                            html += ` title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()}">`;
-                            html += '<i class="fas fa-plus"></i>';
-                            html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                            html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
-                            html += '</button>';
+                        // ✅ VUELVE AL CÓDIGO ORIGINAL, PERO CON BLOQUEO
+                        html += '<button class="btn-pieza-50 vacio" ';
+                        if (puedeFabricar) {
+                            html += `onclick="iniciarFabricacionConBloqueo('${area.id}', ${nivel})"`;
                         } else {
-                            // Mostrar deshabilitado
-                            html += '<button class="btn-pieza-50 vacio" disabled';
-                            html += ` title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()}">`;
-                            html += '<i class="fas fa-plus"></i>';
-                            html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                            html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
-                            html += '</button>';
+                            html += ' disabled';
                         }
+                        html += ` title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()}">`;
+                        html += '<i class="fas fa-plus"></i>';
+                        html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
+                        html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
+                        html += '</button>';
                     }
                 }
                 
@@ -5628,6 +5609,27 @@ setTimeout(() => {
         childList: true, 
         subtree: true 
     });
-
+    // ✅ FUNCIÓN DE BLOQUEO GLOBAL - AÑADE ESTO NUEVO
+    window.fabricacionEnProgreso = false;
+    
+    window.iniciarFabricacionConBloqueo = async function(areaId, nivel) {
+        // Evitar doble click
+        if (window.fabricacionEnProgreso) {
+            console.log('⚠️ Ya hay una fabricación en curso');
+            return false;
+        }
+        
+        window.fabricacionEnProgreso = true;
+        
+        try {
+            const resultado = await window.iniciarFabricacionTallerDesdeBoton(areaId, nivel);
+            return resultado;
+        } finally {
+            // Desbloquear después de 1 segundo (tiempo suficiente)
+            setTimeout(() => {
+                window.fabricacionEnProgreso = false;
+            }, 1000);
+        }
+    };
     
 })();
