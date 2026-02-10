@@ -8,7 +8,7 @@ window.CONFIG = {
     VERSION: '1.0.0',
     DEBUG: true,
     FABRICATION_TIME: 4 * 60 * 60 * 1000, // 4 horas en milisegundos
-    INITIAL_MONEY: 5000000,
+    INITIAL_MONEY: 50000000,
     PIECE_COST: 10000,
     PILOT_SALARY_BASE: 500000,
     MAX_LEVEL: 10,
