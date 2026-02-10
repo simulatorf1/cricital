@@ -37,7 +37,7 @@ class TutorialManager {
         this.pasoActual = numeroPaso;
         
         // Si no existe la ventana, crearla
-        if (!this.ventanaTutorial || !document.getElementById('tutorial-ventana-flotante')) {
+        if (!this. || !document.getElementById('tutorial-ventana-flotante')) {
             this.crearVentanaBase();
         }
         
@@ -50,9 +50,9 @@ class TutorialManager {
     // ========================
     crearVentanaBase() {
         // 1. Crear ventana flotante
-        this.ventanaTutorial = document.createElement('div');
-        this.ventanaTutorial.id = 'tutorial-ventana-flotante';
-        this.ventanaTutorial.style.cssText = `
+        this. = document.createElement('div');
+        this..id = 'tutorial-ventana-flotante';
+        this..style.cssText = `
             position: fixed;
             bottom: 15vh;
             right: 20px;
@@ -72,7 +72,7 @@ class TutorialManager {
         `;
         
         // Contenido base que se actualizará
-        this.ventanaTutorial.innerHTML = `
+        this..innerHTML = `
             <div id="tutorial-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <!-- Título y paso se actualizarán -->
             </div>
@@ -97,6 +97,87 @@ class TutorialManager {
     // ========================
     // ACTUALIZAR CONTENIDO DEL PASO
     // ========================
+// ========================
+// CREAR VENTANA BASE
+// ========================
+crearVentanaBase() {
+    // 1. Crear ventana flotante
+    this.ventanaTutorial = document.createElement('div');
+    this.ventanaTutorial.id = 'tutorial-ventana-flotante';
+    this.ventanaTutorial.style.cssText = `
+        position: fixed;
+        bottom: 15vh;
+        right: 20px;
+        left: 20px;
+        background: white;
+        border: 4px solid #FF3366;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 
+            0 0 40px rgba(255, 51, 102, 0.6),
+            0 0 80px rgba(255, 51, 102, 0.3),
+            0 0 120px rgba(255, 51, 102, 0.15),
+            0 10px 30px rgba(0, 0, 0, 0.3);
+        color: #222;
+        font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        z-index: 999999;
+        max-width: 550px;
+        margin: 0 auto;
+        max-height: 50vh;
+        overflow-y: auto;
+        animation: pulse-glow 2s infinite alternate;
+    `;
+    
+    // Añadir estilo para la animación de resplandor
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 
+                    0 0 30px rgba(255, 51, 102, 0.4),
+                    0 0 60px rgba(255, 51, 102, 0.2),
+                    0 0 90px rgba(255, 51, 102, 0.1),
+                    0 10px 30px rgba(0, 0, 0, 0.3);
+                border-color: #FF3366;
+            }
+            100% {
+                box-shadow: 
+                    0 0 50px rgba(255, 51, 102, 0.8),
+                    0 0 100px rgba(255, 51, 102, 0.4),
+                    0 0 150px rgba(255, 51, 102, 0.2),
+                    0 15px 40px rgba(0, 0, 0, 0.4);
+                border-color: #FF0066;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Contenido base que se actualizará
+    this.ventanaTutorial.innerHTML = `
+        <div id="tutorial-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <!-- Título y paso se actualizarán -->
+        </div>
+        
+        <div id="tutorial-content" style="margin: 20px 0; line-height: 1.7; font-size: 1rem;">
+            <!-- Contenido del paso -->
+        </div>
+        
+        <div id="tutorial-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
+            <!-- Botones se actualizarán -->
+        </div>
+        
+        <div id="tutorial-pagination" style="display: flex; justify-content: center; margin-top: 20px;">
+            <!-- Puntos de paginación -->
+        </div>
+    `;
+    
+    document.body.appendChild(this.ventanaTutorial);
+    this.configurarMinimizar();
+}
+
+    // ========================
+    // ACTUALIZAR CONTENIDO DEL PASO
+    // ========================
     actualizarContenidoPaso(numeroPaso) {
         const header = this.ventanaTutorial.querySelector('#tutorial-header');
         const content = this.ventanaTutorial.querySelector('#tutorial-content');
@@ -107,66 +188,87 @@ class TutorialManager {
             // PASO 1: Pantalla de bienvenida
             header.innerHTML = `
                 <div>
-                    <h2 style="color: #00d2be; margin: 0; font-size: 1.2rem;">
-                        <i class="fas fa-graduation-cap" style="margin-right: 8px;"></i>
-                        TUTORIAL - Paso 1/2
+                    <h2 style="color: #FF3366; margin: 0; font-size: 1.4rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-graduation-cap" style="margin-right: 10px;"></i>
+                        🏁 TUTORIAL - Paso 1/2
                     </h2>
-                    <div style="color: #aaa; font-size: 0.85rem; margin-top: 5px;">
-                        Puedes explorar el juego mientras lees
+                    <div style="color: #666; font-size: 0.9rem; margin-top: 8px; font-weight: 500;">
+                        ⚡ ¡Atención! Guía importante para empezar
                     </div>
                 </div>
                 <button id="btn-minimizar-tutorial" style="
-                    background: rgba(0, 210, 190, 0.2);
-                    border: 1px solid #00d2be;
-                    color: #00d2be;
-                    width: 30px;
-                    height: 30px;
+                    background: white;
+                    border: 2px solid #FF3366;
+                    color: #FF3366;
+                    width: 36px;
+                    height: 36px;
                     border-radius: 50%;
                     cursor: pointer;
-                    font-size: 0.9rem;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    box-shadow: 0 4px 15px rgba(255, 51, 102, 0.3);
+                    transition: all 0.3s;
                 ">
                     _
                 </button>
             `;
             
             content.innerHTML = `
-                <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #00d2be;">
-                        🏎️ ¡BIENVENIDO A F1 MANAGER!
+                <div style="background: linear-gradient(135deg, rgba(255, 51, 102, 0.1) 0%, rgba(255, 153, 51, 0.1) 100%); 
+                        padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 2px solid rgba(255, 51, 102, 0.3);">
+                    <p style="margin: 0 0 12px 0; font-weight: 800; color: #FF3366; font-size: 1.1rem;">
+                        🚀 ¡BIENVENIDO A F1 MANAGER!
                     </p>
-                    <p style="margin: 0; font-size: 0.95rem;">
-                        Eres el director de <strong>${this.f1Manager.escuderia?.nombre || "tu equipo"}</strong>.
-                        Tienes <strong style="color: #FFD700;">5,000,000€</strong> para empezar.
+                    <p style="margin: 0; font-size: 1rem; line-height: 1.6;">
+                        Eres el director de <strong style="color: #FF3366;">${this.f1Manager.escuderia?.nombre || "tu equipo"}</strong>.
+                        Tienes <strong style="color: #FF9900; text-shadow: 0 2px 4px rgba(255, 153, 0, 0.3);">5,000,000€</strong> para empezar tu aventura.
                     </p>
                 </div>
                 
-                <p style="font-size: 0.95rem; margin-bottom: 15px;">
-                    <strong>🎯 Tu objetivo:</strong> Convertirte en el mejor estratega.
+                <p style="font-size: 1rem; margin-bottom: 18px; color: #333; font-weight: 600;">
+                    <span style="color: #FF3366; margin-right: 8px;">🎯</span>
+                    <strong style="color: #222;">Tu objetivo:</strong> Convertirte en el mejor estratega de la F1
                 </p>
                 
-                <div style="background: rgba(255, 215, 0, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #FFD700;">
-                    <p style="margin: 0; font-size: 0.9rem; color: #FFD700;">
-                        <i class="fas fa-lightbulb"></i> 
-                        <strong>Explora el juego:</strong> Puedes hacer clic en cualquier parte mientras lees los pasos.
+                <div style="background: linear-gradient(135deg, rgba(255, 153, 0, 0.15) 0%, rgba(255, 204, 0, 0.15) 100%); 
+                        padding: 16px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #FF9900;
+                        box-shadow: 0 5px 20px rgba(255, 153, 0, 0.1);">
+                    <p style="margin: 0; font-size: 0.95rem; color: #CC6600; font-weight: 600;">
+                        <i class="fas fa-bolt" style="margin-right: 10px; color: #FF9900;"></i> 
+                        <strong>¡Explora el juego!</strong> Puedes hacer clic en cualquier parte mientras lees los pasos.
                     </p>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; padding: 15px; 
+                        background: rgba(255, 51, 102, 0.05); border-radius: 10px; border: 1px dashed #FF3366;">
+                    <i class="fas fa-exclamation-triangle" style="color: #FF3366; font-size: 1.2rem;"></i>
+                    <span style="color: #666; font-size: 0.9rem;">
+                        <strong>Importante:</strong> No cierres esta ventana hasta completar el tutorial
+                    </span>
                 </div>
             `;
             
             footer.innerHTML = `
-                <div style="color: #888; font-size: 0.8rem;">
-                    <i class="fas fa-hand-pointer"></i> Siguiente: Funcionalidades principales
+                <div style="color: #888; font-size: 0.85rem; font-weight: 500;">
+                    <i class="fas fa-arrow-right" style="margin-right: 8px;"></i> 
+                    Siguiente: Funcionalidades principales
                 </div>
                 <button id="btn-siguiente-paso" style="
-                    background: linear-gradient(135deg, #00d2be 0%, #009688 100%);
+                    background: linear-gradient(135deg, #FF3366 0%, #FF0066 100%);
                     color: white;
                     border: none;
-                    padding: 10px 20px;
-                    border-radius: 6px;
-                    font-weight: bold;
+                    padding: 14px 28px;
+                    border-radius: 10px;
+                    font-weight: 800;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
-                    gap: 8px;
+                    gap: 10px;
+                    font-size: 1rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    box-shadow: 0 6px 20px rgba(255, 51, 102, 0.4);
+                    transition: all 0.3s;
                 ">
                     Siguiente Paso
                     <i class="fas fa-arrow-right"></i>
@@ -174,7 +276,16 @@ class TutorialManager {
             `;
             
             // Configurar botón siguiente
-            footer.querySelector('#btn-siguiente-paso').onclick = () => {
+            const btnSiguiente = footer.querySelector('#btn-siguiente-paso');
+            btnSiguiente.onmouseenter = () => {
+                btnSiguiente.style.transform = 'translateY(-3px)';
+                btnSiguiente.style.boxShadow = '0 10px 25px rgba(255, 51, 102, 0.6)';
+            };
+            btnSiguiente.onmouseleave = () => {
+                btnSiguiente.style.transform = 'translateY(0)';
+                btnSiguiente.style.boxShadow = '0 6px 20px rgba(255, 51, 102, 0.4)';
+            };
+            btnSiguiente.onclick = () => {
                 this.mostrarPaso(1);
             };
             
@@ -182,89 +293,116 @@ class TutorialManager {
             // PASO 2: Pantalla final
             header.innerHTML = `
                 <div>
-                    <h2 style="color: #FFD700; margin: 0; font-size: 1.2rem;">
-                        <i class="fas fa-flag-checkered" style="margin-right: 8px;"></i>
-                        TUTORIAL - Paso 2/2
+                    <h2 style="color: #FF9900; margin: 0; font-size: 1.4rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-flag-checkered" style="margin-right: 10px;"></i>
+                        🏆 TUTORIAL - Paso 2/2
                     </h2>
-                    <div style="color: #aaa; font-size: 0.85rem; margin-top: 5px;">
-                        ¡Estás listo para comenzar!
+                    <div style="color: #666; font-size: 0.9rem; margin-top: 8px; font-weight: 500;">
+                        🎉 ¡Estás listo para comenzar!
                     </div>
                 </div>
                 <button id="btn-minimizar-tutorial" style="
-                    background: rgba(255, 215, 0, 0.2);
-                    border: 1px solid #FFD700;
-                    color: #FFD700;
-                    width: 30px;
-                    height: 30px;
+                    background: white;
+                    border: 2px solid #FF9900;
+                    color: #FF9900;
+                    width: 36px;
+                    height: 36px;
                     border-radius: 50%;
                     cursor: pointer;
-                    font-size: 0.9rem;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    box-shadow: 0 4px 15px rgba(255, 153, 0, 0.3);
+                    transition: all 0.3s;
                 ">
                     _
                 </button>
             `;
             
             content.innerHTML = `
-                <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #FFD700;">
-                        🏁 ¡TODO LISTO!
+                <div style="background: linear-gradient(135deg, rgba(255, 153, 0, 0.15) 0%, rgba(255, 204, 51, 0.15) 100%); 
+                        padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 2px solid rgba(255, 153, 0, 0.3);">
+                    <p style="margin: 0 0 12px 0; font-weight: 800; color: #CC6600; font-size: 1.1rem;">
+                        🎯 ¡TODO LISTO PARA LA ACCIÓN!
                     </p>
-                    <p style="margin: 0; font-size: 0.95rem;">
-                        Has completado el tutorial básico. Ahora puedes:
+                    <p style="margin: 0; font-size: 1rem; line-height: 1.6;">
+                        Has completado el tutorial básico. Ahora puedes comenzar tu aventura:
                     </p>
                 </div>
                 
-                <ul style="margin: 15px 0; padding-left: 20px; font-size: 0.95rem;">
-                    <li style="margin-bottom: 8px;">
-                        <i class="fas fa-user-tie" style="color: #00d2be; margin-right: 8px;"></i>
-                        <strong>Contratar personal:</strong> Ve al menú "Personal"
-                    </li>
-                    <li style="margin-bottom: 8px;">
-                        <i class="fas fa-car" style="color: #00d2be; margin-right: 8px;"></i>
-                        <strong>Mejorar tu auto:</strong> Ve al menú "Desarrollo"
-                    </li>
-                    <li style="margin-bottom: 8px;">
-                        <i class="fas fa-calendar-alt" style="color: #00d2be; margin-right: 8px;"></i>
-                        <strong>Planificar carreras:</strong> Ve al menú "Calendario"
-                    </li>
-                    <li>
-                        <i class="fas fa-chart-line" style="color: #00d2be; margin-right: 8px;"></i>
-                        <strong>Ver estadísticas:</strong> Ve al menú "Informes"
-                    </li>
-                </ul>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
+                    <div style="background: rgba(255, 51, 102, 0.08); padding: 15px; border-radius: 10px; border: 2px solid rgba(255, 51, 102, 0.2);">
+                        <i class="fas fa-user-tie" style="color: #FF3366; font-size: 1.4rem; margin-bottom: 8px; display: block;"></i>
+                        <strong style="color: #222;">Contratar personal</strong>
+                        <div style="color: #666; font-size: 0.9rem; margin-top: 5px;">Menú "Personal"</div>
+                    </div>
+                    
+                    <div style="background: rgba(0, 180, 216, 0.08); padding: 15px; border-radius: 10px; border: 2px solid rgba(0, 180, 216, 0.2);">
+                        <i class="fas fa-car" style="color: #00B4D8; font-size: 1.4rem; margin-bottom: 8px; display: block;"></i>
+                        <strong style="color: #222;">Mejorar tu auto</strong>
+                        <div style="color: #666; font-size: 0.9rem; margin-top: 5px;">Menú "Desarrollo"</div>
+                    </div>
+                    
+                    <div style="background: rgba(72, 187, 120, 0.08); padding: 15px; border-radius: 10px; border: 2px solid rgba(72, 187, 120, 0.2);">
+                        <i class="fas fa-calendar-alt" style="color: #48BB78; font-size: 1.4rem; margin-bottom: 8px; display: block;"></i>
+                        <strong style="color: #222;">Planificar carreras</strong>
+                        <div style="color: #666; font-size: 0.9rem; margin-top: 5px;">Menú "Calendario"</div>
+                    </div>
+                    
+                    <div style="background: rgba(159, 122, 234, 0.08); padding: 15px; border-radius: 10px; border: 2px solid rgba(159, 122, 234, 0.2);">
+                        <i class="fas fa-chart-line" style="color: #9F7AEA; font-size: 1.4rem; margin-bottom: 8px; display: block;"></i>
+                        <strong style="color: #222;">Ver estadísticas</strong>
+                        <div style="color: #666; font-size: 0.9rem; margin-top: 5px;">Menú "Informes"</div>
+                    </div>
+                </div>
                 
-                <div style="background: rgba(0, 210, 190, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #00d2be;">
-                    <p style="margin: 0; font-size: 0.9rem; color: #00d2be;">
-                        <i class="fas fa-star"></i> 
-                        <strong>Recuerda:</strong> Tu presupuesto inicial es 5M€. Gástalo sabiamente.
+                <div style="background: linear-gradient(135deg, rgba(255, 51, 102, 0.1) 0%, rgba(255, 153, 51, 0.1) 100%); 
+                        padding: 16px; border-radius: 10px; margin: 25px 0; border-left: 4px solid #FF3366;
+                        box-shadow: 0 5px 20px rgba(255, 51, 102, 0.1);">
+                    <p style="margin: 0; font-size: 0.95rem; color: #FF3366; font-weight: 700;">
+                        <i class="fas fa-star" style="margin-right: 10px;"></i> 
+                        <strong>¡RECUERDA!</strong> Tu presupuesto inicial es 5,000,000€. Gástalo sabiamente para tener éxito.
                     </p>
                 </div>
             `;
             
             footer.innerHTML = `
-                <div style="color: #888; font-size: 0.8rem;">
-                    <i class="fas fa-graduation-cap"></i> Tutorial básico
+                <div style="color: #888; font-size: 0.85rem; font-weight: 500;">
+                    <i class="fas fa-graduation-cap" style="margin-right: 8px;"></i> 
+                    Tutorial básico completado
                 </div>
                 <button id="btn-finalizar-tutorial" style="
-                    background: linear-gradient(135deg, #e10600 0%, #ff4444 100%);
+                    background: linear-gradient(135deg, #FF9900 0%, #FF6600 100%);
                     color: white;
                     border: none;
-                    padding: 10px 25px;
-                    border-radius: 6px;
-                    font-weight: bold;
+                    padding: 16px 32px;
+                    border-radius: 10px;
+                    font-weight: 800;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
-                    gap: 8px;
-                    font-size: 1rem;
+                    gap: 12px;
+                    font-size: 1.1rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.8px;
+                    box-shadow: 0 8px 25px rgba(255, 153, 0, 0.5);
+                    transition: all 0.3s;
                 ">
-                    <i class="fas fa-play-circle"></i>
-                    ¡Comenzar Juego!
+                    <i class="fas fa-play-circle" style="font-size: 1.2rem;"></i>
+                    ¡COMENZAR JUEGO!
                 </button>
             `;
             
             // Configurar botón finalizar
-            footer.querySelector('#btn-finalizar-tutorial').onclick = () => {
+            const btnFinalizar = footer.querySelector('#btn-finalizar-tutorial');
+            btnFinalizar.onmouseenter = () => {
+                btnFinalizar.style.transform = 'translateY(-3px) scale(1.05)';
+                btnFinalizar.style.boxShadow = '0 12px 30px rgba(255, 153, 0, 0.7)';
+            };
+            btnFinalizar.onmouseleave = () => {
+                btnFinalizar.style.transform = 'translateY(0) scale(1)';
+                btnFinalizar.style.boxShadow = '0 8px 25px rgba(255, 153, 0, 0.5)';
+            };
+            btnFinalizar.onclick = () => {
                 this.finalizarTutorialCompleto();
             };
         }
@@ -274,12 +412,17 @@ class TutorialManager {
         for (let i = 0; i < this.totalPasos; i++) {
             const punto = document.createElement('div');
             punto.style.cssText = `
-                width: 10px;
-                height: 10px;
-                background: ${i === numeroPaso ? '#00d2be' : 'rgba(0, 210, 190, 0.3)'};
+                width: 14px;
+                height: 14px;
+                background: ${i === numeroPaso ? 
+                    (numeroPaso === 0 ? '#FF3366' : '#FF9900') : 
+                    'rgba(200, 200, 200, 0.5)'};
                 border-radius: 50%;
-                margin: 0 4px;
-                transition: background 0.3s;
+                margin: 0 6px;
+                transition: all 0.3s;
+                box-shadow: ${i === numeroPaso ? 
+                    '0 0 15px ' + (numeroPaso === 0 ? 'rgba(255, 51, 102, 0.8)' : 'rgba(255, 153, 0, 0.8)') : 
+                    'none'};
             `;
             pagination.appendChild(punto);
         }
