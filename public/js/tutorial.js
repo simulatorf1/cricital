@@ -1062,38 +1062,51 @@ class TutorialManager {
                 
                 estaMinimizado = false;
             } else {
-                // MINIMIZAR - Solo mostrar título y controles básicos
-                this.ventanaTutorial.style.width = '500px';
-                this.ventanaTutorial.style.height = 'auto';
-                this.ventanaTutorial.style.minHeight = '200px';
-                this.ventanaTutorial.style.maxHeight = '50vh';
-                this.ventanaTutorial.style.top = '80px';
-                this.ventanaTutorial.style.left = '50%';
-                this.ventanaTutorial.style.transform = 'translateX(-50%)';
-                this.ventanaTutorial.style.padding = '20px';
-                this.ventanaTutorial.style.borderRadius = '15px';
+                // MINIMIZAR - Reducir a solo un botón en la parte inferior
+                this.ventanaTutorial.style.width = '250px';
+                this.ventanaTutorial.style.height = '60px';
+                this.ventanaTutorial.style.top = 'auto';
+                this.ventanaTutorial.style.bottom = '20px';
+                this.ventanaTutorial.style.left = '20px';
+                this.ventanaTutorial.style.transform = 'none';
+                this.ventanaTutorial.style.padding = '10px 15px';
+                this.ventanaTutorial.style.borderRadius = '8px';
                 
-                // Ocultar contenido detallado pero mantener controles
+                // Ocultar TODO excepto el botón minimizar (que ahora será maximizar)
+                if (header) header.style.display = 'none';
                 if (contenido) contenido.style.display = 'none';
                 if (tip) tip.style.display = 'none';
+                if (pagination) pagination.style.display = 'none';
+                if (tutorialFooter) tutorialFooter.style.display = 'none';
                 
-                // Mostrar solo lo esencial
-                if (header) header.style.display = 'block';
+                // Mantener solo los controles pero con solo el botón minimizar/maximizar
                 if (controles) {
                     controles.style.display = 'flex';
-                    controles.style.marginTop = '15px';
+                    controles.style.justifyContent = 'center';
+                    controles.style.marginTop = '0';
+                    
+                    // Ocultar botón anterior
+                    const btnAnterior = controles.querySelector('#btn-anterior-paso');
+                    if (btnAnterior) btnAnterior.style.display = 'none';
+                    
+                    // Ocultar paginación
+                    const paginationDiv = controles.querySelector('#tutorial-pagination');
+                    if (paginationDiv) paginationDiv.style.display = 'none';
+                    
+                    // Ocultar footer de tutorial
+                    const tutorialFooterDiv = controles.querySelector('#tutorial-footer');
+                    if (tutorialFooterDiv) tutorialFooterDiv.style.display = 'none';
                 }
-                if (pagination) pagination.style.display = 'flex';
-                if (tutorialFooter) tutorialFooter.style.display = 'flex';
                 
-                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize"></i> Maximizar';
-                btnMinimizar.title = 'Maximizar ventana completa';
+                // Cambiar texto del botón a "Maximizar Tutorial"
+                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize"></i> Maximizar Tutorial';
+                btnMinimizar.style.width = '100%';
+                btnMinimizar.style.justifyContent = 'center';
                 
                 estaMinimizado = true;
             }
         };
     }
-
     // ========================
     // FINALIZAR TUTORIAL COMPLETO (IGUAL)
     // ========================
