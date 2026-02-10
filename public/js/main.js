@@ -4378,20 +4378,12 @@ window.addEventListener('auth-completado', (evento) => {
                 }
                 
                 // Verificar si mostrar tutorial
-                console.log('🎮 Cargando dashboard primero...');
-                // 1. PRIMERO cargar dashboard
-                await this.cargarDashboardCompleto();
-                
-                // 2. LUEGO, si necesita tutorial, mostrarlo encima
                 if (!escuderia.tutorial_completado) {
-                    console.log('📚 Mostrando tutorial SOBRE dashboard...');
-                    setTimeout(() => {
-                        window.tutorialManager = new TutorialManager(window.f1Manager);
-                        window.tutorialManager.mostrarModalSobreDashboard();
-                    }, 1500); // Esperar a que el dashboard cargue
+                    console.log('📚 Mostrando tutorial...');
+                    window.tutorialManager = new TutorialManager(window.f1Manager);
+                    window.tutorialManager.iniciar();
                 } else {
-                    console.log('✅ Tutorial ya completado');
-                }
+                    console.log('✅ Tutorial ya completado, cargando dashboard...');
                     
                     // Simular progreso de carga
                     actualizarProgresoCarga(30, "Cargando escudería...");
@@ -4421,7 +4413,7 @@ window.addEventListener('auth-completado', (evento) => {
                         console.log('✅ EstrategiaManager inicializado en auth-completado');
                     }
                 }, 2000);                    
-
+                }
             } catch (error) {
                 console.error('❌ Error crítico durante la inicialización:', error);
                 // Mostrar error al usuario
