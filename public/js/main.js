@@ -4378,33 +4378,30 @@ window.addEventListener('auth-completado', (evento) => {
                 }
                 
                 // Verificar si mostrar tutorial
-                if (!escuderia.tutorial_completado) {
-                    console.log('📚 Mostrando tutorial...');
-                    window.tutorialManager = new TutorialManager(window.f1Manager);
-                    window.tutorialManager.iniciar();
-                } else {
-                    console.log('✅ Tutorial ya completado, cargando dashboard...');
-                    
-                    // Simular progreso de carga
-                    actualizarProgresoCarga(30, "Cargando escudería...");
-                    await new Promise(resolve => setTimeout(resolve, 800));
-                    
-                    actualizarProgresoCarga(60, "Preparando dashboard...");
-                    await new Promise(resolve => setTimeout(resolve, 800));
-                    
-                    actualizarProgresoCarga(90, "Inicializando sistemas...");
-                    await new Promise(resolve => setTimeout(resolve, 800));
-                    
-                    actualizarProgresoCarga(100, "¡Listo!");
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    // Ocultar pantalla de carga
-                    ocultarPantallaCarga();
-                    
-                    // Cargar dashboard
-                    if (window.f1Manager.cargarDashboardCompleto) {
-                        await window.f1Manager.cargarDashboardCompleto();
-                    }
+                // PRIMERO: Siempre cargar dashboard principal
+                console.log('✅ Cargando dashboard principal...');
+                
+                // Simular progreso de carga
+                actualizarProgresoCarga(30, "Cargando escudería...");
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                actualizarProgresoCarga(60, "Preparando dashboard...");
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                actualizarProgresoCarga(90, "Inicializando sistemas...");
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                actualizarProgresoCarga(100, "¡Listo!");
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Ocultar pantalla de carga
+                ocultarPantallaCarga();
+                
+                // Cargar dashboard
+                if (window.f1Manager.cargarDashboardCompleto) {
+                    await window.f1Manager.cargarDashboardCompleto();
+                }
+
                 setTimeout(async () => {
                     if (window.f1Manager && !window.f1Manager.estrategiaManager && window.EstrategiaManager) {
                         window.f1Manager.estrategiaManager = new window.EstrategiaManager(window.f1Manager);
@@ -4413,6 +4410,14 @@ window.addEventListener('auth-completado', (evento) => {
                         console.log('✅ EstrategiaManager inicializado en auth-completado');
                     }
                 }, 2000);                    
+                
+                // DESPUÉS: Verificar si mostrar tutorial
+                if (!escuderia.tutorial_completado) {
+                    console.log('📚 Mostrando tutorial...');
+                    window.tutorialManager = new TutorialManager(window.f1Manager);
+                    window.tutorialManager.iniciar();
+                } else {
+                    console.log('✅ Tutorial ya completado, continuando en dashboard...');
                 }
             } catch (error) {
                 console.error('❌ Error crítico durante la inicialización:', error);
