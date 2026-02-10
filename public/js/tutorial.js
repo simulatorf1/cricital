@@ -57,12 +57,14 @@ class TutorialManager {
             bottom: 15vh;
             right: 20px;
             left: 20px;
-            background: rgba(10, 15, 30, 0.95);
-            border: 3px solid #00d2be;
+            background: white; /* CAMBIADO: Fondo blanco */
+            border: 4px solid #ff3366; /* CAMBIADO: Borde más grueso y color llamativo */
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 0 30px rgba(0, 210, 190, 0.4);
-            color: white;
+            box-shadow: 0 0 40px rgba(255, 51, 102, 0.8), /* CAMBIADO: Sombra más intensa */
+                        0 0 80px rgba(255, 51, 102, 0.4),
+                        0 0 120px rgba(255, 51, 102, 0.2);
+            color: #222; /* CAMBIADO: Texto oscuro para contraste */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             z-index: 999998;
             max-width: 500px;
@@ -107,7 +109,7 @@ class TutorialManager {
             // PASO 1: Pantalla de bienvenida
             header.innerHTML = `
                 <div>
-                    <h2 style="color: #00d2be; margin: 0; font-size: 1.2rem;">
+                    <h2 style="color: #ff3366; margin: 0; font-size: 1.3rem;"> /* CAMBIADO: Color más llamativo */
                         <i class="fas fa-graduation-cap" style="margin-right: 8px;"></i>
                         TUTORIAL - Paso 1/2
                     </h2>
