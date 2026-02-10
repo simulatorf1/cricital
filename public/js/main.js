@@ -4381,7 +4381,7 @@ window.addEventListener('auth-completado', (evento) => {
                 if (!escuderia.tutorial_completado) {
                     console.log('📚 Mostrando tutorial...');
                     window.tutorialManager = new TutorialManager(window.f1Manager);
-                    await tutorialManager.iniciar();
+                    tutorialManager.iniciar();
                 } else {
                     console.log('✅ Tutorial ya completado, cargando dashboard...');
                     
