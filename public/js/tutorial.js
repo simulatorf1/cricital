@@ -9,6 +9,7 @@ class TutorialManager {
         this.overlay = null;
         this.modal = null;
         this.tutorialKey = 'f1_tutorial_completado'; // Clave por defecto
+        this.onTutorialComplete = null; // ← AÑADE ESTA LÍNEA
     }
 
     // ========================
@@ -16,6 +17,13 @@ class TutorialManager {
     // ========================
     async iniciar() {
         console.log('🔍 Verificando estado del tutorial...');
+
+        // Si no hay escudería, continuar sin tutorial
+        if (!this.f1Manager.escuderia) {
+            console.warn('⚠️ No hay escudería disponible, saltando tutorial');
+            this.continuarCargaJuego();
+            return;
+        }
         
         // Esperar a que la escudería esté disponible
         await this.esperarEscuderia();
@@ -387,39 +395,31 @@ class TutorialManager {
     // ========================
     async finalizar() {
         console.log('✅ Finalizando tutorial...');
-        console.log('🔑 Clave tutorial:', this.tutorialKey);
         
-        // Guardar en localStorage
+        // Guardar estado
         localStorage.setItem(this.tutorialKey, 'true');
-        console.log('💾 Guardado en localStorage con clave:', this.tutorialKey);
         
-        // Actualizar base de datos si hay escudería
+        // Actualizar BD
         if (this.f1Manager.escuderia && this.f1Manager.supabase) {
             try {
-                console.log('📡 Actualizando BD para escudería:', this.f1Manager.escuderia.id);
-                
-                const { error } = await this.f1Manager.supabase
+                await this.f1Manager.supabase
                     .from('escuderias')
                     .update({ tutorial_completado: true })
                     .eq('id', this.f1Manager.escuderia.id);
-                
-                if (error) {
-                    console.error('❌ Error actualizando tutorial en BD:', error);
-                } else {
-                    console.log('✅ Tutorial marcado como completado en BD');
-                }
             } catch (error) {
-                console.error('❌ Error actualizando tutorial:', error);
+                console.error('❌ Error:', error);
             }
         }
         
-        // Cerrar el modal
+        // Cerrar modal
         this.cerrarModal();
         
-        // Intentar cargar el juego
-        await this.intentarCargarJuego();
+        // CONTINUAR LA CARGA DEL JUEGO ← ESTO ES LO IMPORTANTE
+        setTimeout(() => {
+            this.continuarCargaJuego();
+        }, 300);
         
-        // Mostrar notificación de bienvenida
+        // Notificación
         setTimeout(() => {
             if (this.f1Manager.showNotification) {
                 this.f1Manager.showNotification('🎉 ¡Bienvenido a F1 Manager!', 'success');
@@ -463,6 +463,36 @@ class TutorialManager {
             }
         }
     }
+    // ========================
+    // CONTINUAR CARGA DEL JUEGO
+    // ========================
+    continuarCargaJuego() {
+        console.log('🚀 Continuando carga del juego...');
+        
+        // Si hay un callback específico, usarlo
+        if (this.onTutorialComplete && typeof this.onTutorialComplete === 'function') {
+            this.onTutorialComplete();
+            return;
+        }
+        
+        // Intentar métodos del F1Manager
+        if (this.f1Manager.continuarInicializacion) {
+            this.f1Manager.continuarInicializacion();
+        } 
+        else if (this.f1Manager.cargarDashboard) {
+            this.f1Manager.cargarDashboard();
+        }
+        else if (this.f1Manager.iniciarJuego) {
+            this.f1Manager.iniciarJuego();
+        }
+        // Si nada funciona, forzar recarga
+        else {
+            console.warn('⚠️ No se encontró método para continuar, recargando...');
+            setTimeout(() => location.reload(), 1000);
+        }
+    }
+
+    
 
     // ========================
     // REINICIAR TUTORIAL (para debugging)
