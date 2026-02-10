@@ -49,33 +49,97 @@ class TutorialManager {
         this.ventanaTutorial.id = 'tutorial-ventana-flotante';
         this.ventanaTutorial.style.cssText = `
             position: fixed;
-            bottom: 15vh;
-            right: 20px;
-            left: 20px;
-            background: white;
-            border: 4px solid #ff3366;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 0 40px rgba(255, 51, 102, 0.8),
-                        0 0 80px rgba(255, 51, 102, 0.4),
-                        0 0 120px rgba(255, 51, 102, 0.2);
-            color: #222;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid #00d2be;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 210, 190, 0.4),
+                        0 0 100px rgba(0, 210, 190, 0.2);
+            color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             z-index: 999998;
-            max-width: 500px;
-            margin: 0 auto;
-            max-height: 45vh;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
         `;
         
         this.ventanaTutorial.innerHTML = `
-            <div id="tutorial-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;"></div>
-            <div id="tutorial-content" style="margin: 15px 0; line-height: 1.6;"></div>
-            <div id="tutorial-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;"></div>
-            <div id="tutorial-pagination" style="display: flex; justify-content: center; margin-top: 15px;"></div>
+            <div id="tutorial-header" style="margin-bottom: 25px;">
+                <!-- Título y paso se actualizarán -->
+            </div>
+            
+            <div id="tutorial-content" style="flex: 1; overflow-y: auto; padding-right: 10px; line-height: 1.7; font-size: 1.1rem;">
+                <!-- Contenido del paso -->
+            </div>
+            
+            <div id="tutorial-controls" style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-anterior-paso" style="
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 0.9rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    ">
+                        <i class="fas fa-arrow-left"></i>
+                        Anterior
+                    </button>
+                    
+                    <button id="btn-minimizar-tutorial" style="
+                        background: rgba(0, 210, 190, 0.2);
+                        border: 1px solid #00d2be;
+                        color: #00d2be;
+                        padding: 10px 20px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 0.9rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    ">
+                        <i class="fas fa-window-minimize"></i>
+                        Minimizar
+                    </button>
+                </div>
+                
+                <div id="tutorial-pagination" style="display: flex; gap: 8px;">
+                    <!-- Puntos de paginación -->
+                </div>
+                
+                <div id="tutorial-footer" style="display: flex; align-items: center;">
+                    <!-- Botón siguiente/final se actualizará aquí -->
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 51, 102, 0.1); border-radius: 10px; border-left: 4px solid #ff3366;">
+                <p style="margin: 0; font-size: 0.9rem; color: #ffccd5;">
+                    <i class="fas fa-lightbulb"></i> 
+                    <strong>Tip:</strong> Puedes minimizar esta ventana en cualquier momento si necesitas explorar el juego.
+                </p>
+            </div>
         `;
         
         document.body.appendChild(this.ventanaTutorial);
+        
+        // Configurar botón anterior
+        this.ventanaTutorial.querySelector('#btn-anterior-paso').onclick = () => {
+            if (this.pasoActual > 0) {
+                this.mostrarPaso(this.pasoActual - 1);
+            }
+        };
+        
         this.configurarMinimizar();
     }
 
@@ -95,27 +159,45 @@ class TutorialManager {
                 titulo: "¡BIENVENIDO A CRITICAL LAP!",
                 subtitulo: "Paso 1/14 - El juego que combina gestión con realidad",
                 contenido: `
-                    <div style="background: rgba(255, 51, 102, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        <p style="margin: 0 0 10px 0; font-weight: bold; color: #ff3366;">
-                            🏎️ ¡Bienvenido a CRITICAL LAP!
-                        </p>
-                        <p style="margin: 0; font-size: 0.95rem;">
+                    <div style="background: rgba(255, 51, 102, 0.15); padding: 25px; border-radius: 15px; margin-bottom: 25px; border-left: 5px solid #ff3366;">
+                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                            <div style="background: #ff3366; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 1.2rem;">
+                                🏎️
+                            </div>
+                            <h3 style="margin: 0; color: #ffccd5; font-size: 1.5rem;">
+                                ¡Bienvenido a CRITICAL LAP!
+                            </h3>
+                        </div>
+                        <p style="margin: 0; font-size: 1.15rem; line-height: 1.8; color: #e0e0e0;">
                             Estás ante el juego en tiempo real con otros jugadores que combina tu trabajo de gestión con los resultados reales de las carreras.
                             <br><br>
-                            <strong>Tu estrategia aquí se mide con el asfalto allá fuera.</strong>
+                            <strong style="color: #ffccd5;">Tu estrategia aquí se mide con el asfalto allá fuera.</strong>
                         </p>
                     </div>
                     
-                    <p style="font-size: 0.95rem; margin-bottom: 15px;">
-                        <strong>🏁 Heredas la Escudería ${this.f1Manager.escuderia?.nombre || "XXX"}</strong><br>
-                        Un equipo histórico en horas bajas. Tu misión es devolverle la gloria usando los resultados de la competición mundial.
-                    </p>
-                    
-                    <div style="background: rgba(0, 210, 190, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #00d2be;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #00d2be;">
-                            <i class="fas fa-flag-checkered"></i> 
-                            <strong>¿Aceptas el mando?</strong> Comienza tu camino hacia la gloria.
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <h4 style="color: #00d2be; margin: 0 0 15px 0; font-size: 1.3rem;">
+                            🏁 Heredas la Escudería <span style="color: #ffffff;">${this.f1Manager.escuderia?.nombre || "XXX"}</span>
+                        </h4>
+                        <p style="margin: 0; font-size: 1.15rem; line-height: 1.7; color: #cccccc;">
+                            Un equipo histórico en horas bajas. Tu misión es devolverle la gloria usando los resultados de la competición mundial.
                         </p>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, rgba(0, 210, 190, 0.15) 0%, rgba(0, 166, 150, 0.15) 100%); padding: 20px; border-radius: 12px; margin: 25px 0; border: 1px solid rgba(0, 210, 190, 0.3);">
+                        <div style="display: flex; align-items: flex-start;">
+                            <div style="color: #00d2be; font-size: 1.3rem; margin-right: 15px; margin-top: 5px;">
+                                <i class="fas fa-flag-checkered"></i>
+                            </div>
+                            <div>
+                                <p style="margin: 0 0 10px 0; font-size: 1.2rem; font-weight: bold; color: #00d2be;">
+                                    ¿Aceptas el mando?
+                                </p>
+                                <p style="margin: 0; font-size: 1.1rem; color: #a6fff5;">
+                                    Comienza tu camino hacia la gloria en el circuito más competitivo.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 `,
                 botonTexto: "Aceptar el Mando",
@@ -738,29 +820,28 @@ class TutorialManager {
         // Obtener el paso actual
         const paso = pasos[numeroPaso];
         
+
         // Actualizar header
+        const iconos = [
+            'fa-graduation-cap', 'fa-flag', 'fa-wrench', 'fa-box-open',
+            'fa-cogs', 'fa-shopping-cart', 'fa-user-tie', 'fa-bullseye',
+            'fa-money-bill-wave', 'fa-star', 'fa-trophy', 'fa-bell',
+            'fa-user', 'fa-flag-checkered'
+        ];
+        
         header.innerHTML = `
-            <div>
-                <h2 style="color: ${paso.colorBoton}; margin: 0; font-size: 1.3rem;">
-                    <i class="fas ${numeroPaso === 0 ? 'fa-graduation-cap' : numeroPaso === 13 ? 'fa-flag-checkered' : 'fa-info-circle'}" style="margin-right: 8px;"></i>
+            <div style="text-align: center; margin-bottom: 10px;">
+                <div style="font-size: 0.9rem; color: #00d2be; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">
+                    Paso ${numeroPaso + 1} de ${this.totalPasos}
+                </div>
+                <h2 style="color: ${paso.colorBoton}; margin: 0 0 10px 0; font-size: 1.8rem; font-weight: 700;">
+                    <i class="fas ${iconos[numeroPaso] || 'fa-info-circle'}" style="margin-right: 10px;"></i>
                     ${paso.titulo}
                 </h2>
-                <div style="color: #aaa; font-size: 0.85rem; margin-top: 5px;">
+                <div style="color: #a0a0a0; font-size: 1rem; border-bottom: 2px solid rgba(0, 210, 190, 0.3); padding-bottom: 15px;">
                     ${paso.subtitulo}
                 </div>
             </div>
-            <button id="btn-minimizar-tutorial" style="
-                background: rgba(${this.hexToRgb(paso.colorBoton)}, 0.2);
-                border: 1px solid ${paso.colorBoton};
-                color: ${paso.colorBoton};
-                width: 30px;
-                height: 30px;
-                border-radius: 50%;
-                cursor: pointer;
-                font-size: 0.9rem;
-            ">
-                _
-            </button>
         `;
         
         // Actualizar contenido
@@ -797,21 +878,22 @@ class TutorialManager {
         } else {
             let textoInfo = paso.textoObligar || "Siguiente paso";
             
+
             footer.innerHTML = `
-                <div style="color: #888; font-size: 0.8rem;">
-                    <i class="fas ${paso.obligarClick ? 'fa-mouse-pointer' : 'fa-arrow-right'}"></i> ${textoInfo}
-                </div>
                 <button id="btn-siguiente-paso" style="
-                    background: linear-gradient(135deg, ${paso.colorBoton} 0%, ${this.darkenColor(paso.colorBoton, 20)} 100%);
+                    background: linear-gradient(135deg, ${paso.colorBoton} 0%, ${this.darkenColor(paso.colorBoton, 30)} 100%);
                     color: white;
                     border: none;
-                    padding: 10px 20px;
-                    border-radius: 6px;
+                    padding: 12px 30px;
+                    border-radius: 10px;
                     font-weight: bold;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
-                    gap: 8px;
+                    gap: 10px;
+                    font-size: 1.1rem;
+                    transition: all 0.3s;
+                    box-shadow: 0 5px 15px rgba(${this.hexToRgb(paso.colorBoton)}, 0.4);
                 ">
                     ${paso.botonTexto}
                     <i class="fas ${paso.botonIcono}"></i>
@@ -828,26 +910,32 @@ class TutorialManager {
             }
         }
         
+
         // Actualizar paginación
-        pagination.innerHTML = '';
-        for (let i = 0; i < this.totalPasos; i++) {
-            const punto = document.createElement('div');
-            punto.style.cssText = `
-                width: ${i === numeroPaso ? '12px' : '8px'};
-                height: ${i === numeroPaso ? '12px' : '8px'};
-                background: ${i === numeroPaso ? paso.colorBoton : 'rgba(0, 0, 0, 0.1)'};
-                border-radius: 50%;
-                margin: 0 4px;
-                transition: all 0.3s;
-                cursor: pointer;
-            `;
+    pagination.innerHTML = '';
+    for (let i = 0; i < this.totalPasos; i++) {
+        const punto = document.createElement('div');
+        punto.style.cssText = `
+            width: ${i === numeroPaso ? '16px' : '12px'};
+            height: ${i === numeroPaso ? '16px' : '12px'};
+            background: ${i === numeroPaso ? paso.colorBoton : 'rgba(255, 255, 255, 0.2)'};
+            border-radius: 50%;
+            margin: 0 4px;
+            transition: all 0.3s;
+            cursor: ${i <= this.pasoActual ? 'pointer' : 'not-allowed'};
+            border: ${i === numeroPaso ? '2px solid white' : 'none'};
+            opacity: ${i <= this.pasoActual ? '1' : '0.5'};
+        `;
+        
+        if (i <= this.pasoActual) {
             punto.onclick = () => {
-                if (i <= this.pasoActual) {
-                    this.mostrarPaso(i);
-                }
+                this.mostrarPaso(i);
             };
-            pagination.appendChild(punto);
         }
+        
+        punto.title = `Paso ${i + 1}: ${i === 0 ? 'Bienvenida' : i === 13 ? 'Final' : i <= this.pasoActual ? 'Disponible' : 'Bloqueado'}`;
+        pagination.appendChild(punto);
+    }
         
         // Re-configurar minimizar
         this.configurarMinimizar();
@@ -936,23 +1024,48 @@ class TutorialManager {
         const btnMinimizar = this.ventanaTutorial.querySelector('#btn-minimizar-tutorial');
         if (!btnMinimizar) return;
         
+        const contenido = this.ventanaTutorial.querySelector('#tutorial-content');
+        const controles = this.ventanaTutorial.querySelector('#tutorial-controls');
+        const tip = this.ventanaTutorial.querySelector('div:last-child');
+        
         let estaMinimizado = false;
-        const alturaOriginal = this.ventanaTutorial.offsetHeight;
-        const alturaMinimizada = Math.max(40, Math.floor(alturaOriginal / 3));
         
         btnMinimizar.onclick = () => {
             if (estaMinimizado) {
-                this.ventanaTutorial.style.transform = 'translateY(0)';
+                // RESTAURAR
+                this.ventanaTutorial.style.width = '90%';
                 this.ventanaTutorial.style.height = 'auto';
-                this.ventanaTutorial.style.maxHeight = '45vh';
-                this.ventanaTutorial.style.overflowY = 'auto';
-                btnMinimizar.innerHTML = '_';
+                this.ventanaTutorial.style.maxHeight = '85vh';
+                this.ventanaTutorial.style.top = '50%';
+                this.ventanaTutorial.style.left = '50%';
+                this.ventanaTutorial.style.transform = 'translate(-50%, -50%)';
+                this.ventanaTutorial.style.padding = '30px';
+                
+                contenido.style.display = 'block';
+                controles.style.display = 'flex';
+                if (tip) tip.style.display = 'block';
+                
+                btnMinimizar.innerHTML = '<i class="fas fa-window-minimize"></i> Minimizar';
+                btnMinimizar.title = 'Minimizar ventana';
+                
                 estaMinimizado = false;
             } else {
-                this.ventanaTutorial.style.transform = `translateY(calc(100% - ${alturaMinimizada}px))`;
-                this.ventanaTutorial.style.height = `${alturaMinimizada}px`;
-                this.ventanaTutorial.style.overflowY = 'hidden';
-                btnMinimizar.innerHTML = '^';
+                // MINIMIZAR
+                this.ventanaTutorial.style.width = '300px';
+                this.ventanaTutorial.style.height = '60px';
+                this.ventanaTutorial.style.top = '20px';
+                this.ventanaTutorial.style.left = '20px';
+                this.ventanaTutorial.style.transform = 'none';
+                this.ventanaTutorial.style.padding = '15px';
+                this.ventanaTutorial.style.borderRadius = '10px';
+                
+                contenido.style.display = 'none';
+                controles.style.display = 'none';
+                if (tip) tip.style.display = 'none';
+                
+                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize"></i> Maximizar';
+                btnMinimizar.title = 'Maximizar ventana';
+                
                 estaMinimizado = true;
             }
         };
