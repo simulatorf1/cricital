@@ -4421,7 +4421,7 @@ window.addEventListener('auth-completado', (evento) => {
                         console.log('✅ EstrategiaManager inicializado en auth-completado');
                     }
                 }, 2000);                    
-                }
+
             } catch (error) {
                 console.error('❌ Error crítico durante la inicialización:', error);
                 // Mostrar error al usuario
