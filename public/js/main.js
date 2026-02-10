@@ -4378,12 +4378,20 @@ window.addEventListener('auth-completado', (evento) => {
                 }
                 
                 // Verificar si mostrar tutorial
+                console.log('🎮 Cargando dashboard primero...');
+                // 1. PRIMERO cargar dashboard
+                await this.cargarDashboardCompleto();
+                
+                // 2. LUEGO, si necesita tutorial, mostrarlo encima
                 if (!escuderia.tutorial_completado) {
-                    console.log('📚 Mostrando tutorial...');
-                    window.tutorialManager = new TutorialManager(window.f1Manager);
-                    tutorialManager.iniciar();
+                    console.log('📚 Mostrando tutorial SOBRE dashboard...');
+                    setTimeout(() => {
+                        window.tutorialManager = new TutorialManager(window.f1Manager);
+                        window.tutorialManager.mostrarModalSobreDashboard();
+                    }, 1500); // Esperar a que el dashboard cargue
                 } else {
-                    console.log('✅ Tutorial ya completado, cargando dashboard...');
+                    console.log('✅ Tutorial ya completado');
+                }
                     
                     // Simular progreso de carga
                     actualizarProgresoCarga(30, "Cargando escudería...");
