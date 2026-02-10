@@ -1,5 +1,5 @@
 // ========================
-// F1 MANAGER - TUTORIAL.JS (VERSIÓN FINAL)
+// F1 MANAGER - TUTORIAL.JS (VERSIÓN CORREGIDA)
 // ========================
 console.log('📚 Tutorial cargado - Versión Modal Mejorada');
 
@@ -8,7 +8,7 @@ class TutorialManager {
         this.f1Manager = f1Manager;
         this.overlay = null;
         this.modal = null;
-        this.tutorialKey = null; // Clave específica para este usuario
+        this.tutorialKey = 'f1_tutorial_completado'; // Clave por defecto
     }
 
     // ========================
@@ -17,14 +17,16 @@ class TutorialManager {
     async iniciar() {
         console.log('🔍 Verificando estado del tutorial...');
         
+        // Esperar a que la escudería esté disponible
+        await this.esperarEscuderia();
+        
         // Crear clave específica para esta escudería
         if (this.f1Manager.escuderia && this.f1Manager.escuderia.id) {
-            this.tutorialKey = `f1_tutorial_completado_${this.f1Manager.escudería.id}`;
+            this.tutorialKey = `f1_tutorial_completado_${this.f1Manager.escuderia.id}`;
+            console.log('🔑 Clave tutorial específica:', this.tutorialKey);
         } else {
-            this.tutorialKey = 'f1_tutorial_completado';
+            console.log('⚠️ No hay ID de escudería, usando clave genérica');
         }
-        
-        console.log('🔑 Clave tutorial:', this.tutorialKey);
         
         // 1. Primero verificar en la base de datos
         const necesitaTutorialBD = await this.verificarNecesitaTutorial();
@@ -43,11 +45,38 @@ class TutorialManager {
             console.log('⚠️ Tutorial marcado como completado en localStorage pero NO en BD');
             console.log('🎯 Mostrando tutorial de todas formas para sincronizar...');
         } else {
-            console.log('🎯 Mostrando tutorial (nueva escudería)...');
+            console.log('🎯 Mostrando tutorial...');
         }
         
         // Mostrar modal de bienvenida
         this.mostrarModalBienvenida();
+    }
+
+    // ========================
+    // ESPERAR ESCUDERÍA
+    // ========================
+    esperarEscuderia() {
+        return new Promise((resolve) => {
+            let intentos = 0;
+            const maxIntentos = 10;
+            
+            const verificar = () => {
+                intentos++;
+                
+                if (this.f1Manager.escuderia) {
+                    console.log('✅ Escudería disponible:', this.f1Manager.escuderia.nombre);
+                    resolve();
+                } else if (intentos >= maxIntentos) {
+                    console.warn('⚠️ Timeout esperando escudería, continuando sin ella');
+                    resolve();
+                } else {
+                    console.log(`⏳ Esperando escudería... (${intentos}/${maxIntentos})`);
+                    setTimeout(verificar, 100);
+                }
+            };
+            
+            verificar();
+        });
     }
 
     // ========================
@@ -136,6 +165,11 @@ class TutorialManager {
             flex-direction: column;
         `;
         
+        // Obtener nombre de escudería (con valor por defecto)
+        const nombreEscuderia = this.f1Manager.escuderia?.nombre || "tu escudería";
+        const idEscuderia = this.f1Manager.escuderia?.id ? 
+            this.f1Manager.escuderia.id.substring(0, 8) : 'nueva';
+        
         // Contenido del modal
         this.modal.innerHTML = `
             <!-- Cabecera con botón de cerrar -->
@@ -143,7 +177,7 @@ class TutorialManager {
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="color: #00d2be; font-size: 1.5rem;">🏎️</div>
                     <div style="font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: bold;">
-                        TUTORIAL F1 MANAGER - NUEVA ESCUDERÍA
+                        TUTORIAL F1 MANAGER
                     </div>
                 </div>
                 
@@ -162,7 +196,7 @@ class TutorialManager {
                     gap: 5px;
                 ">
                     <span>✕</span>
-                    <span>Saltar</span>
+                    <span>Salir</span>
                 </button>
             </div>
             
@@ -174,21 +208,7 @@ class TutorialManager {
                         ¡BIENVENIDO A F1 MANAGER!
                     </h1>
                     <p style="color: #00d2be; margin: 0; font-size: 1rem;">
-                        Eres el nuevo director de <strong>${this.f1Manager.escuderia?.nombre || "tu escudería"}</strong>
-                    </p>
-                    <p style="color: #888; font-size: 0.9rem; margin-top: 5px;">
-                        ID: ${this.f1Manager.escuderia?.id?.substring(0, 8) || 'nueva'}
-                    </p>
-                </div>
-                
-                <!-- Indicador de nueva escudería -->
-                <div style="background: rgba(0, 210, 190, 0.15); padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; border: 1px dashed #00d2be;">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #00d2be;">
-                        <span>🆕</span>
-                        <div style="font-weight: bold;">ESCUDERÍA NUEVA DETECTADA</div>
-                    </div>
-                    <p style="color: #aaa; font-size: 0.85rem; margin: 5px 0 0 0;">
-                        Este es tu primer acceso con esta escudería
+                        Eres el nuevo director de <strong>${nombreEscuderia}</strong>
                     </p>
                 </div>
                 
@@ -224,7 +244,7 @@ class TutorialManager {
                         <div style="font-weight: bold;">Puedes interactuar con la aplicación detrás</div>
                     </div>
                     <p style="color: #aaa; font-size: 0.9rem; margin: 0;">
-                        El tutorial permanece abierto. Usa "Saltar" o el botón principal para continuar.
+                        El tutorial permanece abierto. Haz clic fuera o usa el botón "Salir" para cerrarlo.
                     </p>
                 </div>
             </div>
@@ -253,7 +273,7 @@ class TutorialManager {
                 </button>
                 
                 <div style="color: #666; font-size: 0.8rem; margin-top: 10px;">
-                    El tutorial se guardará para esta escudería
+                    Cierra el tutorial para guardar tu progreso
                 </div>
             </div>
         `;
@@ -338,7 +358,7 @@ class TutorialManager {
         
         // Configurar evento del botón de salir
         document.getElementById('btn-salir-tutorial').onclick = () => {
-            console.log('⏭️ Botón "Saltar" clickeado');
+            console.log('⏭️ Botón "Salir" clickeado');
             this.finalizar();
         };
     }
@@ -367,17 +387,13 @@ class TutorialManager {
     // ========================
     async finalizar() {
         console.log('✅ Finalizando tutorial...');
-        console.log('🔑 Clave tutorial a guardar:', this.tutorialKey);
+        console.log('🔑 Clave tutorial:', this.tutorialKey);
         
-        // Guardar en localStorage (con clave específica)
-        if (this.tutorialKey) {
-            localStorage.setItem(this.tutorialKey, 'true');
-            console.log('💾 Guardado en localStorage:', this.tutorialKey);
-        } else {
-            localStorage.setItem('f1_tutorial_completado', 'true');
-        }
+        // Guardar en localStorage
+        localStorage.setItem(this.tutorialKey, 'true');
+        console.log('💾 Guardado en localStorage con clave:', this.tutorialKey);
         
-        // Actualizar base de datos
+        // Actualizar base de datos si hay escudería
         if (this.f1Manager.escuderia && this.f1Manager.supabase) {
             try {
                 console.log('📡 Actualizando BD para escudería:', this.f1Manager.escuderia.id);
@@ -449,53 +465,25 @@ class TutorialManager {
     }
 
     // ========================
-    // LIMPIAR TUTORIAL (para debugging)
+    // REINICIAR TUTORIAL (para debugging)
     // ========================
-    limpiar() {
+    reiniciar() {
+        console.log('🔄 Reiniciando tutorial...');
+        
         // Limpiar localStorage
-        if (this.tutorialKey) {
-            localStorage.removeItem(this.tutorialKey);
-        }
+        localStorage.removeItem(this.tutorialKey);
         localStorage.removeItem('f1_tutorial_completado');
         
         // Cerrar modal si está abierto
         this.cerrarModal();
         
-        console.log('🧹 Tutorial limpiado');
-    }
-
-    // ========================
-    // FORZAR TUTORIAL (para testing)
-    // ========================
-    forzar() {
-        console.log('🎯 Forzando tutorial...');
-        
-        // Limpiar estado
-        this.limpiar();
-        
-        // Mostrar tutorial
+        // Mostrar tutorial de nuevo
         setTimeout(() => {
             this.mostrarModalBienvenida();
-        }, 500);
+        }, 300);
+        
+        console.log('✅ Tutorial reiniciado');
     }
 }
 
 console.log('✅ Tutorial.js cargado correctamente (Modal Mejorado)');
-
-// Función global para debugging
-window.debugTutorial = function() {
-    if (window.f1Manager && window.f1Manager.tutorialManager) {
-        console.log('🔍 Estado del tutorial:');
-        console.log('- Escudería:', window.f1Manager.escuderia?.nombre);
-        console.log('- ID:', window.f1Manager.escuderia?.id);
-        console.log('- Clave tutorial:', `f1_tutorial_completado_${window.f1Manager.escuderia?.id}`);
-        console.log('- localStorage:', localStorage.getItem(`f1_tutorial_completado_${window.f1Manager.escuderia?.id}`));
-        
-        // Opciones de debugging
-        console.log('🔧 Comandos disponibles:');
-        console.log('window.f1Manager.tutorialManager.limpiar() - Limpiar estado');
-        console.log('window.f1Manager.tutorialManager.forzar() - Forzar tutorial');
-    } else {
-        console.log('❌ f1Manager o tutorialManager no disponibles');
-    }
-};
