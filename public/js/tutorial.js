@@ -145,18 +145,26 @@ class TutorialManager {
         // 4. Añadir al body
         document.body.appendChild(ventanaTutorial);
     
-        // 5. Configurar botón de minimizar
-        ventanaTutorial.querySelector('#btn-minimizar-tutorial').onclick = () => {
-            ventanaTutorial.style.transform = 'translateY(calc(100% - 40px))';
-            ventanaTutorial.querySelector('#btn-minimizar-tutorial').innerHTML = '^';
-            ventanaTutorial.querySelector('#btn-minimizar-tutorial').onclick = () => {
+        // 5. Configurar botón de minimizar CORREGIDO
+        const btnMinimizar = ventanaTutorial.querySelector('#btn-minimizar-tutorial');
+        let estaMinimizado = false;
+        
+        btnMinimizar.onclick = () => {
+            if (estaMinimizado) {
+                // Maximizar
                 ventanaTutorial.style.transform = 'translateY(0)';
-                ventanaTutorial.querySelector('#btn-minimizar-tutorial').innerHTML = '_';
-                ventanaTutorial.querySelector('#btn-minimizar-tutorial').onclick = () => {
-                    ventanaTutorial.style.transform = 'translateY(calc(100% - 40px))';
-                    ventanaTutorial.querySelector('#btn-minimizar-tutorial').innerHTML = '^';
-                };
-            };
+                ventanaTutorial.style.height = 'auto';
+                ventanaTutorial.style.overflowY = 'auto';
+                btnMinimizar.innerHTML = '_';
+                estaMinimizado = false;
+            } else {
+                // Minimizar - solo mostrar 40px de altura
+                ventanaTutorial.style.transform = 'translateY(calc(100% - 40px))';
+                ventanaTutorial.style.height = '40px';
+                ventanaTutorial.style.overflowY = 'hidden';
+                btnMinimizar.innerHTML = '^';
+                estaMinimizado = true;
+            }
         };
     
         // 6. Configurar botón principal
