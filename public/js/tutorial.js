@@ -8,23 +8,28 @@ class TutorialManager {
         this.f1Manager = f1Manager;
         this.overlay = null;
         this.modal = null;
+        this.resolveTutorial = null; // ← AÑADE esto
     }
 
     // ========================
     // INICIAR TUTORIAL
     // ========================
-    iniciar() {
+    async iniciar() {  // ← AÑADE 'async' aquí
         // Verificar si ya completó el tutorial
         const tutorialCompletado = localStorage.getItem('f1_tutorial_completado');
         
         if (tutorialCompletado === 'true') {
             console.log('✅ Tutorial ya completado, omitiendo...');
-            this.continuarCarga(); // ← AÑADE ESTO
-            return;
+            return Promise.resolve(); // ← AÑADE esto
         }
         
         // Mostrar modal de bienvenida
         this.mostrarModalBienvenida();
+        
+        // Esperar a que el usuario cierre el tutorial
+        return new Promise((resolve) => {
+            this.resolveTutorial = resolve; // ← Guarda la función resolve
+        });
     }
 
     // ========================
@@ -236,6 +241,12 @@ class TutorialManager {
     // ========================
     async finalizar() {
         console.log('✅ Tutorial completado');
+        // Si hay una promesa esperando, resuélvela
+        if (this.resolveTutorial) {
+            this.resolveTutorial();
+            this.resolveTutorial = null;
+        }
+        
         
         // Guardar en localStorage
         localStorage.setItem('f1_tutorial_completado', 'true');
