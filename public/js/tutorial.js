@@ -1,238 +1,192 @@
 // ========================
-// F1 MANAGER - TUTORIAL.JS (VERSIÓN SIMPLE QUE FUNCIONA)
+// F1 MANAGER - TUTORIAL.JS (VERSIÓN MODAL)
 // ========================
 console.log('📚 Tutorial cargado - Versión Modal');
 
 class TutorialManager {
     constructor(f1Manager) {
         this.f1Manager = f1Manager;
-        this.overlay = null;
-        this.modal = null;
-        this.resolveTutorial = null; // ← AÑADE esto
     }
 
     // ========================
     // INICIAR TUTORIAL
     // ========================
-    async iniciar() {  // ← AÑADE 'async' aquí
+    iniciar() {
         // Verificar si ya completó el tutorial
         const tutorialCompletado = localStorage.getItem('f1_tutorial_completado');
         
         if (tutorialCompletado === 'true') {
             console.log('✅ Tutorial ya completado, omitiendo...');
-            return Promise.resolve(); // ← AÑADE esto
+            return;
         }
         
         // Mostrar modal de bienvenida
         this.mostrarModalBienvenida();
-        
-        // Esperar a que el usuario cierre el tutorial
-        return new Promise((resolve) => {
-            this.resolveTutorial = resolve; // ← Guarda la función resolve
-        });
     }
 
     // ========================
     // MOSTRAR MODAL DE BIENVENIDA
     // ========================
     mostrarModalBienvenida() {
-        // Crear overlay (solo para bloqueo parcial)
-        this.overlay = document.createElement('div');
-        this.overlay.id = 'tutorial-overlay';
-        this.overlay.style.cssText = `
+        // Crear overlay (fondo semitransparente)
+        const overlay = document.createElement('div');
+        overlay.id = 'tutorial-overlay';
+        overlay.style.cssText = `
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            background: rgba(0, 0, 0, 0.7);
             z-index: 9998;
-            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         `;
         
-        // Crear modal en la mitad inferior
-        this.modal = document.createElement('div');
-        this.modal.id = 'tutorial-modal';
-        this.modal.style.cssText = `
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
+        // Crear modal
+        const modal = document.createElement('div');
+        modal.id = 'tutorial-modal';
+        modal.style.cssText = `
+            position: relative;
             width: 90%;
-            max-width: 800px;
-            height: 50vh;
-            min-height: 400px;
-            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(10, 10, 15, 0.98) 100%);
-            backdrop-filter: blur(10px);
-            border-radius: 20px 20px 0 0;
+            max-width: 600px;
+            max-height: 80vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0f 100%);
+            border-radius: 12px;
             border: 2px solid #00d2be;
-            border-bottom: none;
-            box-shadow: 0 -10px 40px rgba(0, 210, 190, 0.3);
-            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 210, 190, 0.3);
+            overflow-y: auto;
             z-index: 9999;
             font-family: 'Roboto', sans-serif;
             color: white;
-            transition: all 0.4s ease;
-            display: flex;
-            flex-direction: column;
         `;
         
         // Contenido del modal
-        this.modal.innerHTML = `
-            <!-- Cabecera con botón de cerrar -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: rgba(0, 210, 190, 0.1); border-bottom: 1px solid rgba(0, 210, 190, 0.3);">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="color: #00d2be; font-size: 1.5rem;">🏎️</div>
-                    <div style="font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: bold;">
-                        TUTORIAL F1 MANAGER
-                    </div>
-                </div>
-                
-                <!-- Botón pequeño de salir -->
-                <button id="btn-salir-tutorial" style="
-                    background: rgba(255, 255, 255, 0.1);
-                    color: #aaa;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 6px;
-                    padding: 6px 12px;
-                    font-size: 0.8rem;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                ">
-                    <span>✕</span>
-                    <span>Salir</span>
-                </button>
-            </div>
-            
-            <!-- Contenido desplazable -->
-            <div style="flex: 1; overflow-y: auto; padding: 25px;">
-                <!-- Encabezado principal -->
+        modal.innerHTML = `
+            <div style="padding: 25px;">
+                <!-- Encabezado -->
                 <div style="text-align: center; margin-bottom: 20px;">
-                    <h1 style="color: white; margin: 0; font-size: 1.8rem; font-family: 'Orbitron', sans-serif; margin-bottom: 5px;">
+                    <div style="color: #00d2be; font-size: 2.5rem; margin-bottom: 10px;">🏎️</div>
+                    <h1 style="color: white; margin: 0; font-size: 1.5rem; font-family: 'Orbitron', sans-serif;">
                         ¡BIENVENIDO A F1 MANAGER!
                     </h1>
                 </div>
                 
-                <!-- Sección de fondos -->
-                <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 12px; margin: 15px 0; border-left: 4px solid #00d2be;">
-                    <div style="display: flex; align-items: center; gap: 10px; color: #00d2be;">
-                        <span style="font-size: 1.5rem;">💰</span>
-                        <div>
-                            <div style="font-weight: bold; font-size: 0.9rem;">FONDOS INICIALES</div>
-                            <div style="font-size: 1.5rem; font-weight: bold;">5,000,000€</div>
+                <!-- Contenido -->
+                <div style="margin-bottom: 25px; line-height: 1.6;">
+                    <p>Eres el nuevo director de <strong style="color: #00d2be">${this.f1Manager.escuderia?.nombre || "tu escudería"}</strong>.</p>
+                    
+                    <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #00d2be;">
+                        <div style="display: flex; align-items: center; gap: 10px; color: #00d2be;">
+                            <span style="font-size: 1.2rem;">💰</span>
+                            <div>
+                                <div style="font-weight: bold; font-size: 0.9rem;">FONDOS INICIALES</div>
+                                <div style="font-size: 1.3rem; font-weight: bold;">5,000,000€</div>
+                            </div>
                         </div>
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <div style="color: #FFD700; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                            <span>🎯</span> <span>TU MISIÓN</span>
+                        </div>
+                        <ul style="margin: 0; padding-left: 20px; color: #ccc;">
+                            <li>Gestionar tu escudería en <strong>11 áreas técnicas</strong></li>
+                            <li>Contratar <strong>estrategas especializados</strong></li>
+                            <li>Hacer <strong>pronósticos</strong> sobre carreras reales</li>
+                            <li>Competir para ser el <strong>mejor estratega del mundo</strong></li>
+                        </ul>
+                    </div>
+                    
+                    <div style="text-align: center; color: #aaa; font-size: 0.9rem; margin-top: 20px;">
+                        ¡Pulsa el botón para comenzar tu aventura!
                     </div>
                 </div>
                 
-                <!-- Sección de misión -->
-                <div style="margin: 25px 0;">
-                    <div style="color: #FFD700; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 1.2rem;">🎯</span>
-                        <span style="font-size: 1.1rem;">TU MISIÓN</span>
+                <!-- Botón -->
+                <div style="text-align: center;">
+                    <button id="btn-comenzar-modal" style="
+                        background: linear-gradient(135deg, #00d2be, #007c6e);
+                        color: white;
+                        border: none;
+                        padding: 14px 40px;
+                        border-radius: 8px;
+                        font-family: 'Orbitron', sans-serif;
+                        font-weight: bold;
+                        font-size: 1rem;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 10px;
+                    ">
+                        <span>¡EMPEZAR A COMPETIR!</span>
+                        <span style="font-size: 1.2rem;">🏁</span>
+                    </button>
+                    
+                    <div style="color: #666; font-size: 0.8rem; margin-top: 15px;">
+                        Este mensaje solo aparece una vez
                     </div>
-                    <ul style="margin: 0; padding-left: 20px; color: #ccc; line-height: 1.8;">
-                        <li style="margin-bottom: 10px;">Gestionar tu escudería en <strong style="color: #00d2be">11 áreas técnicas</strong></li>
-                        <li style="margin-bottom: 10px;">Contratar <strong style="color: #00d2be">estrategas especializados</strong></li>
-                        <li style="margin-bottom: 10px;">Hacer <strong style="color: #00d2be">pronósticos</strong> sobre carreras reales</li>
-                        <li style="margin-bottom: 10px;">Competir para ser el <strong style="color: #00d2be">mejor estratega del mundo</strong></li>
-                    </ul>
                 </div>
-            </div>
-            
-            <!-- Pie con botón principal -->
-            <div style="padding: 20px 25px; background: rgba(0, 0, 0, 0.3); border-top: 1px solid rgba(0, 210, 190, 0.2); text-align: center;">
-                <button id="btn-comenzar-modal" style="
-                    background: linear-gradient(135deg, #00d2be, #007c6e);
-                    color: white;
-                    border: none;
-                    padding: 15px 50px;
-                    border-radius: 10px;
-                    font-family: 'Orbitron', sans-serif;
-                    font-weight: bold;
-                    font-size: 1.1rem;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 15px;
-                    width: 100%;
-                    justify-content: center;
-                ">
-                    <span>¡EMPEZAR A COMPETIR!</span>
-                    <span style="font-size: 1.3rem;">🏁</span>
-                </button>
             </div>
         `;
         
-        // Agregar estilos
+        // Agregar estilos para hover del botón
         const style = document.createElement('style');
         style.textContent = `
             #btn-comenzar-modal:hover {
                 background: linear-gradient(135deg, #00e6cf, #008f7e) !important;
                 transform: translateY(-2px);
-                box-shadow: 0 5px 20px rgba(0, 210, 190, 0.5);
+                box-shadow: 0 5px 15px rgba(0, 210, 190, 0.4);
             }
             
-            #btn-salir-tutorial:hover {
-                background: rgba(255, 255, 255, 0.2) !important;
-                color: white !important;
-                border-color: rgba(255, 255, 255, 0.3) !important;
+            #btn-comenzar-modal:active {
+                transform: translateY(0px);
             }
             
-            @keyframes slideUp {
-                from {
-                    transform: translate(-50%, 100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translate(-50%, 0);
-                    opacity: 1;
-                }
+            #tutorial-modal::-webkit-scrollbar {
+                width: 8px;
             }
             
-            #tutorial-modal {
-                animation: slideUp 0.5s ease forwards;
+            #tutorial-modal::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 10px;
+            }
+            
+            #tutorial-modal::-webkit-scrollbar-thumb {
+                background: #00d2be;
+                border-radius: 10px;
             }
         `;
         
-        // Agregar al DOM
+        // Agregar todo al DOM
         document.head.appendChild(style);
-        this.overlay.appendChild(this.modal);
-        document.body.appendChild(this.overlay);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
         
-        // Configurar eventos
+        // Configurar evento del botón
         document.getElementById('btn-comenzar-modal').onclick = () => {
             this.finalizar();
+            this.cerrarModal();
         };
         
-        document.getElementById('btn-salir-tutorial').onclick = () => {
-            this.finalizar();
+        // Opcional: Cerrar al hacer clic fuera del modal
+        overlay.onclick = (e) => {
+            if (e.target === overlay) {
+                this.finalizar();
+                this.cerrarModal();
+            }
         };
     }
 
     // ========================
-    // CONTINUAR CARGA DEL JUEGO ← AÑADE ESTE MÉTODO
+    // CERRAR MODAL
     // ========================
-    continuarCarga() {
-        console.log('🚀 Continuando carga del juego...');
-        
-        // Intentar métodos del F1Manager
-        if (this.f1Manager.cargarDashboardCompleto) {
-            console.log('📊 Llamando a cargarDashboardCompleto()');
-            setTimeout(() => this.f1Manager.cargarDashboardCompleto(), 100);
-        }
-        else if (this.f1Manager.inicializarSistemasIntegrados) {
-            console.log('🔧 Llamando a inicializarSistemasIntegrados()');
-            setTimeout(() => this.f1Manager.inicializarSistemasIntegrados(), 100);
-        }
-        else if (this.f1Manager.iniciarJuego) {
-            console.log('🎮 Llamando a iniciarJuego()');
-            setTimeout(() => this.f1Manager.iniciarJuego(), 100);
-        }
-        else {
-            console.warn('⚠️ No se encontró método para continuar');
+    cerrarModal() {
+        const overlay = document.getElementById('tutorial-overlay');
+        if (overlay) {
+            overlay.remove();
         }
     }
 
@@ -241,17 +195,11 @@ class TutorialManager {
     // ========================
     async finalizar() {
         console.log('✅ Tutorial completado');
-        // Si hay una promesa esperando, resuélvela
-        if (this.resolveTutorial) {
-            this.resolveTutorial();
-            this.resolveTutorial = null;
-        }
         
-        
-        // Guardar en localStorage
+        // Guardar que se completó
         localStorage.setItem('f1_tutorial_completado', 'true');
         
-        // Actualizar BD si hay conexión
+        // Actualizar base de datos si existe
         if (this.f1Manager.escuderia && this.f1Manager.supabase) {
             try {
                 await this.f1Manager.supabase
@@ -263,40 +211,47 @@ class TutorialManager {
             }
         }
         
-        // Cerrar modal
+        // CERRAR el modal primero
         this.cerrarModal();
         
-        // ⬇️⬇️⬇️ ESTA ES LA PARTE IMPORTANTE ⬇️⬇️⬇️
-        // Esperar un poco y continuar la carga
-        setTimeout(() => {
-            this.continuarCarga();
-        }, 300);
+        // 🔥 ESTA ES LA PARTE IMPORTANTE QUE FALTA:
+        // Llamar al método que carga el juego
         
-        // Notificación
+        // Opción 1: Si tu F1Manager tiene un método para iniciar el juego
+        if (this.f1Manager.iniciarJuego) {
+            this.f1Manager.iniciarJuego();
+        }
+        // Opción 2: Si tiene un método para cargar el dashboard
+        else if (this.f1Manager.cargarDashboardCompleto) {
+            await this.f1Manager.cargarDashboardCompleto();
+        }
+        // Opción 3: Si tiene un método para inicializar sistemas
+        else if (this.f1Manager.inicializarSistemasIntegrados) {
+            await this.f1Manager.inicializarSistemasIntegrados();
+        }
+        // Opción 4: Si el juego se carga automáticamente al eliminar el modal
+        else {
+            console.log('⚠️ Buscando método para cargar el juego...');
+            
+            // Intentar encontrar y llamar a la función que carga el juego
+            if (window.cargarJuegoPrincipal) {
+                window.cargarJuegoPrincipal();
+            } else if (window.iniciarAplicacion) {
+                window.iniciarAplicacion();
+            } else {
+                // Si nada funciona, recargar la página
+                console.log('⚠️ No se encontró método de inicio, recargando...');
+                location.reload();
+            }
+        }
+        
+        // Mostrar notificación de bienvenida
         setTimeout(() => {
             if (this.f1Manager.showNotification) {
                 this.f1Manager.showNotification('🎉 ¡Bienvenido a F1 Manager!', 'success');
             }
         }, 500);
     }
-
-    // ========================
-    // CERRAR MODAL
-    // ========================
-    cerrarModal() {
-        if (this.modal) {
-            this.modal.style.transform = 'translate(-50%, 100%)';
-            this.modal.style.opacity = '0';
-            
-            setTimeout(() => {
-                if (this.overlay && this.overlay.parentNode) {
-                    this.overlay.remove();
-                }
-                this.overlay = null;
-                this.modal = null;
-            }, 400);
-        }
-    }
 }
 
-console.log('✅ Tutorial.js cargado correctamente (Modal Simple)');
+console.log('✅ Tutorial.js cargado correctamente (Modal)');
