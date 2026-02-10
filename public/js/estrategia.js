@@ -245,8 +245,9 @@ class EstrategiaManager {
         return '#e10600';                          // Rojo (día 7)
     }
 
+
     // ========================
-    // ACTUALIZAR UI ESTRATEGAS
+    // ACTUALIZAR UI ESTRATEGAS (VERSIÓN COMPACTA)
     // ========================
     actualizarUIEstrategas() {
         const container = document.getElementById('pilotos-container');
@@ -275,37 +276,45 @@ class EstrategiaManager {
                 
                 html += `
                     <div class="produccion-slot estratega-slot" onclick="window.estrategiaManager.mostrarDetallesEstratega(${i})">
-                        <div class="slot-content">
-                            <div class="estratega-icon" style="font-size: 1.5rem; margin-bottom: 5px;">
-                                ${estratega.icono || '👨‍🔧'}
-                            </div>
-                            
-                            <div style="display: block; font-size: 0.75rem; color: white; font-weight: bold; 
-                                 margin-bottom: 3px; line-height: 1.1; text-align: center;">
-                                ${estratega.nombre_corto || estratega.nombre.split(' ')[0]}
-                            </div>
-                            
-                            <div style="display: block; font-size: 0.65rem; color: #00d2be; 
-                                 margin-bottom: 2px; font-weight: 500;">
-                                ${estratega.especialidad_nombre || estratega.especialidad}
-                            </div>
-                            
-                            <div style="display: block; font-size: 0.6rem; color: #FFD700; 
-                                 margin-bottom: 5px;">
-                                +${estratega.porcentaje_bono}% bono
-                            </div>
-                            
-                            <!-- Barra de desgaste -->
-                            <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); 
-                                 border-radius: 2px; margin-top: 3px; overflow: hidden;">
-                                <div style="width: ${tiempo.porcentaje}%; height: 100%; 
-                                     background: ${colorBarra}; border-radius: 2px; 
-                                     transition: width 0.3s ease;">
+                        <div class="slot-content" style="display: flex; flex-direction: column; height: 100%;">
+                            <!-- Fila superior: Icono, nombre y especialidad -->
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <!-- Icono del estratega -->
+                                <div class="estratega-icon" style="font-size: 1.8rem; flex-shrink: 0;">
+                                    ${estratega.icono || '👨‍🔧'}
+                                </div>
+                                
+                                <!-- Nombre y especialidad -->
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 0.75rem; color: white; font-weight: bold; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        ${estratega.nombre_corto || estratega.nombre.split(' ')[0]}
+                                    </div>
+                                    <div style="font-size: 0.65rem; color: #00d2be; font-weight: 500; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        ${estratega.especialidad_nombre || estratega.especialidad}
+                                    </div>
+                                </div>
+                                
+                                <!-- Porcentaje de bono -->
+                                <div style="font-size: 0.65rem; color: #FFD700; font-weight: bold; flex-shrink: 0;">
+                                    +${estratega.porcentaje_bono}%
                                 </div>
                             </div>
                             
-                            <div style="font-size: 0.55rem; color: #aaa; margin-top: 3px;">
-                                ${tiempo.dias > 0 ? `${tiempo.dias}d` : `${tiempo.horas}h`} restante
+                            <!-- Fila inferior: Solo la barra de desgaste -->
+                            <div style="margin-top: auto;">
+                                <!-- Barra de desgaste -->
+                                <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); 
+                                     border-radius: 2px; overflow: hidden; margin-bottom: 3px;">
+                                    <div style="width: ${tiempo.porcentaje}%; height: 100%; 
+                                         background: ${colorBarra}; border-radius: 2px; 
+                                         transition: width 0.3s ease;">
+                                    </div>
+                                </div>
+                                
+                                <!-- Tiempo restante (solo color, sin texto) -->
+                                <div style="font-size: 0.55rem; color: ${colorBarra}; font-weight: bold; text-align: center;">
+                                    ${tiempo.dias > 0 ? `${tiempo.dias}d` : `${tiempo.horas}h`}
+                                </div>
                             </div>
                         </div>
                     </div>
