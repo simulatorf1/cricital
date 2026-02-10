@@ -44,7 +44,7 @@ class TutorialManager {
         ventanaTutorial.id = 'tutorial-ventana-flotante';
         ventanaTutorial.style.cssText = `
             position: fixed;
-            bottom: 20px;
+            bottom: 15vh;  /* ← CAMBIADO: 15% de la altura en lugar de 20px */
             right: 20px;
             left: 20px;
             background: rgba(10, 15, 30, 0.95);
@@ -57,6 +57,8 @@ class TutorialManager {
             z-index: 999998;
             max-width: 500px;
             margin: 0 auto;
+            max-height: 40vh; /* ← Añadido: límite de altura */
+            overflow-y: auto; /* ← Añadido: scroll si contenido largo */
         `;
     
         // 3. Contenido del tutorial
