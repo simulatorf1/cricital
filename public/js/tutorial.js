@@ -39,10 +39,10 @@ class TutorialManager {
         // 1. Primero verificar en la base de datos
         const necesitaTutorialBD = await this.verificarNecesitaTutorial();
         
-        if (!necesitaTutorialBD) {
-            console.log('✅ Tutorial ya completado en BD, sincronizando localStorage...');
-            // Sincronizar localStorage con BD
+        if (!necesitaTutorial) {
+            console.log('✅ Tutorial ya completado en BD, sincronizando...');
             localStorage.setItem(this.tutorialKey, 'true');
+            this.continuarCarga(); // ← CAMBIA por esto
             return;
         }
         
@@ -50,7 +50,10 @@ class TutorialManager {
         const tutorialCompletadoLocal = localStorage.getItem(this.tutorialKey);
         
         if (tutorialCompletadoLocal === 'true') {
-            console.log('⚠️ Tutorial marcado como completado en localStorage pero NO en BD');
+            console.log('✅ Tutorial ya completado en localStorage, saltando...');
+            this.continuarCarga(); // ← CAMBIA por esto en lugar de return;
+            return;
+        }
             console.log('🎯 Mostrando tutorial de todas formas para sincronizar...');
         } else {
             console.log('🎯 Mostrando tutorial...');
@@ -389,7 +392,38 @@ class TutorialManager {
             }, 400);
         }
     }
-
+    // ========================
+    // CONTINUAR CARGA DESPUÉS DEL TUTORIAL
+    // ========================
+    continuarCarga() {
+        console.log('🚀 Continuando carga después del tutorial...');
+        
+        // Opción 1: Usar el método que ya existía
+        if (this.f1Manager.cargarDashboardCompleto) {
+            console.log('📊 Llamando a cargarDashboardCompleto()');
+            setTimeout(() => this.f1Manager.cargarDashboardCompleto(), 100);
+        }
+        // Opción 2: Método alternativo
+        else if (this.f1Manager.inicializarSistemasIntegrados) {
+            console.log('🔧 Llamando a inicializarSistemasIntegrados()');
+            setTimeout(() => this.f1Manager.inicializarSistemasIntegrados(), 100);
+        }
+        // Opción 3: Método principal
+        else if (this.f1Manager.iniciarJuego) {
+            console.log('🎮 Llamando a iniciarJuego()');
+            setTimeout(() => this.f1Manager.iniciarJuego(), 100);
+        }
+        // Opción 4: Función global
+        else if (window.cargarJuegoPrincipal) {
+            console.log('🌍 Llamando a cargarJuegoPrincipal()');
+            setTimeout(() => window.cargarJuegoPrincipal(), 100);
+        }
+        // Último recurso: recargar
+        else {
+            console.warn('⚠️ No se encontró método para continuar, recargando...');
+            setTimeout(() => location.reload(), 1000);
+        }
+    }
     // ========================
     // FINALIZAR TUTORIAL
     // ========================
@@ -399,7 +433,7 @@ class TutorialManager {
         // Guardar estado
         localStorage.setItem(this.tutorialKey, 'true');
         
-        // Actualizar BD
+        // Actualizar BD si es necesario
         if (this.f1Manager.escuderia && this.f1Manager.supabase) {
             try {
                 await this.f1Manager.supabase
@@ -414,12 +448,13 @@ class TutorialManager {
         // Cerrar modal
         this.cerrarModal();
         
-        // CONTINUAR LA CARGA DEL JUEGO ← ESTO ES LO IMPORTANTE
+        // ⬇️⬇️⬇️ ESTA ES LA PARTE IMPORTANTE ⬇️⬇️⬇️
+        // Esperar un poco para que se cierre el modal y luego continuar
         setTimeout(() => {
-            this.continuarCargaJuego();
+            this.continuarCarga(); // ← LLAMA AL MÉTODO NUEVO
         }, 300);
         
-        // Notificación
+        // Notificación opcional
         setTimeout(() => {
             if (this.f1Manager.showNotification) {
                 this.f1Manager.showNotification('🎉 ¡Bienvenido a F1 Manager!', 'success');
