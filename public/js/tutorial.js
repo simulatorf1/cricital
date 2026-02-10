@@ -211,6 +211,40 @@ class TutorialManager {
             }
         }
         
+        // CERRAR el modal primero
+        this.cerrarModal();
+        
+        // 🔥 ESTA ES LA PARTE IMPORTANTE QUE FALTA:
+        // Llamar al método que carga el juego
+        
+        // Opción 1: Si tu F1Manager tiene un método para iniciar el juego
+        if (this.f1Manager.iniciarJuego) {
+            this.f1Manager.iniciarJuego();
+        }
+        // Opción 2: Si tiene un método para cargar el dashboard
+        else if (this.f1Manager.cargarDashboardCompleto) {
+            await this.f1Manager.cargarDashboardCompleto();
+        }
+        // Opción 3: Si tiene un método para inicializar sistemas
+        else if (this.f1Manager.inicializarSistemasIntegrados) {
+            await this.f1Manager.inicializarSistemasIntegrados();
+        }
+        // Opción 4: Si el juego se carga automáticamente al eliminar el modal
+        else {
+            console.log('⚠️ Buscando método para cargar el juego...');
+            
+            // Intentar encontrar y llamar a la función que carga el juego
+            if (window.cargarJuegoPrincipal) {
+                window.cargarJuegoPrincipal();
+            } else if (window.iniciarAplicacion) {
+                window.iniciarAplicacion();
+            } else {
+                // Si nada funciona, recargar la página
+                console.log('⚠️ No se encontró método de inicio, recargando...');
+                location.reload();
+            }
+        }
+        
         // Mostrar notificación de bienvenida
         setTimeout(() => {
             if (this.f1Manager.showNotification) {
