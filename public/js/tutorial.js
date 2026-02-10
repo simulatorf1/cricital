@@ -29,7 +29,7 @@ class TutorialManager {
     // MOSTRAR PANTALLA ÚNICA
     // ========================
     // ========================
-    // MOSTRAR PANTALLA ÚNICA (VERSIÓN OVERLAY)
+    // MOSTRAR PANTALLA ÚNICA (VERSIÓN VENTANA FLOTANTE)
     // ========================
     mostrarPantallaUnica() {
         // 1. Asegurarnos de que el dashboard esté completamente cargado
@@ -39,84 +39,139 @@ class TutorialManager {
             return;
         }
     
-        // 2. Crear overlay modal (NO reemplazar todo)
-        const overlay = document.createElement('div');
-        overlay.id = 'tutorial-overlay';
-        overlay.style.cssText = `
+        // 2. Crear ventana flotante en la parte inferior (NO overlay completo)
+        const ventanaTutorial = document.createElement('div');
+        ventanaTutorial.id = 'tutorial-ventana-flotante';
+        ventanaTutorial.style.cssText = `
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 999999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            background: rgba(10, 15, 30, 0.95);
+            border: 3px solid #00d2be;
+            border-radius: 15px;
             padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 210, 190, 0.4);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            z-index: 999998;
+            max-width: 500px;
+            margin: 0 auto;
         `;
     
-        // 3. Contenido del tutorial (mismo que antes pero como modal)
-        overlay.innerHTML = `
-            <div style="
-                background: rgba(10, 15, 30, 0.95);
-                border: 3px solid #00d2be;
-                border-radius: 15px;
-                max-width: 600px;
-                width: 100%;
-                padding: 30px;
-                box-shadow: 0 0 40px rgba(0, 210, 190, 0.3);
-                color: white;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            ">
-                <div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid rgba(0, 210, 190, 0.3);">
-                    <h1 style="color: #00d2be; font-size: 1.8rem; margin: 0;">🏎️ ¡BIENVENIDO A F1 MANAGER!</h1>
-                </div>
-                
-                <div style="margin: 25px 0; line-height: 1.6;">
-                    <p>Estás a punto de comenzar tu aventura como director de la escudería <strong>${this.f1Manager.escuderia?.nombre || "tu equipo"}</strong>.</p>
-                    
-                    <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #00d2be;">
-                        <p>💰 <strong>¡Fondos iniciales!</strong></p>
-                        <p>Tienes <strong style="color: #FFD700; font-size: 1.3rem; font-weight: bold;">5,000,000€</strong> para empezar.</p>
+        // 3. Contenido del tutorial
+        ventanaTutorial.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div>
+                    <h2 style="color: #00d2be; margin: 0; font-size: 1.2rem;">
+                        <i class="fas fa-graduation-cap" style="margin-right: 8px;"></i>
+                        TUTORIAL - Paso 1/5
+                    </h2>
+                    <div style="color: #aaa; font-size: 0.85rem; margin-top: 5px;">
+                        Puedes explorar el juego mientras lees
                     </div>
-                    
-                    <p>🎯 <strong>Tu objetivo:</strong> Convertirte en el mejor estratega compitiendo contra miles de jugadores.</p>
-                    
-                    <p>¡Pulsa el botón para empezar tu aventura!</p>
+                </div>
+                <button id="btn-minimizar-tutorial" style="
+                    background: rgba(0, 210, 190, 0.2);
+                    border: 1px solid #00d2be;
+                    color: #00d2be;
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    font-size: 0.9rem;
+                ">
+                    _
+                </button>
+            </div>
+            
+            <div style="margin: 15px 0; line-height: 1.6;">
+                <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #00d2be;">
+                        🏎️ ¡BIENVENIDO A F1 MANAGER!
+                    </p>
+                    <p style="margin: 0; font-size: 0.95rem;">
+                        Eres el director de <strong>${this.f1Manager.escuderia?.nombre || "tu equipo"}</strong>.
+                        Tienes <strong style="color: #FFD700;">5,000,000€</strong> para empezar.
+                    </p>
                 </div>
                 
-                <div style="margin-top: 30px; text-align: center;">
-                    <button id="btn-comenzar-ahora" style="
-                        background: linear-gradient(135deg, #e10600 0%, #ff4444 100%);
-                        color: white;
-                        border: none;
-                        padding: 15px 30px;
-                        border-radius: 8px;
-                        font-size: 1.1rem;
-                        font-weight: bold;
-                        cursor: pointer;
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 10px;
-                        transition: transform 0.2s, box-shadow 0.2s;
-                        min-width: 250px;
-                    ">
-                        ¡EMPEZAR A COMPETIR!
-                        <i class="fas fa-flag-checkered"></i>
-                    </button>
+                <p style="font-size: 0.95rem; margin-bottom: 15px;">
+                    <strong>🎯 Tu objetivo:</strong> Convertirte en el mejor estratega.
+                </p>
+                
+                <div style="background: rgba(255, 215, 0, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #FFD700;">
+                    <p style="margin: 0; font-size: 0.9rem; color: #FFD700;">
+                        <i class="fas fa-lightbulb"></i> 
+                        <strong>Explora el juego:</strong> Puedes hacer clic en cualquier parte mientras lees los pasos.
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                <div style="color: #888; font-size: 0.8rem;">
+                    <i class="fas fa-hand-pointer"></i> Haz clic fuera para continuar
+                </div>
+                <button id="btn-comenzar-ahora" style="
+                    background: linear-gradient(135deg, #e10600 0%, #ff4444 100%);
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                ">
+                    Comenzar Tutorial
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            
+            <div style="display: flex; justify-content: center; margin-top: 15px;">
+                <div style="display: flex; gap: 8px;">
+                    <div style="width: 10px; height: 10px; background: #00d2be; border-radius: 50%;"></div>
+                    <div style="width: 10px; height: 10px; background: rgba(0, 210, 190, 0.3); border-radius: 50%;"></div>
+                    <div style="width: 10px; height: 10px; background: rgba(0, 210, 190, 0.3); border-radius: 50%;"></div>
+                    <div style="width: 10px; height: 10px; background: rgba(0, 210, 190, 0.3); border-radius: 50%;"></div>
+                    <div style="width: 10px; height: 10px; background: rgba(0, 210, 190, 0.3); border-radius: 50%;"></div>
                 </div>
             </div>
         `;
     
-        // 4. Añadir al body (NO reemplazarlo)
-        document.body.appendChild(overlay);
+        // 4. Añadir al body
+        document.body.appendChild(ventanaTutorial);
     
-        // 5. Configurar botón
-        overlay.querySelector('#btn-comenzar-ahora').onclick = () => {
+        // 5. Configurar botón de minimizar
+        ventanaTutorial.querySelector('#btn-minimizar-tutorial').onclick = () => {
+            ventanaTutorial.style.transform = 'translateY(calc(100% - 40px))';
+            ventanaTutorial.querySelector('#btn-minimizar-tutorial').innerHTML = '^';
+            ventanaTutorial.querySelector('#btn-minimizar-tutorial').onclick = () => {
+                ventanaTutorial.style.transform = 'translateY(0)';
+                ventanaTutorial.querySelector('#btn-minimizar-tutorial').innerHTML = '_';
+                ventanaTutorial.querySelector('#btn-minimizar-tutorial').onclick = () => {
+                    ventanaTutorial.style.transform = 'translateY(calc(100% - 40px))';
+                    ventanaTutorial.querySelector('#btn-minimizar-tutorial').innerHTML = '^';
+                };
+            };
+        };
+    
+        // 6. Configurar botón principal
+        ventanaTutorial.querySelector('#btn-comenzar-ahora').onclick = () => {
+            // Aquí puedes implementar el siguiente paso del tutorial
+            // Por ahora solo finalizamos
             this.finalizar();
         };
+    
+        // 7. Permitir clics fuera del tutorial
+        document.addEventListener('click', (e) => {
+            if (!ventanaTutorial.contains(e.target)) {
+                // El usuario hizo clic fuera del tutorial
+                // Podrías avanzar al siguiente paso aquí
+                console.log('📝 Usuario interactuando con el juego durante tutorial');
+            }
+        }, { once: true });
     }
     
     // ========================
