@@ -71,9 +71,13 @@ class TutorialManager {
         `;
         
         this.ventanaTutorial.innerHTML = `
-            <div id="tutorial-header" style="margin-bottom: 25px;"></div>
+            <div id="tutorial-header" style="margin-bottom: 25px;">
+                <!-- Título y paso se actualizarán -->
+            </div>
             
-            <div id="tutorial-content" style="flex: 1; overflow-y: auto; padding-right: 10px; line-height: 1.7; font-size: 1.1rem;"></div>
+            <div id="tutorial-content" style="flex: 1; overflow-y: auto; padding-right: 10px; line-height: 1.7; font-size: 1.1rem;">
+                <!-- Contenido del paso -->
+            </div>
             
             <div id="tutorial-controls" style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; gap: 10px;">
@@ -92,11 +96,7 @@ class TutorialManager {
                         <i class="fas fa-arrow-left"></i>
                         Anterior
                     </button>
-                </div>
-                
-                <div id="tutorial-pagination" style="display: flex; gap: 8px;"></div>
-                
-                <div style="display: flex; gap: 10px; align-items: center;">
+                    
                     <button id="btn-minimizar-tutorial" style="
                         background: rgba(0, 210, 190, 0.2);
                         border: 1px solid #00d2be;
@@ -112,8 +112,14 @@ class TutorialManager {
                         <i class="fas fa-window-minimize"></i>
                         Minimizar
                     </button>
-                    
-                    <div id="tutorial-footer"></div>
+                </div>
+                
+                <div id="tutorial-pagination" style="display: flex; gap: 8px;">
+                    <!-- Puntos de paginación -->
+                </div>
+                
+                <div id="tutorial-footer" style="display: flex; align-items: center;">
+                    <!-- Botón siguiente/final se actualizará aquí -->
                 </div>
             </div>
             
@@ -906,60 +912,37 @@ class TutorialManager {
         
 
         // Actualizar paginación
-        // Actualizar paginación
-        pagination.innerHTML = '';
-        for (let i = 0; i < this.totalPasos; i++) {
-            const punto = document.createElement('div');
-            
-            // Determinar estado del punto
-            let backgroundColor, borderColor, cursorType, opacityValue;
-            
-            if (i === numeroPaso) {
-                // Paso actual - activo
-                backgroundColor = paso.colorBoton;
-                borderColor = 'white';
-                cursorType = 'default';
-                opacityValue = '1';
-            } else if (i < numeroPaso) {
-                // Pasos completados
-                backgroundColor = 'rgba(0, 210, 190, 0.3)';
-                borderColor = 'rgba(255, 255, 255, 0.5)';
-                cursorType = 'pointer';
-                opacityValue = '0.8';
-            } else {
-                // Pasos futuros
-                backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                borderColor = 'transparent';
-                cursorType = 'not-allowed';
-                opacityValue = '0.3';
-            }
-            
-            punto.style.cssText = `
-                width: ${i === numeroPaso ? '14px' : '10px'};
-                height: ${i === numeroPaso ? '14px' : '10px'};
-                background: ${backgroundColor};
-                border: 2px solid ${borderColor};
-                border-radius: 50%;
-                margin: 0 3px;
-                transition: all 0.3s;
-                cursor: ${cursorType};
-                opacity: ${opacityValue};
-            `;
-            
-            // Solo permitir clic en pasos ya completados
-            if (i < numeroPaso) {
-                punto.onclick = () => {
-                    this.mostrarPaso(i);
-                };
-                punto.title = `Ir al paso ${i + 1}: ${this.obtenerNombrePaso(i)}`;
-            } else if (i === numeroPaso) {
-                punto.title = `Paso actual: ${this.obtenerNombrePaso(i)}`;
-            } else {
-                punto.title = `Paso bloqueado: ${this.obtenerNombrePaso(i)}`;
-            }
-            
-            pagination.appendChild(punto);
+    pagination.innerHTML = '';
+    for (let i = 0; i < this.totalPasos; i++) {
+        const punto = document.createElement('div');
+        punto.style.cssText = `
+            width: ${i === numeroPaso ? '16px' : '12px'};
+            height: ${i === numeroPaso ? '16px' : '12px'};
+            background: ${i === numeroPaso ? paso.colorBoton : 'rgba(255, 255, 255, 0.2)'};
+            border-radius: 50%;
+            margin: 0 4px;
+            transition: all 0.3s;
+            cursor: ${i <= this.pasoActual ? 'pointer' : 'not-allowed'};
+            border: ${i === numeroPaso ? '2px solid white' : 'none'};
+            opacity: ${i <= this.pasoActual ? '1' : '0.5'};
+        `;
+        
+        if (i <= this.pasoActual) {
+            punto.onclick = () => {
+                this.mostrarPaso(i);
+            };
         }
+        
+        punto.title = `Paso ${i + 1}: ${i === 0 ? 'Bienvenida' : i === 13 ? 'Final' : i <= this.pasoActual ? 'Disponible' : 'Bloqueado'}`;
+        pagination.appendChild(punto);
+    }
+        
+        // Re-configurar minimizar
+        this.configurarMinimizar();
+        
+        // Desplazar al paso actual
+        this.ventanaTutorial.scrollTop = 0;
+    }
 
     // ========================
     // CONFIGURAR VERIFICACIÓN DE CLIC (NUEVO)
@@ -1037,169 +1020,54 @@ class TutorialManager {
     // ========================
     // CONFIGURAR MINIMIZAR (IGUAL)
     // ========================
-    // ========================
-    // CONFIGURAR MINIMIZAR (MEJORADO CON BOTÓN CONTINUAR)
-    // ========================
     configurarMinimizar() {
         const btnMinimizar = this.ventanaTutorial.querySelector('#btn-minimizar-tutorial');
         if (!btnMinimizar) return;
         
-        let estaMinimizado = false;
-        const estadoOriginal = {
-            width: this.ventanaTutorial.style.width,
-            height: this.ventanaTutorial.style.height,
-            top: this.ventanaTutorial.style.top,
-            left: this.ventanaTutorial.style.left,
-            transform: this.ventanaTutorial.style.transform,
-            padding: this.ventanaTutorial.style.padding,
-            borderRadius: this.ventanaTutorial.style.borderRadius,
-            maxHeight: this.ventanaTutorial.style.maxHeight
-        };
-        
-        // Guardar referencia a los elementos que se ocultarán
         const contenido = this.ventanaTutorial.querySelector('#tutorial-content');
-        const header = this.ventanaTutorial.querySelector('#tutorial-header');
-        const pagination = this.ventanaTutorial.querySelector('#tutorial-pagination');
+        const controles = this.ventanaTutorial.querySelector('#tutorial-controls');
         const tip = this.ventanaTutorial.querySelector('div:last-child');
-        const btnAnterior = this.ventanaTutorial.querySelector('#btn-anterior-paso');
-        const footer = this.ventanaTutorial.querySelector('#tutorial-footer');
         
-        // Crear botón de "Continuar Tutorial" para cuando esté minimizado
-        const btnContinuar = document.createElement('button');
-        btnContinuar.id = 'btn-continuar-tutorial';
-        btnContinuar.style.cssText = `
-            display: none;
-            background: linear-gradient(135deg, #00d2be 0%, #009688 100%);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.9rem;
-            margin-left: 10px;
-            transition: all 0.3s;
-            box-shadow: 0 3px 10px rgba(0, 210, 190, 0.3);
-        `;
-        btnContinuar.innerHTML = '<i class="fas fa-play"></i> Continuar';
-        this.ventanaTutorial.appendChild(btnContinuar);
+        let estaMinimizado = false;
         
         btnMinimizar.onclick = () => {
             if (estaMinimizado) {
-                // ========== RESTAURAR VENTANA COMPLETA ==========
-                this.ventanaTutorial.style.cssText = `
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    width: 90%;
-                    max-width: 800px;
-                    max-height: 85vh;
-                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-                    border: 2px solid #00d2be;
-                    border-radius: 20px;
-                    padding: 30px;
-                    box-shadow: 0 20px 60px rgba(0, 210, 190, 0.4),
-                                0 0 100px rgba(0, 210, 190, 0.2);
-                    color: #ffffff;
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    z-index: 999998;
-                    display: flex;
-                    flex-direction: column;
-                    overflow: hidden;
-                    backdrop-filter: blur(10px);
-                    transition: all 0.4s ease-in-out;
-                `;
+                // RESTAURAR
+                this.ventanaTutorial.style.width = '90%';
+                this.ventanaTutorial.style.height = 'auto';
+                this.ventanaTutorial.style.maxHeight = '85vh';
+                this.ventanaTutorial.style.top = '50%';
+                this.ventanaTutorial.style.left = '50%';
+                this.ventanaTutorial.style.transform = 'translate(-50%, -50%)';
+                this.ventanaTutorial.style.padding = '30px';
                 
-                // Mostrar elementos
-                header.style.display = 'block';
                 contenido.style.display = 'block';
-                contenido.style.overflowY = 'auto';
-                contenido.style.paddingRight = '10px';
-                
-                if (btnAnterior) btnAnterior.style.display = 'flex';
-                if (pagination) pagination.style.display = 'flex';
+                controles.style.display = 'flex';
                 if (tip) tip.style.display = 'block';
-                if (footer) footer.style.display = 'flex';
                 
-                // Ocultar botón continuar
-                btnContinuar.style.display = 'none';
-                
-                // Cambiar texto del botón minimizar
                 btnMinimizar.innerHTML = '<i class="fas fa-window-minimize"></i> Minimizar';
+                btnMinimizar.title = 'Minimizar ventana';
                 
                 estaMinimizado = false;
-                
             } else {
-                // ========== MINIMIZAR VENTANA ==========
-                this.ventanaTutorial.style.cssText = `
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    width: 300px;
-                    height: 80px;
-                    background: rgba(26, 26, 46, 0.95);
-                    border: 1px solid #00d2be;
-                    border-radius: 12px;
-                    padding: 15px;
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-                    color: #ffffff;
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    z-index: 999998;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    overflow: hidden;
-                    backdrop-filter: blur(5px);
-                    transition: all 0.4s ease-in-out;
-                `;
+                // MINIMIZAR
+                this.ventanaTutorial.style.width = '300px';
+                this.ventanaTutorial.style.height = '60px';
+                this.ventanaTutorial.style.top = '20px';
+                this.ventanaTutorial.style.left = '20px';
+                this.ventanaTutorial.style.transform = 'none';
+                this.ventanaTutorial.style.padding = '15px';
+                this.ventanaTutorial.style.borderRadius = '10px';
                 
-                // Ocultar elementos innecesarios
-                header.style.display = 'none';
                 contenido.style.display = 'none';
-                if (btnAnterior) btnAnterior.style.display = 'none';
-                if (pagination) pagination.style.display = 'none';
+                controles.style.display = 'none';
                 if (tip) tip.style.display = 'none';
                 
-                // Mantener solo el footer (modificado)
-                if (footer) {
-                    footer.style.display = 'flex';
-                    footer.style.width = '100%';
-                    footer.style.justifyContent = 'space-between';
-                    footer.style.alignItems = 'center';
-                    footer.style.margin = '0';
-                    footer.style.padding = '0';
-                }
-                
-                // Mostrar botón continuar
-                btnContinuar.style.display = 'block';
-                btnContinuar.onclick = () => {
-                    // Al hacer clic en "Continuar", restaurar la ventana
-                    btnMinimizar.click();
-                };
-                
-                // Cambiar texto del botón minimizar
-                btnMinimizar.innerHTML = '<i class="fas fa-times"></i> Salir';
-                btnMinimizar.title = 'Cerrar tutorial permanentemente';
-                
-                // Cambiar funcionalidad del botón minimizar cuando está minimizado
-                const minimizarOriginal = btnMinimizar.onclick;
-                btnMinimizar.onclick = () => {
-                    if (confirm('¿Estás seguro de que quieres salir del tutorial?\nPodrás volver a verlo desde tu perfil.')) {
-                        this.finalizarTutorialCompleto();
-                    }
-                };
-                
-                // Guardar referencia para restaurar después
-                btnMinimizar.dataset.originalOnclick = 'true';
+                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize"></i> Maximizar';
+                btnMinimizar.title = 'Maximizar ventana';
                 
                 estaMinimizado = true;
             }
-        };
-        
-        // Configurar botón continuar
-        btnContinuar.onclick = () => {
-            btnMinimizar.click();
         };
     }
 
@@ -1245,28 +1113,7 @@ class TutorialManager {
             this.f1Manager.escuderia.tutorial_completado = true;
         }
     }
-    // ========================
-    // OBTENER NOMBRE DEL PASO (AUXILIAR)
-    // ========================
-    obtenerNombrePaso(numeroPaso) {
-        const nombres = [
-            'Bienvenida',
-            'Objetivo Semanal',
-            'Taller',
-            'Almacén',
-            'Ingeniería',
-            'Mercado',
-            'Estrategas',
-            'Pronóstico',
-            'Presupuesto',
-            'Estrellas',
-            'Ranking',
-            'Notificaciones',
-            'Perfil',
-            'Final'
-        ];
-        return nombres[numeroPaso] || `Paso ${numeroPaso + 1}`;
-    }
+
     // ========================
     // FUNCIONES UTILITARIAS (NUEVAS)
     // ========================
