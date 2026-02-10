@@ -327,7 +327,16 @@ html, body {
     background: rgba(225, 6, 0, 0.3);
     color: white;
 }
+.btn-pieza-50.bloqueado {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(255, 0, 0, 0.1) !important;
+    border-color: #e10600 !important;
+}
 
+.btn-pieza-50.bloqueado i.fa-spinner {
+    animation: fa-spin 1s infinite linear;
+}
 /* ========================
    3. ESTILOS DE REGISTRO
    ======================== */
