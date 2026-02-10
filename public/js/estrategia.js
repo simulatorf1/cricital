@@ -310,11 +310,7 @@ class EstrategiaManager {
                                          transition: width 0.3s ease;">
                                     </div>
                                 </div>
-                                
-                                <!-- Tiempo restante (solo color, sin texto) -->
-                                <div style="font-size: 0.55rem; color: ${colorBarra}; font-weight: bold; text-align: center;">
-                                    ${tiempo.dias > 0 ? `${tiempo.dias}d` : `${tiempo.horas}h`}
-                                </div>
+                            
                             </div>
                         </div>
                     </div>
