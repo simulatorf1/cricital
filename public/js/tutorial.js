@@ -149,18 +149,23 @@ class TutorialManager {
         const btnMinimizar = ventanaTutorial.querySelector('#btn-minimizar-tutorial');
         let estaMinimizado = false;
         
+        // Calcular altura actual para saber cuánto es 1/3
+        const alturaOriginal = ventanaTutorial.offsetHeight;
+        const alturaMinimizada = Math.max(40, Math.floor(alturaOriginal / 3)); // 1/3 o mínimo 40px
+        
         btnMinimizar.onclick = () => {
             if (estaMinimizado) {
-                // Maximizar
+                // Maximizar - restaurar altura completa
                 ventanaTutorial.style.transform = 'translateY(0)';
                 ventanaTutorial.style.height = 'auto';
+                ventanaTutorial.style.maxHeight = '45vh';
                 ventanaTutorial.style.overflowY = 'auto';
                 btnMinimizar.innerHTML = '_';
                 estaMinimizado = false;
             } else {
-                // Minimizar - solo mostrar 40px de altura
-                ventanaTutorial.style.transform = 'translateY(calc(100% - 40px))';
-                ventanaTutorial.style.height = '40px';
+                // Minimizar - reducir a 1/3 de altura
+                ventanaTutorial.style.transform = `translateY(calc(100% - ${alturaMinimizada}px))`;
+                ventanaTutorial.style.height = `${alturaMinimizada}px`;
                 ventanaTutorial.style.overflowY = 'hidden';
                 btnMinimizar.innerHTML = '^';
                 estaMinimizado = true;
