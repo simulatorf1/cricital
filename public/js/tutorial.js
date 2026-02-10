@@ -65,7 +65,91 @@ class TutorialManager {
             this.finalizar();
         };
     }
+    // AÑADE ESTE MÉTODO:
+    mostrarModalSobreDashboard() {
+        // NO reemplazar body.innerHTML, solo agregar encima
+        const modalHTML = `
+            <div id="tutorial-overlay" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.85);
+                z-index: 99999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            ">
+                <div style="
+                    width: 95%;
+                    max-width: 600px;
+                    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+                    border-radius: 15px;
+                    border: 3px solid #00d2be;
+                    padding: 30px;
+                    color: white;
+                    font-family: 'Segoe UI', sans-serif;
+                ">
+                    <h2 style="color: #00d2be; text-align: center; margin-top: 0;">
+                        🏎️ ¡BIENVENIDO A F1 MANAGER!
+                    </h2>
+                    <p>Bienvenido a tu escudería <strong>${this.f1Manager.escuderia?.nombre}</strong>.</p>
+                    <p>Tienes <strong style="color: #FFD700">5,000,000€</strong> para empezar.</p>
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button id="btn-cerrar-tutorial" style="
+                            background: linear-gradient(135deg, #e10600, #ff4444);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 8px;
+                            font-weight: bold;
+                            cursor: pointer;
+                        ">
+                            ¡ENTRAR AL JUEGO!
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        document.getElementById('btn-cerrar-tutorial').onclick = () => {
+            this.finalizar();
+        };
+    }
+    
+    // Modifica finalizar() para solo remover el overlay:
+    async finalizar() {
+        console.log('✅ Cerrando tutorial...');
+        
+        localStorage.setItem('f1_tutorial_completado', 'true');
+        
+        if (this.f1Manager.escuderia && this.f1Manager.supabase) {
+            try {
+                await this.f1Manager.supabase
+                    .from('escuderias')
+                    .update({ tutorial_completado: true })
+                    .eq('id', this.f1Manager.escuderia.id);
+            } catch (error) {
+                console.error('Error actualizando tutorial:', error);
+            }
+        }
+        
+        // Solo remover el overlay, NO recargar todo
+        const overlay = document.getElementById('tutorial-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+        
+        // El dashboard ya está cargado, solo notificar
+        if (this.f1Manager.showNotification) {
+            this.f1Manager.showNotification('🎉 ¡Bienvenido a F1 Manager!', 'success');
+        }
+    }
 
+    
     // ========================
     // FINALIZAR TUTORIAL
     // ========================
