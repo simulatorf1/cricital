@@ -12,14 +12,22 @@ class TutorialManager {
     // INICIAR TUTORIAL
     // ========================
     iniciar() {
+        console.log('🎯 TutorialManager.iniciar() llamado');
+        console.log('🎯 f1Manager existe?:', !!this.f1Manager);
+        console.log('🎯 f1Manager.escuderia:', this.f1Manager?.escuderia);
+        
         // Verificar si ya completó el tutorial
         const tutorialCompletado = localStorage.getItem('f1_tutorial_completado');
+        
+        console.log('🔍 Debug tutorial - localStorage f1_tutorial_completado:', tutorialCompletado);
+        console.log('🔍 Debug tutorial - escuderia.tutorial_completado:', this.f1Manager.escuderia?.tutorial_completado);
         
         if (tutorialCompletado === 'true') {
             console.log('✅ Tutorial ya completado, omitiendo...');
             return;
         }
         
+        console.log('🎬 Mostrando modal de bienvenida...');
         // Mostrar modal de bienvenida
         this.mostrarModalBienvenida();
     }
