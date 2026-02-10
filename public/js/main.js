@@ -2020,13 +2020,14 @@ class F1Manager {
                     const desgasteColor = this.getColorDesgaste(desgastePorcentaje);
                     const tiempoRestante = this.calcularTiempoRestante(desgastePorcentaje);
                     
+
                     // ★★★★ SOLO UN DIV POR PIEZA ★★★★
                     areaHTML += `<div class="boton-area-montada" onclick="restaurarPiezaEquipada('${pieza.id}')" 
                         
                         title="${area.nombre}: ${nombreMostrar}
-            Desgaste: ${desgastePorcentaje.toFixed(1)}%
-            Tiempo restante: ${tiempoRestante}
-            CLICK para restaurar al 100%">
+                    Desgaste: ${desgastePorcentaje.toFixed(1)}%
+                    Tiempo restante: ${tiempoRestante}
+                    CLICK para restaurar al 100%">
                         
                         <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; 
                             overflow: hidden; text-overflow: ellipsis; display: -webkit-box; 
@@ -2042,10 +2043,16 @@ class F1Manager {
                             </div>
                         </div>
                         
+                        <!-- PORCENTAJE DE DESGASTE (NUEVO) -->
+                        <div style="font-size: 0.45rem; color: ${desgasteColor}; 
+                            text-align: center; margin-top: 1px; font-weight: bold; opacity: 0.8;">
+                            ${desgastePorcentaje.toFixed(0)}%
+                        </div>
+                        
                         <!-- Texto según desgaste -->
                         ${desgastePorcentaje < 30 ? 
-                            `<div style="font-size: 0.55rem; color: ${desgastePorcentaje < 10 ? '#e10600' : '#FF9800'}; 
-                                margin-top: 2px; font-weight: bold;">
+                            `<div style="font-size: 0.45rem; color: ${desgastePorcentaje < 10 ? '#e10600' : '#FF9800'}; 
+                                margin-top: 1px; font-weight: bold;">
                                 ${tiempoRestante} restantes
                             </div>` 
                             : ''}
