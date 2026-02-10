@@ -229,7 +229,7 @@ class AuthManager {
                 .insert([{
                     user_id: user.id,
                     nombre: nombreEscuderia,
-                    dinero: 5000000,
+                    dinero: 50000000,
                     puntos: 0,
                     ranking: 999,
                     nivel_ingenieria: 1,
@@ -628,7 +628,7 @@ class AuthManager {
                 .insert([{
                     user_id: authData.user.id,
                     nombre: username,
-                    dinero: 5000000,
+                    dinero: 50000000,
                     puntos: 0,
                     ranking: 999,
                     nivel_ingenieria: 1,
