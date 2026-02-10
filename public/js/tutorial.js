@@ -1,5 +1,5 @@
 // ========================
-// F1 MANAGER - TUTORIAL.JS (VERSIÓN MODAL MEJORADA)
+// F1 MANAGER - TUTORIAL.JS (VERSIÓN FINAL)
 // ========================
 console.log('📚 Tutorial cargado - Versión Modal Mejorada');
 
@@ -8,22 +8,88 @@ class TutorialManager {
         this.f1Manager = f1Manager;
         this.overlay = null;
         this.modal = null;
+        this.tutorialKey = null; // Clave específica para este usuario
     }
 
     // ========================
     // INICIAR TUTORIAL
     // ========================
-    iniciar() {
-        // Verificar si ya completó el tutorial
-        const tutorialCompletado = localStorage.getItem('f1_tutorial_completado');
+    async iniciar() {
+        console.log('🔍 Verificando estado del tutorial...');
         
-        if (tutorialCompletado === 'true') {
-            console.log('✅ Tutorial ya completado, omitiendo...');
+        // Crear clave específica para esta escudería
+        if (this.f1Manager.escuderia && this.f1Manager.escuderia.id) {
+            this.tutorialKey = `f1_tutorial_completado_${this.f1Manager.escudería.id}`;
+        } else {
+            this.tutorialKey = 'f1_tutorial_completado';
+        }
+        
+        console.log('🔑 Clave tutorial:', this.tutorialKey);
+        
+        // 1. Primero verificar en la base de datos
+        const necesitaTutorialBD = await this.verificarNecesitaTutorial();
+        
+        if (!necesitaTutorialBD) {
+            console.log('✅ Tutorial ya completado en BD, sincronizando localStorage...');
+            // Sincronizar localStorage con BD
+            localStorage.setItem(this.tutorialKey, 'true');
             return;
+        }
+        
+        // 2. Verificar localStorage (con clave específica)
+        const tutorialCompletadoLocal = localStorage.getItem(this.tutorialKey);
+        
+        if (tutorialCompletadoLocal === 'true') {
+            console.log('⚠️ Tutorial marcado como completado en localStorage pero NO en BD');
+            console.log('🎯 Mostrando tutorial de todas formas para sincronizar...');
+        } else {
+            console.log('🎯 Mostrando tutorial (nueva escudería)...');
         }
         
         // Mostrar modal de bienvenida
         this.mostrarModalBienvenida();
+    }
+
+    // ========================
+    // VERIFICAR SI NECESITA TUTORIAL
+    // ========================
+    async verificarNecesitaTutorial() {
+        try {
+            // Si no hay conexión a Supabase o no hay escudería, asumir que necesita tutorial
+            if (!this.f1Manager.supabase || !this.f1Manager.escuderia) {
+                console.log('⚠️ No hay conexión o escudería, asumiendo que necesita tutorial');
+                return true;
+            }
+            
+            console.log('🔍 Consultando BD para escudería:', this.f1Manager.escuderia.id);
+            
+            // Consultar la base de datos directamente
+            const { data, error } = await this.f1Manager.supabase
+                .from('escuderias')
+                .select('tutorial_completado, nombre')
+                .eq('id', this.f1Manager.escuderia.id)
+                .single();
+            
+            if (error) {
+                console.error('❌ Error consultando estado del tutorial:', error);
+                return true; // Si hay error, mostrar tutorial por seguridad
+            }
+            
+            console.log('📊 Estado tutorial en BD:', {
+                nombre: data.nombre,
+                tutorial_completado: data.tutorial_completado
+            });
+            
+            // Si es null o false, necesita tutorial
+            const necesita = !data.tutorial_completado;
+            console.log(necesita ? '🎯 Necesita tutorial' : '✅ No necesita tutorial');
+            
+            return necesita;
+            
+        } catch (error) {
+            console.error('❌ Error en verificarNecesitaTutorial:', error);
+            return true; // Por defecto, mostrar tutorial
+        }
     }
 
     // ========================
@@ -77,7 +143,7 @@ class TutorialManager {
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="color: #00d2be; font-size: 1.5rem;">🏎️</div>
                     <div style="font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: bold;">
-                        TUTORIAL F1 MANAGER
+                        TUTORIAL F1 MANAGER - NUEVA ESCUDERÍA
                     </div>
                 </div>
                 
@@ -96,7 +162,7 @@ class TutorialManager {
                     gap: 5px;
                 ">
                     <span>✕</span>
-                    <span>Salir</span>
+                    <span>Saltar</span>
                 </button>
             </div>
             
@@ -109,6 +175,20 @@ class TutorialManager {
                     </h1>
                     <p style="color: #00d2be; margin: 0; font-size: 1rem;">
                         Eres el nuevo director de <strong>${this.f1Manager.escuderia?.nombre || "tu escudería"}</strong>
+                    </p>
+                    <p style="color: #888; font-size: 0.9rem; margin-top: 5px;">
+                        ID: ${this.f1Manager.escuderia?.id?.substring(0, 8) || 'nueva'}
+                    </p>
+                </div>
+                
+                <!-- Indicador de nueva escudería -->
+                <div style="background: rgba(0, 210, 190, 0.15); padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; border: 1px dashed #00d2be;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #00d2be;">
+                        <span>🆕</span>
+                        <div style="font-weight: bold;">ESCUDERÍA NUEVA DETECTADA</div>
+                    </div>
+                    <p style="color: #aaa; font-size: 0.85rem; margin: 5px 0 0 0;">
+                        Este es tu primer acceso con esta escudería
                     </p>
                 </div>
                 
@@ -144,7 +224,7 @@ class TutorialManager {
                         <div style="font-weight: bold;">Puedes interactuar con la aplicación detrás</div>
                     </div>
                     <p style="color: #aaa; font-size: 0.9rem; margin: 0;">
-                        El tutorial permanece abierto. Haz clic fuera o usa el botón "Salir" para cerrarlo.
+                        El tutorial permanece abierto. Usa "Saltar" o el botón principal para continuar.
                     </p>
                 </div>
             </div>
@@ -173,7 +253,7 @@ class TutorialManager {
                 </button>
                 
                 <div style="color: #666; font-size: 0.8rem; margin-top: 10px;">
-                    Cierra el tutorial para guardar tu progreso
+                    El tutorial se guardará para esta escudería
                 </div>
             </div>
         `;
@@ -252,16 +332,15 @@ class TutorialManager {
         
         // Configurar evento del botón principal
         document.getElementById('btn-comenzar-modal').onclick = () => {
+            console.log('🎯 Botón "Comenzar" clickeado');
             this.finalizar();
         };
         
         // Configurar evento del botón de salir
         document.getElementById('btn-salir-tutorial').onclick = () => {
+            console.log('⏭️ Botón "Saltar" clickeado');
             this.finalizar();
         };
-        
-        // NO cerrar al hacer clic fuera - permite interacción con la aplicación
-        // Eliminamos el evento onclick del overlay para permitir interacción
     }
 
     // ========================
@@ -287,20 +366,34 @@ class TutorialManager {
     // FINALIZAR TUTORIAL
     // ========================
     async finalizar() {
-        console.log('✅ Tutorial completado');
+        console.log('✅ Finalizando tutorial...');
+        console.log('🔑 Clave tutorial a guardar:', this.tutorialKey);
         
-        // Guardar que se completó
-        localStorage.setItem('f1_tutorial_completado', 'true');
+        // Guardar en localStorage (con clave específica)
+        if (this.tutorialKey) {
+            localStorage.setItem(this.tutorialKey, 'true');
+            console.log('💾 Guardado en localStorage:', this.tutorialKey);
+        } else {
+            localStorage.setItem('f1_tutorial_completado', 'true');
+        }
         
-        // Actualizar base de datos si existe
+        // Actualizar base de datos
         if (this.f1Manager.escuderia && this.f1Manager.supabase) {
             try {
-                await this.f1Manager.supabase
+                console.log('📡 Actualizando BD para escudería:', this.f1Manager.escuderia.id);
+                
+                const { error } = await this.f1Manager.supabase
                     .from('escuderias')
                     .update({ tutorial_completado: true })
                     .eq('id', this.f1Manager.escuderia.id);
+                
+                if (error) {
+                    console.error('❌ Error actualizando tutorial en BD:', error);
+                } else {
+                    console.log('✅ Tutorial marcado como completado en BD');
+                }
             } catch (error) {
-                console.error('Error actualizando tutorial:', error);
+                console.error('❌ Error actualizando tutorial:', error);
             }
         }
         
@@ -322,16 +415,21 @@ class TutorialManager {
     // INTENTAR CARGAR EL JUEGO
     // ========================
     async intentarCargarJuego() {
+        console.log('🚀 Intentando cargar juego después del tutorial...');
+        
         // Opción 1: Si tu F1Manager tiene un método para iniciar el juego
         if (this.f1Manager.iniciarJuego) {
+            console.log('🎮 Llamando a f1Manager.iniciarJuego()');
             this.f1Manager.iniciarJuego();
         }
         // Opción 2: Si tiene un método para cargar el dashboard
         else if (this.f1Manager.cargarDashboardCompleto) {
+            console.log('📊 Llamando a f1Manager.cargarDashboardCompleto()');
             await this.f1Manager.cargarDashboardCompleto();
         }
         // Opción 3: Si tiene un método para inicializar sistemas
         else if (this.f1Manager.inicializarSistemasIntegrados) {
+            console.log('🔧 Llamando a f1Manager.inicializarSistemasIntegrados()');
             await this.f1Manager.inicializarSistemasIntegrados();
         }
         // Opción 4: Si el juego ya está cargado, solo ocultar el tutorial
@@ -343,26 +441,61 @@ class TutorialManager {
                 window.cargarJuegoPrincipal();
             } else if (window.iniciarAplicacion) {
                 window.iniciarAplicacion();
+            } else {
+                console.log('⚠️ No se encontró método específico, recargando página...');
+                location.reload();
             }
-            // Si nada funciona, no hacemos nada - la aplicación ya está visible
         }
     }
 
     // ========================
-    // REABRIR TUTORIAL (OPCIONAL)
+    // LIMPIAR TUTORIAL (para debugging)
     // ========================
-    reabrir() {
-        // Eliminar el estado completado
+    limpiar() {
+        // Limpiar localStorage
+        if (this.tutorialKey) {
+            localStorage.removeItem(this.tutorialKey);
+        }
         localStorage.removeItem('f1_tutorial_completado');
         
-        // Si hay un modal abierto, cerrarlo primero
+        // Cerrar modal si está abierto
         this.cerrarModal();
         
-        // Mostrar de nuevo
+        console.log('🧹 Tutorial limpiado');
+    }
+
+    // ========================
+    // FORZAR TUTORIAL (para testing)
+    // ========================
+    forzar() {
+        console.log('🎯 Forzando tutorial...');
+        
+        // Limpiar estado
+        this.limpiar();
+        
+        // Mostrar tutorial
         setTimeout(() => {
             this.mostrarModalBienvenida();
-        }, 300);
+        }, 500);
     }
 }
 
 console.log('✅ Tutorial.js cargado correctamente (Modal Mejorado)');
+
+// Función global para debugging
+window.debugTutorial = function() {
+    if (window.f1Manager && window.f1Manager.tutorialManager) {
+        console.log('🔍 Estado del tutorial:');
+        console.log('- Escudería:', window.f1Manager.escuderia?.nombre);
+        console.log('- ID:', window.f1Manager.escuderia?.id);
+        console.log('- Clave tutorial:', `f1_tutorial_completado_${window.f1Manager.escuderia?.id}`);
+        console.log('- localStorage:', localStorage.getItem(`f1_tutorial_completado_${window.f1Manager.escuderia?.id}`));
+        
+        // Opciones de debugging
+        console.log('🔧 Comandos disponibles:');
+        console.log('window.f1Manager.tutorialManager.limpiar() - Limpiar estado');
+        console.log('window.f1Manager.tutorialManager.forzar() - Forzar tutorial');
+    } else {
+        console.log('❌ f1Manager o tutorialManager no disponibles');
+    }
+};
