@@ -3841,12 +3841,6 @@ class F1Manager {
 }
 
 window.tutorialManager = null;
-window.tutorialData = {
-    estrategaSeleccionado: null,
-    areaSeleccionada: null,
-    pronosticosSeleccionados: {},
-    piezaFabricando: false
-};
 
 window.irAlTallerDesdeProduccion = function() {
     if (window.tabManager && window.tabManager.switchTab) {
@@ -4112,163 +4106,7 @@ window.testLogout = async function() {
     }
 };
 
-window.cargarEstrategasTutorial = function() {
-    const container = document.getElementById('grid-estrategas-tutorial');
-    if (!container) return;
-    
-    const estrategas = [
-        { id: 1, nombre: "Analista de Tiempos", icono: "⏱️", especialidad: "Diferencias de tiempo", bono: "+15%", sueldo: "50,000€", ejemplo: "Diferencia 1º-2º" },
-        { id: 2, nombre: "Meteorólogo", icono: "🌧️", especialidad: "Condiciones climáticas", bono: "+20%", sueldo: "60,000€", ejemplo: "Lluvia/Sequía" },
-        { id: 3, nombre: "Experto en Fiabilidad", icono: "🔧", especialidad: "Abandonos y fallos", bono: "+18%", sueldo: "55,000€", ejemplo: "Número de abandonos" },
-        { id: 4, nombre: "Estratega de Carrera", icono: "🏁", especialidad: "Estrategias de parada", bono: "+22%", sueldo: "75,000€", ejemplo: "Número de paradas" },
-        { id: 5, nombre: "Analista de Neumáticos", icono: "🛞", especialidad: "Degradación de neumáticos", bono: "+16%", sueldo: "52,000€", ejemplo: "Compuesto predominante" },
-        { id: 6, nombre: "Especialista en Overtakes", icono: "💨", especialidad: "Adelantamientos", bono: "+19%", sueldo: "58,000€", ejemplo: "Adelantamientos entre compañeros" }
-    ];
-    
-    container.innerHTML = estrategas.map(e => 
-        '<div class="estratega-tutorial-card seleccionable">' +
-        '<div class="estratega-icon-tut">' + e.icono + '</div>' +
-        '<div class="estratega-nombre-tut">' + e.nombre + '</div>' +
-        '<div class="estratega-especialidad">' + e.especialidad + '</div>' +
-        '<div class="estratega-bono">Bono: <span class="bono-valor">' + e.bono + '</span></div>' +
-        '<div class="estratega-ejemplo">Ej: "' + e.ejemplo + '"</div>' +
-        '</div>'
-    ).join('');
-};
 
-window.tutorialSimularCarrera = function() {
-    const tutorialData = window.tutorialData || {};
-    const pronosticosSeleccionados = tutorialData.pronosticosSeleccionados || {};
-    
-    const resultadosReales = {
-        bandera: 'si',
-        abandonos: '3-5',
-        diferencia: '1-5s'
-    };
-    
-    let aciertos = 0;
-    let detalles = [];
-    
-    const banderaCorrecto = pronosticosSeleccionados.bandera === resultadosReales.bandera;
-    detalles.push('<div class="resultado-item ' + (banderaCorrecto ? 'correcto' : 'incorrecto') + '">' + (banderaCorrecto ? '✅' : '❌') + ' Bandera amarilla: ' + (pronosticosSeleccionados.bandera === 'si' ? 'SÍ' : 'NO') + ' (' + (banderaCorrecto ? 'correcto' : 'incorrecto, fue ' + (resultadosReales.bandera === 'si' ? 'SÍ' : 'NO')) + ')</div>');
-    if (banderaCorrecto) aciertos++;
-    
-    const abandonosCorrecto = pronosticosSeleccionados.abandonos === resultadosReales.abandonos;
-    detalles.push('<div class="resultado-item ' + (abandonosCorrecto ? 'correcto' : 'incorrecto') + '">' + (abandonosCorrecto ? '✅' : '❌') + ' Abandonos: ' + pronosticosSeleccionados.abandonos + ' (' + (abandonosCorrecto ? 'correcto' : 'incorrecto, fue ' + resultadosReales.abandonos) + ')</div>');
-    if (abandonosCorrecto) aciertos++;
-    
-    const diferenciaCorrecto = pronosticosSeleccionados.diferencia === resultadosReales.diferencia;
-    detalles.push('<div class="resultado-item ' + (diferenciaCorrecto ? 'correcto' : 'incorrecto') + '">' + (diferenciaCorrecto ? '✅' : '❌') + ' Diferencia 1º-2º: ' + pronosticosSeleccionados.diferencia + ' (' + (diferenciaCorrecto ? 'correcto' : 'incorrecto, fue ' + resultadosReales.diferencia) + ')</div>');
-    if (diferenciaCorrecto) aciertos++;
-    
-    tutorialData.aciertosPronosticos = aciertos;
-    tutorialData.totalPronosticos = 3;
-    tutorialData.resultadosReales = resultadosReales;
-    tutorialData.puntosBaseCalculados = (banderaCorrecto ? 150 : 0) + (abandonosCorrecto ? 180 : 0) + (diferenciaCorrecto ? 200 : 0);
-    
-    const resultados = document.getElementById('resultado-simulacion');
-    if (resultados) {
-        resultados.innerHTML = '<div class="resultado-simulado"><h4>📊 RESULTADOS DE LA SIMULACIÓN:</h4>' + detalles.join('') + '<div class="resumen-simulacion"><strong>' + aciertos + ' de 3 pronósticos acertados (' + Math.round(aciertos/3*100) + '%)</strong></div><div class="puntos-simulacion">Puntos base obtenidos: <strong>' + tutorialData.puntosBaseCalculados + ' pts</strong></div></div>';
-        resultados.style.display = 'block';
-    }
-    
-    const notifCarrera = document.createElement('div');
-    notifCarrera.className = 'notification info';
-    notifCarrera.innerHTML = '<div class="notification-content"><i class="fas fa-flag-checkered"></i><span>🏁 Carrera simulada - ' + aciertos + ' de 3 aciertos (' + Math.round(aciertos/3*100) + '%)</span></div>';
-    document.body.appendChild(notifCarrera);
-    
-    setTimeout(() => notifCarrera.classList.add('show'), 10);
-    setTimeout(() => {
-        notifCarrera.classList.remove('show');
-        setTimeout(() => {
-            if (notifCarrera.parentNode) {
-                notifCarrera.parentNode.removeChild(notifCarrera);
-            }
-        }, 300);
-    }, 2000);
-    
-    document.getElementById('btn-tutorial-next-large').classList.remove('hidden');
-};
-
-window.tutorialIrSeccion = function(seccion) {
-    alert('Esta función te llevaría a la sección: ' + seccion.toUpperCase() + '\n\nEn el juego real, puedes navegar entre secciones usando el menú superior.');
-};
-
-window.tutorialEjecutarPronostico = function() {
-    if (!window.tutorialData || !window.tutorialData.pronosticosSeleccionados) {
-        alert("No has seleccionado ningún pronóstico");
-        return;
-    }
-    
-    const selecciones = window.tutorialData.pronosticosSeleccionados;
-    const count = Object.keys(selecciones).length;
-    
-    if (count < 3) {
-        alert('Has seleccionado ' + count + ' de 3 pronósticos. Necesitas seleccionar uno de cada categoría.');
-        return;
-    }
-    
-    const resultadosReales = {
-        bandera: 'si',
-        abandonos: '3-5',
-        diferencia: '1-5s'
-    };
-    
-    let aciertos = 0;
-    const detalles = [];
-    
-    if (selecciones.bandera === resultadosReales.bandera) {
-        aciertos++;
-        detalles.push('✅ Bandera amarilla: SÍ (acertaste)');
-    } else {
-        detalles.push('❌ Bandera amarilla: ' + (selecciones.bandera === 'si' ? 'SÍ' : 'NO') + ' (era ' + (resultadosReales.bandera === 'si' ? 'SÍ' : 'NO') + ')');
-    }
-    
-    if (selecciones.abandonos === resultadosReales.abandonos) {
-        aciertos++;
-        detalles.push('✅ Abandonos: 3-5 (acertaste)');
-    } else {
-        detalles.push('❌ Abandonos: ' + selecciones.abandonos + ' (era ' + resultadosReales.abandonos + ')');
-    }
-    
-    if (selecciones.diferencia === resultadosReales.diferencia) {
-        aciertos++;
-        detalles.push('✅ Diferencia: 1-5s (acertaste)');
-    } else {
-        detalles.push('❌ Diferencia: ' + selecciones.diferencia + ' (era ' + resultadosReales.diferencia + ')');
-    }
-    
-    const resultados = document.getElementById('resultado-simulacion');
-    if (resultados) {
-        resultados.innerHTML = '<div class="resultado-simulado"><h4>📊 RESULTADOS DE LA SIMULACIÓN:</h4>' + detalles.map(d => '<div class="resultado-item">' + d + '</div>').join('') + '<div class="resumen-simulacion"><strong>' + aciertos + ' de 3 pronósticos acertados (' + Math.round((aciertos/3)*100) + '%)</strong></div></div>';
-        resultados.style.display = 'block';
-    }
-    
-    window.tutorialData.aciertosPronosticos = aciertos;
-    window.tutorialData.totalPronosticos = 3;
-    
-    const notificacion = document.createElement('div');
-    notificacion.className = aciertos >= 2 ? 'notification success' : 'notification warning';
-    notificacion.innerHTML = '<div class="notification-content"><i class="fas fa-' + (aciertos >= 2 ? 'trophy' : 'chart-line') + '"></i><span>' + aciertos + ' de 3 pronósticos acertados</span></div>';
-    document.body.appendChild(notificacion);
-    
-    setTimeout(() => notificacion.classList.add('show'), 10);
-    setTimeout(() => {
-        notificacion.classList.remove('show');
-        setTimeout(() => {
-            if (notificacion.parentNode) {
-                notificacion.parentNode.removeChild(notificacion);
-            }
-        }, 300);
-    }, 2000);
-    
-    setTimeout(() => {
-        if (window.tutorialManager) {
-            window.tutorialManager.tutorialStep++;
-            window.tutorialManager.mostrarTutorialStep();
-        }
-    }, 2000);
-};
 
 window.mostrarInfoEstratega = function(index) {
     const estratega = window.f1Manager.pilotos[index];
@@ -4543,13 +4381,7 @@ setTimeout(() => {
 }, 1000);
 
 (function() {
-    window.tutorialData = {
-        estrategaSeleccionado: null,
-        estrategaContratado: false,
-        areaSeleccionada: null,
-        piezaFabricando: false,
-        pronosticoSeleccionado: null
-    };
+
 
     // ========================
     // FUNCIÓN PARA IR A PRUEBAS DE PISTA
@@ -4599,38 +4431,7 @@ setTimeout(() => {
         }
     };
     
-    
-    window.tutorialSeleccionarEstratega = function(id) {
-        if (window.tutorialManager && typeof window.tutorialManager.tutorialSeleccionarEstratega === 'function') {
-            window.tutorialManager.tutorialSeleccionarEstratega(id);
-        } else {
-            console.error("tutorialManager no está disponible");
-        }
-    };
-    
-    window.tutorialContratarEstratega = function() {
-        if (window.tutorialManager && typeof window.tutorialManager.tutorialContratarEstratega === 'function') {
-            window.tutorialManager.tutorialContratarEstratega();
-        } else {
-            console.error("tutorialManager no está disponible");
-        }
-    };
-    
-    window.tutorialSeleccionarArea = function(area) {
-        if (window.tutorialManager && typeof window.tutorialManager.tutorialSeleccionarArea === 'function') {
-            window.tutorialManager.tutorialSeleccionarArea(area);
-        } else {
-            console.error("tutorialManager no está disponible");
-        }
-    };
-    
-    window.tutorialIniciarFabricacion = function() {
-        if (window.tutorialManager && typeof window.tutorialManager.tutorialIniciarFabricacion === 'function') {
-            window.tutorialManager.tutorialIniciarFabricacion();
-        } else {
-            console.error("tutorialManager no está disponible");
-        }
-    };
+
     
     window.mostrarModalContratacion = function(huecoNumero) {
         alert('Mostrar modal para contratar estratega en hueco ' + huecoNumero);
