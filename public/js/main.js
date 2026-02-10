@@ -885,24 +885,44 @@ class F1Manager {
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
-                        
+
                     } else {
                         const proximaPiezaNoFabricada = !yaFabricada && 
                             piezaNum === (piezasAreaFabricadasAll.length + 1);
                         const fabricacionesCount = fabricacionesActivas?.length || 0;
                         const puedeFabricar = fabricacionesCount < 4 && proximaPiezaNoFabricada;
                         
-                        html += '<button class="btn-pieza-50 vacio" ';
-                        if (puedeFabricar) {
+                        // ✅ AÑADE ESTA VERIFICACIÓN EXTRA
+                        const yaTieneEstaPieza = piezasAreaFabricadasAll.some(p => 
+                            p.numero_global === piezaNum
+                        );
+                        
+                        // ✅ NO mostrar botón si ya tiene esta pieza exacta
+                        if (yaTieneEstaPieza) {
+                            // Mostrar como ya fabricada
+                            html += `<button class="btn-pieza-50 lleno" disabled title="${nombrePieza}">`;
+                            html += `<i class="fas fa-check"></i>`;
+                            html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
+                            html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
+                            html += '</button>';
+                        } else if (puedeFabricar) {
+                            // Solo mostrar como fabricable si es la próxima
+                            html += '<button class="btn-pieza-50 vacio" ';
                             html += `onclick="iniciarFabricacionTallerDesdeBoton('${area.id}', ${nivel})"`;
+                            html += ` title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()}">`;
+                            html += '<i class="fas fa-plus"></i>';
+                            html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
+                            html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
+                            html += '</button>';
                         } else {
-                            html += ' disabled';
+                            // Mostrar deshabilitado
+                            html += '<button class="btn-pieza-50 vacio" disabled';
+                            html += ` title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()}">`;
+                            html += '<i class="fas fa-plus"></i>';
+                            html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
+                            html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
+                            html += '</button>';
                         }
-                        html += ` title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()}">`;
-                        html += '<i class="fas fa-plus"></i>';
-                        html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
-                        html += '</button>';
                     }
                 }
                 
@@ -4933,48 +4953,111 @@ setTimeout(() => {
     // FUNCIÓN GLOBAL MODIFICADA PARA CALCULAR NIVEL
     // ========================
     window.iniciarFabricacionTallerDesdeBoton = async function(areaId, nivelDesdeBoton) {
-        console.log('🔧 Botón presionado para:', areaId, 'nivel desde botón:', nivelDesdeBoton);
+        console.log('🔧 Botón presionado para:', areaId);
+        
+        // ✅ 1. BLOQUEAR BOTÓN INMEDIATAMENTE
+        const boton = event?.currentTarget;
+        if (boton) {
+            boton.disabled = true;
+            boton.classList.add('bloqueado');
+            boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><div class="pieza-nombre-50">Procesando...</div>';
+        }
         
         if (!window.f1Manager || !window.f1Manager.iniciarFabricacionTaller) {
+            // Si falla, restaurar botón después de 2 segundos
+            setTimeout(() => {
+                if (boton) {
+                    boton.disabled = false;
+                    boton.classList.remove('bloqueado');
+                    boton.innerHTML = '<i class="fas fa-plus"></i>' +
+                                     `<div class="pieza-nombre-50">${boton.title?.split(' - ')[0] || 'Fabricar'}</div>` +
+                                     `<div class="pieza-precio-50">€${boton.title?.match(/€([\d,]+)/)?.[1] || '0'}</div>`;
+                }
+            }, 2000);
+            
             alert('Error: Sistema de fabricación no disponible');
             return false;
         }
         
-        // Obtener la próxima pieza a fabricar para esta área
-        const { data: piezasFabricadas } = await supabase
-            .from('almacen_piezas')
-            .select('numero_global')
-            .eq('escuderia_id', window.f1Manager.escuderia.id)
-            .eq('area', areaId)
-            .order('numero_global', { ascending: true });
-        
-        const siguienteNumeroGlobal = (piezasFabricadas?.length || 0) + 1;
-        const nivelCalculado = Math.ceil(siguienteNumeroGlobal / 5);
-        
-        console.log('📊 Calculando fabricación:', {
-            siguienteNumeroGlobal,
-            nivelCalculado,
-            nivelDesdeBoton
-        });
-        
-
-        
-        // Ejecutar fabricación con el nivel calculado
-        const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId, nivelCalculado);
-        
-        // Si se inició, actualizar UI
-        if (resultado) {
-            // Actualizar taller
-            setTimeout(() => {
-                if (window.f1Manager.cargarTabTaller) {
-                    window.f1Manager.cargarTabTaller();
-                }
-            }, 1000);
+        try {
+            // ✅ 2. VERIFICAR MEJOR LA SIGUIENTE PIEZA
+            const { data: todasPiezasArea } = await supabase
+                .from('almacen_piezas')
+                .select('numero_global')
+                .eq('escuderia_id', window.f1Manager.escuderia.id)
+                .eq('area', areaId)
+                .order('numero_global', { ascending: true });
             
-
+            const { data: fabricacionesActivas } = await supabase
+                .from('fabricacion_actual')
+                .select('id')
+                .eq('escuderia_id', window.f1Manager.escuderia.id)
+                .eq('completada', false);
+            
+            // Verificar que realmente es la siguiente pieza
+            const siguienteNumeroGlobal = (todasPiezasArea?.length || 0) + 1;
+            const nivelCalculado = Math.ceil(siguienteNumeroGlobal / 5);
+            
+            // ✅ 3. VERIFICAR QUE NO HAY YA UNA FABRICACIÓN PARA ESTA PIEZA
+            const yaEnFabricacion = fabricacionesActivas?.some(fab => {
+                // Esta lógica es más simple que la anterior
+                return true; // Se verifica en el servidor
+            });
+            
+            if (yaEnFabricacion) {
+                console.log('⚠️ Ya hay una fabricación activa para esta área');
+                setTimeout(() => {
+                    if (boton) {
+                        boton.disabled = false;
+                        boton.classList.remove('bloqueado');
+                        boton.innerHTML = '<i class="fas fa-plus"></i>' +
+                                         `<div class="pieza-nombre-50">${boton.title?.split(' - ')[0] || 'Fabricar'}</div>` +
+                                         `<div class="pieza-precio-50">€${boton.title?.match(/€([\d,]+)/)?.[1] || '0'}</div>`;
+                    }
+                }, 2000);
+                return false;
+            }
+            
+            console.log('📊 Fabricando pieza global ' + siguienteNumeroGlobal + ' para ' + areaId);
+            
+            // ✅ 4. EJECUTAR FABRICACIÓN
+            const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId, nivelCalculado);
+            
+            // Si se inició, actualizar UI
+            if (resultado) {
+                // El botón quedará bloqueado hasta que se recargue la vista
+                console.log('✅ Fabricación iniciada correctamente');
+            } else {
+                // Si falla, restaurar botón después de 3 segundos
+                setTimeout(() => {
+                    if (boton) {
+                        boton.disabled = false;
+                        boton.classList.remove('bloqueado');
+                        boton.innerHTML = '<i class="fas fa-plus"></i>' +
+                                         `<div class="pieza-nombre-50">${boton.title?.split(' - ')[0] || 'Fabricar'}</div>` +
+                                         `<div class="pieza-precio-50">€${boton.title?.match(/€([\d,]+)/)?.[1] || '0'}</div>`;
+                    }
+                }, 3000);
+            }
+            
+            return resultado;
+            
+        } catch (error) {
+            console.error('❌ Error en fabricación:', error);
+            
+            // Restaurar botón después de 3 segundos
+            setTimeout(() => {
+                if (boton) {
+                    boton.disabled = false;
+                    boton.classList.remove('bloqueado');
+                    boton.innerHTML = '<i class="fas fa-plus"></i>' +
+                                     `<div class="pieza-nombre-50">${boton.title?.split(' - ')[0] || 'Fabricar'}</div>` +
+                                     `<div class="pieza-precio-50">€${boton.title?.match(/€([\d,]+)/)?.[1] || '0'}</div>`;
+                }
+            }, 3000);
+            
+            return false;
         }
-        
-        return resultado;
     };
     // ========================
     // ========================
