@@ -36,6 +36,8 @@ class TutorialManager {
     // MOSTRAR MODAL DE BIENVENIDA
     // ========================
     mostrarModalBienvenida() {
+        console.log('🛠️ mostrarModalBienvenida() ejecutado');
+        
         // Crear overlay (fondo semitransparente)
         const overlay = document.createElement('div');
         overlay.id = 'tutorial-overlay';
@@ -168,24 +170,55 @@ class TutorialManager {
             }
         `;
         
+        // DEBUG: Verificar si podemos añadir al DOM
+        console.log('🛠️ Intentando agregar modal al DOM...');
+        console.log('🛠️ document.body existe?:', !!document.body);
+        
         // Agregar todo al DOM
-        document.head.appendChild(style);
-        overlay.appendChild(modal);
-        document.body.appendChild(overlay);
+        try {
+            document.head.appendChild(style);
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+            console.log('✅ Modal agregado al DOM correctamente');
+        } catch (error) {
+            console.error('❌ Error al agregar modal:', error);
+            console.error('❌ Error detallado:', error.message);
+            
+            // Intentar método alternativo
+            document.body.insertAdjacentElement('beforeend', overlay);
+            console.log('🔄 Intentado método alternativo');
+        }
         
         // Configurar evento del botón
-        document.getElementById('btn-comenzar-modal').onclick = () => {
-            this.finalizar();
-            this.cerrarModal();
-        };
+        const btnComenzar = document.getElementById('btn-comenzar-modal');
+        if (btnComenzar) {
+            console.log('✅ Botón "btn-comenzar-modal" encontrado');
+            btnComenzar.onclick = () => {
+                console.log('🖱️ Botón "Comenzar" clickeado');
+                this.finalizar();
+                this.cerrarModal();
+            };
+        } else {
+            console.error('❌ Botón "btn-comenzar-modal" NO encontrado');
+        }
         
         // Opcional: Cerrar al hacer clic fuera del modal
         overlay.onclick = (e) => {
             if (e.target === overlay) {
+                console.log('🖱️ Clic fuera del modal');
                 this.finalizar();
                 this.cerrarModal();
             }
         };
+        
+        // Forzar redibujado
+        setTimeout(() => {
+            console.log('🔍 Verificando visibilidad del modal...');
+            console.log('🔍 overlay en DOM?:', document.body.contains(overlay));
+            console.log('🔍 modal en DOM?:', document.body.contains(modal));
+            console.log('🔍 overlay display:', window.getComputedStyle(overlay).display);
+            console.log('🔍 modal display:', window.getComputedStyle(modal).display);
+        }, 500);
     }
 
     // ========================
