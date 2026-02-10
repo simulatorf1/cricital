@@ -1020,6 +1020,9 @@ class TutorialManager {
     // ========================
     // CONFIGURAR MINIMIZAR (IGUAL)
     // ========================
+    // ========================
+    // CONFIGURAR MINIMIZAR (MODIFICADA)
+    // ========================
     configurarMinimizar() {
         const btnMinimizar = this.ventanaTutorial.querySelector('#btn-minimizar-tutorial');
         if (!btnMinimizar) return;
@@ -1027,22 +1030,31 @@ class TutorialManager {
         const contenido = this.ventanaTutorial.querySelector('#tutorial-content');
         const controles = this.ventanaTutorial.querySelector('#tutorial-controls');
         const tip = this.ventanaTutorial.querySelector('div:last-child');
+        const header = this.ventanaTutorial.querySelector('#tutorial-header');
+        const pagination = this.ventanaTutorial.querySelector('#tutorial-pagination');
+        const tutorialFooter = this.ventanaTutorial.querySelector('#tutorial-footer');
         
         let estaMinimizado = false;
         
         btnMinimizar.onclick = () => {
             if (estaMinimizado) {
-                // RESTAURAR
+                // RESTAURAR - Maximizar completamente
                 this.ventanaTutorial.style.width = '90%';
                 this.ventanaTutorial.style.height = 'auto';
+                this.ventanaTutorial.style.maxWidth = '800px';
                 this.ventanaTutorial.style.maxHeight = '85vh';
                 this.ventanaTutorial.style.top = '50%';
                 this.ventanaTutorial.style.left = '50%';
                 this.ventanaTutorial.style.transform = 'translate(-50%, -50%)';
                 this.ventanaTutorial.style.padding = '30px';
+                this.ventanaTutorial.style.borderRadius = '20px';
                 
-                contenido.style.display = 'block';
-                controles.style.display = 'flex';
+                // Mostrar todo el contenido
+                if (header) header.style.display = 'block';
+                if (contenido) contenido.style.display = 'block';
+                if (controles) controles.style.display = 'flex';
+                if (pagination) pagination.style.display = 'flex';
+                if (tutorialFooter) tutorialFooter.style.display = 'flex';
                 if (tip) tip.style.display = 'block';
                 
                 btnMinimizar.innerHTML = '<i class="fas fa-window-minimize"></i> Minimizar';
@@ -1050,21 +1062,32 @@ class TutorialManager {
                 
                 estaMinimizado = false;
             } else {
-                // MINIMIZAR
-                this.ventanaTutorial.style.width = '300px';
-                this.ventanaTutorial.style.height = '60px';
-                this.ventanaTutorial.style.top = '20px';
-                this.ventanaTutorial.style.left = '20px';
-                this.ventanaTutorial.style.transform = 'none';
-                this.ventanaTutorial.style.padding = '15px';
-                this.ventanaTutorial.style.borderRadius = '10px';
+                // MINIMIZAR - Solo mostrar título y controles básicos
+                this.ventanaTutorial.style.width = '500px';
+                this.ventanaTutorial.style.height = 'auto';
+                this.ventanaTutorial.style.minHeight = '200px';
+                this.ventanaTutorial.style.maxHeight = '50vh';
+                this.ventanaTutorial.style.top = '80px';
+                this.ventanaTutorial.style.left = '50%';
+                this.ventanaTutorial.style.transform = 'translateX(-50%)';
+                this.ventanaTutorial.style.padding = '20px';
+                this.ventanaTutorial.style.borderRadius = '15px';
                 
-                contenido.style.display = 'none';
-                controles.style.display = 'none';
+                // Ocultar contenido detallado pero mantener controles
+                if (contenido) contenido.style.display = 'none';
                 if (tip) tip.style.display = 'none';
                 
+                // Mostrar solo lo esencial
+                if (header) header.style.display = 'block';
+                if (controles) {
+                    controles.style.display = 'flex';
+                    controles.style.marginTop = '15px';
+                }
+                if (pagination) pagination.style.display = 'flex';
+                if (tutorialFooter) tutorialFooter.style.display = 'flex';
+                
                 btnMinimizar.innerHTML = '<i class="fas fa-window-maximize"></i> Maximizar';
-                btnMinimizar.title = 'Maximizar ventana';
+                btnMinimizar.title = 'Maximizar ventana completa';
                 
                 estaMinimizado = true;
             }
