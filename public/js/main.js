@@ -1658,8 +1658,8 @@ class F1Manager {
             const { error: errorEquipar } = await this.supabase
                 .from('almacen_piezas')
                 .update({ 
-                    equipada: true
-                    // Sin montada_en
+                    equipada: true,
+                    montada_en: new Date().toISOString()  // ← ¡AÑADIR ESTO!
                 })
                 .in('id', idsPiezas);
             
