@@ -96,53 +96,39 @@ class TutorialManager {
                 </button>
             </div>
             
-            <div id="tutorial-content" style="flex: 1; overflow-y: auto; padding-right: 10px; line-height: 1.7; font-size: 1.1rem;">
+            <div id="tutorial-content" style="flex: 1; overflow-y: auto; padding: 5px 10px 5px 5px; line-height: 1.6; font-size: 1rem;">
                 <!-- Contenido del paso -->
             </div>
             
-            <div id="tutorial-pagination" style="display: flex; justify-content: center; gap: 12px; margin-bottom: 25px;">
-                <!-- Puntos de paginación - AHORA EN HORIZONTAL -->
+            <div id="tutorial-pagination" style="display: flex; justify-content: center; gap: 6px; margin: 10px 0 5px 0;">
+                <!-- Puntos de paginación - MUY PEQUEÑOS -->
             </div>
             
-            <div id="tutorial-footer" style="display: flex; justify-content: flex-end; align-items: center; margin-top: 20px;">
-                <!-- Botón siguiente/final se actualizará aquí -->
-            </div>
-            
-            <div id="tutorial-navigation" style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; border-top: 1px solid rgba(0, 210, 190, 0.3); padding-top: 20px;">
+            <div id="tutorial-botones" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid rgba(0, 210, 190, 0.2); padding-top: 12px;">
                 <button id="btn-anterior-paso" style="
-                    background: linear-gradient(135deg, #ff3366 0%, #cc2255 100%);
+                    background: #ff3366;
                     color: white;
-                    border: 2px solid #ff5588;
-                    padding: 12px 30px;
-                    border-radius: 10px;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 6px;
                     font-weight: bold;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
-                    gap: 10px;
-                    font-size: 1.1rem;
-                    box-shadow: 0 4px 15px rgba(255, 51, 102, 0.5);
-                    transition: all 0.3s;
+                    gap: 6px;
+                    font-size: 0.85rem;
+                    box-shadow: 0 2px 8px rgba(255, 51, 102, 0.4);
                 ">
-                    <i class="fas fa-arrow-left"></i>
+                    <i class="fas fa-arrow-left" style="font-size: 0.8rem;"></i>
                     Anterior
                 </button>
-                
-                <div style="color: #888; font-size: 0.95rem;">
-                    <span id="tutorial-paso-indicador">Paso <span id="paso-actual-num">1</span> de <span id="paso-total-num">14</span></span>
-                </div>
                 
                 <div id="tutorial-siguiente-container">
                     <!-- Botón siguiente se insertará aquí -->
                 </div>
             </div>
             
-            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 51, 102, 0.1); border-radius: 10px; border-left: 4px solid #ff3366;">
-                <p style="margin: 0; font-size: 0.9rem; color: #ffccd5;">
-                    <i class="fas fa-lightbulb"></i> 
-                    <strong>Tip:</strong> Puedes minimizar esta ventana en cualquier momento si necesitas explorar el juego.
-                </p>
-            </div>
+
         `;
         
         document.body.appendChild(this.ventanaTutorial);
@@ -846,15 +832,11 @@ class TutorialManager {
         // Mantener el botón minimizar que ya existe en el header
         const btnMinimizarExistente = header.querySelector('#btn-minimizar-tutorial');
         header.innerHTML = `
-            <div id="tutorial-title-container" style="flex: 1; text-align: center;">
-                <div style="font-size: 0.9rem; color: #00d2be; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">
-                    Paso ${numeroPaso + 1} de ${this.totalPasos}
-                </div>
-                <h2 style="color: ${paso.colorBoton}; margin: 0 0 10px 0; font-size: 1.8rem; font-weight: 700;">
-                    <i class="fas ${iconos[numeroPaso] || 'fa-info-circle'}" style="margin-right: 10px;"></i>
+            <div id="tutorial-title-container" style="flex: 1;">
+                <h2 style="color: ${paso.colorBoton}; margin: 0 0 5px 0; font-size: 1.5rem; font-weight: 600;">
                     ${paso.titulo}
                 </h2>
-                <div style="color: #a0a0a0; font-size: 1rem; border-bottom: 2px solid rgba(0, 210, 190, 0.3); padding-bottom: 15px;">
+                <div style="color: #a0a0a0; font-size: 0.9rem; border-bottom: 1px solid rgba(0, 210, 190, 0.2); padding-bottom: 10px;">
                     ${paso.subtitulo}
                 </div>
             </div>
@@ -894,54 +876,48 @@ class TutorialManager {
         content.innerHTML = paso.contenido;
         
         // Actualizar footer
-        if (paso.esFinal) {
-            footer.innerHTML = `
-                <div style="color: #888; font-size: 0.8rem;">
-                    <i class="fas fa-graduation-cap"></i> Tutorial completo
-                </div>
-                <button id="btn-finalizar-tutorial" style="
-                    background: linear-gradient(135deg, ${paso.colorBoton} 0%, ${this.darkenColor(paso.colorBoton, 20)} 100%);
-                    color: white;
-                    border: none;
-                    padding: 12px 30px;
-                    border-radius: 8px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    font-size: 1.1rem;
-                    box-shadow: 0 4px 15px rgba(${this.hexToRgb(paso.colorBoton)}, 0.4);
-                ">
-                    <i class="fas ${paso.botonIcono}"></i>
-                    ${paso.botonTexto}
-                </button>
-            `;
-            
-            footer.querySelector('#btn-finalizar-tutorial').onclick = () => {
-                this.finalizarTutorialCompleto();
-            };
-        } else {
-            let textoInfo = paso.textoObligar || "Siguiente paso";
-            
-
-            const siguienteContainer = this.ventanaTutorial.querySelector('#tutorial-siguiente-container');
-            if (siguienteContainer) {
+        // Actualizar botón siguiente
+        const siguienteContainer = this.ventanaTutorial.querySelector('#tutorial-siguiente-container');
+        if (siguienteContainer) {
+            if (paso.esFinal) {
                 siguienteContainer.innerHTML = `
-                    <button id="btn-siguiente-paso" style="
-                        background: linear-gradient(135deg, ${paso.colorBoton || '#00d2be'} 0%, ${this.darkenColor(paso.colorBoton || '#00d2be', 20)} 100%);
+                    <button id="btn-finalizar-tutorial" style="
+                        background: linear-gradient(135deg, #ff3366 0%, #cc2255 100%);
                         color: white;
-                        border: 2px solid ${paso.colorBoton || '#00f0ff'};
-                        padding: 12px 30px;
-                        border-radius: 10px;
+                        border: none;
+                        padding: 8px 20px;
+                        border-radius: 6px;
                         font-weight: bold;
                         cursor: pointer;
                         display: flex;
                         align-items: center;
-                        gap: 10px;
-                        font-size: 1.1rem;
-                        box-shadow: 0 4px 15px rgba(${this.hexToRgb(paso.colorBoton || '#00d2be')}, 0.5);
-                        transition: all 0.3s;
+                        gap: 8px;
+                        font-size: 0.9rem;
+                        box-shadow: 0 2px 10px rgba(255, 51, 102, 0.5);
+                    ">
+                        <i class="fas ${paso.botonIcono}"></i>
+                        ${paso.botonTexto}
+                    </button>
+                `;
+                
+                siguienteContainer.querySelector('#btn-finalizar-tutorial').onclick = () => {
+                    this.finalizarTutorialCompleto();
+                };
+            } else {
+                siguienteContainer.innerHTML = `
+                    <button id="btn-siguiente-paso" style="
+                        background: ${paso.colorBoton || '#00d2be'};
+                        color: white;
+                        border: none;
+                        padding: 8px 20px;
+                        border-radius: 6px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        font-size: 0.9rem;
+                        box-shadow: 0 2px 10px rgba(${this.hexToRgb(paso.colorBoton || '#00d2be')}, 0.5);
                     ">
                         ${paso.botonTexto}
                         <i class="fas ${paso.botonIcono}"></i>
@@ -952,15 +928,11 @@ class TutorialManager {
                     this.mostrarPaso(numeroPaso + 1);
                 };
             }
-            
-            footer.querySelector('#btn-siguiente-paso').onclick = () => {
-                this.mostrarPaso(numeroPaso + 1);
-            };
-            
-            // Si el paso obliga a hacer clic en algo, configurar verificación
-            if (paso.obligarClick) {
-                this.configurarVerificacionClic(paso.obligarClick, numeroPaso);
-            }
+        }
+        
+        // Configurar verificación de clic si es necesario
+        if (paso.obligarClick) {
+            this.configurarVerificacionClic(paso.obligarClick, numeroPaso);
         }
         
 
