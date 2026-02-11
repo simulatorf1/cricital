@@ -100,34 +100,40 @@ class TutorialManager {
                 <!-- Contenido del paso -->
             </div>
             
-            <div id="tutorial-controls" style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; gap: 10px;">
-                    <button id="btn-anterior-paso" style="
-                        background: linear-gradient(135deg, #ff3366 0%, #cc2255 100%);
-                        border: 2px solid #ff5588;
-                        box-shadow: 0 4px 15px rgba(255, 51, 102, 0.5);
-                        color: white;
-                        padding: 10px 20px;
-                        border-radius: 8px;
-                        cursor: pointer;
-                        font-size: 0.9rem;
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                    ">
-                        <i class="fas fa-arrow-left"></i>
-                        Anterior
-                    </button>
-                    
-
+            <div id="tutorial-pagination" style="display: flex; justify-content: center; gap: 12px; margin-bottom: 25px;">
+                <!-- Puntos de paginación - AHORA EN HORIZONTAL -->
+            </div>
+            
+            <div id="tutorial-footer" style="display: flex; justify-content: flex-end; align-items: center; margin-top: 20px;">
+                <!-- Botón siguiente/final se actualizará aquí -->
+            </div>
+            
+            <div id="tutorial-navigation" style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; border-top: 1px solid rgba(0, 210, 190, 0.3); padding-top: 20px;">
+                <button id="btn-anterior-paso" style="
+                    background: linear-gradient(135deg, #ff3366 0%, #cc2255 100%);
+                    color: white;
+                    border: 2px solid #ff5588;
+                    padding: 12px 30px;
+                    border-radius: 10px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-size: 1.1rem;
+                    box-shadow: 0 4px 15px rgba(255, 51, 102, 0.5);
+                    transition: all 0.3s;
+                ">
+                    <i class="fas fa-arrow-left"></i>
+                    Anterior
+                </button>
+                
+                <div style="color: #888; font-size: 0.95rem;">
+                    <span id="tutorial-paso-indicador">Paso <span id="paso-actual-num">1</span> de <span id="paso-total-num">14</span></span>
                 </div>
                 
-                <div id="tutorial-pagination" style="display: flex; gap: 8px;">
-                    <!-- Puntos de paginación -->
-                </div>
-                
-                <div id="tutorial-footer" style="display: flex; align-items: center;">
-                    <!-- Botón siguiente/final se actualizará aquí -->
+                <div id="tutorial-siguiente-container">
+                    <!-- Botón siguiente se insertará aquí -->
                 </div>
             </div>
             
@@ -919,30 +925,33 @@ class TutorialManager {
             let textoInfo = paso.textoObligar || "Siguiente paso";
             
 
-            footer.innerHTML = `
-                <button id="btn-siguiente-paso" style="
-                    background: linear-gradient(135deg, #00f0ff 0%, #00a0ff 100%);
-                    border: 2px solid #00ffff;
-                    box-shadow: 0 4px 20px rgba(0, 240, 255, 0.7);
-                    font-size: 1.2rem;
-                    padding: 14px 35px;
-                    color: white;
-
-
-                    border-radius: 10px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-
-                    transition: all 0.3s;
-
-                ">
-                    ${paso.botonTexto}
-                    <i class="fas ${paso.botonIcono}"></i>
-                </button>
-            `;
+            const siguienteContainer = this.ventanaTutorial.querySelector('#tutorial-siguiente-container');
+            if (siguienteContainer) {
+                siguienteContainer.innerHTML = `
+                    <button id="btn-siguiente-paso" style="
+                        background: linear-gradient(135deg, ${paso.colorBoton || '#00d2be'} 0%, ${this.darkenColor(paso.colorBoton || '#00d2be', 20)} 100%);
+                        color: white;
+                        border: 2px solid ${paso.colorBoton || '#00f0ff'};
+                        padding: 12px 30px;
+                        border-radius: 10px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        font-size: 1.1rem;
+                        box-shadow: 0 4px 15px rgba(${this.hexToRgb(paso.colorBoton || '#00d2be')}, 0.5);
+                        transition: all 0.3s;
+                    ">
+                        ${paso.botonTexto}
+                        <i class="fas ${paso.botonIcono}"></i>
+                    </button>
+                `;
+                
+                siguienteContainer.querySelector('#btn-siguiente-paso').onclick = () => {
+                    this.mostrarPaso(numeroPaso + 1);
+                };
+            }
             
             footer.querySelector('#btn-siguiente-paso').onclick = () => {
                 this.mostrarPaso(numeroPaso + 1);
@@ -955,20 +964,22 @@ class TutorialManager {
         }
         
 
-        // Actualizar paginación
+    // Actualizar paginación
+    // Actualizar paginación - MÁS PEQUEÑA Y HORIZONTAL
     pagination.innerHTML = '';
     for (let i = 0; i < this.totalPasos; i++) {
         const punto = document.createElement('div');
         punto.style.cssText = `
-            width: ${i === numeroPaso ? '16px' : '12px'};
-            height: ${i === numeroPaso ? '16px' : '12px'};
+            width: 10px;
+            height: 10px;
             background: ${i === numeroPaso ? paso.colorBoton : 'rgba(255, 255, 255, 0.2)'};
             border-radius: 50%;
             margin: 0 4px;
             transition: all 0.3s;
-            cursor: ${i <= this.pasoActual ? 'pointer' : 'not-allowed'};
+            cursor: ${i <= this.pasoActual ? 'pointer' : 'default'};
             border: ${i === numeroPaso ? '2px solid white' : 'none'};
-            opacity: ${i <= this.pasoActual ? '1' : '0.5'};
+            opacity: ${i <= this.pasoActual ? '1' : '0.3'};
+            box-shadow: ${i === numeroPaso ? `0 0 10px ${paso.colorBoton}` : 'none'};
         `;
         
         if (i <= this.pasoActual) {
@@ -977,9 +988,15 @@ class TutorialManager {
             };
         }
         
-        punto.title = `Paso ${i + 1}: ${i === 0 ? 'Bienvenida' : i === 13 ? 'Final' : i <= this.pasoActual ? 'Disponible' : 'Bloqueado'}`;
+        punto.title = `Paso ${i + 1}`;
         pagination.appendChild(punto);
     }
+    
+    // Actualizar el indicador de paso
+    const pasoActualSpan = document.getElementById('paso-actual-num');
+    const pasoTotaltSpan = document.getElementById('paso-total-num');
+    if (pasoActualSpan) pasoActualSpan.textContent = numeroPaso + 1;
+    if (pasoTotaltSpan) pasoTotaltSpan.textContent = this.totalPasos;
         
 
         
