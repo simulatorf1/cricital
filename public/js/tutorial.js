@@ -100,9 +100,7 @@ class TutorialManager {
                 <!-- Contenido del paso -->
             </div>
             
-            <div id="tutorial-pagination" style="display: flex; justify-content: center; gap: 6px; margin: 10px 0 5px 0;">
-                <!-- Puntos de paginación - MUY PEQUEÑOS -->
-            </div>
+
             
             <div id="tutorial-botones" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid rgba(0, 210, 190, 0.2); padding-top: 12px;">
                 <button id="btn-anterior-paso" style="
@@ -150,14 +148,14 @@ class TutorialManager {
         const header = this.ventanaTutorial.querySelector('#tutorial-header');
         const content = this.ventanaTutorial.querySelector('#tutorial-content');
         const footer = this.ventanaTutorial.querySelector('#tutorial-footer');
-        const pagination = this.ventanaTutorial.querySelector('#tutorial-pagination');
+
         
         // Array con todos los pasos - ¡TODOS LOS TEXTO QUE ME DISTE!
         const pasos = [
             // PASO 0
             {
                 titulo: "¡BIENVENIDO A CRITICAL LAP!",
-                subtitulo: "Paso 1/14 - El juego que combina gestión con realidad",
+
                 contenido: `
                     <div style="background: rgba(255, 51, 102, 0.15); padding: 25px; border-radius: 15px; margin-bottom: 25px; border-left: 5px solid #ff3366;">
                         <div style="display: flex; align-items: center; margin-bottom: 15px;">
@@ -208,7 +206,7 @@ class TutorialManager {
             // PASO 1
             {
                 titulo: "EL OBJETIVO SEMANAL",
-                subtitulo: "Paso 2/14 - Prepárate para cada Gran Premio",
+
                 contenido: `
                     <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #FFD700;">
@@ -255,7 +253,7 @@ class TutorialManager {
             // PASO 2 (Obligar: TALLER)
             {
                 titulo: "EL TALLER",
-                subtitulo: "Paso 3/14 - El corazón de tu escudería",
+
                 contenido: `
                     <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #00d2be;">
@@ -300,7 +298,7 @@ class TutorialManager {
             // PASO 3 (Obligar: ALMACÉN)
             {
                 titulo: "EL ALMACÉN",
-                subtitulo: "Paso 4/14 - Gestiona tus piezas",
+
                 contenido: `
                     <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #FFD700;">
@@ -351,7 +349,7 @@ class TutorialManager {
             // PASO 4 (Obligar: INGENIERÍA)
             {
                 titulo: "INGENIERÍA",
-                subtitulo: "Paso 5/14 - Donde la teoría se vuelve realidad",
+
                 contenido: `
                     <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #00d2be;">
@@ -399,7 +397,7 @@ class TutorialManager {
             // PASO 5 (Obligar: MERCADO)
             {
                 titulo: "EL MERCADO",
-                subtitulo: "Paso 6/14 - Compra y vende con otros Managers",
+
                 contenido: `
                     <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #FFD700;">
@@ -446,7 +444,7 @@ class TutorialManager {
             // PASO 6 (Obligar: ESTRATEGAS)
             {
                 titulo: "GESTIÓN DE ESTRATEGAS",
-                subtitulo: "Paso 7/14 - Potencia tus resultados",
+
                 contenido: `
                     <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #00d2be;">
@@ -488,7 +486,7 @@ class TutorialManager {
             // PASO 7 (Obligar: PRONÓSTICO)
             {
                 titulo: "PRONÓSTICOS",
-                subtitulo: "Paso 8/14 - Anticípate a la realidad",
+
                 contenido: `
                     <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #FFD700;">
@@ -534,7 +532,7 @@ class TutorialManager {
             // PASO 8 (Obligar: PRESUPUESTO)
             {
                 titulo: "PRESUPUESTO",
-                subtitulo: "Paso 9/14 - Controla tu economía",
+
                 contenido: `
                     <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #00d2be;">
@@ -578,7 +576,6 @@ class TutorialManager {
             // PASO 9 (Obligar: ESTRELLAS)
             {
                 titulo: "ESTRELLAS Y PATROCINADORES",
-                subtitulo: "Paso 10/14 - Recompensas diarias",
                 contenido: `
                     <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #FFD700;">
@@ -628,7 +625,7 @@ class TutorialManager {
             // PASO 10 (Obligar: RANKING)
             {
                 titulo: "RANKING",
-                subtitulo: "Paso 11/14 - Compara tu progreso",
+
                 contenido: `
                     <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #00d2be;">
@@ -675,7 +672,7 @@ class TutorialManager {
             // PASO 11 (Obligar: NOTIFICACIONES)
             {
                 titulo: "NOTIFICACIONES",
-                subtitulo: "Paso 12/14 - Mantente informado",
+
                 contenido: `
                     <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #FFD700;">
@@ -718,7 +715,7 @@ class TutorialManager {
             // PASO 12 (Obligar: PERFIL)
             {
                 titulo: "TU PERFIL",
-                subtitulo: "Paso 13/14 - Muestra tu talento",
+
                 contenido: `
                     <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #00d2be;">
@@ -767,7 +764,7 @@ class TutorialManager {
             // PASO 13 (FINAL)
             {
                 titulo: "TODO LISTO, MANAGER",
-                subtitulo: "Paso 14/14 - Comienza tu aventura",
+
                 contenido: `
                     <div style="background: rgba(255, 51, 102, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #ff3366;">
@@ -936,33 +933,7 @@ class TutorialManager {
         }
         
 
-    // Actualizar paginación
-    // Actualizar paginación - MÁS PEQUEÑA Y HORIZONTAL
-    pagination.innerHTML = '';
-    for (let i = 0; i < this.totalPasos; i++) {
-        const punto = document.createElement('div');
-        punto.style.cssText = `
-            width: 10px;
-            height: 10px;
-            background: ${i === numeroPaso ? paso.colorBoton : 'rgba(255, 255, 255, 0.2)'};
-            border-radius: 50%;
-            margin: 0 4px;
-            transition: all 0.3s;
-            cursor: ${i <= this.pasoActual ? 'pointer' : 'default'};
-            border: ${i === numeroPaso ? '2px solid white' : 'none'};
-            opacity: ${i <= this.pasoActual ? '1' : '0.3'};
-            box-shadow: ${i === numeroPaso ? `0 0 10px ${paso.colorBoton}` : 'none'};
-        `;
-        
-        if (i <= this.pasoActual) {
-            punto.onclick = () => {
-                this.mostrarPaso(i);
-            };
-        }
-        
-        punto.title = `Paso ${i + 1}`;
-        pagination.appendChild(punto);
-    }
+
     
     // Actualizar el indicador de paso
     const pasoActualSpan = document.getElementById('paso-actual-num');
