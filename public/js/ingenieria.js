@@ -1292,8 +1292,150 @@ class IngenieriaManager {
         return `
             <div class="control-inactivo">
                 <h4><i class="fas fa-play-circle"></i> INICIAR NUEVA SIMULACIÓN</h4>
-                <p class="simulacion-desc">
-                    La simulación realizará ${this.config.vueltasPrueba} vueltas de prueba en condiciones controladas para determinar el <strong>mejor tiempo por vuelta</strong> de tu coche. <i class="fas fa-info-circle"></i> <strong>Nota importante:</strong> Los tiempos nunca serán exactamente iguales incluso con las mismas piezas, ya que factores como el pilotaje, temperatura de neumáticos y condiciones de pista varían ligeramente en cada intento. El sistema registra la <strong>vuelta más rápida</strong> de las ${this.config.vueltasPrueba}, que es la referencia que debes considerar para tus pronósticos.
+                
+                <!-- ========== CUADERNO DEL INGENIERO ========== -->
+                <div style="
+                    background: rgba(0, 0, 0, 0.6); 
+                    border: 2px dashed #00d2be; 
+                    padding: 18px; 
+                    margin-bottom: 20px; 
+                    border-radius: 8px; 
+                    position: relative;
+                ">
+                    <div style="
+                        position: absolute; 
+                        top: -12px; 
+                        left: 20px; 
+                        background: #00d2be; 
+                        color: black; 
+                        padding: 4px 12px; 
+                        border-radius: 20px; 
+                        font-weight: bold; 
+                        font-size: 0.8rem;
+                    ">
+                        <i class="fas fa-book"></i> NOTAS DEL INGENIERO JEFE
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; align-items: flex-start; margin-top: 10px;">
+                        
+                        <div style="font-size: 2.2rem; color: #FFD700;">📔</div>
+                        
+                        <div style="flex: 1;">
+                            <p style="
+                                color: #FFD700; 
+                                margin: 0 0 10px 0; 
+                                font-weight: bold; 
+                                font-size: 1.05rem;
+                            ">
+                                "Jefe, llevo 20 años en esto y aún me sorprendo"
+                            </p>
+                            
+                            <p style="
+                                color: #ccc; 
+                                margin: 0 0 12px 0; 
+                                font-size: 0.95rem;
+                            ">
+                                El <span style="color: #e10600; font-weight: bold;">Gran Premio del año pasado</span> lo ganó un equipo con 
+                                <span style="color: #FFD700; font-weight: bold;">presupuesto medio</span>. 
+                                ¿Su secreto? <span style="color: #4CAF50; font-weight: bold;">Encontraron las combinaciones correctas</span> 
+                                mientras otros gastaban sin sentido.
+                            </p>
+                            
+                            <div style="
+                                display: flex; 
+                                flex-wrap: wrap; 
+                                gap: 15px; 
+                                margin: 15px 0; 
+                                padding: 15px; 
+                                background: rgba(0,210,190,0.05); 
+                                border-radius: 6px;
+                            ">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <span style="color: #00d2be; font-weight: bold; display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
+                                        <i class="fas fa-check-circle"></i> LO QUE SABEMOS:
+                                    </span>
+                                    <ul style="
+                                        color: #aaa; 
+                                        margin: 0; 
+                                        padding-left: 20px;
+                                        list-style-type: none;
+                                    ">
+                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                            <span style="color: #4CAF50;">✅</span> 
+                                            <span>Hay piezas que <span style="color: #4CAF50; font-weight: bold;">MEJORAN</span> el tiempo</span>
+                                        </li>
+                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                            <span style="color: #e10600;">❌</span> 
+                                            <span>Hay piezas que <span style="color: #e10600; font-weight: bold;">EMPEORAN</span> el tiempo</span>
+                                        </li>
+                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                            <span style="color: #FF9800;">🔄</span> 
+                                            <span>Hay <span style="color: #FF9800; font-weight: bold;">COMBINACIONES</span> que multiplican el rendimiento</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <div style="flex: 1; min-width: 200px;">
+                                    <span style="color: #FFD700; font-weight: bold; display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
+                                        <i class="fas fa-question-circle"></i> LO QUE INVESTIGAMOS:
+                                    </span>
+                                    <ul style="
+                                        color: #aaa; 
+                                        margin: 0; 
+                                        padding-left: 20px;
+                                        list-style-type: none;
+                                    ">
+                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                            <span style="color: #FFD700;">❓</span> 
+                                            <span>Qué pieza será buena o mala</span>
+                                        </li>
+                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                            <span style="color: #FFD700;">❓</span> 
+                                            <span>Por qué unas combinaciones funcionan y otras no</span>
+                                        </li>
+                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                            <span style="color: #FFD700;">❓</span> 
+                                            <span>Dónde está el límite de nuestro coche</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div style="
+                                background: rgba(0, 0, 0, 0.4);
+                                border-left: 4px solid #FFD700;
+                                padding: 12px 15px;
+                                margin-top: 10px;
+                                border-radius: 0 6px 6px 0;
+                            ">
+                                <p style="
+                                    color: #ffaa00; 
+                                    margin: 0; 
+                                    font-size: 0.95rem;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                ">
+                                    <i class="fas fa-flask" style="color: #FFD700;"></i>
+                                    <span style="font-weight: bold;">LA PRUEBA ES EL ÚNICO CAMINO.</span>
+                                    Cada simulación nos da un dato más. 
+                                    <span style="color: #00d2be; font-weight: bold;">Cada dato nos acerca al equilibrio perfecto.</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ========== FIN CUADERNO DEL INGENIERO ========== -->
+                
+                <p class="simulacion-desc" style="margin-top: 25px;">
+                    La simulación realizará <strong>${this.config.vueltasPrueba} vueltas</strong> de prueba en condiciones controladas para determinar el <strong style="color: #00d2be;">mejor tiempo por vuelta</strong> de tu coche.
+                    
+                    <i class="fas fa-info-circle" style="color: #00d2be; margin-left: 8px;"></i> 
+                    <span style="color: #ccc;">Los tiempos nunca serán exactamente iguales incluso con las mismas piezas. Factores como el pilotaje, temperatura de neumáticos y condiciones de pista varían ligeramente en cada intento.</span>
+                    
+                    <br><br>
+                    <span style="color: #FFD700; font-weight: bold;">⏱️ Registramos la vuelta MÁS RÁPIDA</span> de las ${this.config.vueltasPrueba}. 
+                    <span style="color: #aaa;">Esa es tu referencia real para pronósticos.</span>
                 </p>
             
                 <button id="iniciar-simulacion-btn" class="btn-iniciar-simulacion" ${!puedeProbar ? 'disabled' : ''}>
@@ -1303,7 +1445,7 @@ class IngenieriaManager {
                 
                 ${ultimaPrueba ? `
                     <div class="ultima-prueba-info">
-                        <p><i class="fas fa-info-circle"></i> Última prueba: ${this.formatearFecha(ultimaPrueba.fecha_prueba)}</p>
+                        <p><i class="fas fa-history"></i> Última prueba: ${this.formatearFecha(ultimaPrueba.fecha_prueba)}</p>
                     </div>
                 ` : ''}
             </div>
