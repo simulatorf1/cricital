@@ -576,10 +576,13 @@ class IngenieriaManager {
     // ========================
     // DIBUJAR GRÁFICO DE EVOLUCIÓN CON META DEL LÍDER
     // ========================
+    // ========================
+    // GRÁFICO DE LÍNEAS CON ESCALA REAL Y META DEL LÍDER
+    // ========================
     async dibujarGraficoEvolucionConMeta() {
         // 1. No hacer nada si no hay historial
-        if (!this.tiemposHistoricos || this.tiemposHistoricos.length === 0) {
-            console.log('📊 No hay historial para mostrar gráfico');
+        if (!this.tiemposHistoricos || this.tiemposHistoricos.length < 2) {
+            console.log('📊 No hay suficientes datos para el gráfico');
             return;
         }
     
@@ -588,83 +591,150 @@ class IngenieriaManager {
     
         // 2. Mostrar estado de carga
         contenedor.innerHTML = `
-            <div style="text-align: center; padding: 20px; color: #888;">
-                <i class="fas fa-spinner fa-spin"></i> Cargando gráfico...
+            <div style="text-align: center; padding: 30px; color: #888;">
+                <i class="fas fa-spinner fa-spin"></i> Cargando gráfico de evolución...
             </div>
         `;
     
         try {
-            // 3. Obtener mejor tiempo global
+            // 3. Obtener mejor tiempo global (líder)
             const mejorGlobal = await this.obtenerMejorTiempoGlobal();
             
-            // 4. Tomar últimas 6 pruebas (o todas si hay menos)
-            const historial = this.tiemposHistoricos.slice(0, 6).reverse();
+            // 4. Tomar últimas 8 pruebas como máximo (para que sea legible)
+            const historial = this.tiemposHistoricos.slice(0, 8).reverse();
             
-            if (historial.length === 0) {
-                contenedor.innerHTML = '<p style="color: #888; text-align: center;">Sin datos históricos</p>';
+            if (historial.length < 2) {
+                contenedor.innerHTML = '<p style="color: #888; text-align: center; padding: 30px;">Necesitas al menos 2 pruebas para ver el gráfico</p>';
                 return;
             }
     
-            // 5. Preparar datos para el gráfico
+            // 5. CALCULAR ESCALA REAL
             const tiempos = historial.map(p => p.tiempo_vuelta);
-            const maxTiempo = Math.max(...tiempos, mejorGlobal?.tiempo || 0);
-            const minTiempo = Math.min(...tiempos, mejorGlobal?.tiempo || 0);
-            const rango = maxTiempo - minTiempo || 1; // Evitar división por cero
             
-            // Altura máxima de las barras en píxeles
-            const ALTURA_MAX = 120;
-            const ALTURA_MIN = 30;
+            // Añadir el tiempo del líder al conjunto para que la escala lo incluya
+            if (mejorGlobal) {
+                tiempos.push(mejorGlobal.tiempo);
+            }
             
-            // 6. Generar HTML
+            const tiempoMinimo = Math.min(...tiempos) - 0.2;  // Un poco más abajo para dar aire
+            const tiempoMaximo = Math.max(...tiempos) + 0.2; // Un poco más arriba para dar aire
+            const rango = tiempoMaximo - tiempoMinimo;
+            
+            // Altura del gráfico en píxeles
+            const ALTURA_GRAFICO = 200;
+            
+            // 6. Generar puntos para la línea SVG
+            let puntos = [];
+            const pasoX = 70; // Espaciado horizontal entre puntos
+            
+            historial.forEach((prueba, index) => {
+                const x = 50 + (index * pasoX);
+                // Invertir Y: tiempo más bajo (mejor) = más arriba
+                const y = ALTURA_GRAFICO - ((prueba.tiempo_vuelta - tiempoMinimo) / rango) * ALTURA_GRAFICO + 20;
+                puntos.push(`${x},${y}`);
+            });
+            
+            const puntosString = puntos.join(' ');
+            
+            // 7. Calcular posición Y de la línea del líder
+            let lineaMetaY = null;
+            if (mejorGlobal) {
+                lineaMetaY = ALTURA_GRAFICO - ((mejorGlobal.tiempo - tiempoMinimo) / rango) * ALTURA_GRAFICO + 20;
+            }
+            
+            // 8. Generar marcas del eje Y (tiempos)
+            const marcasY = [];
+            const numMarcas = 6;
+            for (let i = 0; i <= numMarcas; i++) {
+                const tiempo = tiempoMaximo - (i * (rango / numMarcas));
+                marcasY.push(tiempo);
+            }
+            
+            // 9. Generar HTML del gráfico
             let html = `
-                <div class="grafico-titulo">
-                    <i class="fas fa-chart-line"></i> 
-                    <span>EVOLUCIÓN DE TIEMPOS vs LÍDER GLOBAL</span>
+                <div class="grafico-titulo" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-chart-line" style="color: #00d2be;"></i>
+                        <span style="color: white; font-weight: bold;">EVOLUCIÓN DE TIEMPOS POR VUELTA</span>
+                    </div>
+                    <div style="display: flex; gap: 15px; font-size: 0.75rem;">
+                        <span style="display: flex; align-items: center; gap: 5px;">
+                            <span style="display: inline-block; width: 12px; height: 3px; background: #00d2be;"></span>
+                            <span style="color: #aaa;">TU PROGRESIÓN</span>
+                        </span>
+                        <span style="display: flex; align-items: center; gap: 5px;">
+                            <span style="display: inline-block; width: 12px; height: 2px; border-top: 2px dashed #FFD700;"></span>
+                            <span style="color: #FFD700;">LÍDER GLOBAL</span>
+                        </span>
+                    </div>
                 </div>
                 
-                <div class="grafico-area">
+                <div class="grafico-contenedor" style="position: relative; width: 100%; height: 280px; margin-top: 10px;">
+                    
+                    <!-- ESCALA VERTICAL (EJE Y) - TIEMPOS GRADUADOS -->
+                    <div class="escala-y" style="position: absolute; left: 0; top: 0; bottom: 0; width: 60px; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 0; color: #aaa; font-size: 0.75rem; font-family: 'Orbitron', monospace;">
             `;
             
-            // 6.1 Primero la línea del líder (si existe)
-            if (mejorGlobal) {
-                const alturaLider = ALTURA_MIN + ((maxTiempo - mejorGlobal.tiempo) / rango) * (ALTURA_MAX - ALTURA_MIN);
-                
-                html += `
-                    <div class="linea-meta-container" style="position: relative; margin-bottom: 5px;">
-                        <div class="linea-meta" 
-                             style="position: absolute; left: 0; right: 0; top: ${alturaLider}px; 
-                                    border-top: 2px dashed #FFD700; z-index: 5;">
-                        </div>
-                        <div class="linea-meta-texto" 
-                             style="position: absolute; right: 5px; top: ${alturaLider - 20}px; 
-                                    background: rgba(255,215,0,0.2); color: #FFD700; 
-                                    padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; 
-                                    font-weight: bold; z-index: 6;">
-                            <i class="fas fa-trophy"></i> LÍDER: ${mejorGlobal.formateado} (${mejorGlobal.escuderia})
-                        </div>
+            marcasY.forEach((tiempo, i) => {
+                const tiempoFormateado = this.formatearTiempo(tiempo);
+                html += `<div style="text-align: right; padding-right: 8px; border-bottom: 1px dotted rgba(255,255,255,0.1);">${tiempoFormateado}</div>`;
+            });
+            
+            html += `
                     </div>
+                    
+                    <!-- ÁREA DEL GRÁFICO SVG -->
+                    <div class="area-svg" style="position: absolute; left: 70px; right: 20px; top: 0; bottom: 0; height: 280px;">
+                        <svg width="100%" height="280" viewBox="0 0 ${50 + (historial.length - 1) * pasoX + 50} 280" preserveAspectRatio="xMidYMid meet" style="overflow: visible;">
+                            
+                            <!-- Línea de fondo horizontal (grid) -->
+            `;
+            
+            // Líneas de grid horizontales (corresponden a las marcas Y)
+            marcasY.forEach((tiempo, i) => {
+                const y = 20 + (i * (ALTURA_GRAFICO / numMarcas));
+                html += `<line x1="40" y1="${y}" x2="${50 + (historial.length - 1) * pasoX + 20}" y2="${y}" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4,4" />`;
+            });
+            
+            // LÍNEA DEL LÍDER (META)
+            if (mejorGlobal && lineaMetaY !== null) {
+                html += `
+                    <line x1="40" y1="${lineaMetaY}" x2="${50 + (historial.length - 1) * pasoX + 20}" y2="${lineaMetaY}" 
+                          stroke="#FFD700" stroke-width="2" stroke-dasharray="6,4" />
+                    <text x="${50 + (historial.length - 1) * pasoX + 25}" y="${lineaMetaY - 8}" 
+                          fill="#FFD700" font-size="10" font-family="Orbitron, monospace" font-weight="bold">
+                          🏆 ${mejorGlobal.formateado} (${mejorGlobal.escuderia?.substring(0, 15) || 'Líder'})
+                    </text>
                 `;
             }
             
-            // 6.2 Luego las barras
-            html += `<div class="barras-container" style="display: flex; align-items: flex-end; justify-content: space-around; margin-top: ${mejorGlobal ? '50px' : '20px'};">`;
+            // LÍNEA DE PROGRESIÓN DEL USUARIO
+            html += `
+                            <polyline points="${puntosString}" 
+                                      fill="none" 
+                                      stroke="#00d2be" 
+                                      stroke-width="3" 
+                                      stroke-linecap="round" 
+                                      stroke-linejoin="round" />
+            `;
             
+            // PUNTOS (marcadores de cada prueba)
             historial.forEach((prueba, index) => {
-                // Calcular altura de la barra
-                const altura = ALTURA_MIN + ((maxTiempo - prueba.tiempo_vuelta) / rango) * (ALTURA_MAX - ALTURA_MIN);
+                const x = 50 + (index * pasoX);
+                const y = ALTURA_GRAFICO - ((prueba.tiempo_vuelta - tiempoMinimo) / rango) * ALTURA_GRAFICO + 20;
                 
-                // Color según mejora respecto a la anterior
-                let color = '#00d2be'; // Color por defecto
-                let icono = '';
+                // Color del punto según mejora/empeora
+                let colorPunto = '#00d2be';
+                let tooltipIcono = '';
                 
                 if (index > 0) {
                     const anterior = historial[index - 1];
                     if (prueba.tiempo_vuelta < anterior.tiempo_vuelta) {
-                        color = '#4CAF50'; // Mejoró
-                        icono = '<span style="color: #4CAF50; margin-left: 4px;">▼</span>';
+                        colorPunto = '#4CAF50'; // Mejoró (tiempo menor)
+                        tooltipIcono = '▼';
                     } else if (prueba.tiempo_vuelta > anterior.tiempo_vuelta) {
-                        color = '#e10600'; // Empeoró
-                        icono = '<span style="color: #e10600; margin-left: 4px;">▲</span>';
+                        colorPunto = '#e10600'; // Empeoró (tiempo mayor)
+                        tooltipIcono = '▲';
                     }
                 }
                 
@@ -678,57 +748,49 @@ class IngenieriaManager {
                 }
                 
                 html += `
-                    <div class="barra-item" style="text-align: center; width: 60px;">
-                        <div class="barra-wrapper" style="height: ${ALTURA_MAX}px; display: flex; flex-direction: column-reverse; align-items: center;">
-                            <div class="barra" 
-                                 style="height: ${altura}px; width: 32px; background: ${color}; 
-                                        border-radius: 4px 4px 0 0; transition: height 0.3s;
-                                        box-shadow: 0 0 8px ${color}80;
-                                        margin-bottom: 5px;">
-                            </div>
-                        </div>
-                        <div class="barra-tiempo" style="font-family: 'Orbitron', monospace; font-size: 0.8rem; color: white;">
-                            ${prueba.tiempo_formateado || this.formatearTiempo(prueba.tiempo_vuelta)}
-                            ${icono}
-                        </div>
-                        <div class="barra-fecha" style="font-size: 0.65rem; color: #aaa; margin-top: 3px;">
-                            ${fechaStr}
-                        </div>
-                    </div>
+                    <circle cx="${x}" cy="${y}" r="6" fill="${colorPunto}" stroke="white" stroke-width="2" />
+                    
+                    <!-- Tooltip (oculto por defecto, se muestra con hover) -->
+                    <g class="tooltip-group" style="cursor: pointer;">
+                        <circle cx="${x}" cy="${y}" r="12" fill="transparent" stroke="none" />
+                        <title>
+                            ${fechaStr} - ${prueba.tiempo_formateado || this.formatearTiempo(prueba.tiempo_vuelta)} ${tooltipIcono}
+                            ${index > 0 ? (prueba.tiempo_vuelta < anterior.tiempo_vuelta ? 'MEJORÓ' : (prueba.tiempo_vuelta > anterior.tiempo_vuelta ? 'EMPEORÓ' : 'IGUAL')) : 'PRIMERA PRUEBA'}
+                        </title>
+                    </g>
+                    
+                    <!-- Etiqueta con fecha (abajo) -->
+                    <text x="${x}" y="260" text-anchor="middle" fill="#aaa" font-size="9" font-family="Arial, sans-serif">
+                        ${fechaStr}
+                    </text>
                 `;
             });
             
-            html += `</div>`; // Cierra barras-container
+            // Cerrar SVG
+            html += `</svg></div>`;
             
-            // 6.3 Diferencia con el líder
+            // PIE DEL GRÁFICO - DIFERENCIA CON EL LÍDER Y TENDENCIA
             if (mejorGlobal) {
                 const ultimoTiempo = historial[historial.length - 1].tiempo_vuelta;
                 const diferencia = ultimoTiempo - mejorGlobal.tiempo;
+                const diferenciaFormateada = this.formatearTiempo(Math.abs(diferencia));
                 
                 html += `
-                    <div class="diferencia-meta" style="
-                        margin-top: 25px;
-                        padding: 12px 15px;
-                        background: rgba(255,215,0,0.1);
-                        border-left: 4px solid #FFD700;
-                        border-radius: 6px;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                    ">
+                    <div style="position: absolute; bottom: -30px; left: 70px; right: 20px; 
+                                display: flex; justify-content: space-between; align-items: center;
+                                padding: 12px 15px; background: rgba(0,0,0,0.3); border-radius: 6px;
+                                margin-top: 10px; border-left: 4px solid #FFD700;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-flag-checkered" style="color: #FFD700;"></i>
-                            <span style="color: white;">
-                                <strong>Te separas del líder:</strong>
-                            </span>
+                            <i class="fas fa-tachometer-alt" style="color: #FFD700;"></i>
+                            <span style="color: white;">DISTANCIA AL LÍDER:</span>
                         </div>
                         <div style="font-family: 'Orbitron', monospace; font-size: 1.2rem; font-weight: bold; color: #FFD700;">
-                            +${this.formatearTiempo(Math.abs(diferencia))}
+                            ${diferencia > 0 ? '+' : ''}${diferenciaFormateada}
                         </div>
                     </div>
                 `;
                 
-                // 6.4 Tendencia (si hay suficientes datos)
+                // Tendencia (mejora/empeora en las últimas pruebas)
                 if (historial.length >= 3) {
                     const primero = historial[0].tiempo_vuelta;
                     const ultimo = historial[historial.length - 1].tiempo_vuelta;
@@ -739,13 +801,13 @@ class IngenieriaManager {
                     let tendenciaIcono = '';
                     
                     if (tendencia > 0.1) {
-                        tendenciaTexto = `MEJORA CONSTANTE: +${this.formatearTiempo(tendencia)} en ${historial.length} pruebas`;
+                        tendenciaTexto = `MEJORANDO: -${this.formatearTiempo(tendencia)} en ${historial.length} pruebas`;
                         tendenciaColor = '#4CAF50';
-                        tendenciaIcono = 'fa-arrow-trend-down';
+                        tendenciaIcono = 'fa-arrow-down';
                     } else if (tendencia < -0.1) {
-                        tendenciaTexto = `REGRESIÓN: -${this.formatearTiempo(Math.abs(tendencia))} en ${historial.length} pruebas`;
+                        tendenciaTexto = `EMPEORANDO: +${this.formatearTiempo(Math.abs(tendencia))} en ${historial.length} pruebas`;
                         tendenciaColor = '#e10600';
-                        tendenciaIcono = 'fa-arrow-trend-up';
+                        tendenciaIcono = 'fa-arrow-up';
                     } else {
                         tendenciaTexto = `ESTABLE: ±${this.formatearTiempo(Math.abs(tendencia))} en ${historial.length} pruebas`;
                         tendenciaColor = '#FF9800';
@@ -753,16 +815,10 @@ class IngenieriaManager {
                     }
                     
                     html += `
-                        <div style="
-                            margin-top: 10px;
-                            padding: 8px 15px;
-                            background: rgba(0,0,0,0.3);
-                            border-radius: 6px;
-                            display: flex;
-                            align-items: center;
-                            gap: 10px;
-                            color: ${tendenciaColor};
-                        ">
+                        <div style="position: absolute; bottom: -80px; left: 70px; right: 20px; 
+                                    display: flex; align-items: center; gap: 10px;
+                                    padding: 8px 15px; background: rgba(0,0,0,0.2); border-radius: 6px;
+                                    margin-top: 5px; color: ${tendenciaColor};">
                             <i class="fas ${tendenciaIcono}"></i>
                             <span style="font-size: 0.85rem;">${tendenciaTexto}</span>
                         </div>
@@ -770,36 +826,18 @@ class IngenieriaManager {
                 }
             }
             
-            html += `</div>`; // Cierra grafico-area
-            
-            // Añadir leyenda
-            html += `
-                <div style="
-                    display: flex;
-                    justify-content: center;
-                    gap: 20px;
-                    margin-top: 20px;
-                    padding-top: 15px;
-                    border-top: 1px solid rgba(255,255,255,0.1);
-                    font-size: 0.75rem;
-                    color: #aaa;
-                ">
-                    <span><span style="display: inline-block; width: 10px; height: 10px; background: #4CAF50; border-radius: 2px; margin-right: 5px;"></span> Mejoró</span>
-                    <span><span style="display: inline-block; width: 10px; height: 10px; background: #e10600; border-radius: 2px; margin-right: 5px;"></span> Empeoró</span>
-                    <span><span style="display: inline-block; width: 10px; height: 10px; background: #00d2be; border-radius: 2px; margin-right: 5px;"></span> Sin cambio</span>
-                    <span><span style="display: inline-block; width: 20px; height: 2px; background: #FFD700; border-radius: 2px; margin-right: 5px; vertical-align: middle;"></span> Líder global</span>
-                </div>
-            `;
+            html += `</div>`; // Cierra grafico-contenedor
             
             contenedor.innerHTML = html;
             
         } catch (error) {
-            console.error('❌ Error dibujando gráfico:', error);
+            console.error('❌ Error dibujando gráfico de líneas:', error);
             contenedor.innerHTML = `
-                <div style="text-align: center; padding: 20px; color: #e10600;">
-                    <i class="fas fa-exclamation-triangle"></i> Error al cargar el gráfico
+                <div style="text-align: center; padding: 30px; color: #e10600;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <p>Error al cargar el gráfico</p>
                     <button onclick="window.ingenieriaManager.dibujarGraficoEvolucionConMeta()" 
-                            style="display: block; margin: 10px auto; padding: 5px 15px; background: #00d2be; color: black; border: none; border-radius: 4px; cursor: pointer;">
+                            style="margin-top: 15px; padding: 8px 20px; background: #00d2be; color: black; border: none; border-radius: 4px; cursor: pointer;">
                         Reintentar
                     </button>
                 </div>
