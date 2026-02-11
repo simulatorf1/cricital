@@ -73,6 +73,9 @@ class IngenieriaManager {
     // ========================
     // CARGAR PESTAÑA INGENIERÍA
     // ========================
+    // ========================
+    // CARGAR PESTAÑA INGENIERÍA
+    // ========================
     async cargarTabIngenieria() {
         console.log('🔬 Cargando pestaña ingeniería...');
         
@@ -101,7 +104,6 @@ class IngenieriaManager {
                 <div class="ingenieria-container">
                     <div class="ingenieria-header">
                         <h2><i class="fas fa-flask"></i> PRUEBAS EN PISTA</h2>
-
                     </div>
                     
                     <div class="simulacion-panel">
@@ -114,8 +116,6 @@ class IngenieriaManager {
                                     <div class="info-sub">${ultimaSimulacion ? this.formatearFecha(ultimaSimulacion.fecha_prueba) : 'Nunca probado'}</div>
                                 </div>
                             </div>
-                            
-
                         </div>
                         
                         <div class="simulacion-control">
@@ -123,11 +123,34 @@ class IngenieriaManager {
                         </div>
                     </div>
                     
-                    
                     <div class="historial-panel">
                         <h3><i class="fas fa-chart-line"></i> HISTORIAL DE PRUEBAS</h3>
                         <div id="tabla-historial" class="tabla-historial">
                             ${this.generarHTMLHistorial()}
+                        </div>
+                    </div>
+                    
+                    <!-- 📊 NUEVO: GRÁFICO DE EVOLUCIÓN CON META DEL LÍDER -->
+                    <div class="grafico-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="display: flex; align-items: center; gap: 10px; color: #00d2be; margin: 0;">
+                                <i class="fas fa-chart-line"></i> 
+                                EVOLUCIÓN VS LÍDER GLOBAL
+                                <span style="font-size: 0.7rem; background: rgba(255,215,0,0.2); color: #FFD700; padding: 2px 8px; border-radius: 12px; margin-left: 10px;">
+                                    <i class="fas fa-trophy"></i> META
+                                </span>
+                            </h3>
+                            <button onclick="window.ingenieriaManager.actualizarGraficoEvolucion()" 
+                                    style="background: transparent; border: 1px solid #00d2be; color: #00d2be; 
+                                           padding: 4px 12px; border-radius: 16px; font-size: 0.7rem; 
+                                           display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <i class="fas fa-sync-alt"></i> ACTUALIZAR
+                            </button>
+                        </div>
+                        <div id="grafico-evolucion-container" class="grafico-container">
+                            <div style="text-align: center; padding: 30px; color: #888;">
+                                <i class="fas fa-spinner fa-spin"></i> Cargando gráfico de evolución...
+                            </div>
                         </div>
                     </div>
                     
@@ -148,6 +171,12 @@ class IngenieriaManager {
             
             // Añadir estilos
             this.aplicarEstilosIngenieria();
+            
+            // 🆕 DIBUJAR EL GRÁFICO DESPUÉS DE QUE EL HTML ESTÉ EN EL DOM
+            // Usamos setTimeout para asegurar que el contenedor existe
+            setTimeout(() => {
+                this.dibujarGraficoEvolucionConMeta();
+            }, 300);
             
         } catch (error) {
             console.error('❌ Error cargando ingeniería:', error);
@@ -489,6 +518,303 @@ class IngenieriaManager {
         
         return tiempoFinal;
     }
+
+    // ========================
+    // OBTENER MEJOR TIEMPO GLOBAL (DESDE CLASIFICACIÓN)
+    // ========================
+    async obtenerMejorTiempoGlobal() {
+        try {
+            console.log('🏁 Buscando mejor tiempo global para gráfico...');
+            
+            const { data: todasEscuderias, error } = await this.supabase
+                .from('escuderias')
+                .select('id, nombre');
+            
+            if (error) throw error;
+            if (!todasEscuderias || todasEscuderias.length === 0) return null;
+            
+            const escuderiasConVueltas = await Promise.all(
+                todasEscuderias.map(async (escuderia) => {
+                    const { data: resultados } = await this.supabase
+                        .from('pruebas_pista')
+                        .select('tiempo_formateado, tiempo_vuelta, fecha_prueba')
+                        .eq('escuderia_id', escuderia.id)
+                        .order('tiempo_vuelta', { ascending: true })
+                        .limit(1);
+                    
+                    const mejorVuelta = resultados && resultados.length > 0 ? resultados[0] : null;
+                    
+                    return {
+                        ...escuderia,
+                        vuelta_rapida: mejorVuelta?.tiempo_formateado || null,
+                        tiempo_vuelta: mejorVuelta?.tiempo_vuelta || 999999,
+                        fecha: mejorVuelta?.fecha_prueba || null
+                    };
+                })
+            );
+            
+            const conVuelta = escuderiasConVueltas.filter(e => e.vuelta_rapida !== null);
+            conVuelta.sort((a, b) => a.tiempo_vuelta - b.tiempo_vuelta);
+            
+            if (conVuelta.length === 0) return null;
+            
+            const mejor = conVuelta[0];
+            
+            return {
+                tiempo: mejor.tiempo_vuelta,
+                formateado: mejor.vuelta_rapida,
+                escuderia: mejor.nombre,
+                fecha: mejor.fecha
+            };
+            
+        } catch (error) {
+            console.error('❌ Error obteniendo mejor tiempo global:', error);
+            return null;
+        }
+    }
+    
+    // ========================
+    // DIBUJAR GRÁFICO DE EVOLUCIÓN CON META DEL LÍDER
+    // ========================
+    async dibujarGraficoEvolucionConMeta() {
+        // 1. No hacer nada si no hay historial
+        if (!this.tiemposHistoricos || this.tiemposHistoricos.length === 0) {
+            console.log('📊 No hay historial para mostrar gráfico');
+            return;
+        }
+    
+        const contenedor = document.getElementById('grafico-evolucion-container');
+        if (!contenedor) return;
+    
+        // 2. Mostrar estado de carga
+        contenedor.innerHTML = `
+            <div style="text-align: center; padding: 20px; color: #888;">
+                <i class="fas fa-spinner fa-spin"></i> Cargando gráfico...
+            </div>
+        `;
+    
+        try {
+            // 3. Obtener mejor tiempo global
+            const mejorGlobal = await this.obtenerMejorTiempoGlobal();
+            
+            // 4. Tomar últimas 6 pruebas (o todas si hay menos)
+            const historial = this.tiemposHistoricos.slice(0, 6).reverse();
+            
+            if (historial.length === 0) {
+                contenedor.innerHTML = '<p style="color: #888; text-align: center;">Sin datos históricos</p>';
+                return;
+            }
+    
+            // 5. Preparar datos para el gráfico
+            const tiempos = historial.map(p => p.tiempo_vuelta);
+            const maxTiempo = Math.max(...tiempos, mejorGlobal?.tiempo || 0);
+            const minTiempo = Math.min(...tiempos, mejorGlobal?.tiempo || 0);
+            const rango = maxTiempo - minTiempo || 1; // Evitar división por cero
+            
+            // Altura máxima de las barras en píxeles
+            const ALTURA_MAX = 120;
+            const ALTURA_MIN = 30;
+            
+            // 6. Generar HTML
+            let html = `
+                <div class="grafico-titulo">
+                    <i class="fas fa-chart-line"></i> 
+                    <span>EVOLUCIÓN DE TIEMPOS vs LÍDER GLOBAL</span>
+                </div>
+                
+                <div class="grafico-area">
+            `;
+            
+            // 6.1 Primero la línea del líder (si existe)
+            if (mejorGlobal) {
+                const alturaLider = ALTURA_MIN + ((maxTiempo - mejorGlobal.tiempo) / rango) * (ALTURA_MAX - ALTURA_MIN);
+                
+                html += `
+                    <div class="linea-meta-container" style="position: relative; margin-bottom: 5px;">
+                        <div class="linea-meta" 
+                             style="position: absolute; left: 0; right: 0; top: ${alturaLider}px; 
+                                    border-top: 2px dashed #FFD700; z-index: 5;">
+                        </div>
+                        <div class="linea-meta-texto" 
+                             style="position: absolute; right: 5px; top: ${alturaLider - 20}px; 
+                                    background: rgba(255,215,0,0.2); color: #FFD700; 
+                                    padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; 
+                                    font-weight: bold; z-index: 6;">
+                            <i class="fas fa-trophy"></i> LÍDER: ${mejorGlobal.formateado} (${mejorGlobal.escuderia})
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 6.2 Luego las barras
+            html += `<div class="barras-container" style="display: flex; align-items: flex-end; justify-content: space-around; margin-top: ${mejorGlobal ? '50px' : '20px'};">`;
+            
+            historial.forEach((prueba, index) => {
+                // Calcular altura de la barra
+                const altura = ALTURA_MIN + ((maxTiempo - prueba.tiempo_vuelta) / rango) * (ALTURA_MAX - ALTURA_MIN);
+                
+                // Color según mejora respecto a la anterior
+                let color = '#00d2be'; // Color por defecto
+                let icono = '';
+                
+                if (index > 0) {
+                    const anterior = historial[index - 1];
+                    if (prueba.tiempo_vuelta < anterior.tiempo_vuelta) {
+                        color = '#4CAF50'; // Mejoró
+                        icono = '<span style="color: #4CAF50; margin-left: 4px;">▼</span>';
+                    } else if (prueba.tiempo_vuelta > anterior.tiempo_vuelta) {
+                        color = '#e10600'; // Empeoró
+                        icono = '<span style="color: #e10600; margin-left: 4px;">▲</span>';
+                    }
+                }
+                
+                // Formatear fecha
+                let fechaStr = '';
+                try {
+                    const fecha = new Date(prueba.fecha_prueba || prueba.fecha);
+                    fechaStr = `${fecha.getDate()}/${fecha.getMonth() + 1}`;
+                } catch {
+                    fechaStr = `P${index + 1}`;
+                }
+                
+                html += `
+                    <div class="barra-item" style="text-align: center; width: 60px;">
+                        <div class="barra-wrapper" style="height: ${ALTURA_MAX}px; display: flex; flex-direction: column-reverse; align-items: center;">
+                            <div class="barra" 
+                                 style="height: ${altura}px; width: 32px; background: ${color}; 
+                                        border-radius: 4px 4px 0 0; transition: height 0.3s;
+                                        box-shadow: 0 0 8px ${color}80;
+                                        margin-bottom: 5px;">
+                            </div>
+                        </div>
+                        <div class="barra-tiempo" style="font-family: 'Orbitron', monospace; font-size: 0.8rem; color: white;">
+                            ${prueba.tiempo_formateado || this.formatearTiempo(prueba.tiempo_vuelta)}
+                            ${icono}
+                        </div>
+                        <div class="barra-fecha" style="font-size: 0.65rem; color: #aaa; margin-top: 3px;">
+                            ${fechaStr}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`; // Cierra barras-container
+            
+            // 6.3 Diferencia con el líder
+            if (mejorGlobal) {
+                const ultimoTiempo = historial[historial.length - 1].tiempo_vuelta;
+                const diferencia = ultimoTiempo - mejorGlobal.tiempo;
+                
+                html += `
+                    <div class="diferencia-meta" style="
+                        margin-top: 25px;
+                        padding: 12px 15px;
+                        background: rgba(255,215,0,0.1);
+                        border-left: 4px solid #FFD700;
+                        border-radius: 6px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    ">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-flag-checkered" style="color: #FFD700;"></i>
+                            <span style="color: white;">
+                                <strong>Te separas del líder:</strong>
+                            </span>
+                        </div>
+                        <div style="font-family: 'Orbitron', monospace; font-size: 1.2rem; font-weight: bold; color: #FFD700;">
+                            +${this.formatearTiempo(Math.abs(diferencia))}
+                        </div>
+                    </div>
+                `;
+                
+                // 6.4 Tendencia (si hay suficientes datos)
+                if (historial.length >= 3) {
+                    const primero = historial[0].tiempo_vuelta;
+                    const ultimo = historial[historial.length - 1].tiempo_vuelta;
+                    const tendencia = primero - ultimo;
+                    
+                    let tendenciaTexto = '';
+                    let tendenciaColor = '';
+                    let tendenciaIcono = '';
+                    
+                    if (tendencia > 0.1) {
+                        tendenciaTexto = `MEJORA CONSTANTE: +${this.formatearTiempo(tendencia)} en ${historial.length} pruebas`;
+                        tendenciaColor = '#4CAF50';
+                        tendenciaIcono = 'fa-arrow-trend-down';
+                    } else if (tendencia < -0.1) {
+                        tendenciaTexto = `REGRESIÓN: -${this.formatearTiempo(Math.abs(tendencia))} en ${historial.length} pruebas`;
+                        tendenciaColor = '#e10600';
+                        tendenciaIcono = 'fa-arrow-trend-up';
+                    } else {
+                        tendenciaTexto = `ESTABLE: ±${this.formatearTiempo(Math.abs(tendencia))} en ${historial.length} pruebas`;
+                        tendenciaColor = '#FF9800';
+                        tendenciaIcono = 'fa-minus';
+                    }
+                    
+                    html += `
+                        <div style="
+                            margin-top: 10px;
+                            padding: 8px 15px;
+                            background: rgba(0,0,0,0.3);
+                            border-radius: 6px;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            color: ${tendenciaColor};
+                        ">
+                            <i class="fas ${tendenciaIcono}"></i>
+                            <span style="font-size: 0.85rem;">${tendenciaTexto}</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            html += `</div>`; // Cierra grafico-area
+            
+            // Añadir leyenda
+            html += `
+                <div style="
+                    display: flex;
+                    justify-content: center;
+                    gap: 20px;
+                    margin-top: 20px;
+                    padding-top: 15px;
+                    border-top: 1px solid rgba(255,255,255,0.1);
+                    font-size: 0.75rem;
+                    color: #aaa;
+                ">
+                    <span><span style="display: inline-block; width: 10px; height: 10px; background: #4CAF50; border-radius: 2px; margin-right: 5px;"></span> Mejoró</span>
+                    <span><span style="display: inline-block; width: 10px; height: 10px; background: #e10600; border-radius: 2px; margin-right: 5px;"></span> Empeoró</span>
+                    <span><span style="display: inline-block; width: 10px; height: 10px; background: #00d2be; border-radius: 2px; margin-right: 5px;"></span> Sin cambio</span>
+                    <span><span style="display: inline-block; width: 20px; height: 2px; background: #FFD700; border-radius: 2px; margin-right: 5px; vertical-align: middle;"></span> Líder global</span>
+                </div>
+            `;
+            
+            contenedor.innerHTML = html;
+            
+        } catch (error) {
+            console.error('❌ Error dibujando gráfico:', error);
+            contenedor.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #e10600;">
+                    <i class="fas fa-exclamation-triangle"></i> Error al cargar el gráfico
+                    <button onclick="window.ingenieriaManager.dibujarGraficoEvolucionConMeta()" 
+                            style="display: block; margin: 10px auto; padding: 5px 15px; background: #00d2be; color: black; border: none; border-radius: 4px; cursor: pointer;">
+                        Reintentar
+                    </button>
+                </div>
+            `;
+        }
+    }
+    
+    // ========================
+    // ACTUALIZAR GRÁFICO (para llamar después de cada simulación)
+    // ========================
+    async actualizarGraficoEvolucion() {
+        await this.cargarHistorialTiempos();
+        await this.dibujarGraficoEvolucionConMeta();
+    }
+
     
     // ========================
     // INICIAR SIMULACIÓN
@@ -737,6 +1063,7 @@ class IngenieriaManager {
             
             // Recargar datos
             await this.cargarHistorialTiempos();
+            await this.dibujarGraficoEvolucionConMeta();
             
             // Mostrar notificación con informe
             this.mostrarInformeCompleto(informeIngeniero, tiempoFormateado, mejoraReal);
@@ -1863,6 +2190,164 @@ class IngenieriaManager {
                 font-size: 0.8rem;
             }
             
+            
+            /* === GRÁFICO DE EVOLUCIÓN === */
+            .grafico-panel {
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 10px;
+                border: 1px solid rgba(0, 210, 190, 0.2);
+                padding: 20px;
+                margin-top: 25px;
+                margin-bottom: 25px;
+            }
+            
+            .grafico-container {
+                width: 100%;
+                min-height: 280px;
+                background: rgba(0, 0, 0, 0.4);
+                border-radius: 8px;
+                padding: 20px 15px;
+                position: relative;
+            }
+            
+            .grafico-titulo {
+                color: #00d2be;
+                font-weight: bold;
+                font-size: 0.85rem;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                letter-spacing: 1px;
+            }
+            
+            .barras-container {
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-around;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            
+            .barra-item {
+                text-align: center;
+                width: 70px;
+                transition: transform 0.2s;
+            }
+            
+            .barra-item:hover {
+                transform: translateY(-5px);
+            }
+            
+            .barra-wrapper {
+                height: 120px;
+                display: flex;
+                flex-direction: column-reverse;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+            
+            .barra {
+                width: 36px;
+                background: #00d2be;
+                border-radius: 4px 4px 0 0;
+                transition: height 0.3s, box-shadow 0.3s;
+                position: relative;
+            }
+            
+            .barra:hover {
+                box-shadow: 0 0 12px currentColor;
+            }
+            
+            .barra-tiempo {
+                font-family: 'Orbitron', monospace;
+                font-size: 0.8rem;
+                color: white;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+            }
+            
+            .barra-fecha {
+                font-size: 0.65rem;
+                color: #aaa;
+                margin-top: 4px;
+            }
+            
+            .linea-meta {
+                border-top: 2px dashed #FFD700;
+                width: 100%;
+                pointer-events: none;
+            }
+            
+            .linea-meta-texto {
+                background: rgba(255, 215, 0, 0.15);
+                color: #FFD700;
+                padding: 3px 10px;
+                border-radius: 20px;
+                font-size: 0.7rem;
+                font-weight: bold;
+                backdrop-filter: blur(2px);
+                border: 1px solid rgba(255, 215, 0, 0.3);
+                white-space: nowrap;
+            }
+            
+            .diferencia-meta {
+                margin-top: 20px;
+                padding: 12px 18px;
+                background: rgba(255, 215, 0, 0.08);
+                border-left: 4px solid #FFD700;
+                border-radius: 6px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            /* Responsive */
+            @media (max-width: 768px) {
+                .barras-container {
+                    gap: 5px;
+                }
+                
+                .barra-item {
+                    width: 55px;
+                }
+                
+                .barra {
+                    width: 28px;
+                }
+                
+                .barra-tiempo {
+                    font-size: 0.7rem;
+                }
+                
+                .linea-meta-texto {
+                    white-space: normal;
+                    font-size: 0.6rem;
+                    right: 0 !important;
+                    left: 0 !important;
+                    width: 90%;
+                    margin: 0 auto;
+                    text-align: center;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .barras-container {
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+                
+                .barra-item {
+                    width: 45px;
+                }
+                
+                .barra {
+                    width: 24px;
+                }
+            }            
             /* CONTROLES DE SIMULACIÓN */
             .control-inactivo, .control-activo {
                 padding: 20px;
@@ -2368,7 +2853,12 @@ class IngenieriaManager {
         } catch (error) {
             console.error('❌ Error verificando simulaciones activas:', error);
         }
-        
+        // 🆕 CARGAR GRÁFICO AL INICIAR (si ya hay datos)
+        setTimeout(() => {
+            if (this.tiemposHistoricos && this.tiemposHistoricos.length > 0) {
+                this.dibujarGraficoEvolucionConMeta();
+            }
+        }, 1000);        
         console.log('✅ Sistema de ingeniería inicializado');
     }
 }
