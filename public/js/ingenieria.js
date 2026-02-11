@@ -573,11 +573,9 @@ class IngenieriaManager {
         }
     }
     
+
     // ========================
-    // DIBUJAR GRÁFICO DE EVOLUCIÓN CON META DEL LÍDER
-    // ========================
-    // ========================
-    // GRÁFICO DE LÍNEAS CON ESCALA REAL Y META DEL LÍDER
+    // GRÁFICO DE LÍNEAS CON ESCALA REAL Y META DEL LÍDER - CORREGIDO
     // ========================
     async dibujarGraficoEvolucionConMeta() {
         // 1. No hacer nada si no hay historial
@@ -616,8 +614,8 @@ class IngenieriaManager {
                 tiempos.push(mejorGlobal.tiempo);
             }
             
-            const tiempoMinimo = Math.min(...tiempos) - 0.2;  // Un poco más abajo para dar aire
-            const tiempoMaximo = Math.max(...tiempos) + 0.2; // Un poco más arriba para dar aire
+            const tiempoMinimo = Math.min(...tiempos) - 0.2;
+            const tiempoMaximo = Math.max(...tiempos) + 0.2;
             const rango = tiempoMaximo - tiempoMinimo;
             
             // Altura del gráfico en píxeles
@@ -625,11 +623,10 @@ class IngenieriaManager {
             
             // 6. Generar puntos para la línea SVG
             let puntos = [];
-            const pasoX = 70; // Espaciado horizontal entre puntos
+            const pasoX = 70;
             
             historial.forEach((prueba, index) => {
                 const x = 50 + (index * pasoX);
-                // Invertir Y: tiempo más bajo (mejor) = más arriba
                 const y = ALTURA_GRAFICO - ((prueba.tiempo_vuelta - tiempoMinimo) / rango) * ALTURA_GRAFICO + 20;
                 puntos.push(`${x},${y}`);
             });
@@ -669,41 +666,41 @@ class IngenieriaManager {
                     </div>
                 </div>
                 
-                <div class="grafico-contenedor" style="position: relative; width: 100%; height: 280px; margin-top: 10px;">
+                <div class="grafico-contenedor" style="position: relative; width: 100%; height: 350px; margin-top: 10px;">
                     
                     <!-- ESCALA VERTICAL (EJE Y) - TIEMPOS GRADUADOS -->
-                    <div class="escala-y" style="position: absolute; left: 0; top: 0; bottom: 0; width: 60px; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 0; color: #aaa; font-size: 0.75rem; font-family: 'Orbitron', monospace;">
+                    <div class="escala-y" style="position: absolute; left: 0; top: 0; bottom: 0; width: 70px; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 0; color: #aaa; font-size: 0.75rem; font-family: 'Orbitron', monospace; background: rgba(0,0,0,0.3); border-right: 1px solid #00d2be; border-radius: 4px 0 0 4px;">
             `;
             
-            marcasY.forEach((tiempo, i) => {
+            marcasY.forEach((tiempo) => {
                 const tiempoFormateado = this.formatearTiempo(tiempo);
-                html += `<div style="text-align: right; padding-right: 8px; border-bottom: 1px dotted rgba(255,255,255,0.1);">${tiempoFormateado}</div>`;
+                html += `<div style="text-align: right; padding-right: 10px; border-bottom: 1px dotted rgba(255,255,255,0.1);">${tiempoFormateado}</div>`;
             });
             
             html += `
                     </div>
                     
                     <!-- ÁREA DEL GRÁFICO SVG -->
-                    <div class="area-svg" style="position: absolute; left: 70px; right: 20px; top: 0; bottom: 0; height: 280px;">
-                        <svg width="100%" height="280" viewBox="0 0 ${50 + (historial.length - 1) * pasoX + 50} 280" preserveAspectRatio="xMidYMid meet" style="overflow: visible;">
+                    <div class="area-svg" style="position: absolute; left: 80px; right: 20px; top: 0; bottom: 0; height: 280px;">
+                        <svg width="100%" height="280" viewBox="0 0 ${50 + (historial.length - 1) * pasoX + 80} 280" preserveAspectRatio="xMidYMid meet" style="overflow: visible;">
                             
-                            <!-- Línea de fondo horizontal (grid) -->
+                            <!-- Líneas de grid horizontales -->
             `;
             
-            // Líneas de grid horizontales (corresponden a las marcas Y)
             marcasY.forEach((tiempo, i) => {
                 const y = 20 + (i * (ALTURA_GRAFICO / numMarcas));
-                html += `<line x1="40" y1="${y}" x2="${50 + (historial.length - 1) * pasoX + 20}" y2="${y}" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4,4" />`;
+                html += `<line x1="40" y1="${y}" x2="${50 + (historial.length - 1) * pasoX + 40}" y2="${y}" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4,4" />`;
             });
             
             // LÍNEA DEL LÍDER (META)
             if (mejorGlobal && lineaMetaY !== null) {
+                const nombreEscuderia = mejorGlobal.escuderia ? mejorGlobal.escuderia.substring(0, 20) : 'Líder';
                 html += `
-                    <line x1="40" y1="${lineaMetaY}" x2="${50 + (historial.length - 1) * pasoX + 20}" y2="${lineaMetaY}" 
+                    <line x1="40" y1="${lineaMetaY}" x2="${50 + (historial.length - 1) * pasoX + 40}" y2="${lineaMetaY}" 
                           stroke="#FFD700" stroke-width="2" stroke-dasharray="6,4" />
-                    <text x="${50 + (historial.length - 1) * pasoX + 25}" y="${lineaMetaY - 8}" 
-                          fill="#FFD700" font-size="10" font-family="Orbitron, monospace" font-weight="bold">
-                          🏆 ${mejorGlobal.formateado} (${mejorGlobal.escuderia?.substring(0, 15) || 'Líder'})
+                    <text x="${50 + (historial.length - 1) * pasoX + 45}" y="${lineaMetaY - 8}" 
+                          fill="#FFD700" font-size="9" font-family="Orbitron, monospace" font-weight="bold">
+                          🏆 ${mejorGlobal.formateado} (${nombreEscuderia})
                     </text>
                 `;
             }
@@ -718,23 +715,32 @@ class IngenieriaManager {
                                       stroke-linejoin="round" />
             `;
             
-            // PUNTOS (marcadores de cada prueba)
+            // 🟢🔴🔵 PUNTOS (marcadores de cada prueba) - VERSIÓN CORREGIDA
             historial.forEach((prueba, index) => {
                 const x = 50 + (index * pasoX);
                 const y = ALTURA_GRAFICO - ((prueba.tiempo_vuelta - tiempoMinimo) / rango) * ALTURA_GRAFICO + 20;
                 
-                // Color del punto según mejora/empeora
+                // Color del punto según mejora/empeora - CORREGIDO
                 let colorPunto = '#00d2be';
-                let tooltipIcono = '';
+                let tooltipTexto = `${prueba.tiempo_formateado || this.formatearTiempo(prueba.tiempo_vuelta)}`;
+                let tooltipMejora = '';
                 
-                if (index > 0) {
+                if (index === 0) {
+                    // Primer punto - sin comparación
+                    colorPunto = '#00d2be';
+                    tooltipMejora = 'PRIMERA PRUEBA';
+                } else {
+                    // A PARTIR DEL SEGUNDO PUNTO, SÍ TENEMOS 'anterior'
                     const anterior = historial[index - 1];
                     if (prueba.tiempo_vuelta < anterior.tiempo_vuelta) {
                         colorPunto = '#4CAF50'; // Mejoró (tiempo menor)
-                        tooltipIcono = '▼';
+                        tooltipMejora = '▼ MEJORÓ';
                     } else if (prueba.tiempo_vuelta > anterior.tiempo_vuelta) {
                         colorPunto = '#e10600'; // Empeoró (tiempo mayor)
-                        tooltipIcono = '▲';
+                        tooltipMejora = '▲ EMPEORÓ';
+                    } else {
+                        colorPunto = '#00d2be'; // Igual
+                        tooltipMejora = '● IGUAL';
                     }
                 }
                 
@@ -750,42 +756,43 @@ class IngenieriaManager {
                 html += `
                     <circle cx="${x}" cy="${y}" r="6" fill="${colorPunto}" stroke="white" stroke-width="2" />
                     
-                    <!-- Tooltip (oculto por defecto, se muestra con hover) -->
-                    <g class="tooltip-group" style="cursor: pointer;">
-                        <circle cx="${x}" cy="${y}" r="12" fill="transparent" stroke="none" />
+                    <!-- Tooltip mejorado -->
+                    <g class="tooltip-group" style="cursor: help;">
+                        <circle cx="${x}" cy="${y}" r="14" fill="transparent" stroke="none" />
                         <title>
-                            ${fechaStr} - ${prueba.tiempo_formateado || this.formatearTiempo(prueba.tiempo_vuelta)} ${tooltipIcono}
-                            ${index > 0 ? (prueba.tiempo_vuelta < anterior.tiempo_vuelta ? 'MEJORÓ' : (prueba.tiempo_vuelta > anterior.tiempo_vuelta ? 'EMPEORÓ' : 'IGUAL')) : 'PRIMERA PRUEBA'}
+                            ${fechaStr}
+                            Tiempo: ${prueba.tiempo_formateado || this.formatearTiempo(prueba.tiempo_vuelta)}
+                            ${tooltipMejora ? `- ${tooltipMejora}` : ''}
                         </title>
                     </g>
                     
                     <!-- Etiqueta con fecha (abajo) -->
-                    <text x="${x}" y="260" text-anchor="middle" fill="#aaa" font-size="9" font-family="Arial, sans-serif">
+                    <text x="${x}" y="270" text-anchor="middle" fill="#aaa" font-size="9" font-family="Arial, sans-serif">
                         ${fechaStr}
                     </text>
                 `;
             });
             
-            // Cerrar SVG
             html += `</svg></div>`;
             
-            // PIE DEL GRÁFICO - DIFERENCIA CON EL LÍDER Y TENDENCIA
+            // PIE DEL GRÁFICO - DIFERENCIA CON EL LÍDER
             if (mejorGlobal) {
                 const ultimoTiempo = historial[historial.length - 1].tiempo_vuelta;
                 const diferencia = ultimoTiempo - mejorGlobal.tiempo;
                 const diferenciaFormateada = this.formatearTiempo(Math.abs(diferencia));
+                const signo = diferencia > 0 ? '+' : (diferencia < 0 ? '-' : '');
                 
                 html += `
-                    <div style="position: absolute; bottom: -30px; left: 70px; right: 20px; 
+                    <div style="position: absolute; bottom: -40px; left: 80px; right: 20px; 
                                 display: flex; justify-content: space-between; align-items: center;
                                 padding: 12px 15px; background: rgba(0,0,0,0.3); border-radius: 6px;
                                 margin-top: 10px; border-left: 4px solid #FFD700;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-tachometer-alt" style="color: #FFD700;"></i>
+                            <i class="fas fa-trophy" style="color: #FFD700;"></i>
                             <span style="color: white;">DISTANCIA AL LÍDER:</span>
                         </div>
                         <div style="font-family: 'Orbitron', monospace; font-size: 1.2rem; font-weight: bold; color: #FFD700;">
-                            ${diferencia > 0 ? '+' : ''}${diferenciaFormateada}
+                            ${signo}${diferenciaFormateada}
                         </div>
                     </div>
                 `;
@@ -815,7 +822,7 @@ class IngenieriaManager {
                     }
                     
                     html += `
-                        <div style="position: absolute; bottom: -80px; left: 70px; right: 20px; 
+                        <div style="position: absolute; bottom: -90px; left: 80px; right: 20px; 
                                     display: flex; align-items: center; gap: 10px;
                                     padding: 8px 15px; background: rgba(0,0,0,0.2); border-radius: 6px;
                                     margin-top: 5px; color: ${tendenciaColor};">
@@ -836,6 +843,7 @@ class IngenieriaManager {
                 <div style="text-align: center; padding: 30px; color: #e10600;">
                     <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
                     <p>Error al cargar el gráfico</p>
+                    <p style="font-size: 0.8rem; color: #aaa; margin-top: 5px;">${error.message}</p>
                     <button onclick="window.ingenieriaManager.dibujarGraficoEvolucionConMeta()" 
                             style="margin-top: 15px; padding: 8px 20px; background: #00d2be; color: black; border: none; border-radius: 4px; cursor: pointer;">
                         Reintentar
