@@ -16,13 +16,14 @@ class IngenieriaManager {
         this.timerInterval = null;
         this.tiemposHistoricos = [];
         this.piezasEnPrueba = [];
-        this.config = {;
+        this.config = {
             tiempoBase: 83.125, // Tiempo base en segundos (01:23.125)
             tiempoMinimo: 75.382, // Tiempo mínimo en segundos (01:15.382)
             puntosMaximos: 660, // Puntos máximos alcanzables
             puntosBase: 0, // Puntos base (sin mejoras)
             vueltasPrueba: 10, // Número de vueltas en la simulación
             duracionSimulacion: 60 // Duración en segundos (1 hora)
+        }; // ✅ CERRADO CORRECTAMENTE                
         // ========================
         // SISTEMAS DE ANÁLISIS AVANZADO
         // ========================
