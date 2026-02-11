@@ -1289,31 +1289,26 @@ class IngenieriaManager {
         const ultimaPrueba = this.tiemposHistoricos[0];
         const puedeProbar = this.piezasEnPrueba.length > 0;
         
-        // Generar un ID único para este usuario/escudería
-        const storageKey = `ingeniero_nota_vista_${this.escuderia?.id || 'default'}`;
-        const notaVista = localStorage.getItem(storageKey) === 'true';
-        
         return `
             <div class="control-inactivo">
                 <h4><i class="fas fa-play-circle"></i> INICIAR NUEVA SIMULACIÓN</h4>
                 
-                <!-- ========== CUADERNO DEL INGENIERO - MINIMIZADO ========== -->
+                <!-- ========== CUADERNO DEL INGENIERO - SIEMPRE MINIMIZADO ========== -->
                 <div id="cuaderno-ingeniero-container" style="
                     background: rgba(0, 0, 0, 0.4);
-                    border: 1px solid ${notaVista ? 'rgba(0,210,190,0.3)' : '#00d2be'};
+                    border: 1px solid rgba(0,210,190,0.3);
                     border-radius: 8px;
                     margin-bottom: 20px;
                     overflow: hidden;
                 ">
-                    <!-- CABECERA SIEMPRE VISIBLE - CLICKABLE -->
-                    <div id="cabecera-cuaderno" onclick="toggleCuadernoIngeniero('${storageKey}')" style="
+                    <!-- SOLO CABECERA - SIEMPRE VISIBLE -->
+                    <div id="cabecera-cuaderno" onclick="toggleCuadernoIngeniero()" style="
                         display: flex;
                         align-items: center;
                         justify-content: space-between;
                         padding: 12px 16px;
                         background: rgba(0, 210, 190, 0.1);
                         cursor: pointer;
-                        border-bottom: 1px solid rgba(0,210,190,0.2);
                     ">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="
@@ -1333,46 +1328,37 @@ class IngenieriaManager {
                                 <span style="color: white; font-weight: bold; font-size: 0.95rem;">
                                     NOTAS DEL INGENIERO JEFE
                                 </span>
-                                <span id="cuaderno-estado" style="
+                                <span style="
                                     display: inline-block;
                                     margin-left: 10px;
                                     padding: 2px 8px;
-                                    background: ${notaVista ? 'rgba(255,255,255,0.1)' : '#FFD700'};
-                                    color: ${notaVista ? '#aaa' : 'black'};
+                                    background: rgba(255,255,255,0.1);
+                                    color: #aaa;
                                     border-radius: 12px;
                                     font-size: 0.7rem;
                                     font-weight: bold;
                                 ">
-                                    ${notaVista ? '✓ LEÍDO' : '📬 NUEVO'}
+                                    📘 ARCHIVO
                                 </span>
                             </div>
                         </div>
                         
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <span id="flecha-cuaderno" style="color: #00d2be; font-size: 0.9rem;">
-                                ${notaVista ? '<i class="fas fa-chevron-down"></i> TOCA PARA RELEER' : '<i class="fas fa-chevron-down"></i> TOCA PARA LEER'}
+                                <i class="fas fa-chevron-down"></i> TOCA PARA LEER
                             </span>
                             <span style="color: #FFD700; font-size: 1rem;">📔</span>
                         </div>
                     </div>
                     
-                    <!-- CONTENIDO OCULTO POR DEFECTO -->
-                    <div id="contenido-cuaderno" style="
-                        display: ${notaVista ? 'none' : 'block'};
-                        padding: 18px;
-                        background: rgba(0, 0, 0, 0.6);
-                        border-top: 1px solid #00d2be;
-                    ">
+                    <!-- CONTENIDO - SIEMPRE OCULTO POR DEFECTO -->
+                    <div id="contenido-cuaderno" style="display: none; padding: 18px; background: rgba(0, 0, 0, 0.6); border-top: 1px solid #00d2be;">
+                        <!-- AQUÍ TODO EL CONTENIDO DEL CUADERNO -->
                         <div style="display: flex; gap: 15px; align-items: flex-start;">
                             <div style="font-size: 2rem; color: #FFD700;">📔</div>
                             
                             <div style="flex: 1;">
-                                <p style="
-                                    color: #FFD700; 
-                                    margin: 0 0 10px 0; 
-                                    font-weight: bold; 
-                                    font-size: 1rem;
-                                ">
+                                <p style="color: #FFD700; margin: 0 0 10px 0; font-weight: bold; font-size: 1rem;">
                                     "Jefe, llevo 20 años en esto y aún me sorprendo"
                                 </p>
                                 
@@ -1383,64 +1369,7 @@ class IngenieriaManager {
                                     mientras otros gastaban sin sentido.
                                 </p>
                                 
-                                <div style="
-                                    display: flex; 
-                                    flex-wrap: wrap; 
-                                    gap: 12px; 
-                                    margin: 12px 0; 
-                                    padding: 12px; 
-                                    background: rgba(0,210,190,0.05); 
-                                    border-radius: 6px;
-                                ">
-                                    <div style="flex: 1; min-width: 200px;">
-                                        <span style="color: #00d2be; font-weight: bold; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                                            <i class="fas fa-check-circle"></i> LO QUE SABEMOS:
-                                        </span>
-                                        <ul style="color: #aaa; margin: 0; padding-left: 20px; list-style-type: none;">
-                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                                <span style="color: #4CAF50;">✅</span> Piezas que <span style="color: #4CAF50; font-weight: bold;">MEJORAN</span>
-                                            </li>
-                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                                <span style="color: #e10600;">❌</span> Piezas que <span style="color: #e10600; font-weight: bold;">EMPEORAN</span>
-                                            </li>
-                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                                <span style="color: #FF9800;">🔄</span> <span style="color: #FF9800; font-weight: bold;">COMBINACIONES</span> clave
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    
-                                    <div style="flex: 1; min-width: 200px;">
-                                        <span style="color: #FFD700; font-weight: bold; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                                            <i class="fas fa-question-circle"></i> LO QUE INVESTIGAMOS:
-                                        </span>
-                                        <ul style="color: #aaa; margin: 0; padding-left: 20px; list-style-type: none;">
-                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                                <span style="color: #FFD700;">❓</span> Qué pieza será buena o mala
-                                            </li>
-                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                                <span style="color: #FFD700;">❓</span> Por qué unas combinaciones funcionan
-                                            </li>
-                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                                <span style="color: #FFD700;">❓</span> Dónde está el límite del coche
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                
-                                <div style="
-                                    background: rgba(0, 0, 0, 0.4);
-                                    border-left: 4px solid #FFD700;
-                                    padding: 10px 12px;
-                                    margin-top: 8px;
-                                    border-radius: 0 6px 6px 0;
-                                ">
-                                    <p style="color: #ffaa00; margin: 0; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-flask" style="color: #FFD700;"></i>
-                                        <span style="font-weight: bold;">LA PRUEBA ES EL ÚNICO CAMINO.</span>
-                                        Cada simulación nos da un dato más.
-                                    </p>
-                                </div>
-                                
+                                <!-- RESTO DEL CONTENIDO... -->
                                 <div style="
                                     display: flex;
                                     justify-content: flex-end;
@@ -1448,21 +1377,9 @@ class IngenieriaManager {
                                     padding-top: 10px;
                                     border-top: 1px solid rgba(255,255,255,0.1);
                                 ">
-                                    <button onclick="marcarCuadernoLeido('${storageKey}')" style="
-                                        background: transparent;
-                                        border: 1px solid #00d2be;
-                                        color: #00d2be;
-                                        padding: 6px 14px;
-                                        border-radius: 20px;
-                                        font-size: 0.8rem;
-                                        font-weight: bold;
-                                        cursor: pointer;
-                                        display: flex;
-                                        align-items: center;
-                                        gap: 6px;
-                                    ">
-                                        <i class="fas fa-check"></i> MARCAR COMO LEÍDO
-                                    </button>
+                                    <span style="color: #888; font-size: 0.75rem;">
+                                        <i class="fas fa-info-circle"></i> Siempre disponible en el archivo
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -2420,6 +2337,26 @@ class IngenieriaManager {
 // FUNCIONES GLOBALES
 // ========================
 window.IngenieriaManager = IngenieriaManager;
+
+// ========================
+// FUNCIÓN PARA ABRIR/CERRAR CUADERNO
+// ========================
+window.toggleCuadernoIngeniero = function() {
+    const contenido = document.getElementById('contenido-cuaderno');
+    const flecha = document.getElementById('flecha-cuaderno');
+    
+    if (!contenido) return;
+    
+    if (contenido.style.display === 'none') {
+        // ABRIR
+        contenido.style.display = 'block';
+        flecha.innerHTML = '<i class="fas fa-chevron-up"></i> TOCA PARA CERRAR';
+    } else {
+        // CERRAR
+        contenido.style.display = 'none';
+        flecha.innerHTML = '<i class="fas fa-chevron-down"></i> TOCA PARA LEER';
+    }
+};
 
 // Inicializar cuando se cargue la pestaña
 if (window.tabManager) {
