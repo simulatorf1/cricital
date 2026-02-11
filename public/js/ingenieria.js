@@ -1362,11 +1362,59 @@ class IngenieriaManager {
                                     "Jefe, llevo 20 años en esto y aún me sorprendo"
                                 </p>
                                 
-                                <p style="color: #ccc; margin: 0 0 12px 0; font-size: 0.9rem;">
-                                    El <span style="color: #e10600; font-weight: bold;">Gran Premio del año pasado</span> lo ganó un equipo con 
-                                    <span style="color: #FFD700; font-weight: bold;">presupuesto medio</span>. 
-                                    ¿Su secreto? <span style="color: #4CAF50; font-weight: bold;">Encontraron las combinaciones correctas</span> 
-                                    mientras otros gastaban sin sentido.
+                                <p style="color: #ccc; margin: 0 0 16px 0; font-size: 0.95rem; line-height: 1.6;">
+                                    <span style="color: #e10600; font-weight: bold;">¿Recuerdas el Gran Premio de Spa del año pasado?</span> 
+                                    Todo el mundo daba por favorito a Ferrari. Traían <span style="color: #00d2be; font-weight: bold;">42 evoluciones</span> en las últimas 8 semanas. 
+                                    Gastaron <span style="color: #FFD700; font-weight: bold;">€18 millones</span> solo en el mes anterior.
+                                </p>
+                                
+                                <p style="color: #ccc; margin: 0 0 16px 0; font-size: 0.95rem; line-height: 1.6;">
+                                    Y perdieron. Contra un equipo con <span style="color: #FFD700; font-weight: bold;">presupuesto medio</span>, 
+                                    solo <span style="color: #00d2be; font-weight: bold;">23 evoluciones</span>, pero <span style="color: #4CAF50; font-weight: bold; text-decoration: underline;">LAS PIEZAS ADECUADAS</span>.
+                                </p>
+                                
+                                <p style="color: #ccc; margin: 0 0 16px 0; font-size: 0.95rem; line-height: 1.6;">
+                                    <span style="color: #FFD700; font-size: 1.1rem; font-weight: bold;">🔍 ¿Qué tenían ellos que nosotros no?</span><br>
+                                    No era dinero. No era personal. <span style="color: #e10600; font-weight: bold;">Era CONOCIMIENTO.</span> 
+                                    Habían probado, fallado, anotado, repetido. 
+                                    <span style="color: #4CAF50; font-weight: bold;">Sabían qué posiciones funcionaban y cuáles eran veneno puro.</span>
+                                </p>
+                                
+                                <p style="color: #ccc; margin: 0 0 16px 0; font-size: 0.95rem; line-height: 1.6;">
+                                    <span style="color: #FF9800; font-weight: bold; font-size: 1rem;">⚡ El 60% de las evoluciones fueron descartadas.</span><br>
+                                    Directamente a la papelera. No porque estuvieran rotas. 
+                                    <span style="color: #e10600; font-weight: bold;">Porque hacían el coche MÁS LENTO.</span> 
+                                    Y si no pruebas, <span style="color: #FFD700; font-weight: bold;">nunca sabes cuáles son veneno y cuáles son oro</span>.
+                                </p>
+                                
+                                <div style="
+                                    background: linear-gradient(145deg, rgba(0,210,190,0.08) 0%, rgba(0,0,0,0.2) 100%);
+                                    border-left: 6px solid #00d2be;
+                                    padding: 16px 20px;
+                                    margin: 20px 0 10px 0;
+                                    border-radius: 0 12px 12px 0;
+                                ">
+                                    <p style="color: white; margin: 0 0 8px 0; font-weight: bold; font-size: 1rem;">
+                                        <i class="fas fa-lightbulb" style="color: #FFD700; margin-right: 8px;"></i>
+                                        Esto es lo que aprendieron:
+                                    </p>
+                                    
+                                    <div style="display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap;">
+                                        <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
+                                            <span style="color: #4CAF50; font-size: 1.2rem; display: block; margin-bottom: 6px;">✅ 40%</span>
+                                            <span style="color: #ccc; font-size: 0.85rem;">Piezas que MEJORARON el tiempo</span>
+                                        </div>
+                                        <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
+                                            <span style="color: #e10600; font-size: 1.2rem; display: block; margin-bottom: 6px;">❌ 60%</span>
+                                            <span style="color: #ccc; font-size: 0.85rem;">Piezas que EMPEORARON el tiempo o no mejoraron NADA</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <p style="color: #ffaa00; margin: 20px 0 0 0; font-size: 1rem; font-style: italic; font-weight: bold; border-top: 1px solid rgba(255,170,0,0.3); padding-top: 16px;">
+                                    <i class="fas fa-flag-checkered" style="color: #FFD700; margin-right: 8px;"></i>
+                                    "Nosotros no gastamos más que nadie. Solo <span style="color: #00d2be; border-bottom: 2px solid #00d2be;">GASTAMOS MEJOR</span>."
+                                    <span style="display: block; color: #888; font-size: 0.8rem; margin-top: 6px; font-style: normal;">— Ingeniero Jefe, equipo campeón</span>
                                 </p>
                                 
                                 <!-- RESTO DEL CONTENIDO... -->
