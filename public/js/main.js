@@ -4435,13 +4435,42 @@ window.addEventListener('auth-completado', (evento) => {
                     }
                 }, 2000);                    
                 
+
                 // DESPUÉS: Verificar si mostrar tutorial
                 if (!escuderia.tutorial_completado) {
-                    console.log('📚 Mostrando tutorial...');
-                    window.tutorialManager = new TutorialManager(window.f1Manager);
-                    window.tutorialManager.iniciar();
+                    console.log('📚 Verificando tutorial...');
+                    
+                    // ✅ SOLUCIÓN: Usar patrón Singleton del TutorialManager
+                    if (!window.tutorialManager) {
+                        console.log('📚 Creando TutorialManager por primera vez...');
+                        window.tutorialManager = new TutorialManager(window.f1Manager);
+                    } else {
+                        console.log('📚 TutorialManager ya existe, actualizando f1Manager...');
+                        window.tutorialManager.f1Manager = window.f1Manager;
+                    }
+                    
+                    // ✅ IMPORTANTE: Solo iniciar si no está ya iniciado
+                    if (window.tutorialManager.tutorialIniciado) {
+                        console.log('📚 Tutorial ya iniciado previamente, omitiendo...');
+                    } else {
+                        console.log('📚 Iniciando tutorial...');
+                        window.tutorialManager.iniciar();
+                    }
+                    
+                    // ✅ También guardar referencia global
+                    window.tutorialManagerGlobal = window.tutorialManager;
+                    
                 } else {
                     console.log('✅ Tutorial ya completado, continuando en dashboard...');
+                    
+                    // ✅ Limpiar tutorial si ya está completado
+                    if (window.tutorialManager) {
+                        console.log('🧹 Limpiando tutorial ya completado...');
+                        if (window.tutorialManager.ventanaTutorial) {
+                            window.tutorialManager.ventanaTutorial.remove();
+                        }
+                        window.tutorialManager = null;
+                    }
                 }
             } catch (error) {
                 console.error('❌ Error crítico durante la inicialización:', error);
