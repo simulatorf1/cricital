@@ -272,7 +272,7 @@ class TutorialManager {
                     <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
                         <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
                             <i class="fas fa-stopwatch"></i> 
-                            <strong>Importante:</strong> Lo rápido que será tu coche solo se revela en ingeniería, probando en pista.
+                            <strong>Importante:</strong> Lo rápido que será tu coche solo se revela en ingeniería, probando en pista. Recuerda que solo podrás fabricar 4 piezas a la vez, deberás recoger una pieza para seguir fabricando.
                         </p>
                     </div>
                     
@@ -307,14 +307,14 @@ class TutorialManager {
                             📦 AQUÍ GUARDAS TUS PIEZAS
                         </p>
                         <p style="margin: 0; font-size: 0.95rem;">
-                            Desde el Almacén puedes:
+                            Si en el almacén no hay piezas recuerda recogerlas primero desde la pestaña principal en el area producción. Una vez recogida ya aparecerá en el almacén. Desde el Almacén puedes:
                         </p>
                     </div>
                     
                     <ul style="margin: 15px 0; padding-left: 20px; font-size: 0.95rem;">
                         <li style="margin-bottom: 8px;">
                             <i class="fas fa-wrench" style="color: #00d2be; margin-right: 8px;"></i>
-                            <strong>Equipar/Desmontar:</strong> Instala o cambia piezas en tu coche.
+                            <strong>Equipar/Desmontar:</strong> Instala o cambia piezas en tu coche. Haz clic en la pieza deseada para equipar.
                         </li>
                         <li style="margin-bottom: 8px;">
                             <i class="fas fa-money-bill-wave" style="color: #00d2be; margin-right: 8px;"></i>
@@ -324,7 +324,7 @@ class TutorialManager {
                     
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
                         <strong>🔮 La magia ocurre cuando pruebas la combinación en pista.</strong><br>
-                        Una vez equipado, ve a <strong>Ingeniería</strong> para la Sesión de Pruebas y descubre la puntuación REAL de tu conjunto.
+                        Una vez equipado, ve a la pestaña <strong>Ingeniería</strong> para la Sesión de Pruebas y descubre la puntuación REAL de tu conjunto.
                     </p>
                     
                     <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
@@ -379,7 +379,7 @@ class TutorialManager {
                     
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
                         <strong>🔍 La prueba en pista revela sinergias ocultas.</strong><br>
-                        Una combinación aparentemente modesta puede superar a componentes individualmente mejores.
+                        Una combinación aparentemente modesta puede superar a componentes individualmente mejores. DALE YA A INICIAR SIMULACION!! cuando acabe te mostrará el mejor tiempo por vuelta que hemos conseguido!
                     </p>
                     
 
@@ -425,8 +425,8 @@ class TutorialManager {
                     </div>
                     
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
-                        <strong>📈 El mercado fluctúa según la demanda.</strong><br>
-                        Una pieza popular antes de un Gran Premio puede subir de precio.
+                        <strong>📈 El mercado fluctúa según la demanda, lo diztan las propias escuderias.</strong><br>
+                        Una pieza popular antes de un Gran Premio puede subir de precio, gestiona tus compras.
                     </p>
                     
 
@@ -454,11 +454,11 @@ class TutorialManager {
                     <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
                         <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en "Gestionar Estrategas" para continuar.
+                            <strong>OBLIGATORIO:</strong> Haz clic en "Gestionar Estrategas" para continuar. ( El botón "Gestionar" se encuentra en la pantalla principal)
                         </p>
                     </div>                    
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
-                        <strong>📋 Puedes contratar hasta 4 estrategas,</strong> cada uno con:
+                        <strong>📋 Puedes contratar hasta 4 estrategas a la vez,</strong> cada uno con:
                     </p>
                     <ul style="margin: 0 0 15px 15px; font-size: 0.95rem;">
                         <li>Un área específica de especialización</li>
@@ -490,13 +490,13 @@ class TutorialManager {
                             🔮 ENVÍA TUS PRONÓSTICOS
                         </p>
                         <p style="margin: 0; font-size: 0.95rem;">
-                            Anticípate a la realidad. Envía tus pronósticos sobre la carrera real hasta 48 horas antes del evento.
+                            Anticípate a la realidad. Envía tus pronósticos sobre la carrera real hasta 48 horas antes del evento. Recomendamos no enviar el pronostico hasta que tengas el coche bien equipado, contratado estrategas y con el minimo margen antes de que cerremos las apuestas. NO LO ENVIES AHORA.
                         </p>
                     </div>
                     <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
                         <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en "Pronóstico" para continuar.
+                            <strong>OBLIGATORIO:</strong> Haz clic en la pestaña "Pronósticos" para continuar.
                         </p>
                     </div>                    
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
@@ -508,7 +508,7 @@ class TutorialManager {
                     <div style="background: rgba(0, 210, 190, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #00d2be;">
                         <p style="margin: 0; font-size: 0.9rem; color: #00d2be;">
                             <i class="fas fa-question-circle"></i> 
-                            <strong>ELIGE UNA DE LAS TRES OPCIONES</strong> de cada pregunta, cada una asignada a un área que cubrirá tu estratega contratado.
+                            <strong>CUANDO SE ACERQUE EL GRAN PREMIO, ELIGE UNA DE LAS TRES OPCIONES</strong> de cada pregunta, cada una asignada a un área que cubrirá tu estratega contratado.
                         </p>
                     </div>
                     
@@ -585,7 +585,7 @@ class TutorialManager {
                     <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
                         <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en el icono de Estrellas para continuar.
+                            <strong>OBLIGATORIO:</strong> Haz clic en el icono de Estrellas para continuar (AL LADO DEL DINERO DISPONIBLE EN LA ZONA SUPERIOR).
                         </p>
                     </div>                    
                     <ul style="margin: 15px 0; padding-left: 20px; font-size: 0.95rem;">
@@ -621,7 +621,7 @@ class TutorialManager {
             
             // PASO 10 (Obligar: RANKING)
             {
-                titulo: "RANKING",
+                titulo: "CLASIFICACIÓN",
 
                 contenido: `
                     <div style="background: rgba(0, 210, 190, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
@@ -635,7 +635,7 @@ class TutorialManager {
                     <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
                         <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en "Ranking" para continuar.
+                            <strong>OBLIGATORIO:</strong> Haz clic en "Clasificación" para continuar.
                         </p>
                     </div>                    
                     <ul style="margin: 15px 0; padding-left: 20px; font-size: 0.95rem;">
@@ -679,7 +679,7 @@ class TutorialManager {
                     <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
                         <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en "Notificaciones" para continuar.
+                            <strong>OBLIGATORIO:</strong> Haz clic en "Notificaciones" para continuar (al lado del recuento de estrellas).
                         </p>
                     </div>                    
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
@@ -725,7 +725,7 @@ class TutorialManager {
                     <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
                         <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en tu "Perfil" para continuar.
+                            <strong>OBLIGATORIO:</strong> Haz clic en tu "Perfil" para continuar (clic en el nombre de tu escuderia).
                         </p>
                     </div>                    
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
