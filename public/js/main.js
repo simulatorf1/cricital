@@ -670,7 +670,6 @@ class F1Manager {
                             
                             <div class="tiempo-f1-detalles">
                                 <span><i class="fas fa-calendar-alt"></i> ${fechaTexto || 'Sin fecha'}</span>
-                                <span><i class="fas fa-flag-checkered"></i> RÉCORD</span>
                             </div>
                         </div>
                         
