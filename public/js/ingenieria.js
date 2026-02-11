@@ -67,7 +67,7 @@ class IngenieriaManager {
         
         this.cuadernoNotas = []; // Se cargará desde histórico
             
-        };
+
     }
 
     // ========================
