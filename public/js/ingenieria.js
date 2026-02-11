@@ -123,12 +123,6 @@ class IngenieriaManager {
                         </div>
                     </div>
                     
-                    <div class="piezas-panel">
-                        <h3><i class="fas fa-cogs"></i> PIEZAS QUE SERÁN PROBADAS</h3>
-                        <div id="lista-piezas-prueba" class="lista-piezas">
-                            ${this.generarHTMLListaPiezas()}
-                        </div>
-                    </div>
                     
                     <div class="historial-panel">
                         <h3><i class="fas fa-chart-line"></i> HISTORIAL DE PRUEBAS</h3>
