@@ -162,9 +162,6 @@ class TutorialManager {
                             <div style="background: #ff3366; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 1.2rem;">
                                 🏎️
                             </div>
-                            <h3 style="margin: 0; color: #ffccd5; font-size: 1.5rem;">
-                                ¡Bienvenido a CRITICAL LAP!
-                            </h3>
                         </div>
                         <p style="margin: 0; font-size: 1.15rem; line-height: 1.8; color: #e0e0e0;">
                             Estás ante el juego en tiempo real con otros jugadores que combina tu trabajo de gestión con los resultados reales de las carreras.
@@ -228,7 +225,7 @@ class TutorialManager {
                     </ul>
                     
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
-                        <strong>💰 Dispones de 5.000.000€ iniciales.</strong><br>
+                        <strong>💰 Dispones de 50.000.000€ iniciales.</strong><br>
                         Recuerda: cada euro invertido debe acercarte al podio.
                     </p>
                     
@@ -263,6 +260,13 @@ class TutorialManager {
                             Tienes <strong>11 áreas técnicas</strong> por mejorar. Para empezar, debemos fabricar nuestra primera pieza.
                         </p>
                     </div>
+                    <div style="background: rgba(255, 215, 0, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #FFD700;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #FFD700;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> MINIMIZA ESTA VENTANA y luego Haz clic en la pestaña "Taller" para continuar, luego vuelve al tutorial.
+                        </p>
+                    </div>
+                    
                     
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
                         <strong>📦 Selecciona una pieza disponible y dale a "Producir".</strong><br>
@@ -281,12 +285,7 @@ class TutorialManager {
                         Cuando esté lista, debes <strong>recogerla manualmente</strong>. Una vez recogida, se enviará automáticamente a tu almacén para que puedas usarla.
                     </p>
                     
-                    <div style="background: rgba(255, 215, 0, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #FFD700;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #FFD700;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en la pestaña "Taller" para continuar.
-                        </p>
-                    </div>
+
                 `,
                 botonTexto: "He ido al Taller",
                 botonIcono: "fa-check",
@@ -300,6 +299,13 @@ class TutorialManager {
                 titulo: "EL ALMACÉN",
 
                 contenido: `
+                    <div style="background: rgba(255, 215, 0, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #FFD700;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #FFD700;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> MINIMIZA ESTA VENTANA Y Haz clic en la pestaña "Almacén" para continuar. LUEGO VUELE AL TUTORIAL.
+                        </p>
+                    </div>
+                
                     <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #FFD700;">
                             📦 AQUÍ GUARDAS TUS PIEZAS
@@ -332,12 +338,7 @@ class TutorialManager {
                         </p>
                     </div>
                     
-                    <div style="background: rgba(255, 215, 0, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #FFD700;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #FFD700;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en la pestaña "Almacén" para continuar.
-                        </p>
-                    </div>
+
                 `,
                 botonTexto: "He ido al Almacén",
                 botonIcono: "fa-check",
@@ -359,7 +360,12 @@ class TutorialManager {
                             Tu coche es un ecosistema: se prueban todas las piezas en conjunto.
                         </p>
                     </div>
-                    
+                    <div style="background: rgba(255, 215, 0, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #FFD700;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #FFD700;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> Haz clic en la pestaña "Ingeniería" para continuar.
+                        </p>
+                    </div>                    
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
                         <strong>🏁 Desde ingeniería, simularemos vueltas y te daremos:</strong>
                     </p>
@@ -380,12 +386,7 @@ class TutorialManager {
                         Una combinación aparentemente modesta puede superar a componentes individualmente mejores.
                     </p>
                     
-                    <div style="background: rgba(255, 215, 0, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #FFD700;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #FFD700;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en la pestaña "Ingeniería" para continuar.
-                        </p>
-                    </div>
+
                 `,
                 botonTexto: "He ido a Ingeniería",
                 botonIcono: "fa-check",
@@ -407,7 +408,12 @@ class TutorialManager {
                             En el Mercado compras y vendes componentes con otros Managers.
                         </p>
                     </div>
-                    
+                     <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> Haz clic en la pestaña "Mercado" para continuar.
+                        </p>
+                    </div>                   
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
                         <strong>🎯 Busca piezas que complementen tu conjunto</strong> o saca un dinero extra produciendo para otras escuderías.
                     </p>
@@ -427,12 +433,7 @@ class TutorialManager {
                         Una pieza popular antes de un Gran Premio puede subir de precio.
                     </p>
                     
-                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en la pestaña "Mercado" para continuar.
-                        </p>
-                    </div>
+
                 `,
                 botonTexto: "He ido al Mercado",
                 botonIcono: "fa-check",
@@ -454,7 +455,12 @@ class TutorialManager {
                             Para aumentar nuestras posibilidades en carrera necesitamos contratar estrategas.
                         </p>
                     </div>
-                    
+                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> Haz clic en "Gestionar Estrategas" para continuar.
+                        </p>
+                    </div>                    
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
                         <strong>📋 Puedes contratar hasta 4 estrategas,</strong> cada uno con:
                     </p>
@@ -469,12 +475,7 @@ class TutorialManager {
                         Al final de la semana su sueldo se descontará de tu presupuesto.
                     </p>
                     
-                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en "Gestionar Estrategas" para continuar.
-                        </p>
-                    </div>
+
                 `,
                 botonTexto: "He gestionado Estrategas",
                 botonIcono: "fa-check",
@@ -496,7 +497,12 @@ class TutorialManager {
                             Anticípate a la realidad. Envía tus pronósticos sobre la carrera real hasta 48 horas antes del evento.
                         </p>
                     </div>
-                    
+                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> Haz clic en "Pronóstico" para continuar.
+                        </p>
+                    </div>                    
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
                         <strong>⚠️ Para poder enviar un pronóstico, necesitas:</strong><br>
                         • Una configuración de coche probada en pista<br>
@@ -515,12 +521,7 @@ class TutorialManager {
                         Tu escudería compite con las demás para saber cuál es la que más acierta los pronósticos.
                     </p>
                     
-                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en "Pronóstico" para continuar.
-                        </p>
-                    </div>
+
                 `,
                 botonTexto: "He ido a Pronóstico",
                 botonIcono: "fa-check",
@@ -542,7 +543,12 @@ class TutorialManager {
                             En el presupuesto semanal: gastos de producción, salarios, compras en el mercado...
                         </p>
                     </div>
-                    
+                    <div style="background: rgba(255, 215, 0, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #FFD700;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #FFD700;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> Haz clic en "Presupuesto" para continuar.
+                        </p>
+                    </div>                    
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
                         <strong>📊 Pero no todo son gastos, tus ingresos dependen de:</strong>
                     </p>
@@ -559,12 +565,7 @@ class TutorialManager {
                         </p>
                     </div>
                     
-                    <div style="background: rgba(255, 215, 0, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #FFD700;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #FFD700;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en "Presupuesto" para continuar.
-                        </p>
-                    </div>
+
                 `,
                 botonTexto: "He revisado el Presupuesto",
                 botonIcono: "fa-check",
@@ -585,7 +586,12 @@ class TutorialManager {
                             Cada día, tus patrocinadores te asignarán estrellas por:
                         </p>
                     </div>
-                    
+                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> Haz clic en el icono de Estrellas para continuar.
+                        </p>
+                    </div>                    
                     <ul style="margin: 15px 0; padding-left: 20px; font-size: 0.95rem;">
                         <li style="margin-bottom: 8px;">
                             <i class="fas fa-sign-in-alt" style="color: #00d2be; margin-right: 8px;"></i>
@@ -608,12 +614,7 @@ class TutorialManager {
                         </p>
                     </div>
                     
-                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en el icono de Estrellas para continuar.
-                        </p>
-                    </div>
+
                 `,
                 botonTexto: "He visto las Estrellas",
                 botonIcono: "fa-check",
@@ -635,7 +636,12 @@ class TutorialManager {
                             Comparado con otros managers, verás tu posición según:
                         </p>
                     </div>
-                    
+                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> Haz clic en "Ranking" para continuar.
+                        </p>
+                    </div>                    
                     <ul style="margin: 15px 0; padding-left: 20px; font-size: 0.95rem;">
                         <li style="margin-bottom: 8px;">
                             <i class="fas fa-money-bill-wave" style="color: #FFD700; margin-right: 8px;"></i>
@@ -655,12 +661,7 @@ class TutorialManager {
                         <strong>🏆 Verás un histórico de las diferentes carreras</strong> y campeones de cada bloque.
                     </p>
                     
-                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en "Ranking" para continuar.
-                        </p>
-                    </div>
+
                 `,
                 botonTexto: "He visto el Ranking",
                 botonIcono: "fa-check",
@@ -679,7 +680,12 @@ class TutorialManager {
                             🔔 AQUÍ PODRÁS CONSULTAR TUS AVISOS
                         </p>
                     </div>
-                    
+                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> Haz clic en "Notificaciones" para continuar.
+                        </p>
+                    </div>                    
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
                         <strong>📋 Mantente al día con:</strong>
                     </p>
@@ -698,12 +704,7 @@ class TutorialManager {
                         </p>
                     </div>
                     
-                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en "Notificaciones" para continuar.
-                        </p>
-                    </div>
+
                 `,
                 botonTexto: "He revisado Notificaciones",
                 botonIcono: "fa-check",
@@ -725,7 +726,12 @@ class TutorialManager {
                             En tu perfil verás quién tiene el mejor coche, dinero o aciertos.
                         </p>
                     </div>
-                    
+                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> Haz clic en tu "Perfil" para continuar.
+                        </p>
+                    </div>                    
                     <p style="font-size: 0.95rem; margin-bottom: 15px;">
                         <strong>🏆 Entrando en cada perfil de usuario verás:</strong>
                     </p>
@@ -747,12 +753,7 @@ class TutorialManager {
                         </p>
                     </div>
                     
-                    <div style="background: rgba(255, 51, 102, 0.1); padding: 10px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #ff3366;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #ff3366;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en tu "Perfil" para continuar.
-                        </p>
-                    </div>
+
                 `,
                 botonTexto: "He revisado mi Perfil",
                 botonIcono: "fa-check",
@@ -833,9 +834,7 @@ class TutorialManager {
                 <h2 style="color: ${paso.colorBoton}; margin: 0 0 5px 0; font-size: 1.5rem; font-weight: 600;">
                     ${paso.titulo}
                 </h2>
-                <div style="color: #a0a0a0; font-size: 0.9rem; border-bottom: 1px solid rgba(0, 210, 190, 0.2); padding-bottom: 10px;">
-                    ${paso.subtitulo}
-                </div>
+
             </div>
         `;
         
