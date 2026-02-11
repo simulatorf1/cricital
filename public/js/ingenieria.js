@@ -1531,7 +1531,6 @@ class IngenieriaManager {
                 <tr class="${index === 0 ? 'ultima-prueba' : ''}">
                     <td>${this.formatearFecha(prueba.fecha_prueba)}</td>
                     <td class="tiempo-destacado">${prueba.tiempo_formateado || this.formatearTiempo(prueba.tiempo_vuelta)}</td>
-                    <td>${piezasCount} piezas</td>
                     <td>${mejoraHTML}</td>
                     <td>
                         <button class="btn-ver-detalle" onclick="window.ingenieriaManager.verDetallePrueba('${prueba.id}')">
@@ -1548,7 +1547,6 @@ class IngenieriaManager {
                     <tr>
                         <th>FECHA</th>
                         <th>TIEMPO</th>
-                        <th>PIEZAS</th>
                         <th>MEJORA</th>
                         <th>DETALLE</th>
                     </tr>
