@@ -1289,153 +1289,191 @@ class IngenieriaManager {
         const ultimaPrueba = this.tiemposHistoricos[0];
         const puedeProbar = this.piezasEnPrueba.length > 0;
         
+        // Generar un ID único para este usuario/escudería
+        const storageKey = `ingeniero_nota_vista_${this.escuderia?.id || 'default'}`;
+        const notaVista = localStorage.getItem(storageKey) === 'true';
+        
         return `
             <div class="control-inactivo">
                 <h4><i class="fas fa-play-circle"></i> INICIAR NUEVA SIMULACIÓN</h4>
                 
-                <!-- ========== CUADERNO DEL INGENIERO ========== -->
-                <div style="
-                    background: rgba(0, 0, 0, 0.6); 
-                    border: 2px dashed #00d2be; 
-                    padding: 18px; 
-                    margin-bottom: 20px; 
-                    border-radius: 8px; 
-                    position: relative;
+                <!-- ========== CUADERNO DEL INGENIERO - MINIMIZADO ========== -->
+                <div id="cuaderno-ingeniero-container" style="
+                    background: rgba(0, 0, 0, 0.4);
+                    border: 1px solid ${notaVista ? 'rgba(0,210,190,0.3)' : '#00d2be'};
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                    overflow: hidden;
                 ">
-                    <div style="
-                        position: absolute; 
-                        top: -12px; 
-                        left: 20px; 
-                        background: #00d2be; 
-                        color: black; 
-                        padding: 4px 12px; 
-                        border-radius: 20px; 
-                        font-weight: bold; 
-                        font-size: 0.8rem;
+                    <!-- CABECERA SIEMPRE VISIBLE - CLICKABLE -->
+                    <div id="cabecera-cuaderno" onclick="toggleCuadernoIngeniero('${storageKey}')" style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 12px 16px;
+                        background: rgba(0, 210, 190, 0.1);
+                        cursor: pointer;
+                        border-bottom: 1px solid rgba(0,210,190,0.2);
                     ">
-                        <i class="fas fa-book"></i> NOTAS DEL INGENIERO JEFE
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="
+                                background: #00d2be;
+                                width: 32px;
+                                height: 32px;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: black;
+                                font-weight: bold;
+                            ">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div>
+                                <span style="color: white; font-weight: bold; font-size: 0.95rem;">
+                                    NOTAS DEL INGENIERO JEFE
+                                </span>
+                                <span id="cuaderno-estado" style="
+                                    display: inline-block;
+                                    margin-left: 10px;
+                                    padding: 2px 8px;
+                                    background: ${notaVista ? 'rgba(255,255,255,0.1)' : '#FFD700'};
+                                    color: ${notaVista ? '#aaa' : 'black'};
+                                    border-radius: 12px;
+                                    font-size: 0.7rem;
+                                    font-weight: bold;
+                                ">
+                                    ${notaVista ? '✓ LEÍDO' : '📬 NUEVO'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span id="flecha-cuaderno" style="color: #00d2be; font-size: 0.9rem;">
+                                ${notaVista ? '<i class="fas fa-chevron-down"></i> TOCA PARA RELEER' : '<i class="fas fa-chevron-down"></i> TOCA PARA LEER'}
+                            </span>
+                            <span style="color: #FFD700; font-size: 1rem;">📔</span>
+                        </div>
                     </div>
                     
-                    <div style="display: flex; gap: 15px; align-items: flex-start; margin-top: 10px;">
-                        
-                        <div style="font-size: 2.2rem; color: #FFD700;">📔</div>
-                        
-                        <div style="flex: 1;">
-                            <p style="
-                                color: #FFD700; 
-                                margin: 0 0 10px 0; 
-                                font-weight: bold; 
-                                font-size: 1.05rem;
-                            ">
-                                "Jefe, llevo 20 años en esto y aún me sorprendo"
-                            </p>
+                    <!-- CONTENIDO OCULTO POR DEFECTO -->
+                    <div id="contenido-cuaderno" style="
+                        display: ${notaVista ? 'none' : 'block'};
+                        padding: 18px;
+                        background: rgba(0, 0, 0, 0.6);
+                        border-top: 1px solid #00d2be;
+                    ">
+                        <div style="display: flex; gap: 15px; align-items: flex-start;">
+                            <div style="font-size: 2rem; color: #FFD700;">📔</div>
                             
-                            <p style="
-                                color: #ccc; 
-                                margin: 0 0 12px 0; 
-                                font-size: 0.95rem;
-                            ">
-                                El <span style="color: #e10600; font-weight: bold;">Gran Premio del año pasado</span> lo ganó un equipo con 
-                                <span style="color: #FFD700; font-weight: bold;">presupuesto medio</span>. 
-                                ¿Su secreto? <span style="color: #4CAF50; font-weight: bold;">Encontraron las combinaciones correctas</span> 
-                                mientras otros gastaban sin sentido.
-                            </p>
-                            
-                            <div style="
-                                display: flex; 
-                                flex-wrap: wrap; 
-                                gap: 15px; 
-                                margin: 15px 0; 
-                                padding: 15px; 
-                                background: rgba(0,210,190,0.05); 
-                                border-radius: 6px;
-                            ">
-                                <div style="flex: 1; min-width: 200px;">
-                                    <span style="color: #00d2be; font-weight: bold; display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
-                                        <i class="fas fa-check-circle"></i> LO QUE SABEMOS:
-                                    </span>
-                                    <ul style="
-                                        color: #aaa; 
-                                        margin: 0; 
-                                        padding-left: 20px;
-                                        list-style-type: none;
-                                    ">
-                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                            <span style="color: #4CAF50;">✅</span> 
-                                            <span>Hay piezas que <span style="color: #4CAF50; font-weight: bold;">MEJORAN</span> el tiempo</span>
-                                        </li>
-                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                            <span style="color: #e10600;">❌</span> 
-                                            <span>Hay piezas que <span style="color: #e10600; font-weight: bold;">EMPEORAN</span> el tiempo</span>
-                                        </li>
-                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                            <span style="color: #FF9800;">🔄</span> 
-                                            <span>Hay <span style="color: #FF9800; font-weight: bold;">COMBINACIONES</span> que multiplican el rendimiento</span>
-                                        </li>
-                                    </ul>
+                            <div style="flex: 1;">
+                                <p style="
+                                    color: #FFD700; 
+                                    margin: 0 0 10px 0; 
+                                    font-weight: bold; 
+                                    font-size: 1rem;
+                                ">
+                                    "Jefe, llevo 20 años en esto y aún me sorprendo"
+                                </p>
+                                
+                                <p style="color: #ccc; margin: 0 0 12px 0; font-size: 0.9rem;">
+                                    El <span style="color: #e10600; font-weight: bold;">Gran Premio del año pasado</span> lo ganó un equipo con 
+                                    <span style="color: #FFD700; font-weight: bold;">presupuesto medio</span>. 
+                                    ¿Su secreto? <span style="color: #4CAF50; font-weight: bold;">Encontraron las combinaciones correctas</span> 
+                                    mientras otros gastaban sin sentido.
+                                </p>
+                                
+                                <div style="
+                                    display: flex; 
+                                    flex-wrap: wrap; 
+                                    gap: 12px; 
+                                    margin: 12px 0; 
+                                    padding: 12px; 
+                                    background: rgba(0,210,190,0.05); 
+                                    border-radius: 6px;
+                                ">
+                                    <div style="flex: 1; min-width: 200px;">
+                                        <span style="color: #00d2be; font-weight: bold; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                                            <i class="fas fa-check-circle"></i> LO QUE SABEMOS:
+                                        </span>
+                                        <ul style="color: #aaa; margin: 0; padding-left: 20px; list-style-type: none;">
+                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                                <span style="color: #4CAF50;">✅</span> Piezas que <span style="color: #4CAF50; font-weight: bold;">MEJORAN</span>
+                                            </li>
+                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                                <span style="color: #e10600;">❌</span> Piezas que <span style="color: #e10600; font-weight: bold;">EMPEORAN</span>
+                                            </li>
+                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                                <span style="color: #FF9800;">🔄</span> <span style="color: #FF9800; font-weight: bold;">COMBINACIONES</span> clave
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div style="flex: 1; min-width: 200px;">
+                                        <span style="color: #FFD700; font-weight: bold; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                                            <i class="fas fa-question-circle"></i> LO QUE INVESTIGAMOS:
+                                        </span>
+                                        <ul style="color: #aaa; margin: 0; padding-left: 20px; list-style-type: none;">
+                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                                <span style="color: #FFD700;">❓</span> Qué pieza será buena o mala
+                                            </li>
+                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                                <span style="color: #FFD700;">❓</span> Por qué unas combinaciones funcionan
+                                            </li>
+                                            <li style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                                <span style="color: #FFD700;">❓</span> Dónde está el límite del coche
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                                 
-                                <div style="flex: 1; min-width: 200px;">
-                                    <span style="color: #FFD700; font-weight: bold; display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
-                                        <i class="fas fa-question-circle"></i> LO QUE INVESTIGAMOS:
-                                    </span>
-                                    <ul style="
-                                        color: #aaa; 
-                                        margin: 0; 
-                                        padding-left: 20px;
-                                        list-style-type: none;
-                                    ">
-                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                            <span style="color: #FFD700;">❓</span> 
-                                            <span>Qué pieza será buena o mala</span>
-                                        </li>
-                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                            <span style="color: #FFD700;">❓</span> 
-                                            <span>Por qué unas combinaciones funcionan y otras no</span>
-                                        </li>
-                                        <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                            <span style="color: #FFD700;">❓</span> 
-                                            <span>Dónde está el límite de nuestro coche</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            
-                            <div style="
-                                background: rgba(0, 0, 0, 0.4);
-                                border-left: 4px solid #FFD700;
-                                padding: 12px 15px;
-                                margin-top: 10px;
-                                border-radius: 0 6px 6px 0;
-                            ">
-                                <p style="
-                                    color: #ffaa00; 
-                                    margin: 0; 
-                                    font-size: 0.95rem;
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 8px;
+                                <div style="
+                                    background: rgba(0, 0, 0, 0.4);
+                                    border-left: 4px solid #FFD700;
+                                    padding: 10px 12px;
+                                    margin-top: 8px;
+                                    border-radius: 0 6px 6px 0;
                                 ">
-                                    <i class="fas fa-flask" style="color: #FFD700;"></i>
-                                    <span style="font-weight: bold;">LA PRUEBA ES EL ÚNICO CAMINO.</span>
-                                    Cada simulación nos da un dato más. 
-                                    <span style="color: #00d2be; font-weight: bold;">Cada dato nos acerca al equilibrio perfecto.</span>
-                                </p>
+                                    <p style="color: #ffaa00; margin: 0; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas fa-flask" style="color: #FFD700;"></i>
+                                        <span style="font-weight: bold;">LA PRUEBA ES EL ÚNICO CAMINO.</span>
+                                        Cada simulación nos da un dato más.
+                                    </p>
+                                </div>
+                                
+                                <div style="
+                                    display: flex;
+                                    justify-content: flex-end;
+                                    margin-top: 15px;
+                                    padding-top: 10px;
+                                    border-top: 1px solid rgba(255,255,255,0.1);
+                                ">
+                                    <button onclick="marcarCuadernoLeido('${storageKey}')" style="
+                                        background: transparent;
+                                        border: 1px solid #00d2be;
+                                        color: #00d2be;
+                                        padding: 6px 14px;
+                                        border-radius: 20px;
+                                        font-size: 0.8rem;
+                                        font-weight: bold;
+                                        cursor: pointer;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 6px;
+                                    ">
+                                        <i class="fas fa-check"></i> MARCAR COMO LEÍDO
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- ========== FIN CUADERNO DEL INGENIERO ========== -->
                 
-                <p class="simulacion-desc" style="margin-top: 25px;">
-                    La simulación realizará <strong>${this.config.vueltasPrueba} vueltas</strong> de prueba en condiciones controladas para determinar el <strong style="color: #00d2be;">mejor tiempo por vuelta</strong> de tu coche.
-                    
-                    <i class="fas fa-info-circle" style="color: #00d2be; margin-left: 8px;"></i> 
-                    <span style="color: #ccc;">Los tiempos nunca serán exactamente iguales incluso con las mismas piezas. Factores como el pilotaje, temperatura de neumáticos y condiciones de pista varían ligeramente en cada intento.</span>
-                    
-                    <br><br>
-                    <span style="color: #FFD700; font-weight: bold;">⏱️ Registramos la vuelta MÁS RÁPIDA</span> de las ${this.config.vueltasPrueba}. 
-                    <span style="color: #aaa;">Esa es tu referencia real para pronósticos.</span>
+                <p class="simulacion-desc" style="margin-top: 5px;">
+                    La simulación realizará <strong>${this.config.vueltasPrueba} vueltas</strong> para determinar el 
+                    <strong style="color: #00d2be;">mejor tiempo por vuelta</strong> de tu coche.
+                    <br><span style="color: #aaa; font-size: 0.9rem;">⏱️ Registramos la vuelta MÁS RÁPIDA - tu referencia para pronósticos.</span>
                 </p>
             
                 <button id="iniciar-simulacion-btn" class="btn-iniciar-simulacion" ${!puedeProbar ? 'disabled' : ''}>
