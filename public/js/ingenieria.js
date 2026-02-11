@@ -16,13 +16,56 @@ class IngenieriaManager {
         this.timerInterval = null;
         this.tiemposHistoricos = [];
         this.piezasEnPrueba = [];
-        this.config = {
+        this.config = {;
             tiempoBase: 83.125, // Tiempo base en segundos (01:23.125)
             tiempoMinimo: 75.382, // Tiempo mínimo en segundos (01:15.382)
             puntosMaximos: 660, // Puntos máximos alcanzables
             puntosBase: 0, // Puntos base (sin mejoras)
             vueltasPrueba: 10, // Número de vueltas en la simulación
             duracionSimulacion: 60 // Duración en segundos (1 hora)
+        // ========================
+        // SISTEMAS DE ANÁLISIS AVANZADO
+        // ========================
+        this.sinergias = {
+            // ID: [pieza1, pieza2, nombreAmigable, descripcion]
+            s1: ['suelo', 'aleron_delantero', 'CARGA FRONTAL', 'El equilibrio aerodinámico delantero'],
+            s2: ['suelo', 'aleron_trasero', 'CARGA TRASERA', 'La estabilidad a alta velocidad'],
+            s3: ['motor', 'caja_cambios', 'TRANSMISIÓN', 'La entrega de potencia al asfalto'],
+            s4: ['motor', 'electronica', 'GESTIÓN MOTOR', 'El mapeado y la eficiencia del propulsor'],
+            s5: ['suspension', 'chasis', 'INTEGRIDAD ESTRUCTURAL', 'La rigidez torsional del conjunto'],
+            s6: ['suspension', 'frenos', 'FRENADA ESTABLE', 'El equilibrio en deceleración'],
+            s7: ['frenos', 'electronica', 'MODULACIÓN', 'La precisión en la frenada'],
+            s8: ['chasis', 'pontones', 'REFRIGERACIÓN', 'La gestión térmica del monoplaza'],
+            s9: ['volante', 'electronica', 'INTERFAZ PILOTO', 'La respuesta a las órdenes'],
+            s10: ['aleron_delantero', 'aleron_trasero', 'PAQUETE AERODINÁMICO', 'La eficiencia del DRS y la carga']
+        };
+        
+        this.atributos = [
+            { nombre: '🚀 ACELERACIÓN', icono: 'fa-rocket', color: '#4CAF50' },
+            { nombre: '🎯 PRECISIÓN CURVA', icono: 'fa-arrows-alt-h', color: '#00d2be' },
+            { nombre: '🛑 FRENADA', icono: 'fa-stop-circle', color: '#FF9800' },
+            { nombre: '📈 TRACCIÓN SALIDA', icono: 'fa-arrow-up', color: '#9c27b0' },
+            { nombre: '⚡ VELOCIDAD PUNTA', icono: 'fa-tachometer-alt', color: '#e10600' },
+            { nombre: '🛡️ ESTABILIDAD', icono: 'fa-shield-alt', color: '#2196F3' }
+        ];
+        
+        this.ponderaciones = {
+            // Atributo 0 (Aceleración)
+            0: { motor: 0.50, caja_cambios: 0.30, electronica: 0.10, suspension: 0.10 },
+            // Atributo 1 (Precisión curva)
+            1: { aleron_delantero: 0.30, aleron_trasero: 0.20, suelo: 0.25, suspension: 0.15, chasis: 0.10 },
+            // Atributo 2 (Frenada)
+            2: { frenos: 0.60, electronica: 0.20, suspension: 0.15, chasis: 0.05 },
+            // Atributo 3 (Tracción salida)
+            3: { suspension: 0.40, caja_cambios: 0.25, motor: 0.20, suelo: 0.15 },
+            // Atributo 4 (Velocidad punta)
+            4: { motor: 0.60, aleron_trasero: 0.30, electronica: 0.10 },
+            // Atributo 5 (Estabilidad)
+            5: { chasis: 0.40, suspension: 0.30, pontones: 0.15, volante: 0.15 }
+        };
+        
+        this.cuadernoNotas = []; // Se cargará desde histórico
+            
         };
     }
 
@@ -122,7 +165,220 @@ class IngenieriaManager {
             `;
         }
     }
+    // ========================
+    // CALCULAR SINERGIAS ENTRE PIEZAS EQUIPADAS
+    // ========================
+    calcularSinergias() {
+        const resultados = [];
+        
+        // Crear mapa de piezas por área para acceso rápido
+        const mapaPiezas = {};
+        this.piezasEnPrueba.forEach(pieza => {
+            mapaPiezas[pieza.area_id] = pieza;
+        });
+        
+        // Evaluar cada sinergia
+        Object.entries(this.sinergias).forEach(([id, sinergia]) => {
+            const [area1, area2, nombre, descripcion] = sinergia;
+            
+            const pieza1 = mapaPiezas[area1];
+            const pieza2 = mapaPiezas[area2];
+            
+            if (!pieza1 || !pieza2) return; // No están ambas equipadas
+            
+            // Calcular puntuación de sinergia (0-100)
+            // FÓRMULA: Media ponderada de puntos + factor aleatorio controlado
+            const puntos1 = pieza1.puntos_base || 60;
+            const puntos2 = pieza2.puntos_base || 60;
+            
+            // Media base
+            let puntuacion = (puntos1 + puntos2) / 2;
+            
+            // Añadir factor de compatibilidad (simula que unas parejas funcionan mejor que otras)
+            // Esto es FIJO por tipo de sinergia, no por pieza - el usuario no puede calcularlo
+            const factoresCompatibilidad = {
+                s1: 1.05, // Suelo + Alerón D suelen funcionar bien
+                s2: 0.98,
+                s3: 1.02,
+                s4: 0.95,
+                s5: 1.08, // Suspensión + Chasis, sinergia natural
+                s6: 1.03,
+                s7: 0.97,
+                s8: 0.92, // Pontones + Chasis, difícil acertar
+                s9: 1.01,
+                s10: 0.96
+            };
+            
+            puntuacion = puntuacion * (factoresCompatibilidad[id] || 1.0);
+            
+            // Pequeño azar (±3 puntos) para que no sea siempre idéntico
+            puntuacion += (Math.random() * 6) - 3;
+            
+            // Limitar entre 0-100
+            puntuacion = Math.max(0, Math.min(100, puntuacion));
+            
+            // Determinar estado
+            let estado, mensaje;
+            if (puntuacion >= 75) {
+                estado = 'excelente';
+                mensaje = 'Trabajo en equipo óptimo';
+            } else if (puntuacion >= 50) {
+                estado = 'buena';
+                mensaje = 'Comportamiento aceptable';
+            } else if (puntuacion >= 30) {
+                estado = 'deficiente';
+                mensaje = 'Tensión entre componentes';
+            } else {
+                estado = 'critica';
+                mensaje = 'Conflicto grave';
+            }
+            
+            resultados.push({
+                id,
+                nombre,
+                descripcion,
+                pieza1: pieza1.nombre,
+                pieza2: pieza2.nombre,
+                area1,
+                area2,
+                puntuacion: Math.round(puntuacion),
+                estado,
+                mensaje
+            });
+        });
+        
+        // Ordenar de peor a mejor (para destacar lo crítico)
+        return resultados.sort((a, b) => a.puntuacion - b.puntuacion);
+    }    
+
+    // ========================
+    // CALCULAR ATRIBUTOS DEL COCHE (ADN)
+    // ========================
+    calcularAtributos() {
+        const resultados = [];
+        
+        // Crear mapa de piezas por área
+        const mapaPiezas = {};
+        this.piezasEnPrueba.forEach(pieza => {
+            mapaPiezas[pieza.area_id] = pieza.puntos_base || 60;
+        });
+        
+        // Si faltan piezas, asignar valores por defecto
+        const areasNecesarias = ['motor', 'caja_cambios', 'electronica', 'suspension', 'chasis', 
+                                'aleron_delantero', 'aleron_trasero', 'suelo', 'frenos', 'pontones', 'volante'];
+        
+        areasNecesarias.forEach(area => {
+            if (!mapaPiezas[area]) {
+                mapaPiezas[area] = 50; // Valor por defecto si no está equipada
+            }
+        });
+        
+        // Calcular cada atributo
+        this.atributos.forEach((atributo, index) => {
+            const ponderacion = this.ponderaciones[index];
+            let valor = 0;
+            let pesoTotal = 0;
+            
+            Object.entries(ponderacion).forEach(([area, peso]) => {
+                const puntos = mapaPiezas[area] || 50;
+                valor += puntos * peso;
+                pesoTotal += peso;
+            });
+            
+            // Normalizar a 0-100
+            valor = valor / pesoTotal;
+            
+            // Pequeño factor de sinergia global (simula que el conjunto es más que la suma)
+            // Esto evita que el usuario pueda calcularlo exactamente
+            valor = valor * (0.95 + (Math.random() * 0.1));
+            
+            // Limitar
+            valor = Math.max(30, Math.min(100, Math.round(valor)));
+            
+            resultados.push({
+                ...atributo,
+                valor,
+                index
+            });
+        });
+        
+        return resultados;
+    }
+
+    // ========================
+    // GENERAR CUADERNO DEL INGENIERO
+    // ========================
+    generarCuadernoIngeniero(tiempoActual, tiempoAnterior, mejora, piezaDebil, sinergiasCriticas) {
+        const fecha = new Date();
+        const semana = this.obtenerNumeroSemana(fecha);
+        
+        let entrada = {
+            fecha: fecha.toISOString(),
+            semana: semana,
+            tiempo: this.formatearTiempo(tiempoActual),
+            mejora: mejora ? (mejora > 0 ? `+${this.formatearTiempo(mejora)}` : `${this.formatearTiempo(mejora)}`) : 'Primera prueba',
+            notas: []
+        };
+        
+        // Nota sobre el rendimiento general
+        if (!tiempoAnterior) {
+            entrada.notas.push(`📝 PRIMERA PRUEBA: Registramos ${this.formatearTiempo(tiempoActual)} como referencia. Mucho trabajo por delante.`);
+        } else if (mejora > 0.1) {
+            entrada.notas.push(`🏆 ¡GRAN AVANCE! Ganamos ${this.formatearTiempo(mejora)}. El setup funciona. No tocar lo que funciona.`);
+        } else if (mejora > 0.02) {
+            entrada.notas.push(`📈 Progreso constante: +${this.formatearTiempo(mejora)}. Dirección correcta.`);
+        } else if (mejora > 0) {
+            entrada.notas.push(`↗️ Mejora marginal: +${this.formatearTiempo(mejora)}. Casi imperceptible.`);
+        } else if (mejora < -0.1) {
+            entrada.notas.push(`🔻 ALERTA: Perdemos ${this.formatearTiempo(Math.abs(mejora))}. Algo cambió y no fue bien.`);
+        } else if (mejora < 0) {
+            entrada.notas.push(`↘️ Ligera regresión: -${this.formatearTiempo(Math.abs(mejora))}. Revisar ajustes finos.`);
+        }
+        
+        // Nota sobre la pieza débil
+        if (piezaDebil) {
+            const areasMap = {
+                'suelo': 'suelo',
+                'motor': 'motor',
+                'aleron_delantero': 'alerón delantero',
+                'caja_cambios': 'caja de cambios',
+                'pontones': 'pontones',
+                'suspension': 'suspensión',
+                'aleron_trasero': 'alerón trasero',
+                'chasis': 'chasis',
+                'frenos': 'frenos',
+                'volante': 'volante',
+                'electronica': 'electrónica'
+            };
+            const nombreArea = areasMap[piezaDebil] || piezaDebil;
+            entrada.notas.push(`🔍 El ${nombreArea} es nuestro eslabón más débil. Necesita desarrollo urgente.`);
+        }
+        
+        // Nota sobre la peor sinergia
+        if (sinergiasCriticas && sinergiasCriticas.length > 0) {
+            const peorSinergia = sinergiasCriticas[0];
+            entrada.notas.push(`⚠️ ${peorSinergia.nombre}: ${peorSinergia.descripcion.toLowerCase()} no es óptimo. Revisar ${peorSinergia.area1} y ${peorSinergia.area2}.`);
+        }
+        
+        // Añadir al cuaderno (mantener solo últimas 10 entradas)
+        this.cuadernoNotas.unshift(entrada);
+        if (this.cuadernoNotas.length > 10) {
+            this.cuadernoNotas.pop();
+        }
+        
+        return entrada;
+    }
     
+    // ========================
+    // OBTENER NÚMERO DE SEMANA
+    // ========================
+    obtenerNumeroSemana(fecha) {
+        const d = new Date(fecha);
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+        const week1 = new Date(d.getFullYear(), 0, 4);
+        return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+    }
     // ========================
     // CARGAR PIEZAS MONTADAS ACTUALES
     // ========================
@@ -531,6 +787,9 @@ class IngenieriaManager {
     // ========================
     // GENERAR INFORME DEL INGENIERO
     // ========================
+    // ========================
+    // GENERAR INFORME DEL INGENIERO - NUEVA VERSIÓN
+    // ========================
     generarInformeIngeniero(tiempoActual, tiempoAnterior, mejora, piezaDebil) {
         const fecha = new Date().toLocaleDateString('es-ES', {
             weekday: 'long',
@@ -542,110 +801,257 @@ class IngenieriaManager {
         const tiempoFormateado = this.formatearTiempo(tiempoActual);
         const tiempoAnteriorFormateado = tiempoAnterior ? this.formatearTiempo(tiempoAnterior) : null;
         
+        // ========== 1. CALCULAR SINERGIAS ==========
+        const sinergias = this.calcularSinergias();
+        const sinergiasDeficientes = sinergias.filter(s => s.puntuacion < 50);
+        const sinergiaCritica = sinergiasDeficientes.length > 0 ? sinergiasDeficientes[0] : null;
+        
+        // ========== 2. CALCULAR ATRIBUTOS ADN ==========
+        const atributos = this.calcularAtributos();
+        const atributoDebil = [...atributos].sort((a, b) => a.valor - b.valor)[0];
+        const atributoFuerte = [...atributos].sort((a, b) => b.valor - a.valor)[0];
+        
+        // ========== 3. GENERAR CUADERNO ==========
+        const entradaCuaderno = this.generarCuadernoIngeniero(tiempoActual, tiempoAnterior, mejora, piezaDebil, sinergiasDeficientes);
+        
+        // ========== 4. CONSTRUIR INFORME ==========
         let informe = `
             <div class="informe-ingeniero">
                 <div class="informe-header">
-                    <h4><i class="fas fa-file-alt"></i> INFORME DE PRUEBAS</h4>
+                    <h4><i class="fas fa-file-alt"></i> INFORME TÉCNICO - DEPARTAMENTO DE INGENIERÍA</h4>
                     <span class="informe-fecha">${fecha}</span>
                 </div>
                 
+                <!-- SECCIÓN 1: RESULTADO DE LA PRUEBA -->
                 <div class="informe-seccion">
-                    <h5><i class="fas fa-stopwatch"></i> RESULTADOS DE LA SIMULACIÓN</h5>
-                    <p>Después de completar ${this.config.vueltasPrueba} vueltas de prueba en condiciones controladas, el coche ha registrado un <strong>tiempo promedio por vuelta de ${tiempoFormateado}</strong>.</p>
+                    <h5><i class="fas fa-stopwatch"></i> RESULTADO DE LA SIMULACIÓN</h5>
+                    <p>Después de completar ${this.config.vueltasPrueba} vueltas, el <strong>mejor tiempo registrado</strong> es de <span style="color: #00d2be; font-size: 1.2rem; font-weight: bold;">${tiempoFormateado}</span>.</p>
         `;
         
         if (tiempoAnterior) {
             if (mejora > 0) {
-                informe += `
-                    <p class="mejora-positiva">
-                        <i class="fas fa-arrow-up"></i> <strong>¡MEJORA DETECTADA!</strong><br>
-                        El coche es ${this.formatearTiempo(mejora)} más rápido que en la prueba anterior (${tiempoAnteriorFormateado}).
-                    </p>
-                `;
+                informe += `<p class="mejora-positiva"><i class="fas fa-arrow-up"></i> <strong>MEJORA DE ${this.formatearTiempo(mejora)}</strong> respecto a la prueba anterior (${tiempoAnteriorFormateado}).</p>`;
             } else if (mejora < 0) {
-                informe += `
-                    <p class="mejora-negativa">
-                        <i class="fas fa-arrow-down"></i> <strong>REGREsiÓN DETECTADA</strong><br>
-                        El coche es ${this.formatearTiempo(Math.abs(mejora))} más lento que en la prueba anterior (${tiempoAnteriorFormateado}).
-                    </p>
-                `;
+                informe += `<p class="mejora-negativa"><i class="fas fa-arrow-down"></i> <strong>REGRESIÓN DE ${this.formatearTiempo(Math.abs(mejora))}</strong> respecto a la prueba anterior (${tiempoAnteriorFormateado}).</p>`;
             } else {
-                informe += `
-                    <p class="mejora-neutra">
-                        <i class="fas fa-equals"></i> <strong>TIEMPOS SIMILARES</strong><br>
-                        El coche mantiene el mismo rendimiento que en la prueba anterior (${tiempoAnteriorFormateado}).
-                    </p>
-                `;
+                informe += `<p class="mejora-neutra"><i class="fas fa-equals"></i> <strong>TIEMPO IDÉNTICO</strong> a la prueba anterior.</p>`;
             }
         } else {
-            informe += `
-                <p class="primera-prueba">
-                    <i class="fas fa-star"></i> <strong>PRIMERA PRUEBA REGISTRADA</strong><br>
-                    Este será tu tiempo de referencia para futuras comparaciones.
-                </p>
-            `;
+            informe += `<p class="primera-prueba"><i class="fas fa-star"></i> <strong>PRIMERA PRUEBA REGISTRADA</strong> - Establecemos tiempo de referencia.</p>`;
         }
         
+        informe += `</div>`;
+        
+        // ========== SECCIÓN 2: PERFIL ADN DEL COCHE ==========
         informe += `
-                </div>
+            <div class="informe-seccion">
+                <h5><i class="fas fa-dna"></i> PERFIL DE COMPORTAMIENTO</h5>
+                <p style="color: #ccc; margin-bottom: 15px;">Rendimiento estimado del monoplaza en diferentes áreas:</p>
                 
-                <div class="informe-seccion">
-                    <h5><i class="fas fa-search"></i> ANÁLISIS DE COMPONENTES</h5>
-                    <p>El análisis tele métrico ha identificado que todos los componentes están funcionando dentro de los parámetros esperados.</p>
+                <div class="atributos-container" style="display: flex; flex-direction: column; gap: 12px;">
         `;
         
-        if (piezaDebil) {
-            // Buscar el nombre amigable del área
-            const areasMap = {
-                'suelo': 'sistema de suelo',
-                'motor': 'propulsión',
-                'aleron_delantero': 'alerón delantero',
-                'caja_cambios': 'transmisión',
-                'pontones': 'sistema de refrigeración',
-                'suspension': 'suspensión',
-                'aleron_trasero': 'alerón trasero',
-                'chasis': 'estructura del chasis',
-                'frenos': 'sistema de frenado',
-                'volante': 'unidad de control',
-                'electronica': 'electrónica de a bordo'
-            };
+        // Generar barras para cada atributo
+        atributos.forEach(atributo => {
+            const porcentaje = atributo.valor;
+            let color = atributo.color;
             
-            const areaNombre = areasMap[piezaDebil] || piezaDebil.toLowerCase();
+            // Gradiente según valor
+            if (porcentaje < 40) color = '#e10600';
+            else if (porcentaje < 60) color = '#FF9800';
+            else if (porcentaje < 75) color = '#00d2be';
+            else color = '#4CAF50';
             
             informe += `
-                    <p class="recomendacion">
-                        <i class="fas fa-exclamation-triangle"></i> <strong>RECOMENDACIÓN PRIORITARIA:</strong><br>
-                        El área que muestra <strong>mayor margen de mejora</strong> es el <strong>${areaNombre}</strong>. Considera desarrollar mejoras en esta zona para obtener ganancias significativas de tiempo.
-                    </p>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="min-width: 160px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas ${atributo.icono}" style="color: ${atributo.color}; width: 20px;"></i>
+                        <span style="color: white;">${atributo.nombre}</span>
+                    </div>
+                    <div style="flex: 1; height: 16px; background: rgba(0,0,0,0.5); border-radius: 8px; overflow: hidden; position: relative;">
+                        <div style="width: ${porcentaje}%; height: 100%; background: ${color}; border-radius: 8px; transition: width 0.3s;"></div>
+                    </div>
+                    <div style="min-width: 45px; text-align: right; color: ${color}; font-weight: bold; font-family: 'Orbitron', sans-serif;">
+                        ${porcentaje}%
+                    </div>
+                </div>
             `;
-        } else {
-            informe += `
-                    <p class="recomendacion-neutra">
-                        <i class="fas fa-check-circle"></i> <strong>BALANCE ÓPTIMO:</strong><br>
-                        Todos los componentes muestran un rendimiento equilibrado. Para mejorar, considera desarrollos generales en todas las áreas.
-                    </p>
-            `;
-        }
+        });
         
         informe += `
                 </div>
                 
-                <div class="informe-seccion">
-                    <h5><i class="fas fa-lightbulb"></i> PRÓXIMOS PASOS RECOMENDADOS</h5>
-                    <ul>
-                        <li>Realiza mejoras en el área identificada para maximizar ganancias</li>
-                        <li>Programa otra prueba dentro de 24 horas para verificar mejoras</li>
-                        <li>Consulta el histórico de pruebas para analizar tendencias</li>
-                        <li>Considera ajustes finos en la configuración del coche</li>
-                    </ul>
-                </div>
-                
-                <div class="informe-firma">
-                    <p><strong>Ing. Carlos Méndez</strong><br>
-                    Jefe de Departamento de Pruebas<br>
-                    Escudería ${this.escuderia.nombre}</p>
+                <div style="margin-top: 20px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 6px; border-left: 4px solid ${atributoDebil.color};">
+                    <span style="color: #aaa;">📊 PERFIL DOMINANTE:</span>
+                    <span style="color: ${atributoFuerte.color}; font-weight: bold; margin-left: 8px;">${atributoFuerte.nombre} (${atributoFuerte.valor}%)</span>
+                    <br>
+                    <span style="color: #aaa;">⚠️ DEBILIDAD DETECTADA:</span>
+                    <span style="color: ${atributoDebil.color}; font-weight: bold; margin-left: 8px;">${atributoDebil.nombre} (${atributoDebil.valor}%)</span>
                 </div>
             </div>
+        `;
+        
+        // ========== SECCIÓN 3: INFORME DE SINERGIAS ==========
+        informe += `
+            <div class="informe-seccion">
+                <h5><i class="fas fa-link"></i> ANÁLISIS DE COMPATIBILIDAD</h5>
+        `;
+        
+        if (sinergiasDeficientes.length > 0) {
+            // Mostrar SOLO UNA sinergia deficiente (la peor) - como pides
+            const s = sinergiaCritica;
+            informe += `
+                <div style="background: rgba(225, 6, 0, 0.15); padding: 15px; border-radius: 8px; border-left: 4px solid #e10600; margin-bottom: 15px;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                        <i class="fas fa-exclamation-triangle" style="color: #e10600; font-size: 1.2rem;"></i>
+                        <span style="color: #e10600; font-weight: bold; font-size: 1.1rem;">⚠️ ALERTA DE COMPATIBILIDAD</span>
+                    </div>
+                    <p style="margin: 0; color: #ffaa00; font-weight: bold; font-size: 1rem;">
+                        ${s.nombre} - ${s.puntuacion}/100
+                    </p>
+                    <p style="margin: 8px 0 0 0; color: #fff;">
+                        <strong>INFORME DE COMPATIBILIDAD:</strong> Hemos detectado una sinergia deficiente en <strong style="color: #ffaa00;">${s.nombre}</strong>. 
+                        ${s.descripcion} no trabajan en armonía. Revisa ambos componentes.
+                    </p>
+                    <p style="margin: 8px 0 0 0; color: #ccc; font-size: 0.9rem;">
+                        <i class="fas fa-wrench"></i> Componentes implicados: ${s.pieza1} / ${s.pieza2}
+                    </p>
+                </div>
+            `;
+            
+            // Mostrar las demás sinergias en una tabla compacta
+            informe += `<p style="color: #aaa; margin-bottom: 8px;">Otras compatibilidades monitorizadas:</p>`;
+            informe += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">`;
+            
+            sinergias.forEach(s => {
+                let color, icono;
+                if (s.puntuacion >= 75) { color = '#4CAF50'; icono = 'fa-check-circle'; }
+                else if (s.puntuacion >= 50) { color = '#00d2be'; icono = 'fa-check'; }
+                else if (s.puntuacion >= 30) { color = '#FF9800'; icono = 'fa-exclamation-triangle'; }
+                else { color = '#e10600'; icono = 'fa-times-circle'; }
+                
+                informe += `
+                    <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border-left: 3px solid ${color};">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: white; font-weight: bold; font-size: 0.85rem;">${s.nombre}</span>
+                            <span style="color: ${color}; font-weight: bold; font-family: 'Orbitron', sans-serif;">${s.puntuacion}</span>
+                        </div>
+                        <div style="color: #aaa; font-size: 0.75rem; margin-top: 4px;">
+                            <i class="fas ${icono}" style="color: ${color};"></i> ${s.mensaje}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            informe += `</div>`;
+            
+        } else {
+            informe += `
+                <div style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #4CAF50;">
+                    <p style="margin: 0; color: #4CAF50; font-weight: bold;">
+                        <i class="fas fa-check-circle"></i> TODAS LAS SINERGIAS SON ÓPTIMAS
+                    </p>
+                    <p style="margin: 8px 0 0 0; color: #ccc;">
+                        El conjunto muestra un equilibrio excepcional. Cualquier mejora requerirá desarrollar componentes individuales.
+                    </p>
+                </div>
+            `;
+        }
+        
+        informe += `</div>`;
+        
+        // ========== SECCIÓN 4: CUADERNO DEL INGENIERO ==========
+        informe += `
+            <div class="informe-seccion">
+                <h5><i class="fas fa-book"></i> CUADERNO DEL INGENIERO JEFE</h5>
+                
+                <div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 15px; border: 1px dashed rgba(255,215,0,0.3);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                        <i class="fas fa-user-tie" style="color: #FFD700; font-size: 1.3rem;"></i>
+                        <span style="color: #FFD700; font-weight: bold;">NOTAS DE CARLOS MÉNDEZ - SEMANA ${entradaCuaderno.semana}</span>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+        `;
+        
+        // Mostrar las notas actuales
+        entradaCuaderno.notas.forEach(nota => {
+            informe += `<div style="display: flex; gap: 10px; align-items: flex-start;">
+                            <span style="color: #FFD700;">📌</span>
+                            <span style="color: #fff;">${nota}</span>
+                        </div>`;
+        });
+        
+        // Mostrar entradas anteriores (últimas 3)
+        if (this.cuadernoNotas.length > 1) {
+            informe += `
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 8px;">
+                                <i class="fas fa-history"></i> ANOTACIONES ANTERIORES:
+                            </p>
+            `;
+            
+            for (let i = 1; i < Math.min(4, this.cuadernoNotas.length); i++) {
+                const entry = this.cuadernoNotas[i];
+                if (entry.notas.length > 0) {
+                    informe += `<div style="color: #888; font-size: 0.85rem; margin-bottom: 8px; padding-left: 10px; border-left: 2px solid #444;">
+                                    <span style="color: #aaa;">Semana ${entry.semana}:</span> ${entry.notas[0]}
+                                </div>`;
+                }
+            }
+            
+            informe += `</div>`;
+        }
+        
+        informe += `
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // ========== SECCIÓN 5: RECOMENDACIONES ==========
+        informe += `
+            <div class="informe-seccion">
+                <h5><i class="fas fa-lightbulb"></i> PRÓXIMOS PASOS</h5>
+                <ul style="margin: 10px 0 0 20px;">
+        `;
+        
+        if (sinergiaCritica) {
+            informe += `<li style="margin-bottom: 8px;"><span style="color: #ffaa00;">⚠️ PRIORIDAD ALTA:</span> Revisar <strong>${sinergiaCritica.pieza1}</strong> o <strong>${sinergiaCritica.pieza2}</strong> para resolver la sinergia deficiente.</li>`;
+        }
+        
+        if (atributoDebil.valor < 60) {
+            informe += `<li style="margin-bottom: 8px;"><span style="color: ${atributoDebil.color};">📉 DEBILIDAD ESTRUCTURAL:</span> El monoplaza sufre en <strong>${atributoDebil.nombre.toLowerCase()}</strong>. Desarrolla componentes que mejoren esta área.</li>`;
+        }
+        
+        if (piezaDebil) {
+            const areasMap = {
+                'suelo': 'suelo',
+                'motor': 'motor',
+                'aleron_delantero': 'alerón delantero',
+                'caja_cambios': 'caja de cambios',
+                'pontones': 'pontones',
+                'suspension': 'suspensión',
+                'aleron_trasero': 'alerón trasero',
+                'chasis': 'chasis',
+                'frenos': 'frenos',
+                'volante': 'volante',
+                'electronica': 'electrónica'
+            };
+            informe += `<li style="margin-bottom: 8px;"><span style="color: #FF9800;">🔧 PIEZA DÉBIL:</span> El <strong>${areasMap[piezaDebil] || piezaDebil}</strong> es el componente de menor rendimiento. Considera reemplazarlo o mejorarlo.</li>`;
+        }
+        
+        informe += `
+                    <li style="margin-bottom: 8px;"><span style="color: #00d2be;">🔄 CICLO DE MEJORA:</span> Programa una nueva prueba tras realizar cambios para verificar evolución.</li>
+                </ul>
+            </div>
+            
+            <div class="informe-firma">
+                <p><strong>Ing. Carlos Méndez</strong><br>
+                Jefe de Departamento de Pruebas y Validación<br>
+                Escudería ${this.escuderia.nombre}</p>
+            </div>
+        </div>
         `;
         
         return informe;
