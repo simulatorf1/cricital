@@ -71,23 +71,25 @@ class TutorialManager {
         `;
         
         this.ventanaTutorial.innerHTML = `
-            <div id="tutorial-header" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div id="tutorial-header" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
                 <div id="tutorial-title-container" style="flex: 1;">
-                    <!-- Título y paso se actualizarán -->
+                    <!-- Título y paso se actualizarán desde actualizarContenidoPaso() -->
                 </div>
                 <button id="btn-minimizar-tutorial" style="
-                    background: rgba(0, 240, 255, 0.2);
-                    border: 2px solid #00f0ff;
-                    color: #00f0ff;
-                    padding: 8px 16px;
-                    border-radius: 6px;
+                    background: rgba(0, 210, 190, 0.25);
+                    border: 2px solid #00d2be;
+                    color: #00d2be;
+                    padding: 8px 18px;
+                    border-radius: 8px;
                     cursor: pointer;
-                    font-size: 0.9rem;
+                    font-size: 0.95rem;
+                    font-weight: bold;
                     display: flex;
                     align-items: center;
                     gap: 8px;
-                    margin-left: 20px;
-                    align-self: flex-start;
+                    transition: all 0.3s;
+                    box-shadow: 0 0 15px rgba(0, 210, 190, 0.3);
+                    z-index: 999999;
                 ">
                     <i class="fas fa-window-minimize"></i>
                     Minimizar
@@ -835,8 +837,10 @@ class TutorialManager {
             'fa-user', 'fa-flag-checkered'
         ];
         
+        // Mantener el botón minimizar que ya existe en el header
+        const btnMinimizarExistente = header.querySelector('#btn-minimizar-tutorial');
         header.innerHTML = `
-            <div style="text-align: center; margin-bottom: 10px;">
+            <div id="tutorial-title-container" style="flex: 1; text-align: center;">
                 <div style="font-size: 0.9rem; color: #00d2be; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">
                     Paso ${numeroPaso + 1} de ${this.totalPasos}
                 </div>
@@ -849,6 +853,36 @@ class TutorialManager {
                 </div>
             </div>
         `;
+        
+        // Si el botón minimizar existía, volver a agregarlo
+        if (btnMinimizarExistente) {
+            header.appendChild(btnMinimizarExistente);
+        } else {
+            // Si no existe, crearlo
+            const nuevoBtn = document.createElement('button');
+            nuevoBtn.id = 'btn-minimizar-tutorial';
+            nuevoBtn.style.cssText = `
+                background: rgba(0, 210, 190, 0.25);
+                border: 2px solid #00d2be;
+                color: #00d2be;
+                padding: 8px 18px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 0.95rem;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: all 0.3s;
+                box-shadow: 0 0 15px rgba(0, 210, 190, 0.3);
+                margin-left: 20px;
+            `;
+            nuevoBtn.innerHTML = '<i class="fas fa-window-minimize"></i> Minimizar';
+            header.appendChild(nuevoBtn);
+        }
+        
+        // Volver a configurar el evento minimizar
+        this.configurarMinimizar();
         
         // Actualizar contenido
         content.innerHTML = paso.contenido;
@@ -947,8 +981,7 @@ class TutorialManager {
         pagination.appendChild(punto);
     }
         
-        // Re-configurar minimizar
-        this.configurarMinimizar();
+
         
         // Desplazar al paso actual
         this.ventanaTutorial.scrollTop = 0;
