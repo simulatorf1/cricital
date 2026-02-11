@@ -158,11 +158,7 @@ class TutorialManager {
 
                 contenido: `
                     <div style="background: rgba(255, 51, 102, 0.15); padding: 25px; border-radius: 15px; margin-bottom: 25px; border-left: 5px solid #ff3366;">
-                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                            <div style="background: #ff3366; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 1.2rem;">
-                                🏎️
-                            </div>
-                        </div>
+
                         <p style="margin: 0; font-size: 1.15rem; line-height: 1.8; color: #e0e0e0;">
                             Estás ante el juego en tiempo real con otros jugadores que combina tu trabajo de gestión con los resultados reales de las carreras.
                             <br><br>
