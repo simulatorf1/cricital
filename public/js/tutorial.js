@@ -55,12 +55,12 @@ class TutorialManager {
             width: 90%;
             max-width: 800px;
             max-height: 85vh;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border: 2px solid #00d2be;
+            background: linear-gradient(135deg, #0c0c1a 0%, #1a1a3a 100%);
+            border: 3px solid #00f0ff;
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 20px 60px rgba(0, 210, 190, 0.4),
-                        0 0 100px rgba(0, 210, 190, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 240, 255, 0.6),
+                        0 0 120px rgba(0, 240, 255, 0.3);
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             z-index: 999998;
@@ -71,8 +71,27 @@ class TutorialManager {
         `;
         
         this.ventanaTutorial.innerHTML = `
-            <div id="tutorial-header" style="margin-bottom: 25px;">
-                <!-- Título y paso se actualizarán -->
+            <div id="tutorial-header" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-start;">
+                <div id="tutorial-title-container" style="flex: 1;">
+                    <!-- Título y paso se actualizarán -->
+                </div>
+                <button id="btn-minimizar-tutorial" style="
+                    background: rgba(0, 240, 255, 0.2);
+                    border: 2px solid #00f0ff;
+                    color: #00f0ff;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 0.9rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-left: 20px;
+                    align-self: flex-start;
+                ">
+                    <i class="fas fa-window-minimize"></i>
+                    Minimizar
+                </button>
             </div>
             
             <div id="tutorial-content" style="flex: 1; overflow-y: auto; padding-right: 10px; line-height: 1.7; font-size: 1.1rem;">
@@ -82,8 +101,9 @@ class TutorialManager {
             <div id="tutorial-controls" style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; gap: 10px;">
                     <button id="btn-anterior-paso" style="
-                        background: rgba(255, 255, 255, 0.1);
-                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        background: linear-gradient(135deg, #ff3366 0%, #cc2255 100%);
+                        border: 2px solid #ff5588;
+                        box-shadow: 0 4px 15px rgba(255, 51, 102, 0.5);
                         color: white;
                         padding: 10px 20px;
                         border-radius: 8px;
@@ -97,21 +117,7 @@ class TutorialManager {
                         Anterior
                     </button>
                     
-                    <button id="btn-minimizar-tutorial" style="
-                        background: rgba(0, 210, 190, 0.2);
-                        border: 1px solid #00d2be;
-                        color: #00d2be;
-                        padding: 10px 20px;
-                        border-radius: 8px;
-                        cursor: pointer;
-                        font-size: 0.9rem;
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                    ">
-                        <i class="fas fa-window-minimize"></i>
-                        Minimizar
-                    </button>
+
                 </div>
                 
                 <div id="tutorial-pagination" style="display: flex; gap: 8px;">
@@ -881,19 +887,23 @@ class TutorialManager {
 
             footer.innerHTML = `
                 <button id="btn-siguiente-paso" style="
-                    background: linear-gradient(135deg, ${paso.colorBoton} 0%, ${this.darkenColor(paso.colorBoton, 30)} 100%);
+                    background: linear-gradient(135deg, #00f0ff 0%, #00a0ff 100%);
+                    border: 2px solid #00ffff;
+                    box-shadow: 0 4px 20px rgba(0, 240, 255, 0.7);
+                    font-size: 1.2rem;
+                    padding: 14px 35px;
                     color: white;
-                    border: none;
-                    padding: 12px 30px;
+
+
                     border-radius: 10px;
                     font-weight: bold;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
                     gap: 10px;
-                    font-size: 1.1rem;
+
                     transition: all 0.3s;
-                    box-shadow: 0 5px 15px rgba(${this.hexToRgb(paso.colorBoton)}, 0.4);
+
                 ">
                     ${paso.botonTexto}
                     <i class="fas ${paso.botonIcono}"></i>
@@ -1021,27 +1031,21 @@ class TutorialManager {
     // CONFIGURAR MINIMIZAR (IGUAL)
     // ========================
     // ========================
-    // CONFIGURAR MINIMIZAR (MODIFICADA)
+    // ========================
+    // CONFIGURAR MINIMIZAR (NUEVA VERSIÓN CORREGIDA)
     // ========================
     configurarMinimizar() {
         const btnMinimizar = this.ventanaTutorial.querySelector('#btn-minimizar-tutorial');
         if (!btnMinimizar) return;
         
-        const contenido = this.ventanaTutorial.querySelector('#tutorial-content');
-        const controles = this.ventanaTutorial.querySelector('#tutorial-controls');
-        const tip = this.ventanaTutorial.querySelector('div:last-child');
-        const header = this.ventanaTutorial.querySelector('#tutorial-header');
-        const pagination = this.ventanaTutorial.querySelector('#tutorial-pagination');
-        const tutorialFooter = this.ventanaTutorial.querySelector('#tutorial-footer');
-        
         let estaMinimizado = false;
         
         btnMinimizar.onclick = () => {
             if (estaMinimizado) {
-                // RESTAURAR - Maximizar completamente
+                // MAXIMIZAR: Mostrar todo normal
                 this.ventanaTutorial.style.width = '90%';
-                this.ventanaTutorial.style.height = 'auto';
                 this.ventanaTutorial.style.maxWidth = '800px';
+                this.ventanaTutorial.style.height = 'auto';
                 this.ventanaTutorial.style.maxHeight = '85vh';
                 this.ventanaTutorial.style.top = '50%';
                 this.ventanaTutorial.style.left = '50%';
@@ -1050,62 +1054,69 @@ class TutorialManager {
                 this.ventanaTutorial.style.borderRadius = '20px';
                 
                 // Mostrar todo el contenido
-                if (header) header.style.display = 'block';
-                if (contenido) contenido.style.display = 'block';
-                if (controles) controles.style.display = 'flex';
-                if (pagination) pagination.style.display = 'flex';
-                if (tutorialFooter) tutorialFooter.style.display = 'flex';
-                if (tip) tip.style.display = 'block';
+                const elementos = this.ventanaTutorial.querySelectorAll('*');
+                elementos.forEach(el => {
+                    if (el.id !== 'btn-minimizar-tutorial') {
+                        el.style.display = '';
+                        el.style.visibility = '';
+                        el.style.opacity = '';
+                        el.style.position = '';
+                    }
+                });
                 
+                // Cambiar icono
                 btnMinimizar.innerHTML = '<i class="fas fa-window-minimize"></i> Minimizar';
-                btnMinimizar.title = 'Minimizar ventana';
-                
                 estaMinimizado = false;
+                
             } else {
-                // MINIMIZAR - Reducir a solo un botón en la parte inferior
-                this.ventanaTutorial.style.width = '250px';
-                this.ventanaTutorial.style.height = '60px';
-                this.ventanaTutorial.style.top = 'auto';
-                this.ventanaTutorial.style.bottom = '20px';
+                // MINIMIZAR: Solo mostrar el botón en esquina
+                this.ventanaTutorial.style.width = 'auto';
+                this.ventanaTutorial.style.height = 'auto';
+                this.ventanaTutorial.style.top = '20px';
                 this.ventanaTutorial.style.left = '20px';
                 this.ventanaTutorial.style.transform = 'none';
-                this.ventanaTutorial.style.padding = '10px 15px';
-                this.ventanaTutorial.style.borderRadius = '8px';
+                this.ventanaTutorial.style.padding = '15px';
+                this.ventanaTutorial.style.borderRadius = '10px';
+                this.ventanaTutorial.style.bottom = 'auto';
+                this.ventanaTutorial.style.right = 'auto';
                 
-                // Ocultar TODO excepto el botón minimizar (que ahora será maximizar)
-                if (header) header.style.display = 'none';
-                if (contenido) contenido.style.display = 'none';
-                if (tip) tip.style.display = 'none';
-                if (pagination) pagination.style.display = 'none';
-                if (tutorialFooter) tutorialFooter.style.display = 'none';
+                // Ocultar TODO excepto el header y el botón
+                const elementos = this.ventanaTutorial.querySelectorAll('*');
+                elementos.forEach(el => {
+                    // No ocultar el botón ni el header
+                    if (el.id !== 'tutorial-header' && el.id !== 'btn-minimizar-tutorial') {
+                        el.style.display = 'none';
+                    }
+                });
                 
-                // Mantener solo los controles pero con solo el botón minimizar/maximizar
-                if (controles) {
-                    controles.style.display = 'flex';
-                    controles.style.justifyContent = 'center';
-                    controles.style.marginTop = '0';
+                // Asegurar que header solo muestre el botón
+                const header = this.ventanaTutorial.querySelector('#tutorial-header');
+                if (header) {
+                    header.style.display = 'flex';
+                    header.style.justifyContent = 'center';
+                    header.style.alignItems = 'center';
+                    header.style.margin = '0';
+                    header.style.padding = '0';
                     
-                    // Ocultar botón anterior
-                    const btnAnterior = controles.querySelector('#btn-anterior-paso');
-                    if (btnAnterior) btnAnterior.style.display = 'none';
+                    const titleContainer = header.querySelector('#tutorial-title-container');
+                    if (titleContainer) {
+                        titleContainer.style.display = 'none';
+                    }
                     
-                    // Ocultar paginación
-                    const paginationDiv = controles.querySelector('#tutorial-pagination');
-                    if (paginationDiv) paginationDiv.style.display = 'none';
-                    
-                    // Ocultar footer de tutorial
-                    const tutorialFooterDiv = controles.querySelector('#tutorial-footer');
-                    if (tutorialFooterDiv) tutorialFooterDiv.style.display = 'none';
+                    // Centrar botón en header
+                    btnMinimizar.style.margin = '0 auto';
+                    btnMinimizar.style.width = '100%';
+                    btnMinimizar.style.justifyContent = 'center';
+                    btnMinimizar.style.alignSelf = 'center';
                 }
                 
-                // Cambiar texto del botón a "Maximizar Tutorial"
-                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize"></i> Maximizar Tutorial';
-                btnMinimizar.style.width = '100%';
-                btnMinimizar.style.justifyContent = 'center';
-                
+                // Cambiar texto
+                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize"></i> Tutorial';
                 estaMinimizado = true;
             }
         };
+        
+        
     }
     // ========================
     // FINALIZAR TUTORIAL COMPLETO (IGUAL)
