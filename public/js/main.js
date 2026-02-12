@@ -1370,26 +1370,27 @@ class F1Manager {
             // ========== VERIFICACIÓN ÚNICA Y EXCLUSIVA ==========
             // Solo me importa UNA COSA: ¿Ya tengo esta pieza en el almacén?
             
-            // 1. Obtener el nombre de la pieza que QUIERO fabricar (la que está en el botón)
+            // 1. Obtener TODAS las piezas que tengo en esta área
+            const { data: misPiezas } = await this.supabase
+                .from('almacen_piezas')
+                .select('numero_global, componente')
+                .eq('escuderia_id', this.escuderia.id)
+                .eq('area', areaId);
+            
             const nombresArea = this.nombresPiezas[areaId];
             if (!nombresArea) {
                 this.showNotification('❌ Error: Nombres de pieza no encontrados', 'error');
                 return false;
             }
             
-            // El nombre de la pieza que intento fabricar está en el índice que me pasan
-            // Buscar por nombre EXACTO, no por área, no por nivel, no por nada más
-            const nombrePiezaQueQuiero = nombresArea[nivel * 5 - 5 + (arguments[1]?.numeroPiezaEnNivel || 1) - 1];
+            // 2. El número global es el total de piezas + 1
+            const numeroPiezaGlobal = (misPiezas?.length || 0) + 1;
+            const nombrePiezaQueQuiero = nombresArea[numeroPiezaGlobal - 1];
             
-            // 2. VERIFICAR EN BASE DE DATOS: ¿Exactamente este nombre ya está en mi almacén?
-            const { data: piezaExistente } = await this.supabase
-                .from('almacen_piezas')
-                .select('id')
-                .eq('escuderia_id', this.escuderia.id)
-                .eq('componente', nombrePiezaQueQuiero);  // ← ÚNICA CONDICIÓN
+            // 3. VERIFICAR: ¿Ya tengo este nombre exacto en mi almacén?
+            const yaLaTengo = misPiezas?.some(p => p.componente === nombrePiezaQueQuiero);
             
-            // 3. Si YA LA TENGO → BLOQUEAR
-            if (piezaExistente && piezaExistente.length > 0) {
+            if (yaLaTengo) {
                 this.showNotification(`❌ Ya tienes "${nombrePiezaQueQuiero}" en tu almacén`, 'error');
                 return false;
             }
@@ -1397,14 +1398,6 @@ class F1Manager {
             // 4. Si NO LA TENGO → CONTINUAR
             console.log(`✅ No tienes "${nombrePiezaQueQuiero}", puedes fabricarla`);
             
-            // Calcular número global y nivel para la nueva pieza
-            const { data: todasPiezas } = await this.supabase
-                .from('almacen_piezas')
-                .select('numero_global')
-                .eq('escuderia_id', this.escuderia.id)
-                .eq('area', areaId);
-            
-            const numeroPiezaGlobal = (todasPiezas?.length || 0) + 1;
             const nivel = Math.ceil(numeroPiezaGlobal / 5);
             const numeroPiezaEnNivel = ((numeroPiezaGlobal - 1) % 5) + 1;
             const nombrePieza = nombresArea[numeroPiezaGlobal - 1];
