@@ -770,6 +770,9 @@ class F1Manager {
     // ========================
     // MÉTODO PARA CARGAR PESTAÑA TALLER (SIMPLIFICADO - SIN BOTONES NI TEXTOS EXTRA)
     // ========================
+    // ========================
+    // MÉTODO PARA CARGAR PESTAÑA TALLER (CORREGIDO)
+    // ========================
     async cargarTabTaller() {
         console.log('🔧 Cargando pestaña taller con filtros...');
         
@@ -789,7 +792,7 @@ class F1Manager {
             
             const { data: piezasFabricadas, error: errorPiezas } = await this.supabase
                 .from('almacen_piezas')
-                .select('area, nivel, calidad, numero_global')
+                .select('area, nivel, calidad, numero_global, componente, comprada_mercado')
                 .eq('escuderia_id', this.escuderia.id)
                 .order('numero_global', { ascending: true });
         
@@ -824,8 +827,7 @@ class F1Manager {
             ];
             
             let html = '';
-            
-
+    
             // ====== 1. FILTROS POR ÁREA (11 BOTONES COMPACTOS) ======
             html += '<div class="filtros-areas-taller">';
             html += '<div class="filtros-header">';
@@ -844,7 +846,7 @@ class F1Manager {
             // ====== 2. CONTENEDOR PARA LAS ÁREAS ======
             html += '<div class="contenedor-areas-taller" id="contenedor-areas-taller">';
             
-            // ÁREAS (se mantienen igual)
+            // ÁREAS
             for (const area of areas) {
                 html += '<div class="area-completa" id="area-' + area.id + '">';
                 html += '<div class="area-header-completa">';
@@ -869,34 +871,28 @@ class F1Manager {
                     (f.area === area.id || f.area === area.nombre) && !f.completada
                 ) || [];
                 
-
                 for (let piezaNum = 1; piezaNum <= 50; piezaNum++) {
                     // ===== VALORES FIJOS PARA ESTE BOTÓN =====
-                    const nivel = Math.ceil(piezaNum / 5);                    // Nivel 1-10 (fijo)
-                    const numeroPiezaEnNivel = ((piezaNum - 1) % 5) + 1;      // Posición 1-5 (fija)
-                    const costoPieza = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);  // Precio fijo
+                    const nivel = Math.ceil(piezaNum / 5);
+                    const numeroPiezaEnNivel = ((piezaNum - 1) % 5) + 1;
+                    const costoPieza = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
                     const nombrePieza = this.nombresPiezas[area.id]?.[piezaNum - 1] || `${area.nombre} Mejora ${piezaNum}`;
                     
-                    // ===== VERIFICACIÓN ÚNICA: ¿YA TENGO ESTE NOMBRE EN ALMACÉN? =====
+                    // ===== VERIFICACIÓN: ¿YA TENGO ESTE NOMBRE EN ALMACÉN? =====
                     const yaFabricada = piezasAreaFabricadasAll.some(p => p.componente === nombrePieza);
                     const esCompradaMercado = yaFabricada ? piezasAreaFabricadasAll.find(p => p.componente === nombrePieza)?.comprada_mercado || false : false;
                     
                     // ===== VERIFICACIÓN: ¿ESTOY FABRICANDO AHORA MISMO ESTA PIEZA? =====
                     const enFabricacion = fabricacionesAreaActivas.some(f => {
-                        // Buscar si hay una fabricación activa para esta pieza por su NOMBRE
-                        // Como no guardamos el nombre en fabricacion_actual, usamos el nivel como referencia
                         const nivelFabricacion = f.nivel;
                         const rangoPiezasNivel = [(nivelFabricacion - 1) * 5 + 1, nivelFabricacion * 5];
                         
-                        // Si esta pieza está dentro del rango del nivel que se está fabricando
                         if (piezaNum >= rangoPiezasNivel[0] && piezaNum <= rangoPiezasNivel[1]) {
-                            // Verificar si las piezas anteriores de este nivel YA están fabricadas
                             const piezasNivelFabricadas = piezasAreaFabricadasAll.filter(p => {
                                 const nivelPieza = Math.ceil(p.numero_global / 5);
                                 return nivelPieza === nivelFabricacion;
                             }).length;
                             
-                            // La pieza en fabricación es la siguiente no fabricada de ese nivel
                             const siguientePiezaNivel = rangoPiezasNivel[0] + piezasNivelFabricadas;
                             return siguientePiezaNivel === piezaNum && !yaFabricada;
                         }
@@ -919,28 +915,30 @@ class F1Manager {
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
-
+    
                     } else {
-
-                        // NUEVA LÓGICA: Solo importa si tienes menos de 4 fabricaciones activas
                         const fabricacionesCount = fabricacionesActivas?.length || 0;
                         const puedeFabricar = fabricacionesCount < 4 && !yaFabricada && !enFabricacion;
                         
                         html += '<button class="btn-pieza-50 vacio" ';
                         if (puedeFabricar) {
-                            // PASAMOS TAMBIÉN EL NOMBRE DE LA PIEZA (¡IMPORTANTE!)
                             html += `onclick="iniciarFabricacionConBloqueo('${area.id}', ${nivel}, '${nombrePieza.replace(/'/g, "\\'")}', ${piezaNum})"`;
-
                         } else {
                             html += ' disabled';
                         }
-                    } // ← ESTA CIERRA EL else (NUEVA)
-                    
-                    html += '</div>'; // Cierra botones-area-completa
-                    html += '</div>'; // Cierra area-completa
-                } // ← ESTA CIERRA EL for (piezaNum) - MOVIDA AQUÍ
+                        html += ` title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()}">`;
+                        html += '<i class="fas fa-plus"></i>';
+                        html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
+                        html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
+                        html += '</button>';
+                    }
+                } // ← CIERRA for (piezaNum)
                 
-                html += '</div>'; // Cierra contenedor-areas-taller
+                html += '</div>'; // Cierra botones-area-completa
+                html += '</div>'; // Cierra area-completa
+            } // ← CIERRA for (area)
+            
+            html += '</div>'; // Cierra contenedor-areas-taller
             
             container.innerHTML = html;
             
@@ -949,8 +947,7 @@ class F1Manager {
                 const style = document.createElement('style');
                 style.id = 'estilos-filtros-taller';
                 style.innerHTML = `
-
-                     /* === FILTROS DE ÁREA (4 columnas) === */
+                    /* === FILTROS DE ÁREA (4 columnas) === */
                     .filtros-areas-taller {
                         background: rgba(10, 15, 30, 0.95);
                         border-bottom: 2px solid rgba(0, 210, 190, 0.2);
@@ -975,7 +972,6 @@ class F1Manager {
                         gap: 5px;
                     }
                     
-                    /* GRID 4 columnas, 3 filas (para 11 botones: 4+4+3) */
                     .filtros-botones-grid {
                         display: grid;
                         grid-template-columns: repeat(4, 1fr);
@@ -983,8 +979,6 @@ class F1Manager {
                         gap: 3px;
                     }
                     
-                    /* Distribución: 4 + 4 + 3 = 11 botones */
-                    /* Última fila con 3 botones ocupando columnas 1, 2, 3 */
                     .filtros-botones-grid button:nth-child(9) {
                         grid-column: 1;
                     }
@@ -995,13 +989,11 @@ class F1Manager {
                         grid-column: 3;
                     }
                     
-                    /* Responsive: 3 columnas en tablets */
                     @media (max-width: 768px) {
                         .filtros-botones-grid {
                             grid-template-columns: repeat(3, 1fr);
                             grid-template-rows: repeat(4, auto);
                         }
-                        
                         .filtros-botones-grid button:nth-child(10) {
                             grid-column: 1;
                         }
@@ -1010,7 +1002,6 @@ class F1Manager {
                         }
                     }
                     
-                    /* Responsive: 2 columnas en móviles */
                     @media (max-width: 480px) {
                         .filtros-botones-grid {
                             grid-template-columns: repeat(2, 1fr);
@@ -1018,7 +1009,6 @@ class F1Manager {
                         }
                     }
                     
-                    /* BOTONES DE FILTRO - ANCHO COMPARTIDO IGUAL */
                     .filtro-area-btn-mini {
                         display: flex;
                         align-items: center;
@@ -1060,7 +1050,6 @@ class F1Manager {
                         font-weight: bold;
                     }
                     
-                    /* === CONTENEDOR CON SCROLL === */
                     .contenedor-areas-taller {
                         max-height: calc(100vh - 200px);
                         overflow-y: auto;
@@ -1068,18 +1057,14 @@ class F1Manager {
                         padding-bottom: 10px;
                     }
                     
-                    /* Control de visibilidad de áreas */
                     .area-completa {
-                        /* Mantiene todos los estilos existentes del taller */
-                        display: none; /* Oculto por defecto */
+                        display: none;
                     }
                     
-                    /* Mostrar todas las áreas si no hay filtro activo */
                     .sin-filtro .area-completa {
                         display: block;
                     }
                     
-                    /* Mostrar solo el área filtrada */
                     .area-completa.visible {
                         display: block;
                     }
@@ -1089,11 +1074,9 @@ class F1Manager {
             
             // Asegurar que los estilos existentes del taller se carguen
             if (!document.querySelector('#estilos-taller-simple')) {
-                // Copia EXACTA de tus estilos existentes del taller (línea ~1400-1500)
                 const styleExistente = document.createElement('style');
                 styleExistente.id = 'estilos-taller-simple';
                 styleExistente.innerHTML = `
-                    /* CONTENEDOR PRINCIPAL */
                     #tab-taller {
                         padding: 10px;
                         overflow-y: auto;
@@ -1101,7 +1084,6 @@ class F1Manager {
                         -webkit-overflow-scrolling: touch;
                     }
                     
-                    /* ÁREAS INDIVIDUALES */
                     .area-completa {
                         margin-bottom: 20px;
                         padding: 15px;
@@ -1139,7 +1121,6 @@ class F1Manager {
                         font-weight: bold;
                     }
                     
-                    /* BOTONES DE PIEZAS - DISPOSICIÓN FIJA */
                     .botones-area-completa {
                         display: grid;
                         grid-template-columns: repeat(5, 1fr);
@@ -1147,21 +1128,13 @@ class F1Manager {
                     }
                     
                     @media (max-width: 1200px) {
-                        .botones-area-completa {
-                            grid-template-columns: repeat(4, 1fr);
-                        }
+                        .botones-area-completa { grid-template-columns: repeat(4, 1fr); }
                     }
-                    
                     @media (max-width: 900px) {
-                        .botones-area-completa {
-                            grid-template-columns: repeat(3, 1fr);
-                        }
+                        .botones-area-completa { grid-template-columns: repeat(3, 1fr); }
                     }
-                    
                     @media (max-width: 600px) {
-                        .botones-area-completa {
-                            grid-template-columns: repeat(2, 1fr);
-                        }
+                        .botones-area-completa { grid-template-columns: repeat(2, 1fr); }
                     }
                     
                     .btn-pieza-50 {
@@ -1234,14 +1207,6 @@ class F1Manager {
                         background: rgba(255, 152, 0, 0.1);
                         color: #FF9800;
                     }
-                    
-                    .mercado-badge {
-                        position: absolute;
-                        top: 2px;
-                        right: 2px;
-                        font-size: 0.6rem;
-                        color: #FF9800;
-                    }
                 `;
                 document.head.appendChild(styleExistente);
             }
@@ -1255,7 +1220,7 @@ class F1Manager {
             console.error('❌ Error cargando taller:', error);
             container.innerHTML = '<div class="error"><p>Error cargando el taller</p></div>';
         }
-    }    
+    }
     
     // ========================
     // CONFIGURAR NAVEGACIÓN ENTRE ÁREAS
