@@ -887,7 +887,9 @@ class F1Manager {
                         f.nombre_pieza === nombrePieza
                     );
                     
-                    const esCompradaMercado = piezaFabricada?.comprada_mercado || false;
+                    // ✅ Buscar la pieza específica para saber si es comprada en mercado
+                    const piezaActual = piezasAreaFabricadasAll.find(p => p.componente === nombrePieza);
+                    const esCompradaMercado = piezaActual?.comprada_mercado || false;
                     
                     // ✅ BOTÓN PARA PIEZA YA FABRICADA
                     if (yaFabricada) {
@@ -912,11 +914,11 @@ class F1Manager {
                     else {
                         // Verificar límite de fabricaciones
                         const fabricacionesCount = fabricacionesActivas?.length || 0;
-                        const puedeFabricar = fabricacionesCount < 4;  // ← YA NO USAMOS proximaPiezaNoFabricada
+                        const puedeFabricar = fabricacionesCount < 4;
                         
                         html += '<button class="btn-pieza-50 vacio" ';
                         if (puedeFabricar) {
-                            html += `onclick="iniciarFabricacionConBloqueo('${area.id}')"`;  // ← SIN NIVEL
+                            html += `onclick="iniciarFabricacionConBloqueo('${area.id}')"`;
                         } else {
                             html += ' disabled';
                         }
@@ -927,6 +929,7 @@ class F1Manager {
                         html += '</button>';
                     }
                 }
+
      
                 
                 html += '</div>'; // Cierra botones-area-completa
