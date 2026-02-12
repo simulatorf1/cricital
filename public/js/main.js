@@ -3850,14 +3850,14 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
                 }
             });
         }
-        const nuevoNumeroGlobal = maxNumeroGlobal + 1;
+        let nuevoNumeroGlobal = maxNumeroGlobal + 1;  // ← CAMBIA ESTA TAMBIÉN
         // ===== AÑADIR ESTO =====
-        const componente = fabricacion.nombre_pieza;  // ← USA EL NOMBRE REAL
+        let componente = fabricacion.nombre_pieza;  // ← CAMBIA const POR let
         if (window.f1Manager && window.f1Manager.nombresPiezas && 
             window.f1Manager.nombresPiezas[fabricacion.area]) {
             const nombresArea = window.f1Manager.nombresPiezas[fabricacion.area];
             if (nuevoNumeroGlobal <= nombresArea.length) {
-                componente = nombresArea[nuevoNumeroGlobal - 1];
+                componente = nombresArea[nuevoNumeroGlobal - 1];  // ← AHORA SÍ PUEDE REASIGNAR
             }
         }
         // ===== FIN AÑADIR =====        
