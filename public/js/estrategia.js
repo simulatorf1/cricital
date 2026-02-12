@@ -1006,7 +1006,7 @@ class EstrategiaManager {
                         onclick="window.estrategiaManager.cambiarTabGestion('contratados')"
                         style="padding: 10px 20px; background: #00d2be; color: black; border: none; 
                                border-radius: 5px 5px 0 0; cursor: pointer; font-weight: bold;">
-                    <i class="fas fa-users"></i> Contratados (${this.estrategasContratados.length}/4)
+                    <i class="fas fa-users"></i> Contratados
                 </button>
                 <button class="tab-gestion" data-tab="catalogo"
                         onclick="window.estrategiaManager.cambiarTabGestion('catalogo')"
