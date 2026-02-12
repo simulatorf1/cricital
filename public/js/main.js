@@ -1324,54 +1324,32 @@ class F1Manager {
     // ========================
     // MÉTODO CORREGIDO PARA INICIAR FABRICACIÓN
     // ========================
-    async iniciarFabricacionTaller(areaId) {
-        console.log('🔔 [NOTIFICACIÓN] Iniciando fabricación:', { areaId });
+    async iniciarFabricacionTaller(areaId, nivelIgnorado) {
+        // IGNORAR el nivel que viene del botón - SIEMPRE calcularlo desde la BD
+        console.log('🔔 Iniciando fabricación:', areaId);
         
-        if (!this.escuderia || !this.escuderia.id) {
-            console.error('❌ ERROR CRÍTICO: No hay escudería');
-            this.showNotification('❌ Error: No se encontró tu escudería', 'error');
-            return false;
-        }
-    
-        this.showNotification('🔧 Preparando fabricación...', 'info');
-        
-        // ========== VERIFICACIÓN ÚNICA Y EXCLUSIVA ==========
-        // 1. Obtener TODAS las piezas que tengo en esta área
+        // 1. Obtener piezas REALES de la BD
         const { data: misPiezas } = await this.supabase
             .from('almacen_piezas')
             .select('numero_global, componente')
             .eq('escuderia_id', this.escuderia.id)
             .eq('area', areaId);
-    
-        const nombresArea = this.nombresPiezas[areaId];
-        if (!nombresArea) {
-            this.showNotification('❌ Error: Nombres de pieza no encontrados', 'error');
-            return false;
-        }
-    
-        // 2. El número global es el total de piezas + 1
+        
+        // 2. Calcular número global basado en lo que REALMENTE tienes
         const numeroPiezaGlobal = (misPiezas?.length || 0) + 1;
         
-        // Si ya tienes las 50 piezas, no puedes fabricar más
-        if (numeroPiezaGlobal > 50) {
-            this.showNotification('❌ ¡Has fabricado todas las piezas disponibles para esta área!', 'error');
-            return false;
-        }
-        
+        // 3. Verificar si ya existe (por si acaso)
+        const nombresArea = this.nombresPiezas[areaId];
         const nombrePiezaQueQuiero = nombresArea[numeroPiezaGlobal - 1];
-    
-        // 3. VERIFICAR: ¿Ya tengo este nombre exacto en mi almacén?
         const yaLaTengo = misPiezas?.some(p => p.componente === nombrePiezaQueQuiero);
-    
+        
         if (yaLaTengo) {
             this.showNotification(`❌ Ya tienes "${nombrePiezaQueQuiero}" en tu almacén`, 'error');
             return false;
         }
-    
-        // 4. Si NO LA TENGO → CONTINUAR
-        console.log(`✅ No tienes "${nombrePiezaQueQuiero}", puedes fabricarla`);
-    
-        const nivel = Math.ceil(numeroPiezaGlobal / 5);
+        
+        // 4. Calcular nivel basado en el número global REAL
+        const nivelReal = Math.ceil(numeroPiezaGlobal / 5);
         const numeroPiezaEnNivel = ((numeroPiezaGlobal - 1) % 5) + 1;
         const nombrePieza = nombresArea[numeroPiezaGlobal - 1];
         // ====================================================
@@ -5622,8 +5600,8 @@ setTimeout(() => {
         window.fabricacionEnProgreso = true;
         
         try {
-            // 🟢🟢🟢 LLAMAR DIRECTAMENTE AL MÉTODO DE LA CLASE 🟢🟢🟢
-            const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId);
+            // 🟢🟢🟢 PASA AMBOS PARÁMETROS 🟢🟢🟢
+            const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId, nivel);
             return resultado;
         } finally {
             setTimeout(() => {
