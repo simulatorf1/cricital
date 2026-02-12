@@ -1324,33 +1324,57 @@ class F1Manager {
     // ========================
     // MÉTODO CORREGIDO PARA INICIAR FABRICACIÓN
     // ========================
-    async iniciarFabricacionTaller(areaId, nivel) {
-        console.log('🔔 [NOTIFICACIÓN] Iniciando fabricación:', { areaId, nivel });
+    async iniciarFabricacionTaller(areaId) {
+        console.log('🔔 [NOTIFICACIÓN] Iniciando fabricación:', { areaId });
         
-        // ⚠️ VERIFICACIÓN CRÍTICA ⚠️
         if (!this.escuderia || !this.escuderia.id) {
-            console.error('❌ ERROR CRÍTICO: No hay escudería en this.escuderia');
+            console.error('❌ ERROR CRÍTICO: No hay escudería');
             this.showNotification('❌ Error: No se encontró tu escudería', 'error');
             return false;
         }
     
-        // NOTIFICACIÓN 1: Inicio del proceso
         this.showNotification('🔧 Preparando fabricación...', 'info');
         
-        // VERIFICAR PRESUPUESTO MANAGER
-        if (window.PresupuestoManager) {
-            if (!window.presupuestoManager) {
-                window.presupuestoManager = new window.PresupuestoManager();
-            }
-            
-            if (this.escuderia && this.escuderia.id && !window.presupuestoManager.escuderiaId) {
-                try {
-                    await window.presupuestoManager.inicializar(this.escuderia.id);
-                } catch (error) {
-                    console.warn('⚠️ Error inicializando presupuesto:', error);
-                }
-            }
-        }      
+        // ========== VERIFICACIÓN ÚNICA Y EXCLUSIVA ==========
+        // 1. Obtener TODAS las piezas que tengo en esta área
+        const { data: misPiezas } = await this.supabase
+            .from('almacen_piezas')
+            .select('numero_global, componente')
+            .eq('escuderia_id', this.escuderia.id)
+            .eq('area', areaId);
+    
+        const nombresArea = this.nombresPiezas[areaId];
+        if (!nombresArea) {
+            this.showNotification('❌ Error: Nombres de pieza no encontrados', 'error');
+            return false;
+        }
+    
+        // 2. El número global es el total de piezas + 1
+        const numeroPiezaGlobal = (misPiezas?.length || 0) + 1;
+        
+        // Si ya tienes las 50 piezas, no puedes fabricar más
+        if (numeroPiezaGlobal > 50) {
+            this.showNotification('❌ ¡Has fabricado todas las piezas disponibles para esta área!', 'error');
+            return false;
+        }
+        
+        const nombrePiezaQueQuiero = nombresArea[numeroPiezaGlobal - 1];
+    
+        // 3. VERIFICAR: ¿Ya tengo este nombre exacto en mi almacén?
+        const yaLaTengo = misPiezas?.some(p => p.componente === nombrePiezaQueQuiero);
+    
+        if (yaLaTengo) {
+            this.showNotification(`❌ Ya tienes "${nombrePiezaQueQuiero}" en tu almacén`, 'error');
+            return false;
+        }
+    
+        // 4. Si NO LA TENGO → CONTINUAR
+        console.log(`✅ No tienes "${nombrePiezaQueQuiero}", puedes fabricarla`);
+    
+        const nivel = Math.ceil(numeroPiezaGlobal / 5);
+        const numeroPiezaEnNivel = ((numeroPiezaGlobal - 1) % 5) + 1;
+        const nombrePieza = nombresArea[numeroPiezaGlobal - 1];
+        // ====================================================
         
         try {
             // Verificar límite de fabricaciones
@@ -1367,95 +1391,21 @@ class F1Manager {
                 return false;
             }
             
-            // ========== VERIFICACIÓN ÚNICA Y EXCLUSIVA ==========
-            // Solo me importa UNA COSA: ¿Ya tengo esta pieza en el almacén?
-            
-            // 1. Obtener TODAS las piezas que tengo en esta área
-            const { data: misPiezas } = await this.supabase
-                .from('almacen_piezas')
-                .select('numero_global, componente')
-                .eq('escuderia_id', this.escuderia.id)
-                .eq('area', areaId);
-            
-            const nombresArea = this.nombresPiezas[areaId];
-            if (!nombresArea) {
-                this.showNotification('❌ Error: Nombres de pieza no encontrados', 'error');
-                return false;
-            }
-            
-            // 2. El número global es el total de piezas + 1
-            const numeroPiezaGlobal = (misPiezas?.length || 0) + 1;
-            const nombrePiezaQueQuiero = nombresArea[numeroPiezaGlobal - 1];
-            
-            // 3. VERIFICAR: ¿Ya tengo este nombre exacto en mi almacén?
-            const yaLaTengo = misPiezas?.some(p => p.componente === nombrePiezaQueQuiero);
-            
-            if (yaLaTengo) {
-                this.showNotification(`❌ Ya tienes "${nombrePiezaQueQuiero}" en tu almacén`, 'error');
-                return false;
-            }
-            
-            // 4. Si NO LA TENGO → CONTINUAR
-            console.log(`✅ No tienes "${nombrePiezaQueQuiero}", puedes fabricarla`);
-            
-            const nivel = Math.ceil(numeroPiezaGlobal / 5);
-            const numeroPiezaEnNivel = ((numeroPiezaGlobal - 1) % 5) + 1;
-            const nombrePieza = nombresArea[numeroPiezaGlobal - 1];
-            // ====================================================
-            
-            console.log('🔍 VERIFICACIÓN TALLER:', {
-                area: areaId,
-                piezasExistentes: todasPiezasArea?.length || 0,
-                nombresQueTienes: Array.from(nombresQueTienes),
-                siguienteDisponible: numeroPiezaGlobal,
-                nombrePieza: nombrePieza
-            });
-
-            
-            console.log('📊 Fabricando pieza global ' + numeroPiezaGlobal + ' para ' + areaId);
-            
             // Calcular tiempo y costo
             const tiempoMinutos = this.calcularTiempoProgresivo(numeroPiezaGlobal);
             const tiempoMilisegundos = tiempoMinutos * 60 * 1000;
             const costo = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
             
-            // Verificar si hay dinero suficiente
+            // Verificar dinero
             if (this.escuderia.dinero < costo) {
                 this.showNotification(`❌ Dinero insuficiente. Necesitas €${costo.toLocaleString()}`, 'error');
                 return false;
             }
             
-            // Obtener nombre de la pieza
-            const nombreArea = this.getNombreArea(areaId);
-            let nombrePiezaNotif = nombreArea;
-            if (this.nombresPiezas && this.nombresPiezas[areaId]) {
-                const nombresArea = this.nombresPiezas[areaId];
-                if (numeroPiezaGlobal <= nombresArea.length) {
-                    nombrePiezaNotif = nombresArea[numeroPiezaGlobal - 1];
-                }
-            }
-            
-
-            
+            // Crear fabricación
             const ahora = new Date();
             const tiempoFin = new Date(ahora.getTime() + tiempoMilisegundos);
             
-            // Formatear tiempo para mostrar
-            const horas = Math.floor(tiempoMinutos / 60);
-            const dias = Math.floor(horas / 24);
-            let tiempoTexto = '';
-            if (dias > 0) {
-                tiempoTexto = dias + ' días ' + (horas % 24) + ' horas';
-            } else if (horas > 0) {
-                tiempoTexto = horas + ' horas ' + (tiempoMinutos % 60) + ' minutos';
-            } else {
-                tiempoTexto = tiempoMinutos + ' minutos';
-            }
-            
-            console.log('⏱️ Tiempo de fabricación:', tiempoTexto);
-            console.log('💰 Costo:', costo);
-            
-            // Crear la fabricación en la base de datos
             const { data: fabricacion, error: errorCrear } = await this.supabase
                 .from('fabricacion_actual')
                 .insert([{
@@ -1473,53 +1423,33 @@ class F1Manager {
             
             if (errorCrear) throw errorCrear;
             
-            // Restar dinero después de crear la fabricación
-            const dineroAnterior = this.escuderia.dinero;
+            // Restar dinero
             this.escuderia.dinero -= costo;
             await this.updateEscuderiaMoney();
             
-            // Registrar transacción de presupuesto
+            // Registrar transacción
             try {
-                if (window.presupuestoManager && 
-                    window.presupuestoManager.escuderiaId && 
-                    window.presupuestoManager.registrarTransaccion) {
-                    
+                if (window.presupuestoManager && window.presupuestoManager.registrarTransaccion) {
                     await window.presupuestoManager.registrarTransaccion(
                         'gasto',
                         costo,
-                        `Fabricación ${nombrePiezaNotif}`,
+                        `Fabricación ${nombrePieza}`,
                         'produccion',
-                        { 
-                            area: areaId, 
-                            nivel: nivel,
-                            nombre_pieza: nombrePiezaNotif,
-                            numero_pieza: numeroPiezaGlobal
-                        }
+                        { area: areaId, nivel: nivel, nombre_pieza: nombrePieza, numero_pieza: numeroPiezaGlobal }
                     );
-                    console.log('💰 Transacción registrada');
                 }
             } catch (error) {
                 console.warn('⚠️ No se pudo registrar transacción:', error);
             }
             
-            // Actualizar vista de presupuesto
+            // Actualizar presupuesto
             if (window.presupuestoManager && window.presupuestoManager.actualizarVistaPresupuesto) {
                 window.presupuestoManager.actualizarVistaPresupuesto();
             }
             
-            // ¡¡¡NOTIFICACIÓN 5: ESTRELLAS POR PRIMERA FABRICACIÓN!!!
-            console.log('🔔 Verificando si es primera fabricación del día:', {
-                primera_fabricacion_hoy: this.escuderia.primera_fabricacion_hoy,
-                ahora: new Date().toISOString()
-            });
-            
+            // Estrellas por primera fabricación
             if (!this.escuderia.primera_fabricacion_hoy) {
-                console.log('🌟 Es primera fabricación del día, dando estrellas...');
-                // NOTA: darEstrellasFabricacion() ya tiene su propia notificación
                 await this.darEstrellasFabricacion();
-            } else {
-                console.log('ℹ️ Ya no es primera fabricación del día');
-                // ❌ ELIMINADA: this.showNotification('📅 Ya fabricaste hoy, sin estrellas adicionales', 'info');
             }
             
             // Actualizar monitor de producción
@@ -1527,10 +1457,10 @@ class F1Manager {
                 this.updateProductionMonitor();
             }, 500);
             
-            // ✅ NOTIFICACIÓN 6: "🏭 Fabricación activa..." (LA QUE QUIERES)
+            // Notificación de éxito
             setTimeout(() => {
                 this.showNotification(
-                    `🏭 Fabricación activa: ${nombrePiezaNotif}\n` +
+                    `🏭 Fabricación activa: ${nombrePieza}\n` +
                     `📊 Ve a PRODUCCIÓN para ver el progreso`,
                     'info'
                 );
