@@ -874,29 +874,22 @@ class F1Manager {
                     const numeroPiezaEnNivel = ((piezaNum - 1) % 5) + 1;
                     const costoPieza = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
                     
-                    // ✅ VERIFICACIÓN CORRECTA: ¿Tengo esta pieza por su NOMBRE?
+                    // ✅ NOMBRE DE LA PIEZA (FIJO)
                     const nombrePieza = this.nombresPiezas[area.id][piezaNum - 1];
+                    
+                    // ✅ VERIFICACIÓN 1: ¿YA LA TENGO EN ALMACÉN?
                     const yaFabricada = piezasAreaFabricadasAll.some(p => 
                         p.componente === nombrePieza
                     );
                     
-                    const esCompradaMercado = piezaFabricada?.comprada_mercado || false;
+                    // ✅ VERIFICACIÓN 2: ¿ESTÁ EN FABRICACIÓN?
                     const enFabricacion = fabricacionesAreaActivas.some(f => 
-                        f.nombre_pieza === nombrePieza  // ← VERIFICAR POR NOMBRE, NO POR NIVEL
+                        f.nombre_pieza === nombrePieza
                     );
-                        const nivelFabricacion = f.nivel;
-                        const rangoInicio = (nivelFabricacion - 1) * 5 + 1;
-                        const piezasNivelFabricadas = piezasAreaFabricadasAll.filter(p => {
-                            const nivelPieza = Math.ceil(p.numero_global / 5);
-                            return nivelPieza === nivelFabricacion;
-                        }).length;
-                        
-                        const proximaPieza = rangoInicio + piezasNivelFabricadas;
-                        return proximaPieza === piezaNum && !yaFabricada;
-                    });
                     
-                    const nombrePieza = this.nombresPiezas[area.id]?.[piezaNum - 1] || `${area.nombre} Mejora ${piezaNum}`;
+                    const esCompradaMercado = piezaFabricada?.comprada_mercado || false;
                     
+                    // ✅ BOTÓN PARA PIEZA YA FABRICADA
                     if (yaFabricada) {
                         const claseCSS = esCompradaMercado ? 'btn-pieza-50 comprada-mercado' : 'btn-pieza-50 lleno';
                         const icono = esCompradaMercado ? 'fa-shopping-cart' : 'fa-check';
@@ -906,24 +899,24 @@ class F1Manager {
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
-                        
-                    } else if (enFabricacion) {
+                    } 
+                    // ✅ BOTÓN PARA PIEZA EN FABRICACIÓN
+                    else if (enFabricacion) {
                         html += `<button class="btn-pieza-50 fabricando" disabled title="${nombrePieza} - En fabricación">`;
                         html += '<i class="fas fa-spinner fa-spin"></i>';
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
-
-                    } else {
-                        const proximaPiezaNoFabricada = !yaFabricada && 
-                            piezaNum === (piezasAreaFabricadasAll.length + 1);
+                    } 
+                    // ✅ BOTÓN PARA PIEZA DISPONIBLE (NO FABRICADA, NO EN FABRICACIÓN)
+                    else {
+                        // Verificar límite de fabricaciones
                         const fabricacionesCount = fabricacionesActivas?.length || 0;
-                        const puedeFabricar = fabricacionesCount < 4 && proximaPiezaNoFabricada;
+                        const puedeFabricar = fabricacionesCount < 4;  // ← YA NO USAMOS proximaPiezaNoFabricada
                         
-                        // ✅ VUELVE AL CÓDIGO ORIGINAL, PERO CON BLOQUEO
                         html += '<button class="btn-pieza-50 vacio" ';
                         if (puedeFabricar) {
-                            html += `onclick="iniciarFabricacionConBloqueo('${area.id}', ${nivel})"`;
+                            html += `onclick="iniciarFabricacionConBloqueo('${area.id}')"`;  // ← SIN NIVEL
                         } else {
                             html += ' disabled';
                         }
@@ -934,6 +927,7 @@ class F1Manager {
                         html += '</button>';
                     }
                 }
+     
                 
                 html += '</div>'; // Cierra botones-area-completa
                 html += '</div>'; // Cierra area-completa
