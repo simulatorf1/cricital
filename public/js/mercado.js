@@ -70,42 +70,7 @@ class MercadoManager {
     // ========================
     // VERIFICAR PIEZA DUPLICADA - VERSIÓN CORREGIDA
     // ========================
-    async verificarPiezaDuplicada(area, nivel) {
-        if (!this.escuderia) return false;
-        
-        try {
-            // Verificar si YA TIENE UNA PIEZA DEL MISMO NIVEL O SUPERIOR EQUIPADA
-            const { data: misPiezas, error } = await this.supabase
-                .from('almacen_piezas')
-                .select('*')
-                .eq('escuderia_id', this.escuderia.id)
-                .eq('area', area)
-                .eq('equipada', true);  // Solo piezas equipadas
-            
-            if (error) {
-                console.error('Error verificando pieza duplicada:', error);
-                return false;
-            }
-            
-            // BUSCAR si ya tiene UNA DEL MISMO NIVEL O SUPERIOR
-            if (misPiezas && misPiezas.length > 0) {
-                const tieneMejorOIgual = misPiezas.some(pieza => pieza.nivel >= nivel);
-                
-                if (tieneMejorOIgual) {
-                    console.log(`⚠️ Ya tienes una pieza de nivel ${misPiezas[0].nivel} (${misPiezas[0].nivel >= nivel ? 'igual o mejor' : 'inferior'})`);
-                    return true; // Bloquear compra si tiene IGUAL O MEJOR
-                }
-            }
-            
-            return false; // Permitir compra si no tiene o tiene inferior
-        } catch (error) {
-            console.error('Error en verificarPiezaDuplicada:', error);
-            return false;
-        }
-    }
-    
-    // Agrega esta función a la clase MercadoManager
-    
+
 
     
     
@@ -963,13 +928,46 @@ class MercadoManager {
             this.misOrdenes = [];
         }
     }
-
+    // ========================
+    // VERIFICAR PIEZA DUPLICADA - VERSIÓN CORREGIDA
+    // ========================
+    async verificarPiezaDuplicada(area, nivel) {
+        if (!this.escuderia) return false;
+        
+        try {
+            // Verificar si YA TIENE UNA PIEZA DEL MISMO NIVEL O SUPERIOR EQUIPADA
+            const { data: misPiezas, error } = await this.supabase
+                .from('almacen_piezas')
+                .select('*')
+                .eq('escuderia_id', this.escuderia.id)
+                .eq('area', area)
+                .eq('equipada', true);
+            
+            if (error) {
+                console.error('Error verificando pieza duplicada:', error);
+                return false;
+            }
+            
+            if (misPiezas && misPiezas.length > 0) {
+                const tieneMejorOIgual = misPiezas.some(pieza => pieza.nivel >= nivel);
+                return tieneMejorOIgual;
+            }
+            
+            return false;
+        } catch (error) {
+            console.error('Error en verificarPiezaDuplicada:', error);
+            return false;
+        }
+    }
     async mostrarModalCompra(ordenId) {
         const orden = this.ordenesDisponibles.find(o => o.id === ordenId);
         if (!orden) return;
     
-        // VERIFICAR SI YA TIENE UNA PIEZA SIMILAR
+        console.log('🔍 Verificando compra - Área:', orden.area, 'Nivel:', orden.nivel);
+        
+        // VERIFICAR SI YA TIENE UNA PIEZA SIMILAR O MEJOR
         const tieneDuplicada = await this.verificarPiezaDuplicada(orden.area, orden.nivel);
+        console.log('🔍 Resultado verificación:', tieneDuplicada ? '❌ BLOQUEADA' : '✅ PERMITIDA');
         
         const modal = document.getElementById('modal-compra');
         const modalBody = document.getElementById('modal-compra-body');
@@ -1436,26 +1434,7 @@ class MercadoManager {
 
 
 
-async function verificarPiezaDuplicada(area, nivel) {
-    if (!this.escuderia) return false;
-    
-    try {
-        // Verificar si ya tiene una pieza del mismo nivel o superior en el mismo área
-        const { data: misPiezas, error } = await this.supabase
-            .from('almacen_piezas')
-            .select('*')
-            .eq('escuderia_id', this.escuderia.id)
-            .eq('area', area)
-            .eq('nivel', nivel);
-        
-        if (error) throw error;
-        
-        return misPiezas && misPiezas.length > 0;
-    } catch (error) {
-        console.error('Error verificando pieza duplicada:', error);
-        return false;
-    }
-}
+
 
 
 // ========================
@@ -1767,32 +1746,7 @@ window.venderPiezaDesdeAlmacen = async function(piezaId) {
     }
 };
 
-// ========================
-// FUNCIÓN PARA VERIFICAR PIEZAS DUPLICADAS
-// ========================
-MercadoManager.prototype.verificarPiezaDuplicada = async function(area, nivel) {
-    if (!this.escuderia) return false;
-    
-    try {
-        // Verificar si ya tiene una pieza del mismo nivel en el mismo área
-        const { data: misPiezas, error } = await this.supabase
-            .from('almacen_piezas')
-            .select('*')
-            .eq('escuderia_id', this.escuderia.id)
-            .eq('area', area)
-            .eq('nivel', nivel);
-        
-        if (error) {
-            console.error('Error verificando pieza duplicada:', error);
-            return false;
-        }
-        
-        return misPiezas && misPiezas.length > 0;
-    } catch (error) {
-        console.error('Error en verificarPiezaDuplicada:', error);
-        return false;
-    }
-};
+
 
 // ========================
 // 8. INICIALIZACIÓN GLOBAL
