@@ -931,32 +931,32 @@ class MercadoManager {
     // ========================
     // VERIFICAR PIEZA DUPLICADA - VERSIÓN CORREGIDA
     // ========================
-    async verificarPiezaDuplicada(area, nivel) {
+    async verificarPiezaDuplicada(pieza_nombre) {  // 👈 Recibe el NOMBRE COMPLETO
         if (!this.escuderia) return false;
         
         try {
-            // Verificar si YA TIENE UNA PIEZA DEL MISMO NIVEL O SUPERIOR EQUIPADA
-            const { data: misPiezas, error } = await this.supabase
+            // Buscar en mi almacén si tengo UNA PIEZA CON EL MISMO NOMBRE
+            const { data: miPieza, error } = await this.supabase
                 .from('almacen_piezas')
                 .select('*')
                 .eq('escuderia_id', this.escuderia.id)
-                .eq('area', area)
-                .eq('equipada', true);
+                .eq('componente', pieza_nombre);  // 👈 COMPARACIÓN EXACTA
             
-            if (error) {
-                console.error('Error verificando pieza duplicada:', error);
-                return false;
+            if (error) throw error;
+            
+            // SI encuentro la pieza → YA LA TENGO → NO dejar comprar
+            if (miPieza && miPieza.length > 0) {
+                console.log(`❌ YA TIENES: ${pieza_nombre} en tu almacén`);
+                return true;  // Bloquear compra
             }
             
-            if (misPiezas && misPiezas.length > 0) {
-                const tieneMejorOIgual = misPiezas.some(pieza => pieza.nivel >= nivel);
-                return tieneMejorOIgual;
-            }
+            // SI no encuentro la pieza → NO LA TENGO → Dejar comprar
+            console.log(`✅ NO TIENES: ${pieza_nombre}, puedes comprar`);
+            return false;  // Permitir compra
             
-            return false;
         } catch (error) {
-            console.error('Error en verificarPiezaDuplicada:', error);
-            return false;
+            console.error('Error:', error);
+            return false;  // Por seguridad, permitir compra si hay error
         }
     }
     async mostrarModalCompra(ordenId) {
@@ -966,7 +966,7 @@ class MercadoManager {
         console.log('🔍 Verificando compra - Área:', orden.area, 'Nivel:', orden.nivel);
         
         // VERIFICAR SI YA TIENE UNA PIEZA SIMILAR O MEJOR
-        const tieneDuplicada = await this.verificarPiezaDuplicada(orden.area, orden.nivel);
+        const tieneDuplicada = await this.verificarPiezaDuplicada(orden.pieza_nombre);
         console.log('🔍 Resultado verificación:', tieneDuplicada ? '❌ BLOQUEADA' : '✅ PERMITIDA');
         
         const modal = document.getElementById('modal-compra');
