@@ -930,16 +930,17 @@ class F1Manager {
                         if (puedeFabricar) {
                             // PASAMOS TAMBIÉN EL NOMBRE DE LA PIEZA (¡IMPORTANTE!)
                             html += `onclick="iniciarFabricacionConBloqueo('${area.id}', ${nivel}, '${nombrePieza.replace(/'/g, "\\'")}', ${piezaNum})"`;
+
                         } else {
                             html += ' disabled';
                         }
-                }
+                    } // ← ESTA CIERRA EL else (NUEVA)
+                    
+                    html += '</div>'; // Cierra botones-area-completa
+                    html += '</div>'; // Cierra area-completa
+                } // ← ESTA CIERRA EL for (piezaNum) - MOVIDA AQUÍ
                 
-                html += '</div>'; // Cierra botones-area-completa
-                html += '</div>'; // Cierra area-completa
-            }
-            
-            html += '</div>'; // Cierra contenedor-areas-taller
+                html += '</div>'; // Cierra contenedor-areas-taller
             
             container.innerHTML = html;
             
