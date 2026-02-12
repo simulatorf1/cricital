@@ -5035,13 +5035,13 @@ setTimeout(() => {
     // FUNCIÓN GLOBAL MODIFICADA PARA CALCULAR NIVEL
     // ========================
     window.iniciarFabricacionTallerDesdeBoton = async function(areaId, nivelDesdeBoton) {
-        console.log('🔧 Botón presionado para:', areaId, 'nivel desde botón:', nivelDesdeBoton);
+        console.log('🔧 Botón presionado para:', areaId);
         
-        // ✅ SOLO ESTO: BLOQUEAR EL BOTÓN
+        // Bloquear botón
         const boton = event?.currentTarget;
         if (boton) {
             boton.disabled = true;
-            boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><div class="pieza-nombre-50">Procesando...</div>';
+            boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><div class="pieza-nombre-50">Verificando...</div>';
         }
         
         if (!window.f1Manager || !window.f1Manager.iniciarFabricacionTaller) {
@@ -5049,73 +5049,18 @@ setTimeout(() => {
             return false;
         }
         
-        // Obtener la próxima pieza a fabricar para esta área
-        // Obtener TODAS las piezas con sus NOMBRES
-        const { data: piezasFabricadas } = await supabase
-            .from('almacen_piezas')
-            .select('componente')
-            .eq('escuderia_id', window.f1Manager.escuderia.id)
-            .eq('area', areaId);
+        // 🟢🟢🟢 ÚNICA LÍNEA QUE IMPORTA 🟢🟢🟢
+        // Llamar DIRECTAMENTE al método de la clase, SIN CALCULAR NADA AQUÍ
+        const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId);
         
-        const nombresArea = window.f1Manager.nombresPiezas[areaId];
-        if (!nombresArea) {
-            alert('Error: Nombres de pieza no encontrados');
-            return false;
-        }
-        
-        // Crear Set con los nombres que YA TIENES
-        const nombresQueTienes = new Set(piezasFabricadas?.map(p => p.componente) || []);
-        
-        // Encontrar el PRIMER nombre que NO tienes
-        let siguienteNumeroGlobal = 1;
-        for (let i = 1; i <= 50; i++) {
-            const nombrePieza = nombresArea[i - 1];
-            if (!nombresQueTienes.has(nombrePieza)) {
-                siguienteNumeroGlobal = i;
-                break;
-            }
-        }
-        
-        if (siguienteNumeroGlobal > 50) {
-            alert('✅ Ya tienes todas las 50 piezas de ' + areaId);
-            return false;
-        }
-        
-        let nivelFabricar = Math.ceil(siguienteNumeroGlobal / 5);
-        const nombrePieza = nombresArea[siguienteNumeroGlobal - 1];
-        
-        console.log('🔍 TALLER - Siguiente pieza disponible:', {
-            numero: siguienteNumeroGlobal,
-            nombre: nombrePieza,
-            nivel: nivelCalculado
-        });
-        const nivelCalculado = Math.ceil(siguienteNumeroGlobal / 5);
-        
-        console.log('📊 Calculando fabricación:', {
-            siguienteNumeroGlobal,
-            nivelCalculado,
-            nivelDesdeBoton
-        });
-        
-        // ✅ EJECUTAR FABRICACIÓN SIN MÁS COMPLICACIONES
-        const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId, nivelFabricar);
-        
-        // Si se inició, actualizar UI
-        if (resultado) {
-            // El botón quedará bloqueado hasta que se recargue la vista
-            setTimeout(() => {
-                if (window.f1Manager.cargarTabTaller) {
-                    window.f1Manager.cargarTabTaller();
-                }
-            }, 1000);
-        } else {
-            // Si falla, restaurar botón después de 2 segundos
+        // Restaurar botón si falla
+        if (!resultado) {
             setTimeout(() => {
                 if (boton) {
                     boton.disabled = false;
                     boton.innerHTML = '<i class="fas fa-plus"></i>' +
-                                     `<div class="pieza-nombre-50">${boton.title?.split(' - ')[0] || 'Fabricar'}</div>` +
-                                     `<div class="pieza-precio-50">€${boton.title?.match(/€([\d,]+)/)?.[1] || '0'}</div>`;
+                        `<div class="pieza-nombre-50">${boton.title?.split(' - ')[0] || 'Fabricar'}</div>` +
+                        `<div class="pieza-precio-50">€${boton.title?.match(/€([\d,]+)/)?.[1] || '0'}</div>`;
                 }
             }, 2000);
         }
