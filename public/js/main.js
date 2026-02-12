@@ -790,7 +790,7 @@ class F1Manager {
             
             const { data: piezasFabricadas, error: errorPiezas } = await this.supabase
                 .from('almacen_piezas')
-                .select('area, nivel, calidad, numero_global, componente, origen')
+                .select('area, nivel, calidad, numero_global, componente')  // ✅ SIN 'origen'
                 .eq('escuderia_id', this.escuderia.id)
                 .order('numero_global', { ascending: true });
         
