@@ -5692,10 +5692,10 @@ setTimeout(() => {
         window.fabricacionEnProgreso = true;
         
         try {
-            const resultado = await window.iniciarFabricacionTallerDesdeBoton(areaId, nivel);
+            // 🟢🟢🟢 LLAMAR DIRECTAMENTE AL MÉTODO DE LA CLASE 🟢🟢🟢
+            const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId);
             return resultado;
         } finally {
-            // Desbloquear después de 1 segundo (tiempo suficiente)
             setTimeout(() => {
                 window.fabricacionEnProgreso = false;
             }, 1000);
