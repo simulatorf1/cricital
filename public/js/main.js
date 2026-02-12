@@ -917,8 +917,8 @@ class F1Manager {
                         html += '</button>';
     
                     } else {
-                        const fabricacionesCount = fabricacionesActivas?.length || 0;
-                        const puedeFabricar = fabricacionesCount < 4 && !yaFabricada && !enFabricacion;
+                        const fabricacionesEstaArea = fabricacionesAreaActivas?.length || 0;
+                        const puedeFabricar = fabricacionesEstaArea === 0 && !yaFabricada && !enFabricacion;
                         
                         html += '<button class="btn-pieza-50 vacio" ';
                         if (puedeFabricar) {
@@ -5571,8 +5571,23 @@ setTimeout(() => {
         
         window.fabricacionEnProgreso = true;
         
+        // CALCULAR COSTO (igual que en el botón)
+        const nivelPieza = Math.ceil(numeroPieza / 5);
+        const numeroEnNivel = ((numeroPieza - 1) % 5) + 1;
+        const costo = window.f1Manager.calcularCostoPieza(nivelPieza, numeroEnNivel);
+        
+        // BLOQUEO VISUAL INMEDIATO
+        const boton = event?.currentTarget;
+        if (boton) {
+            boton.disabled = true;
+            boton.classList.remove('vacio');
+            boton.classList.add('fabricando');
+            boton.innerHTML = `<i class="fas fa-spinner fa-spin"></i>
+                              <div class="pieza-nombre-50">${nombrePieza}</div>
+                              <div class="pieza-precio-50">€${costo.toLocaleString()}</div>`;
+        }        
+        
         try {
-            // PASAMOS TODOS LOS PARÁMETROS AHORA
             const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId, nivel, nombrePieza, numeroPieza);
             return resultado;
         } finally {
