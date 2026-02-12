@@ -1428,8 +1428,9 @@ class F1Manager {
         await this.updateEscuderiaMoney();
         
         // ===== REGISTRAR TRANSACCIÓN =====
+        // ===== REGISTRAR TRANSACCIÓN =====
         try {
-            if (window.presupuestoManager?.registrarTransaccion) {
+            if (window.presupuestoManager && window.presupuestoManager.registrarTransaccion) {
                 await window.presupuestoManager.registrarTransaccion(
                     'gasto',
                     costo,
