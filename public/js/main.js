@@ -3852,7 +3852,7 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         }
         const nuevoNumeroGlobal = maxNumeroGlobal + 1;
         // ===== AÑADIR ESTO =====
-        let componente = `${fabricacion.area} Mejora ${nuevoNumeroGlobal}`;
+        const componente = fabricacion.nombre_pieza;  // ← USA EL NOMBRE REAL
         if (window.f1Manager && window.f1Manager.nombresPiezas && 
             window.f1Manager.nombresPiezas[fabricacion.area]) {
             const nombresArea = window.f1Manager.nombresPiezas[fabricacion.area];
