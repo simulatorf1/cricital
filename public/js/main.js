@@ -1413,7 +1413,7 @@ class F1Manager {
                 siguienteDisponible: numeroPiezaGlobal,
                 nombrePieza: nombrePieza
             });
-            const numeroPiezaEnNivel = ((numeroPiezaGlobal - 1) % 5) + 1;
+
             
             console.log('📊 Fabricando pieza global ' + numeroPiezaGlobal + ' para ' + areaId);
             
