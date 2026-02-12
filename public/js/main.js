@@ -5077,7 +5077,7 @@ setTimeout(() => {
             return false;
         }
         
-        const nivelCalculado = Math.ceil(siguienteNumeroGlobal / 5);
+        let nivelFabricar = Math.ceil(siguienteNumeroGlobal / 5);
         const nombrePieza = nombresArea[siguienteNumeroGlobal - 1];
         
         console.log('🔍 TALLER - Siguiente pieza disponible:', {
@@ -5094,7 +5094,7 @@ setTimeout(() => {
         });
         
         // ✅ EJECUTAR FABRICACIÓN SIN MÁS COMPLICACIONES
-        const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId, nivelCalculado);
+        const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId, nivelFabricar);
         
         // Si se inició, actualizar UI
         if (resultado) {
