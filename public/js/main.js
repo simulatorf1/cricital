@@ -869,29 +869,40 @@ class F1Manager {
                     (f.area === area.id || f.area === area.nombre) && !f.completada
                 ) || [];
                 
+
                 for (let piezaNum = 1; piezaNum <= 50; piezaNum++) {
-                    const nivel = Math.ceil(piezaNum / 5);
-                    const numeroPiezaEnNivel = ((piezaNum - 1) % 5) + 1;
-                    const costoPieza = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
+                    // ===== VALORES FIJOS PARA ESTE BOTÓN =====
+                    const nivel = Math.ceil(piezaNum / 5);                    // Nivel 1-10 (fijo)
+                    const numeroPiezaEnNivel = ((piezaNum - 1) % 5) + 1;      // Posición 1-5 (fija)
+                    const costoPieza = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);  // Precio fijo
+                    const nombrePieza = this.nombresPiezas[area.id]?.[piezaNum - 1] || `${area.nombre} Mejora ${piezaNum}`;
                     
-                    // ✅ NOMBRE DE LA PIEZA (FIJO)
-                    const nombrePieza = this.nombresPiezas[area.id][piezaNum - 1];
+                    // ===== VERIFICACIÓN ÚNICA: ¿YA TENGO ESTE NOMBRE EN ALMACÉN? =====
+                    const yaFabricada = piezasAreaFabricadasAll.some(p => p.componente === nombrePieza);
+                    const esCompradaMercado = yaFabricada ? piezasAreaFabricadasAll.find(p => p.componente === nombrePieza)?.comprada_mercado || false : false;
                     
-                    // ✅ VERIFICACIÓN 1: ¿YA LA TENGO EN ALMACÉN?
-                    const yaFabricada = piezasAreaFabricadasAll.some(p => 
-                        p.componente === nombrePieza
-                    );
+                    // ===== VERIFICACIÓN: ¿ESTOY FABRICANDO AHORA MISMO ESTA PIEZA? =====
+                    const enFabricacion = fabricacionesAreaActivas.some(f => {
+                        // Buscar si hay una fabricación activa para esta pieza por su NOMBRE
+                        // Como no guardamos el nombre en fabricacion_actual, usamos el nivel como referencia
+                        const nivelFabricacion = f.nivel;
+                        const rangoPiezasNivel = [(nivelFabricacion - 1) * 5 + 1, nivelFabricacion * 5];
+                        
+                        // Si esta pieza está dentro del rango del nivel que se está fabricando
+                        if (piezaNum >= rangoPiezasNivel[0] && piezaNum <= rangoPiezasNivel[1]) {
+                            // Verificar si las piezas anteriores de este nivel YA están fabricadas
+                            const piezasNivelFabricadas = piezasAreaFabricadasAll.filter(p => {
+                                const nivelPieza = Math.ceil(p.numero_global / 5);
+                                return nivelPieza === nivelFabricacion;
+                            }).length;
+                            
+                            // La pieza en fabricación es la siguiente no fabricada de ese nivel
+                            const siguientePiezaNivel = rangoPiezasNivel[0] + piezasNivelFabricadas;
+                            return siguientePiezaNivel === piezaNum && !yaFabricada;
+                        }
+                        return false;
+                    });
                     
-                    // ✅ VERIFICACIÓN 2: ¿ESTÁ EN FABRICACIÓN?
-                    const enFabricacion = fabricacionesAreaActivas.some(f => 
-                        f.nombre_pieza === nombrePieza
-                    );
-                    
-                    // ✅ Buscar la pieza específica para saber si es comprada en mercado
-                    const piezaActual = piezasAreaFabricadasAll.find(p => p.componente === nombrePieza);
-                    const esCompradaMercado = piezaActual?.comprada_mercado || false;
-                    
-                    // ✅ BOTÓN PARA PIEZA YA FABRICADA
                     if (yaFabricada) {
                         const claseCSS = esCompradaMercado ? 'btn-pieza-50 comprada-mercado' : 'btn-pieza-50 lleno';
                         const icono = esCompradaMercado ? 'fa-shopping-cart' : 'fa-check';
@@ -901,36 +912,28 @@ class F1Manager {
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
-                    } 
-                    // ✅ BOTÓN PARA PIEZA EN FABRICACIÓN
-                    else if (enFabricacion) {
+                        
+                    } else if (enFabricacion) {
                         html += `<button class="btn-pieza-50 fabricando" disabled title="${nombrePieza} - En fabricación">`;
                         html += '<i class="fas fa-spinner fa-spin"></i>';
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
-                    } 
-                    // ✅ BOTÓN PARA PIEZA DISPONIBLE (NO FABRICADA, NO EN FABRICACIÓN)
-                    else {
-                        // Verificar límite de fabricaciones
+
+                    } else {
+
+                        // NUEVA LÓGICA: Solo importa si tienes menos de 4 fabricaciones activas
                         const fabricacionesCount = fabricacionesActivas?.length || 0;
-                        const puedeFabricar = fabricacionesCount < 4;
+                        const puedeFabricar = fabricacionesCount < 4 && !yaFabricada && !enFabricacion;
                         
                         html += '<button class="btn-pieza-50 vacio" ';
                         if (puedeFabricar) {
-                            html += `onclick="iniciarFabricacionConBloqueo('${area.id}')"`;
+                            // PASAMOS TAMBIÉN EL NOMBRE DE LA PIEZA (¡IMPORTANTE!)
+                            html += `onclick="iniciarFabricacionConBloqueo('${area.id}', ${nivel}, '${nombrePieza.replace(/'/g, "\\'")}', ${piezaNum})"`;
                         } else {
                             html += ' disabled';
                         }
-                        html += ` title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()}">`;
-                        html += '<i class="fas fa-plus"></i>';
-                        html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
-                        html += '</button>';
-                    }
                 }
-
-     
                 
                 html += '</div>'; // Cierra botones-area-completa
                 html += '</div>'; // Cierra area-completa
@@ -1326,130 +1329,105 @@ class F1Manager {
     // ========================
     // MÉTODO CORREGIDO PARA INICIAR FABRICACIÓN
     // ========================
-    async iniciarFabricacionTaller(areaId) {
-        console.log('🔔 Iniciando fabricación:', { areaId });
+    async iniciarFabricacionTaller(areaId, nivel, nombrePieza, numeroPieza) {
+        console.log('🔧 Iniciando fabricación de:', { areaId, nivel, nombrePieza, numeroPieza });
         
+        // ===== VERIFICACIÓN 1: Escudería válida =====
         if (!this.escuderia || !this.escuderia.id) {
-            console.error('❌ ERROR: No hay escudería');
+            console.error('❌ No hay escudería');
             this.showNotification('❌ Error: No se encontró tu escudería', 'error');
             return false;
         }
-    
-        // ===== 1. OBTENER NOMBRE DE LA PIEZA DESDE EL BOTÓN =====
-        let nombrePieza = null;
         
-        // Intentar obtener del botón clickeado
-        const botonActivo = document.activeElement;
-        if (botonActivo && botonActivo.classList.contains('btn-pieza-50')) {
-            const nombreElement = botonActivo.querySelector('.pieza-nombre-50');
-            if (nombreElement) {
-                nombrePieza = nombreElement.innerText.trim();
-            }
-        }
-        
-        // Si no se pudo obtener del botón, buscar por área
-        if (!nombrePieza) {
-            const { data: misPiezas } = await this.supabase
-                .from('almacen_piezas')
-                .select('componente')
-                .eq('escuderia_id', this.escuderia.id)
-                .eq('area', areaId);
-            
-            const nombresArea = this.nombresPiezas[areaId];
-            if (!nombresArea) {
-                this.showNotification('❌ Error: Nombres de pieza no encontrados', 'error');
-                return false;
-            }
-            
-            // Encontrar el primer nombre que NO tengas
-            for (let i = 0; i < nombresArea.length; i++) {
-                const nombre = nombresArea[i];
-                const yaLaTengo = misPiezas?.some(p => p.componente === nombre);
-                if (!yaLaTengo) {
-                    nombrePieza = nombre;
-                    break;
-                }
-            }
-        }
-        
-        if (!nombrePieza) {
-            this.showNotification('❌ Ya tienes todas las piezas de esta área', 'error');
-            return false;
-        }
-        
-        console.log('📦 Fabricando pieza:', nombrePieza);
-        
-        // ===== 2. VERIFICAR QUE NO EXISTA YA (POR NOMBRE) =====
-        const { data: existe } = await this.supabase
-            .from('almacen_piezas')
-            .select('id')
-            .eq('escuderia_id', this.escuderia.id)
-            .eq('area', areaId)
-            .eq('componente', nombrePieza);
-        
-        if (existe && existe.length > 0) {
-            this.showNotification(`❌ Ya tienes "${nombrePieza}" en tu almacén`, 'error');
-            return false;
-        }
-        
-        // ===== 3. VERIFICAR LÍMITE DE FABRICACIONES =====
-        const { data: fabricacionesActivas } = await this.supabase
+        // ===== VERIFICACIÓN 2: Límite de fabricaciones =====
+        const { data: fabricacionesActivas, error: errorLimite } = await this.supabase
             .from('fabricacion_actual')
             .select('id')
             .eq('escuderia_id', this.escuderia.id)
             .eq('completada', false);
         
-        if (fabricacionesActivas && fabricacionesActivas.length >= 4) {
-            this.showNotification('❌ Límite alcanzado (máximo 4 fabricaciones)', 'error');
+        if (errorLimite) {
+            console.error('❌ Error verificando límite:', errorLimite);
+            this.showNotification('❌ Error verificando fabricaciones', 'error');
             return false;
         }
         
-        // ===== 4. CALCULAR NIVEL Y COSTO (basado en CUÁNTAS TIENES) =====
-        const { data: misPiezas } = await this.supabase
+        if (fabricacionesActivas && fabricacionesActivas.length >= 4) {
+            this.showNotification('❌ Límite alcanzado (máximo 4 fabricaciones simultáneas)', 'error');
+            return false;
+        }
+        
+        // ===== VERIFICACIÓN 3: ¿YA TENGO ESTA PIEZA EN ALMACÉN? =====
+        const { data: piezaExistente, error: errorConsulta } = await this.supabase
             .from('almacen_piezas')
             .select('id')
             .eq('escuderia_id', this.escuderia.id)
-            .eq('area', areaId);
+            .eq('area', areaId)
+            .eq('componente', nombrePieza)
+            .maybeSingle();
         
-        const cantidadPiezas = misPiezas?.length || 0;
-        const nivel = Math.floor(cantidadPiezas / 5) + 1;
-        const posicionEnNivel = (cantidadPiezas % 5) + 1;
-        const costo = this.calcularCostoPieza(nivel, posicionEnNivel);
-        const tiempoMinutos = this.calcularTiempoProgresivo(cantidadPiezas + 1);
+        if (errorConsulta) {
+            console.error('❌ Error verificando pieza existente:', errorConsulta);
+            this.showNotification('❌ Error verificando disponibilidad', 'error');
+            return false;
+        }
         
-        // ===== 5. VERIFICAR DINERO =====
+        if (piezaExistente) {
+            console.log(`❌ Ya tienes "${nombrePieza}" en almacén`);
+            this.showNotification(`❌ Ya tienes "${nombrePieza}" en tu almacén`, 'error');
+            return false;
+        }
+        
+        // ===== VERIFICACIÓN 4: Dinero suficiente =====
+        // Calcular costo (fijo para esta pieza)
+        const nivelPieza = Math.ceil(numeroPieza / 5);
+        const numeroEnNivel = ((numeroPieza - 1) % 5) + 1;
+        const costo = this.calcularCostoPieza(nivelPieza, numeroEnNivel);
+        
         if (this.escuderia.dinero < costo) {
             this.showNotification(`❌ Dinero insuficiente. Necesitas €${costo.toLocaleString()}`, 'error');
             return false;
         }
         
-        // ===== 6. CREAR FABRICACIÓN =====
+        // ===== CREAR FABRICACIÓN =====
+        const tiempoMinutos = this.calcularTiempoProgresivo(numeroPieza);
+        const tiempoMilisegundos = tiempoMinutos * 60 * 1000;
         const ahora = new Date();
-        const tiempoFin = new Date(ahora.getTime() + (tiempoMinutos * 60 * 1000));
+        const tiempoFin = new Date(ahora.getTime() + tiempoMilisegundos);
         
-        const { data: fabricacion, error } = await this.supabase
+        console.log(`⏱️ Tiempo de fabricación: ${tiempoMinutos} minutos`);
+        console.log(`💰 Costo: €${costo.toLocaleString()}`);
+        
+        // Insertar en fabricacion_actual
+        const { data: fabricacion, error: errorCrear } = await this.supabase
             .from('fabricacion_actual')
             .insert([{
                 escuderia_id: this.escuderia.id,
                 area: areaId,
-                nivel: nivel,
-                nombre_pieza: nombrePieza,  // ← GUARDAMOS EL NOMBRE
+                nivel: nivelPieza,
                 tiempo_inicio: ahora.toISOString(),
                 tiempo_fin: tiempoFin.toISOString(),
                 completada: false,
                 costo: costo,
+                // 👇 IMPORTANTE: Guardamos el nombre de la pieza para saber QUÉ estamos fabricando
+                nombre_pieza: nombrePieza,
+                numero_pieza: numeroPieza,
                 creada_en: ahora.toISOString()
             }])
             .select()
             .single();
         
-        if (error) throw error;
+        if (errorCrear) {
+            console.error('❌ Error creando fabricación:', errorCrear);
+            this.showNotification('❌ Error en fabricación', 'error');
+            return false;
+        }
         
-        // ===== 7. RESTAR DINERO =====
+        // ===== RESTAR DINERO =====
         this.escuderia.dinero -= costo;
         await this.updateEscuderiaMoney();
         
-        // ===== 8. REGISTRAR TRANSACCIÓN =====
+        // ===== REGISTRAR TRANSACCIÓN =====
         try {
             if (window.presupuestoManager?.registrarTransaccion) {
                 await window.presupuestoManager.registrarTransaccion(
@@ -1457,29 +1435,25 @@ class F1Manager {
                     costo,
                     `Fabricación ${nombrePieza}`,
                     'produccion',
-                    { area: areaId, nivel: nivel, nombre_pieza: nombrePieza }
+                    { area: areaId, nivel: nivelPieza, nombre_pieza: nombrePieza }
                 );
             }
         } catch (error) {
-            console.warn('⚠️ Error registrando transacción:', error);
+            console.warn('⚠️ No se pudo registrar transacción:', error);
         }
         
-        // ===== 9. ESTRELLAS POR PRIMERA FABRICACIÓN =====
+        // ===== VERIFICAR PRIMERA FABRICACIÓN DEL DÍA =====
         if (!this.escuderia.primera_fabricacion_hoy) {
             await this.darEstrellasFabricacion();
         }
         
-        // ===== 10. ACTUALIZAR UI =====
+        // ===== NOTIFICACIÓN ÉXITO =====
+        this.showNotification(`🏭 Fabricación iniciada: ${nombrePieza}`, 'success');
+        
+        // ===== ACTUALIZAR UI =====
         setTimeout(() => {
             this.updateProductionMonitor();
-            if (window.presupuestoManager?.actualizarVistaPresupuesto) {
-                window.presupuestoManager.actualizarVistaPresupuesto();
-            }
         }, 500);
-        
-        setTimeout(() => {
-            this.showNotification(`🏭 Fabricación activa: ${nombrePieza}`, 'info');
-        }, 1000);
         
         return true;
     }
@@ -3591,7 +3565,7 @@ class F1Manager {
                     const numeroPiezaGlobal = totalPiezasFabricadas + 1;
                     
                     // === USAR NOMBRES PERSONALIZADOS ===
-                    let nombreMostrar = "Actualización " + nombreArea;
+                    let nombreMostrar = fabricacion.nombre_pieza || "Actualización " + nombreArea;
                     let mejoraTexto = "";
                     
                     // Buscar en los nombres personalizados si existe
@@ -3859,22 +3833,34 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
     console.log("🔧 Recogiendo pieza:", { fabricacionId, lista });
     
     if (!lista) {
+        // Mostrar notificación temporal simple
         const notificacion = document.createElement('div');
         notificacion.className = 'notification info';
         notificacion.innerHTML = `
             <div class="notification-content">
                 <i class="fas fa-hourglass-half"></i>
-                <span>Fabricación en curso</span>
+                <span>Fabricación en curso<br><small>Visita el taller</small></span>
             </div>
         `;
         document.body.appendChild(notificacion);
+        
+        // Mostrar la notificación
         setTimeout(() => notificacion.classList.add('show'), 10);
-        setTimeout(() => notificacion.remove(), 3000);
+        
+        // Eliminar después de 3 segundos
+        setTimeout(() => {
+            notificacion.classList.remove('show');
+            setTimeout(() => {
+                if (notificacion.parentNode) {
+                    notificacion.parentNode.removeChild(notificacion);
+                }
+            }, 300);
+        }, 3000);
+        
         return;
     }
     
     try {
-        // 1. OBTENER DATOS DE LA FABRICACIÓN
         const { data: fabricacion, error: fetchError } = await window.supabase
             .from('fabricacion_actual')
             .select('*')
@@ -3883,80 +3869,146 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         
         if (fetchError) throw fetchError;
         
-        // 2. EL NOMBRE DE LA PIEZA YA ESTÁ GUARDADO
-        const nombrePieza = fabricacion.nombre_pieza;
-        
-        if (!nombrePieza) {
-            console.error('❌ La fabricación no tiene nombre_pieza');
-            return;
-        }
-        
-        // 3. VERIFICAR QUE NO EXISTA YA (por si acaso)
-        const { data: existe } = await window.supabase
+        // ===== NUEVO: Calcular número global =====
+        // 1. Obtener todas las piezas de esta área
+        const { data: todasPiezasArea } = await window.supabase
             .from('almacen_piezas')
-            .select('id')
+            .select('id, numero_global')
             .eq('escuderia_id', fabricacion.escuderia_id)
-            .eq('area', fabricacion.area)
-            .eq('componente', nombrePieza);
+            .eq('area', fabricacion.area);
         
-        if (existe && existe.length > 0) {
-            console.log('⚠️ La pieza ya existe en almacén');
-            window.f1Manager?.showNotification('⚠️ Esta pieza ya estaba en el almacén', 'info');
+        // 2. Encontrar el siguiente número global
+        let maxNumeroGlobal = 0;
+        if (todasPiezasArea && todasPiezasArea.length > 0) {
+            // Buscar el máximo numero_global existente
+            todasPiezasArea.forEach(p => {
+                if (p.numero_global && p.numero_global > maxNumeroGlobal) {
+                    maxNumeroGlobal = p.numero_global;
+                }
+            });
+        }
+        const nuevoNumeroGlobal = maxNumeroGlobal + 1;
+        // ===== AÑADIR ESTO =====
+        let componente = `${fabricacion.area} Mejora ${nuevoNumeroGlobal}`;
+        if (window.f1Manager && window.f1Manager.nombresPiezas && 
+            window.f1Manager.nombresPiezas[fabricacion.area]) {
+            const nombresArea = window.f1Manager.nombresPiezas[fabricacion.area];
+            if (nuevoNumeroGlobal <= nombresArea.length) {
+                componente = nombresArea[nuevoNumeroGlobal - 1];
+            }
+        }
+        // ===== FIN AÑADIR =====        
+        
+        // ===== 3. Calcular puntos =====
+        let puntosTotales;
+        if (window.f1Manager && window.f1Manager.calcularPuntosPieza) {
+            // Pasar areaId y numeroPiezaGlobal
+            puntosTotales = window.f1Manager.calcularPuntosPieza(fabricacion.area, nuevoNumeroGlobal);
         } else {
-            // 4. INSERTAR EN ALMACÉN (SIN numero_global)
-            const { error: insertError } = await window.supabase
-                .from('almacen_piezas')
-                .insert([{
-                    escuderia_id: fabricacion.escuderia_id,
-                    area: fabricacion.area,
-                    nivel: fabricacion.nivel || 1,
-                    componente: nombrePieza,
-                    puntos_base: window.f1Manager?.calcularPuntosPieza(fabricacion.area, null) || 50,
-                    calidad: 'Normal',
-                    equipada: false,
-                    fabricada_en: new Date().toISOString(),
-                    creada_en: new Date().toISOString()
-                }]);
-            
-            if (insertError) throw insertError;
-            console.log("✅ Pieza añadida a almacen_piezas:", nombrePieza);
+            puntosTotales = calcularPuntosBase(fabricacion.area, fabricacion.nivel, nuevoNumeroGlobal);
         }
         
-        // 5. MARCAR FABRICACIÓN COMO COMPLETADA
-        await window.supabase
+        // ===== 4. Insertar con numero_global =====
+        const nombrePieza = fabricacion.nombre_pieza || `${fabricacion.area} Mejora ${nuevoNumeroGlobal}`;
+        
+        const { error: insertError } = await window.supabase
+            .from('almacen_piezas')
+            .insert([{
+                escuderia_id: fabricacion.escuderia_id,
+                area: fabricacion.area,
+                nivel: fabricacion.nivel || 1,
+                // El número global ahora es SOLO informativo, NO se usa para validar
+                numero_global: fabricacion.numero_pieza || nuevoNumeroGlobal,
+                // ⚠️ CRÍTICO: Guardamos el NOMBRE EXACTO de la pieza
+                componente: nombrePieza,
+                puntos_base: puntosTotales,
+                calidad: 'Normal',
+                equipada: false,
+                fabricada_en: new Date().toISOString(),
+                creada_en: new Date().toISOString()
+            }]);
+        
+        if (insertError) {
+            console.error("Error insertando pieza:", insertError);
+            throw insertError;
+        }
+        
+        console.log("✅ Pieza añadida a almacen_piezas");
+        
+        const { error: updateError } = await window.supabase
             .from('fabricacion_actual')
-            .update({ completada: true })
+            .update({ 
+                completada: true
+            })
             .eq('id', fabricacionId);
         
-        // 6. NOTIFICACIÓN
-        window.f1Manager?.showNotification(`✅ ${nombrePieza} recogida`, 'success');
+        if (updateError) throw updateError;
         
-        // 7. ACTUALIZAR UI
-        const slotElement = document.querySelector(`.produccion-slot[onclick*="${fabricacionId}"]`);
-        if (slotElement) {
-            slotElement.className = 'produccion-slot';
-            slotElement.setAttribute('onclick', 'irAlTallerDesdeProduccion()');
-            slotElement.innerHTML = `
-                <div class="slot-content">
-                    <i class="fas fa-plus"></i>
-                    <span>Departamento ${slotIndex + 1}</span>
-                    <span class="slot-disponible">Disponible</span>
-                </div>
-            `;
+        console.log("✅ Fabricación marcada como completada");
+        
+        // Calcular qué número de pieza es dentro del nivel (1-5)
+        const numeroPiezaEnNivel = ((nuevoNumeroGlobal - 1) % 5) + 1;
+        const nombreArea = window.f1Manager?.getNombreArea(fabricacion.area) || fabricacion.area;
+        
+        // Obtener nombre personalizado
+        let nombrePiezaNotif = nombreArea;
+        if (window.f1Manager && window.f1Manager.nombresPiezas && 
+            window.f1Manager.nombresPiezas[fabricacion.area]) {
+            const nombresArea = window.f1Manager.nombresPiezas[fabricacion.area];
+            if (nuevoNumeroGlobal <= nombresArea.length) {
+                nombrePiezaNotif = nombresArea[nuevoNumeroGlobal - 1];
+            }
         }
         
-        // 8. RECARGAR VISTAS
-        setTimeout(() => {
-            window.f1Manager?.updateProductionMonitor();
-            if (window.tabManager?.currentTab === 'almacen') {
-                window.tabManager.loadAlmacenPiezas?.();
+        if (window.f1Manager && window.f1Manager.showNotification) {
+            window.f1Manager.showNotification('✅ ' + nombrePiezaNotif + ' recogida', 'success');
+        }
+        
+        if (window.f1Manager) {
+            if (window.f1Manager.productionUpdateTimer) {
+                clearInterval(window.f1Manager.productionUpdateTimer);
             }
-            window.f1Manager?.cargarPiezasMontadas?.();
-        }, 1000);
+            
+            // En lugar de actualizar todo el monitor, solo actualizamos el slot específico
+            const slotElement = document.querySelector(`.produccion-slot[onclick*="${fabricacionId}"]`);
+            if (slotElement) {
+                // Convertir este slot a vacío
+                slotElement.className = 'produccion-slot';
+                slotElement.setAttribute('onclick', 'irAlTallerDesdeProduccion()');
+                slotElement.innerHTML = `
+                    <div class="slot-content">
+                        <i class="fas fa-plus"></i>
+                        <span>Departamento ${slotIndex + 1}</span>
+                        <span class="slot-disponible">Disponible</span>
+                    </div>
+                `;
+            } else {
+                // Fallback: actualizar solo si no encontramos el elemento específico
+                setTimeout(() => {
+                    window.f1Manager.updateProductionMonitor();
+                }, 500);
+            }
+            
+            if (window.tabManager && window.tabManager.currentTab === 'almacen') {
+                setTimeout(() => {
+                    if (window.tabManager.loadAlmacenPiezas) {
+                        window.tabManager.loadAlmacenPiezas();
+                    }
+                }, 1000);
+            }
+            
+            setTimeout(() => {
+                if (window.f1Manager.cargarPiezasMontadas) {
+                    window.f1Manager.cargarPiezasMontadas();
+                }
+            }, 1500);
+        }
         
     } catch (error) {
         console.error('❌ Error recogiendo pieza:', error);
-        window.f1Manager?.showNotification('❌ Error: ' + error.message, 'error');
+        if (window.f1Manager && window.f1Manager.showNotification) {
+            window.f1Manager.showNotification('❌ Error: ' + error.message, 'error');
+        }
     }
 };
 function calcularPuntosBase(area, nivel, numeroPiezaGlobal) {
@@ -5547,7 +5599,7 @@ setTimeout(() => {
     // ✅ FUNCIÓN DE BLOQUEO GLOBAL - AÑADE ESTO NUEVO
     window.fabricacionEnProgreso = false;
     
-    window.iniciarFabricacionConBloqueo = async function(areaId, nivel) {
+    window.iniciarFabricacionConBloqueo = async function(areaId, nivel, nombrePieza, numeroPieza) {
         // Evitar doble click
         if (window.fabricacionEnProgreso) {
             console.log('⚠️ Ya hay una fabricación en curso');
@@ -5557,8 +5609,8 @@ setTimeout(() => {
         window.fabricacionEnProgreso = true;
         
         try {
-            // 🟢🟢🟢 PASA AMBOS PARÁMETROS 🟢🟢🟢
-            const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId, nivel);
+            // PASAMOS TODOS LOS PARÁMETROS AHORA
+            const resultado = await window.f1Manager.iniciarFabricacionTaller(areaId, nivel, nombrePieza, numeroPieza);
             return resultado;
         } finally {
             setTimeout(() => {
