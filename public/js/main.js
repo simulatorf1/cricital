@@ -792,7 +792,7 @@ class F1Manager {
             
             const { data: piezasFabricadas, error: errorPiezas } = await this.supabase
                 .from('almacen_piezas')
-                .select('area, nivel, calidad, numero_global, componente, comprada_mercado')
+                .select('area, nivel, calidad, numero_global, componente')
                 .eq('escuderia_id', this.escuderia.id)
                 .order('numero_global', { ascending: true });
         
@@ -880,7 +880,7 @@ class F1Manager {
                     
                     // ===== VERIFICACIÓN: ¿YA TENGO ESTE NOMBRE EN ALMACÉN? =====
                     const yaFabricada = piezasAreaFabricadasAll.some(p => p.componente === nombrePieza);
-                    const esCompradaMercado = yaFabricada ? piezasAreaFabricadasAll.find(p => p.componente === nombrePieza)?.comprada_mercado || false : false;
+                    const esCompradaMercado = yaFabricada ? piezasAreaFabricadasAll.find(p => p.componente === nombrePieza)?.origen === 'mercado' || false : false;
                     
                     // ===== VERIFICACIÓN: ¿ESTOY FABRICANDO AHORA MISMO ESTA PIEZA? =====
                     const enFabricacion = fabricacionesAreaActivas.some(f => {
