@@ -1379,7 +1379,6 @@ class F1Manager {
         }
         
         // ===== VERIFICACIÓN 4: Dinero suficiente =====
-        // Calcular costo (fijo para esta pieza)
         const nivelPieza = Math.ceil(numeroPieza / 5);
         const numeroEnNivel = ((numeroPieza - 1) % 5) + 1;
         const costo = this.calcularCostoPieza(nivelPieza, numeroEnNivel);
@@ -1398,7 +1397,6 @@ class F1Manager {
         console.log(`⏱️ Tiempo de fabricación: ${tiempoMinutos} minutos`);
         console.log(`💰 Costo: €${costo.toLocaleString()}`);
         
-        // Insertar en fabricacion_actual
         const { data: fabricacion, error: errorCrear } = await this.supabase
             .from('fabricacion_actual')
             .insert([{
@@ -1409,7 +1407,6 @@ class F1Manager {
                 tiempo_fin: tiempoFin.toISOString(),
                 completada: false,
                 costo: costo,
-                // 👇 IMPORTANTE: Guardamos el nombre de la pieza para saber QUÉ estamos fabricando
                 nombre_pieza: nombrePieza,
                 numero_pieza: numeroPieza,
                 creada_en: ahora.toISOString()
@@ -1427,10 +1424,9 @@ class F1Manager {
         this.escuderia.dinero -= costo;
         await this.updateEscuderiaMoney();
         
-        // ===== REGISTRAR TRANSACCIÓN =====
-        // ===== REGISTRAR TRANSACCIÓN =====
-        try {
-            if (window.presupuestoManager && window.presupuestoManager.registrarTransaccion) {
+        // ===== REGISTRAR TRANSACCIÓN (SIN optional chaining) =====
+        if (window.presupuestoManager && window.presupuestoManager.registrarTransaccion) {
+            try {
                 await window.presupuestoManager.registrarTransaccion(
                     'gasto',
                     costo,
@@ -1438,9 +1434,9 @@ class F1Manager {
                     'produccion',
                     { area: areaId, nivel: nivelPieza, nombre_pieza: nombrePieza }
                 );
+            } catch (error) {
+                console.warn('⚠️ No se pudo registrar transacción:', error);
             }
-        } catch (error) {
-            console.warn('⚠️ No se pudo registrar transacción:', error);
         }
         
         // ===== VERIFICAR PRIMERA FABRICACIÓN DEL DÍA =====
