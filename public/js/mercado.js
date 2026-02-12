@@ -1039,25 +1039,7 @@ class MercadoManager {
                 return;
             }
     
-            // 2. VERIFICAR SI YA TIENE UNA PIEZA SIMILAR
-            const { data: misPiezas, error: piezasError } = await this.supabase
-                .from('almacen_piezas')
-                .select('*')
-                .eq('escuderia_id', this.escuderia.id)
-                .eq('area', orden.area)
-                .eq('equipada', true);
-            
-            if (piezasError) throw piezasError;
-            
-            if (misPiezas && misPiezas.length > 0) {
-                // Verificar si ya tiene una pieza del mismo nivel o superior equipada
-                const piezaEquipada = misPiezas.find(p => p.nivel >= orden.nivel);
-                if (piezaEquipada) {
-                    if (!confirm(`⚠️ Ya tienes ${this.getAreaNombre(orden.area)} Nivel ${piezaEquipada.nivel} equipado.\n¿Estás seguro de comprar esta pieza de nivel ${orden.nivel}?`)) {
-                        return;
-                    }
-                }
-            }
+
             
             // 3. TRANSFERIR la pieza al comprador - SOLO CAMBIAR escuderia_id
             const { error: transferPiezaError } = await this.supabase
