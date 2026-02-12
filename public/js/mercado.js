@@ -68,33 +68,41 @@ class MercadoManager {
     }
 
     // ========================
-    // 2. verificar duplicados
+    // VERIFICAR PIEZA DUPLICADA - VERSIÓN CORREGIDA
     // ========================
-
     async verificarPiezaDuplicada(area, nivel) {
         if (!this.escuderia) return false;
         
         try {
-            // Verificar si ya tiene una pieza del mismo nivel en el mismo área
+            // Verificar si YA TIENE UNA PIEZA DEL MISMO NIVEL O SUPERIOR EQUIPADA
             const { data: misPiezas, error } = await this.supabase
                 .from('almacen_piezas')
                 .select('*')
                 .eq('escuderia_id', this.escuderia.id)
                 .eq('area', area)
-                .eq('nivel', nivel);
+                .eq('equipada', true);  // Solo piezas equipadas
             
             if (error) {
                 console.error('Error verificando pieza duplicada:', error);
                 return false;
             }
             
-            return misPiezas && misPiezas.length > 0;
+            // BUSCAR si ya tiene UNA DEL MISMO NIVEL O SUPERIOR
+            if (misPiezas && misPiezas.length > 0) {
+                const tieneMejorOIgual = misPiezas.some(pieza => pieza.nivel >= nivel);
+                
+                if (tieneMejorOIgual) {
+                    console.log(`⚠️ Ya tienes una pieza de nivel ${misPiezas[0].nivel} (${misPiezas[0].nivel >= nivel ? 'igual o mejor' : 'inferior'})`);
+                    return true; // Bloquear compra si tiene IGUAL O MEJOR
+                }
+            }
+            
+            return false; // Permitir compra si no tiene o tiene inferior
         } catch (error) {
             console.error('Error en verificarPiezaDuplicada:', error);
             return false;
         }
     }
-
     
     // Agrega esta función a la clase MercadoManager
     
