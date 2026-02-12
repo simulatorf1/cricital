@@ -1368,13 +1368,51 @@ class F1Manager {
             }
             
             // Obtener datos de piezas existentes
+            // 1. Obtener TODAS las piezas del área (con sus nombres)
             const { data: todasPiezasArea } = await this.supabase
                 .from('almacen_piezas')
-                .select('id')
+                .select('componente, numero_global')
                 .eq('escuderia_id', this.escuderia.id)
-                .eq('area', areaId);
+                .eq('area', areaId)
+                .order('numero_global', { ascending: true });
             
-            const numeroPiezaGlobal = (todasPiezasArea?.length || 0) + 1;
+            // 2. Obtener el nombre de la PRÓXIMA pieza (la que intentas fabricar)
+            const nombresArea = this.nombresPiezas[areaId];
+            if (!nombresArea) {
+                this.showNotification('❌ Error: Nombres de pieza no encontrados', 'error');
+                return false;
+            }
+            
+            // 3. Encontrar el PRIMER número global que NO tienes
+            let siguienteNumeroGlobal = 1;
+            const nombresQueTienes = new Set(todasPiezasArea?.map(p => p.componente) || []);
+            
+            for (let i = 1; i <= 50; i++) {
+                const nombrePieza = nombresArea[i - 1];
+                if (!nombresQueTienes.has(nombrePieza)) {
+                    siguienteNumeroGlobal = i;
+                    break;
+                }
+            }
+            
+            // 4. Si ya tienes TODAS las 50 piezas
+            if (siguienteNumeroGlobal > 50) {
+                this.showNotification('❌ Ya has fabricado todas las 50 piezas de ' + areaId, 'error');
+                return false;
+            }
+            
+            const numeroPiezaGlobal = siguienteNumeroGlobal;
+            const nivel = Math.ceil(numeroPiezaGlobal / 5);
+            const numeroPiezaEnNivel = ((numeroPiezaGlobal - 1) % 5) + 1;
+            const nombrePieza = nombresArea[numeroPiezaGlobal - 1];
+            
+            console.log('🔍 VERIFICACIÓN TALLER:', {
+                area: areaId,
+                piezasExistentes: todasPiezasArea?.length || 0,
+                nombresQueTienes: Array.from(nombresQueTienes),
+                siguienteDisponible: numeroPiezaGlobal,
+                nombrePieza: nombrePieza
+            });
             const numeroPiezaEnNivel = ((numeroPiezaGlobal - 1) % 5) + 1;
             
             console.log('📊 Fabricando pieza global ' + numeroPiezaGlobal + ' para ' + areaId);
@@ -5008,14 +5046,45 @@ setTimeout(() => {
         }
         
         // Obtener la próxima pieza a fabricar para esta área
+        // Obtener TODAS las piezas con sus NOMBRES
         const { data: piezasFabricadas } = await supabase
             .from('almacen_piezas')
-            .select('numero_global')
+            .select('componente')
             .eq('escuderia_id', window.f1Manager.escuderia.id)
-            .eq('area', areaId)
-            .order('numero_global', { ascending: true });
+            .eq('area', areaId);
         
-        const siguienteNumeroGlobal = (piezasFabricadas?.length || 0) + 1;
+        const nombresArea = window.f1Manager.nombresPiezas[areaId];
+        if (!nombresArea) {
+            alert('Error: Nombres de pieza no encontrados');
+            return false;
+        }
+        
+        // Crear Set con los nombres que YA TIENES
+        const nombresQueTienes = new Set(piezasFabricadas?.map(p => p.componente) || []);
+        
+        // Encontrar el PRIMER nombre que NO tienes
+        let siguienteNumeroGlobal = 1;
+        for (let i = 1; i <= 50; i++) {
+            const nombrePieza = nombresArea[i - 1];
+            if (!nombresQueTienes.has(nombrePieza)) {
+                siguienteNumeroGlobal = i;
+                break;
+            }
+        }
+        
+        if (siguienteNumeroGlobal > 50) {
+            alert('✅ Ya tienes todas las 50 piezas de ' + areaId);
+            return false;
+        }
+        
+        const nivelCalculado = Math.ceil(siguienteNumeroGlobal / 5);
+        const nombrePieza = nombresArea[siguienteNumeroGlobal - 1];
+        
+        console.log('🔍 TALLER - Siguiente pieza disponible:', {
+            numero: siguienteNumeroGlobal,
+            nombre: nombrePieza,
+            nivel: nivelCalculado
+        });
         const nivelCalculado = Math.ceil(siguienteNumeroGlobal / 5);
         
         console.log('📊 Calculando fabricación:', {
