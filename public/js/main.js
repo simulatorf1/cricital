@@ -1042,14 +1042,16 @@ class F1Manager {
                     }
                     
                     .filtro-nombre-mini {
-                        font-size: 0.6rem;
-                        line-height: 1;
+                        font-size: 0.75rem;
+                        line-height: 1.2;
                         text-align: center;
                         white-space: nowrap;
                         overflow: hidden;
                         text-overflow: ellipsis;
                         max-width: 100%;
                         padding: 0 2px;
+                        text-transform: uppercase;
+                        font-weight: bold;
                     }
                     
                     /* === CONTENEDOR CON SCROLL === */
