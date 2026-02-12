@@ -767,11 +767,9 @@ class F1Manager {
         }
     }
 
+    
     // ========================
-    // MÉTODO PARA CARGAR PESTAÑA TALLER (SIMPLIFICADO - SIN BOTONES NI TEXTOS EXTRA)
-    // ========================
-    // ========================
-    // MÉTODO PARA CARGAR PESTAÑA TALLER (CORREGIDO)
+    // MÉTODO PARA CARGAR PESTAÑA TALLER (VERSIÓN CORREGIDA - BLOQUEO TOTAL POR ÁREA)
     // ========================
     async cargarTabTaller() {
         console.log('🔧 Cargando pestaña taller con filtros...');
@@ -792,7 +790,7 @@ class F1Manager {
             
             const { data: piezasFabricadas, error: errorPiezas } = await this.supabase
                 .from('almacen_piezas')
-                .select('area, nivel, calidad, numero_global, componente')
+                .select('area, nivel, calidad, numero_global, componente, origen')
                 .eq('escuderia_id', this.escuderia.id)
                 .order('numero_global', { ascending: true });
         
@@ -812,6 +810,23 @@ class F1Manager {
                 throw errorFabricaciones;
             }
             
+            // 🟢🟢🟢 CAMBIO CRÍTICO: Crear SET de áreas con fabricación activa 🟢🟢🟢
+            const areasConFabricacionActiva = new Set();
+            if (fabricacionesActivas && fabricacionesActivas.length > 0) {
+                fabricacionesActivas.forEach(f => {
+                    const areaId = f.area;
+                    areasConFabricacionActiva.add(areaId);
+                    console.log(`🚫 Área bloqueada por fabricación activa: ${areaId}`);
+                });
+            }
+            
+            // Contar fabricaciones por área (para log)
+            const fabricacionesPorArea = {};
+            fabricacionesActivas?.forEach(f => {
+                fabricacionesPorArea[f.area] = (fabricacionesPorArea[f.area] || 0) + 1;
+            });
+            console.log('🚫 Áreas con fabricación activa:', Object.keys(fabricacionesPorArea).join(', ') || 'ninguna');
+            
             const areas = [
                 { id: 'suelo', nombre: 'Suelo', icono: '🏎️' },
                 { id: 'motor', nombre: 'Motor', icono: '⚙️' },
@@ -827,7 +842,7 @@ class F1Manager {
             ];
             
             let html = '';
-    
+        
             // ====== 1. FILTROS POR ÁREA (11 BOTONES COMPACTOS) ======
             html += '<div class="filtros-areas-taller">';
             html += '<div class="filtros-header">';
@@ -848,6 +863,13 @@ class F1Manager {
             
             // ÁREAS
             for (const area of areas) {
+                // 🟢🟢🟢 VERIFICACIÓN SIMPLE: ¿Esta área TIENE ALGUNA fabricación activa? 🟢🟢🟢
+                const tieneFabricacionActiva = areasConFabricacionActiva.has(area.id);
+                
+                if (tieneFabricacionActiva) {
+                    console.log(`🔴 ÁREA BLOQUEADA COMPLETAMENTE: ${area.id} - tiene fabricación activa`);
+                }
+                
                 html += '<div class="area-completa" id="area-' + area.id + '">';
                 html += '<div class="area-header-completa">';
                 html += '<span class="area-icono-completa">' + area.icono + '</span>';
@@ -859,16 +881,18 @@ class F1Manager {
                 const progreso = piezasAreaFabricadas.length;
                 
                 html += '<span class="area-progreso-badge">' + progreso + '/50</span>';
+                
+                // 🟢🟢🟢 MOSTRAR INDICADOR DE BLOQUEO si está fabricando 🟢🟢🟢
+                if (tieneFabricacionActiva) {
+                    html += '<span class="area-bloqueada-badge" style="margin-left: 8px; background: #FF9800; color: black; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; animation: pulse 1.5s infinite;">⏳ FABRICANDO</span>';
+                }
+                
                 html += '</div>';
                 
                 html += '<div class="botones-area-completa">';
                 
                 const piezasAreaFabricadasAll = piezasFabricadas?.filter(p => 
                     p.area === area.id || p.area === area.nombre
-                ) || [];
-                
-                const fabricacionesAreaActivas = fabricacionesActivas?.filter(f => 
-                    (f.area === area.id || f.area === area.nombre) && !f.completada
                 ) || [];
                 
                 for (let piezaNum = 1; piezaNum <= 50; piezaNum++) {
@@ -882,23 +906,6 @@ class F1Manager {
                     const yaFabricada = piezasAreaFabricadasAll.some(p => p.componente === nombrePieza);
                     const esCompradaMercado = yaFabricada ? piezasAreaFabricadasAll.find(p => p.componente === nombrePieza)?.origen === 'mercado' || false : false;
                     
-                    // ===== VERIFICACIÓN: ¿ESTOY FABRICANDO AHORA MISMO ESTA PIEZA? =====
-                    const enFabricacion = fabricacionesAreaActivas.some(f => {
-                        const nivelFabricacion = f.nivel;
-                        const rangoPiezasNivel = [(nivelFabricacion - 1) * 5 + 1, nivelFabricacion * 5];
-                        
-                        if (piezaNum >= rangoPiezasNivel[0] && piezaNum <= rangoPiezasNivel[1]) {
-                            const piezasNivelFabricadas = piezasAreaFabricadasAll.filter(p => {
-                                const nivelPieza = Math.ceil(p.numero_global / 5);
-                                return nivelPieza === nivelFabricacion;
-                            }).length;
-                            
-                            const siguientePiezaNivel = rangoPiezasNivel[0] + piezasNivelFabricadas;
-                            return siguientePiezaNivel === piezaNum && !yaFabricada;
-                        }
-                        return false;
-                    });
-                    
                     if (yaFabricada) {
                         const claseCSS = esCompradaMercado ? 'btn-pieza-50 comprada-mercado' : 'btn-pieza-50 lleno';
                         const icono = esCompradaMercado ? 'fa-shopping-cart' : 'fa-check';
@@ -909,40 +916,54 @@ class F1Manager {
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
                         
-                    } else if (enFabricacion) {
-                        html += `<button class="btn-pieza-50 fabricando" disabled title="${nombrePieza} - En fabricación">`;
-                        html += '<i class="fas fa-spinner fa-spin"></i>';
-                        html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
-                        html += '</button>';
-    
                     } else {
-                        const fabricacionesEstaArea = fabricacionesAreaActivas?.length || 0;
-                        const puedeFabricar = fabricacionesEstaArea === 0 && !yaFabricada && !enFabricacion;
+                        // 🟢🟢🟢 REGLA SIMPLE: Si el área TIENE fabricación activa, TODAS las piezas se bloquean 🟢🟢🟢
+                        const puedeFabricar = !yaFabricada && !tieneFabricacionActiva;
                         
-                        html += '<button class="btn-pieza-50 vacio" ';
-                        if (puedeFabricar) {
-                            html += `onclick="iniciarFabricacionConBloqueo('${area.id}', ${nivel}, '${nombrePieza.replace(/'/g, "\\'")}', ${piezaNum})"`;
-                        } else {
-                            html += ' disabled';
+                        let estadoBoton = 'vacio';
+                        let iconoBoton = 'fa-plus';
+                        let tituloExtra = '';
+                        let disabledAttr = '';
+                        let textoOcupado = '';
+                        
+                        if (tieneFabricacionActiva) {
+                            estadoBoton = 'fabricando';
+                            iconoBoton = 'fa-ban';
+                            tituloExtra = 'Área ocupada - Fabricación en curso';
+                            disabledAttr = ' disabled';
+                            textoOcupado = '<div style="font-size: 0.5rem; color: #FF9800; margin-bottom: 2px; font-weight: bold;">⛔ OCUPADO</div>';
                         }
-                        html += ` title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()}">`;
-                        html += '<i class="fas fa-plus"></i>';
+                        
+                        html += `<button class="btn-pieza-50 ${estadoBoton}" ${disabledAttr} `;
+                        
+                        if (puedeFabricar) {
+                            html += `onclick="iniciarFabricacionConBloqueo('${area.id}', ${nivel}, '${nombrePieza.replace(/'/g, "\\'")}', ${piezaNum})" `;
+                        }
+                        
+                        html += `title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()} ${tituloExtra ? ' - ' + tituloExtra : ''}">`;
+                        
+                        if (tieneFabricacionActiva) {
+                            html += `<i class="fas ${iconoBoton}"></i>`;
+                            html += textoOcupado;
+                        } else {
+                            html += `<i class="fas ${iconoBoton}"></i>`;
+                        }
+                        
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
                         html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
                         html += '</button>';
                     }
-                } // ← CIERRA for (piezaNum)
+                }
                 
                 html += '</div>'; // Cierra botones-area-completa
                 html += '</div>'; // Cierra area-completa
-            } // ← CIERRA for (area)
+            }
             
             html += '</div>'; // Cierra contenedor-areas-taller
             
             container.innerHTML = html;
             
-            // Añadir solo los estilos de filtro, NO modificar los existentes
+            // Añadir estilos de filtro y animación pulse
             if (!document.querySelector('#estilos-filtros-taller')) {
                 const style = document.createElement('style');
                 style.id = 'estilos-filtros-taller';
@@ -1067,6 +1088,18 @@ class F1Manager {
                     
                     .area-completa.visible {
                         display: block;
+                    }
+                    
+                    /* 🟢🟢🟢 ANIMACIÓN PULSE PARA BADGE DE FABRICANDO 🟢🟢🟢 */
+                    @keyframes pulse {
+                        0% { opacity: 0.8; }
+                        50% { opacity: 1; box-shadow: 0 0 5px #FF9800; }
+                        100% { opacity: 0.8; }
+                    }
+                    
+                    .btn-pieza-50.fabricando i.fa-ban {
+                        color: #FF9800;
+                        font-size: 1.2rem;
                     }
                 `;
                 document.head.appendChild(style);
@@ -1293,10 +1326,30 @@ class F1Manager {
     }
     
     // ========================
-    // MÉTODO CORREGIDO PARA INICIAR FABRICACIÓN
+    // MÉTODO CORREGIDO PARA INICIAR FABRICACIÓN CON BLOQUEO TOTAL POR ÁREA
     // ========================
     async iniciarFabricacionTaller(areaId, nivel, nombrePieza, numeroPieza) {
         console.log('🔧 Iniciando fabricación de:', { areaId, nivel, nombrePieza, numeroPieza });
+        
+        // ===== VERIFICACIÓN 0: ¿YA HAY UNA FABRICACIÓN EN ESTA ÁREA? =====
+        const { data: fabricacionesActivasEnArea, error: errorVerificacion } = await this.supabase
+            .from('fabricacion_actual')
+            .select('id')
+            .eq('escuderia_id', this.escuderia.id)
+            .eq('area', areaId)
+            .eq('completada', false);
+        
+        if (errorVerificacion) {
+            console.error('❌ Error verificando fabricaciones activas:', errorVerificacion);
+            this.showNotification('❌ Error verificando disponibilidad', 'error');
+            return false;
+        }
+        
+        if (fabricacionesActivasEnArea && fabricacionesActivasEnArea.length > 0) {
+            console.log(`🚫 ÁREA BLOQUEADA: Ya hay una fabricación activa en ${areaId}`);
+            this.showNotification(`❌ Ya hay una pieza en fabricación en esta área`, 'error');
+            return false;
+        }
         
         // ===== VERIFICACIÓN 1: Escudería válida =====
         if (!this.escuderia || !this.escuderia.id) {
@@ -1305,7 +1358,7 @@ class F1Manager {
             return false;
         }
         
-        // ===== VERIFICACIÓN 2: Límite de fabricaciones =====
+        // ===== VERIFICACIÓN 2: Límite global de fabricaciones =====
         const { data: fabricacionesActivas, error: errorLimite } = await this.supabase
             .from('fabricacion_actual')
             .select('id')
@@ -1390,7 +1443,7 @@ class F1Manager {
         this.escuderia.dinero -= costo;
         await this.updateEscuderiaMoney();
         
-        // ===== REGISTRAR TRANSACCIÓN (SIN optional chaining) =====
+        // ===== REGISTRAR TRANSACCIÓN =====
         if (window.presupuestoManager && window.presupuestoManager.registrarTransaccion) {
             try {
                 await window.presupuestoManager.registrarTransaccion(
@@ -1413,7 +1466,15 @@ class F1Manager {
         // ===== NOTIFICACIÓN ÉXITO =====
         this.showNotification(`🏭 Fabricación iniciada: ${nombrePieza}`, 'success');
         
-        // ===== ACTUALIZAR UI =====
+        // 🟢🟢🟢 CRÍTICO: RECARGAR EL TALLER PARA BLOQUEAR EL ÁREA INMEDIATAMENTE 🟢🟢🟢
+        setTimeout(() => {
+            if (this.cargarTabTaller) {
+                console.log(`🔄 Recargando taller para bloquear área ${areaId}...`);
+                this.cargarTabTaller();
+            }
+        }, 500);
+        
+        // ===== ACTUALIZAR PRODUCCIÓN =====
         setTimeout(() => {
             this.updateProductionMonitor();
         }, 500);
@@ -3807,10 +3868,7 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         `;
         document.body.appendChild(notificacion);
         
-        // Mostrar la notificación
         setTimeout(() => notificacion.classList.add('show'), 10);
-        
-        // Eliminar después de 3 segundos
         setTimeout(() => {
             notificacion.classList.remove('show');
             setTimeout(() => {
@@ -3833,45 +3891,40 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         if (fetchError) throw fetchError;
         
         // ===== NUEVO: Calcular número global =====
-        // 1. Obtener todas las piezas de esta área
         const { data: todasPiezasArea } = await window.supabase
             .from('almacen_piezas')
             .select('id, numero_global')
             .eq('escuderia_id', fabricacion.escuderia_id)
             .eq('area', fabricacion.area);
         
-        // 2. Encontrar el siguiente número global
         let maxNumeroGlobal = 0;
         if (todasPiezasArea && todasPiezasArea.length > 0) {
-            // Buscar el máximo numero_global existente
             todasPiezasArea.forEach(p => {
                 if (p.numero_global && p.numero_global > maxNumeroGlobal) {
                     maxNumeroGlobal = p.numero_global;
                 }
             });
         }
-        let nuevoNumeroGlobal = maxNumeroGlobal + 1;  // ← CAMBIA ESTA TAMBIÉN
-        // ===== AÑADIR ESTO =====
-        let componente = fabricacion.nombre_pieza;  // ← CAMBIA const POR let
+        let nuevoNumeroGlobal = maxNumeroGlobal + 1;
+        
+        let componente = fabricacion.nombre_pieza;
         if (window.f1Manager && window.f1Manager.nombresPiezas && 
             window.f1Manager.nombresPiezas[fabricacion.area]) {
             const nombresArea = window.f1Manager.nombresPiezas[fabricacion.area];
             if (nuevoNumeroGlobal <= nombresArea.length) {
-                componente = nombresArea[nuevoNumeroGlobal - 1];  // ← AHORA SÍ PUEDE REASIGNAR
+                componente = nombresArea[nuevoNumeroGlobal - 1];
             }
         }
-        // ===== FIN AÑADIR =====        
         
-        // ===== 3. Calcular puntos =====
+        // ===== Calcular puntos =====
         let puntosTotales;
         if (window.f1Manager && window.f1Manager.calcularPuntosPieza) {
-            // Pasar areaId y numeroPiezaGlobal
             puntosTotales = window.f1Manager.calcularPuntosPieza(fabricacion.area, nuevoNumeroGlobal);
         } else {
             puntosTotales = calcularPuntosBase(fabricacion.area, fabricacion.nivel, nuevoNumeroGlobal);
         }
         
-        // ===== 4. Insertar con numero_global =====
+        // ===== Insertar con numero_global =====
         const nombrePieza = fabricacion.nombre_pieza || `${fabricacion.area} Mejora ${nuevoNumeroGlobal}`;
         
         const { error: insertError } = await window.supabase
@@ -3880,9 +3933,7 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
                 escuderia_id: fabricacion.escuderia_id,
                 area: fabricacion.area,
                 nivel: fabricacion.nivel || 1,
-                // El número global ahora es SOLO informativo, NO se usa para validar
                 numero_global: fabricacion.numero_pieza || nuevoNumeroGlobal,
-                // ⚠️ CRÍTICO: Guardamos el NOMBRE EXACTO de la pieza
                 componente: nombrePieza,
                 puntos_base: puntosTotales,
                 calidad: 'Normal',
@@ -3909,33 +3960,23 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         
         console.log("✅ Fabricación marcada como completada");
         
-        // Calcular qué número de pieza es dentro del nivel (1-5)
-        const numeroPiezaEnNivel = ((nuevoNumeroGlobal - 1) % 5) + 1;
-        const nombreArea = window.f1Manager?.getNombreArea(fabricacion.area) || fabricacion.area;
-        
-        // Obtener nombre personalizado
-        let nombrePiezaNotif = nombreArea;
-        if (window.f1Manager && window.f1Manager.nombresPiezas && 
-            window.f1Manager.nombresPiezas[fabricacion.area]) {
-            const nombresArea = window.f1Manager.nombresPiezas[fabricacion.area];
-            if (nuevoNumeroGlobal <= nombresArea.length) {
-                nombrePiezaNotif = nombresArea[nuevoNumeroGlobal - 1];
-            }
-        }
+        // Obtener nombre personalizado para notificación
+        let nombrePiezaNotif = componente;
         
         if (window.f1Manager && window.f1Manager.showNotification) {
             window.f1Manager.showNotification('✅ ' + nombrePiezaNotif + ' recogida', 'success');
         }
         
+        // 🟢🟢🟢 ACTUALIZACIONES CRÍTICAS 🟢🟢🟢
         if (window.f1Manager) {
+            // 1. Limpiar timer de producción
             if (window.f1Manager.productionUpdateTimer) {
                 clearInterval(window.f1Manager.productionUpdateTimer);
             }
             
-            // En lugar de actualizar todo el monitor, solo actualizamos el slot específico
+            // 2. Actualizar slot específico
             const slotElement = document.querySelector(`.produccion-slot[onclick*="${fabricacionId}"]`);
             if (slotElement) {
-                // Convertir este slot a vacío
                 slotElement.className = 'produccion-slot';
                 slotElement.setAttribute('onclick', 'irAlTallerDesdeProduccion()');
                 slotElement.innerHTML = `
@@ -3946,12 +3987,20 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
                     </div>
                 `;
             } else {
-                // Fallback: actualizar solo si no encontramos el elemento específico
                 setTimeout(() => {
                     window.f1Manager.updateProductionMonitor();
                 }, 500);
             }
             
+            // 🟢🟢🟢 3. RECARGAR EL TALLER PARA DESBLOQUEAR EL ÁREA 🟢🟢🟢
+            setTimeout(() => {
+                if (window.f1Manager.cargarTabTaller) {
+                    console.log(`🔄 Recargando taller para desbloquear área ${fabricacion.area}...`);
+                    window.f1Manager.cargarTabTaller();
+                }
+            }, 500);
+            
+            // 4. Actualizar almacén si es necesario
             if (window.tabManager && window.tabManager.currentTab === 'almacen') {
                 setTimeout(() => {
                     if (window.tabManager.loadAlmacenPiezas) {
@@ -3960,6 +4009,7 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
                 }, 1000);
             }
             
+            // 5. Actualizar piezas montadas
             setTimeout(() => {
                 if (window.f1Manager.cargarPiezasMontadas) {
                     window.f1Manager.cargarPiezasMontadas();
@@ -4524,7 +4574,37 @@ setTimeout(() => {
         piezaFabricando: false,
         pronosticoSeleccionado: null
     };
-
+    // ========================
+    // FUNCIÓN DE DEBUG PARA VER FABRICACIONES ACTIVAS
+    // ========================
+    window.debugFabricacionesActivas = async function() {
+        if (!window.f1Manager || !window.f1Manager.supabase || !window.f1Manager.escuderia) {
+            console.error('❌ No hay F1Manager');
+            return;
+        }
+        
+        try {
+            const { data, error } = await window.f1Manager.supabase
+                .from('fabricacion_actual')
+                .select('*')
+                .eq('escuderia_id', window.f1Manager.escuderia.id)
+                .eq('completada', false);
+            
+            if (error) throw error;
+            
+            console.log('🔍 FABRICACIONES ACTIVAS:', data?.length || 0);
+            console.table(data);
+            
+            // Crear SET de áreas
+            const areasConFabricacion = new Set();
+            data?.forEach(f => areasConFabricacion.add(f.area));
+            console.log('🚫 ÁREAS OCUPADAS:', Array.from(areasConFabricacion).join(', ') || 'ninguna');
+            
+            return data;
+        } catch (error) {
+            console.error('❌ Error en debug:', error);
+        }
+    };
     // ========================
     // FUNCIÓN PARA IR A PRUEBAS DE PISTA
     // ========================
