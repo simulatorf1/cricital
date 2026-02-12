@@ -578,7 +578,7 @@ class IngenieriaManager {
     // GRÁFICO DE LÍNEAS CON ESCALA REAL Y META DEL LÍDER - CORREGIDO
     // ========================
     // ========================
-    // GRÁFICO DE LÍNEAS CON ESCALA REAL Y META DEL LÍDER - VERSIÓN MEJORADA
+    // GRÁFICO DE LÍNEAS CON ESCALA REAL Y META DEL LÍDER - VERSIÓN RESPONSIVE
     // ========================
     async dibujarGraficoEvolucionConMeta() {
         // 1. No hacer nada si no hay historial
@@ -609,18 +609,18 @@ class IngenieriaManager {
                 return;
             }
     
-            // 5. CONFIGURACIÓN DEL GRÁFICO - TAMAÑOS FIJOS
-            const ANCHO_TOTAL = 720;
+            // 5. CONFIGURACIÓN DEL GRÁFICO - 100% ANCHO DEL CONTENEDOR
+            const ANCHO_BASE = 680; // Ancho base para mantener proporciones
             const ALTURA_TOTAL = 320;
-            const MARGEN_IZQUIERDO = 70;  // Espacio para el eje Y (más compacto)
-            const MARGEN_DERECHO = 30;
+            const MARGEN_IZQUIERDO = 68;  // Espacio compacto para eje Y
+            const MARGEN_DERECHO = 20;
             const MARGEN_SUPERIOR = 25;
             const MARGEN_INFERIOR = 35;
             
-            const ANCHO_GRAFICO = ANCHO_TOTAL - MARGEN_IZQUIERDO - MARGEN_DERECHO;
+            const ANCHO_GRAFICO = ANCHO_BASE - MARGEN_IZQUIERDO - MARGEN_DERECHO;
             const ALTURA_GRAFICO = ALTURA_TOTAL - MARGEN_SUPERIOR - MARGEN_INFERIOR;
             
-            // 6. CALCULAR ESCALA REAL con los tiempos
+            // 6. CALCULAR ESCALA REAL
             const tiempos = historial.map(p => p.tiempo_vuelta);
             if (mejorGlobal) tiempos.push(mejorGlobal.tiempo);
             
@@ -628,7 +628,7 @@ class IngenieriaManager {
             const tiempoMaximo = Math.max(...tiempos) + 0.15;
             const rangoTiempos = tiempoMaximo - tiempoMinimo;
             
-            // 7. GENERAR MARCAS DEL EJE Y (6 marcas equitativas)
+            // 7. GENERAR MARCAS DEL EJE Y (6 marcas)
             const marcasY = [];
             const posicionesY = [];
             for (let i = 0; i <= 6; i++) {
@@ -638,166 +638,202 @@ class IngenieriaManager {
                 posicionesY.push(y);
             }
     
-            // 8. CALCULAR POSICIONES X para cada prueba
+            // 8. CALCULAR POSICIONES X (distribución uniforme)
             const pasoX = ANCHO_GRAFICO / (historial.length - 1);
             const puntosX = historial.map((_, index) => 
                 MARGEN_IZQUIERDO + (index * pasoX)
             );
     
-            // 9. GENERAR HTML DEL GRÁFICO
+            // 9. GENERAR HTML - SVG con viewBox que mantiene proporciones
             let html = `
-                <div style="position: relative; width: 100%; overflow-x: auto;">
-                    <svg width="${ANCHO_TOTAL}" height="${ALTURA_TOTAL}" 
-                         viewBox="0 0 ${ANCHO_TOTAL} ${ALTURA_TOTAL}" 
-                         style="background: rgba(0,0,0,0.2); border-radius: 8px; font-family: 'Orbitron', monospace;">
-                        
-                        <!-- Fondo del gráfico -->
-                        <rect x="${MARGEN_IZQUIERDO}" y="${MARGEN_SUPERIOR}" 
-                              width="${ANCHO_GRAFICO}" height="${ALTURA_GRAFICO}" 
-                              fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
-                        
-                        <!-- CUADRÍCULA HORIZONTAL (REGLAS) -->
-                        ${posicionesY.map((y, i) => `
-                            <line x1="${MARGEN_IZQUIERDO}" y1="${y}" 
-                                  x2="${MARGEN_IZQUIERDO + ANCHO_GRAFICO}" y2="${y}" 
-                                  stroke="rgba(255,255,255,0.15)" stroke-width="1" 
-                                  stroke-dasharray="${i % 2 === 0 ? '6,4' : '2,4'}" />
-                        `).join('')}
-                        
-                        <!-- CUADRÍCULA VERTICAL -->
-                        ${puntosX.map((x, i) => `
-                            <line x1="${x}" y1="${MARGEN_SUPERIOR}" 
-                                  x2="${x}" y2="${MARGEN_SUPERIOR + ALTURA_GRAFICO}" 
-                                  stroke="rgba(255,255,255,0.1)" stroke-width="1" 
-                                  stroke-dasharray="4,4" />
-                        `).join('')}
-                        
-                        <!-- EJE Y (TIEMPOS) - COMPACTO Y ALINEADO -->
-                        <g class="eje-y">
-                            <!-- Fondo semitransparente para el eje -->
-                            <rect x="0" y="${MARGEN_SUPERIOR - 5}" 
-                                  width="${MARGEN_IZQUIERDO - 5}" height="${ALTURA_GRAFICO + 10}" 
-                                  fill="rgba(0,0,0,0.6)" />
+                <div style="position: relative; width: 100%;">
+                    <!-- Contenedor SVG con aspect ratio fijo -->
+                    <div style="position: relative; width: 100%; padding-bottom: ${(ALTURA_TOTAL / ANCHO_BASE) * 100}%;">
+                        <svg width="100%" height="100%" 
+                             viewBox="0 0 ${ANCHO_BASE} ${ALTURA_TOTAL}" 
+                             preserveAspectRatio="xMidYMid meet"
+                             style="position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.2); border-radius: 8px; font-family: 'Orbitron', monospace;">
                             
-                            <!-- Marcas y valores del eje Y -->
-                            ${marcasY.map((tiempo, i) => {
-                                const tiempoFormateado = this.formatearTiempo(tiempo);
-                                const y = posicionesY[i];
+                            <!-- Fondo del gráfico -->
+                            <rect x="${MARGEN_IZQUIERDO}" y="${MARGEN_SUPERIOR}" 
+                                  width="${ANCHO_GRAFICO}" height="${ALTURA_GRAFICO}" 
+                                  fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                            
+                            <!-- CUADRÍCULA HORIZONTAL (REGLAS) -->
+                            ${posicionesY.map((y, i) => `
+                                <line x1="${MARGEN_IZQUIERDO}" y1="${y}" 
+                                      x2="${MARGEN_IZQUIERDO + ANCHO_GRAFICO}" y2="${y}" 
+                                      stroke="rgba(255,255,255,0.15)" stroke-width="1" 
+                                      stroke-dasharray="${i % 2 === 0 ? '6,4' : '2,4'}" />
+                            `).join('')}
+                            
+                            <!-- CUADRÍCULA VERTICAL -->
+                            ${puntosX.map((x, i) => `
+                                <line x1="${x}" y1="${MARGEN_SUPERIOR}" 
+                                      x2="${x}" y2="${MARGEN_SUPERIOR + ALTURA_GRAFICO}" 
+                                      stroke="rgba(255,255,255,0.1)" stroke-width="1" 
+                                      stroke-dasharray="4,4" />
+                            `).join('')}
+                            
+                            <!-- EJE Y (TIEMPOS) - COMPACTO Y FIJO -->
+                            <g class="eje-y">
+                                <!-- Fondo semitransparente para el eje -->
+                                <rect x="0" y="${MARGEN_SUPERIOR - 5}" 
+                                      width="${MARGEN_IZQUIERDO - 5}" height="${ALTURA_GRAFICO + 10}" 
+                                      fill="rgba(0,0,0,0.7)" />
+                                
+                                <!-- Marcas y valores del eje Y -->
+                                ${marcasY.map((tiempo, i) => {
+                                    const tiempoFormateado = this.formatearTiempo(tiempo);
+                                    const y = posicionesY[i];
+                                    return `
+                                        <g>
+                                            <line x1="${MARGEN_IZQUIERDO - 6}" y1="${y}" 
+                                                  x2="${MARGEN_IZQUIERDO}" y2="${y}" 
+                                                  stroke="#00d2be" stroke-width="1.5" />
+                                            <text x="${MARGEN_IZQUIERDO - 10}" y="${y + 4}" 
+                                                  text-anchor="end" fill="white" font-size="9" 
+                                                  font-weight="bold" font-family="Orbitron, monospace">
+                                                  ${tiempoFormateado}
+                                            </text>
+                                        </g>
+                                    `;
+                                }).join('')}
+                            </g>
+                            
+                            <!-- LÍNEA DEL LÍDER GLOBAL (META) -->
+                            ${mejorGlobal ? (() => {
+                                const yLider = MARGEN_SUPERIOR + ((tiempoMaximo - mejorGlobal.tiempo) / rangoTiempos) * ALTURA_GRAFICO;
                                 return `
-                                    <g>
-                                        <line x1="${MARGEN_IZQUIERDO - 8}" y1="${y}" 
-                                              x2="${MARGEN_IZQUIERDO}" y2="${y}" 
-                                              stroke="#00d2be" stroke-width="1.5" />
-                                        <text x="${MARGEN_IZQUIERDO - 12}" y="${y + 4}" 
-                                              text-anchor="end" fill="white" font-size="10" 
-                                              font-weight="bold" font-family="Orbitron, monospace">
-                                              ${tiempoFormateado}
-                                        </text>
+                                    <line x1="${MARGEN_IZQUIERDO}" y1="${yLider}" 
+                                          x2="${MARGEN_IZQUIERDO + ANCHO_GRAFICO}" y2="${yLider}" 
+                                          stroke="#FFD700" stroke-width="2" stroke-dasharray="8,6" />
+                                    <circle cx="${MARGEN_IZQUIERDO - 4}" cy="${yLider}" r="3" fill="#FFD700" />
+                                    <circle cx="${MARGEN_IZQUIERDO + ANCHO_GRAFICO + 4}" cy="${yLider}" r="3" fill="#FFD700" />
+                                `;
+                            })() : ''}
+                            
+                            <!-- LÍNEA DE PROGRESIÓN DEL USUARIO -->
+                            <polyline points="${historial.map((prueba, index) => {
+                                const x = puntosX[index];
+                                const y = MARGEN_SUPERIOR + ((tiempoMaximo - prueba.tiempo_vuelta) / rangoTiempos) * ALTURA_GRAFICO;
+                                return `${x},${y}`;
+                            }).join(' ')}" 
+                                      fill="none" stroke="#00d2be" stroke-width="3" 
+                                      stroke-linecap="round" stroke-linejoin="round" />
+                            
+                            <!-- PUNTOS DE LAS PRUEBAS -->
+                            ${historial.map((prueba, index) => {
+                                const x = puntosX[index];
+                                const y = MARGEN_SUPERIOR + ((tiempoMaximo - prueba.tiempo_vuelta) / rangoTiempos) * ALTURA_GRAFICO;
+                                
+                                let colorPunto = '#00d2be';
+                                if (index > 0) {
+                                    const anterior = historial[index - 1];
+                                    if (prueba.tiempo_vuelta < anterior.tiempo_vuelta) colorPunto = '#4CAF50';
+                                    else if (prueba.tiempo_vuelta > anterior.tiempo_vuelta) colorPunto = '#e10600';
+                                }
+                                
+                                return `
+                                    <g class="punto-prueba" style="cursor: pointer;">
+                                        <circle cx="${x}" cy="${y}" r="5" fill="${colorPunto}" 
+                                                stroke="white" stroke-width="2" />
+                                        <title>
+                                            ${this.formatearFecha(prueba.fecha_prueba)}
+                                            Tiempo: ${prueba.tiempo_formateado || this.formatearTiempo(prueba.tiempo_vuelta)}
+                                            ${index > 0 ? `\n${prueba.tiempo_vuelta < historial[index-1].tiempo_vuelta ? '▼ MEJORÓ' : '▲ EMPEORÓ'}` : '\nPRIMERA PRUEBA'}
+                                        </title>
                                     </g>
                                 `;
                             }).join('')}
-                        </g>
-                        
-                        <!-- LÍNEA DEL LÍDER GLOBAL (META) -->
-                        ${mejorGlobal ? (() => {
-                            const yLider = MARGEN_SUPERIOR + ((tiempoMaximo - mejorGlobal.tiempo) / rangoTiempos) * ALTURA_GRAFICO;
-                            return `
-                                <line x1="${MARGEN_IZQUIERDO}" y1="${yLider}" 
-                                      x2="${MARGEN_IZQUIERDO + ANCHO_GRAFICO}" y2="${yLider}" 
-                                      stroke="#FFD700" stroke-width="2" stroke-dasharray="8,6" />
-                                <circle cx="${MARGEN_IZQUIERDO - 4}" cy="${yLider}" r="3" fill="#FFD700" />
-                            `;
-                        })() : ''}
-                        
-                        <!-- LÍNEA DE PROGRESIÓN DEL USUARIO -->
-                        <polyline points="${historial.map((prueba, index) => {
-                            const x = puntosX[index];
-                            const y = MARGEN_SUPERIOR + ((tiempoMaximo - prueba.tiempo_vuelta) / rangoTiempos) * ALTURA_GRAFICO;
-                            return `${x},${y}`;
-                        }).join(' ')}" 
-                                  fill="none" stroke="#00d2be" stroke-width="3" 
-                                  stroke-linecap="round" stroke-linejoin="round" />
-                        
-                        <!-- PUNTOS DE LAS PRUEBAS -->
-                        ${historial.map((prueba, index) => {
-                            const x = puntosX[index];
-                            const y = MARGEN_SUPERIOR + ((tiempoMaximo - prueba.tiempo_vuelta) / rangoTiempos) * ALTURA_GRAFICO;
                             
-                            // Color según evolución
-                            let colorPunto = '#00d2be';
-                            if (index > 0) {
-                                const anterior = historial[index - 1];
-                                if (prueba.tiempo_vuelta < anterior.tiempo_vuelta) colorPunto = '#4CAF50';
-                                else if (prueba.tiempo_vuelta > anterior.tiempo_vuelta) colorPunto = '#e10600';
-                            }
+                            <!-- ETIQUETAS DEL EJE X (FECHAS) -->
+                            ${historial.map((prueba, index) => {
+                                const x = puntosX[index];
+                                let fechaStr = '';
+                                try {
+                                    const fecha = new Date(prueba.fecha_prueba || prueba.fecha);
+                                    fechaStr = `${fecha.getDate()}/${fecha.getMonth() + 1}`;
+                                } catch {
+                                    fechaStr = `P${index + 1}`;
+                                }
+                                
+                                return `
+                                    <text x="${x}" y="${ALTURA_TOTAL - 12}" 
+                                          text-anchor="middle" fill="#aaa" font-size="8" 
+                                          font-family="Arial, sans-serif">
+                                          ${fechaStr}
+                                    </text>
+                                `;
+                            }).join('')}
                             
-                            return `
-                                <g class="punto-prueba" style="cursor: pointer;">
-                                    <circle cx="${x}" cy="${y}" r="6" fill="${colorPunto}" 
-                                            stroke="white" stroke-width="2" />
-                                    <title>
-                                        ${this.formatearFecha(prueba.fecha_prueba)}
-                                        Tiempo: ${prueba.tiempo_formateado || this.formatearTiempo(prueba.tiempo_vuelta)}
-                                        ${index > 0 ? `\n${prueba.tiempo_vuelta < historial[index-1].tiempo_vuelta ? '▼ MEJORÓ' : '▲ EMPEORÓ'}` : '\nPRIMERA PRUEBA'}
-                                    </title>
-                                </g>
-                            `;
-                        }).join('')}
-                        
-                        <!-- ETIQUETAS DEL EJE X (FECHAS) -->
-                        ${historial.map((prueba, index) => {
-                            const x = puntosX[index];
-                            let fechaStr = '';
-                            try {
-                                const fecha = new Date(prueba.fecha_prueba || prueba.fecha);
-                                fechaStr = `${fecha.getDate()}/${fecha.getMonth() + 1}`;
-                            } catch {
-                                fechaStr = `P${index + 1}`;
-                            }
+                            <!-- TÍTULO DEL EJE Y (COMPACTO) -->
+                            <text x="10" y="${MARGEN_SUPERIOR - 8}" 
+                                  fill="#00d2be" font-size="8" font-weight="bold" 
+                                  font-family="Orbitron, monospace">
+                                  SEG
+                            </text>
                             
-                            return `
-                                <text x="${x}" y="${ALTURA_TOTAL - 12}" 
-                                      text-anchor="middle" fill="#aaa" font-size="9" 
-                                      font-family="Arial, sans-serif">
-                                      ${fechaStr}
-                                </text>
-                            `;
-                        }).join('')}
-                        
-                        <!-- TÍTULO DEL EJE Y (COMPACTO) -->
-                        <text x="10" y="${MARGEN_SUPERIOR - 8}" 
-                              fill="#00d2be" font-size="9" font-weight="bold" 
-                              font-family="Orbitron, monospace">
-                              TIEMPO/V
-                        </text>
-                        
-                    </svg>
+                            <!-- MINI LEYENDA (OPCIONAL) -->
+                            <g transform="translate(${MARGEN_IZQUIERDO + 10}, 12)">
+                                <circle cx="0" cy="0" r="4" fill="#00d2be" stroke="white" stroke-width="1" />
+                                <text x="10" y="4" fill="#ccc" font-size="7">Tu progresión</text>
+                                ${mejorGlobal ? `
+                                    <line x1="80" y1="0" x2="100" y2="0" stroke="#FFD700" stroke-width="2" stroke-dasharray="6,4" />
+                                    <text x="110" y="4" fill="#FFD700" font-size="7">Líder</text>
+                                ` : ''}
+                            </g>
+                            
+                        </svg>
+                    </div>
                     
-                    <!-- INFO COMPACTA DEL LÍDER -->
+                    <!-- INFO DEL LÍDER (FUERA DEL SVG) -->
                     ${mejorGlobal ? `
-                        <div style="display: flex; justify-content: flex-end; margin-top: 8px; padding: 8px 15px; 
-                                    background: rgba(0,0,0,0.4); border-radius: 6px; border-left: 4px solid #FFD700;">
-                            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                                <span style="display: flex; align-items: center; gap: 6px;">
-                                    <span style="color: #FFD700;">🏆 LÍDER</span>
-                                    <span style="color: white; font-family: 'Orbitron', monospace; font-weight: bold;">
-                                        ${mejorGlobal.formateado}
-                                    </span>
-                                    <span style="color: #aaa; font-size: 0.8rem;">
-                                        (${mejorGlobal.escuderia?.substring(0, 20) || 'Líder'})
-                                    </span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; 
+                                    padding: 10px 15px; background: rgba(0,0,0,0.4); border-radius: 6px; 
+                                    border-left: 4px solid #FFD700;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #FFD700; font-weight: bold;">🏆 LÍDER GLOBAL</span>
+                                <span style="color: white; font-family: 'Orbitron', monospace; font-weight: bold;">
+                                    ${mejorGlobal.formateado}
                                 </span>
-                                <span style="display: flex; align-items: center; gap: 6px;">
-                                    <span style="color: #aaa;">TU DIFERENCIA:</span>
-                                    <span style="color: ${historial[historial.length-1].tiempo_vuelta - mejorGlobal.tiempo > 0 ? '#FF9800' : '#4CAF50'}; 
-                                               font-family: 'Orbitron', monospace; font-weight: bold;">
-                                        ${(historial[historial.length-1].tiempo_vuelta - mejorGlobal.tiempo > 0 ? '+' : '')}
-                                        ${this.formatearTiempo(Math.abs(historial[historial.length-1].tiempo_vuelta - mejorGlobal.tiempo))}
-                                    </span>
+                                <span style="color: #aaa; font-size: 0.8rem;">
+                                    ${mejorGlobal.escuderia?.substring(0, 25) || 'Líder'}
+                                </span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #aaa;">TU DIFERENCIA:</span>
+                                <span style="color: ${historial[historial.length-1].tiempo_vuelta - mejorGlobal.tiempo > 0 ? '#FF9800' : '#4CAF50'}; 
+                                           font-family: 'Orbitron', monospace; font-weight: bold; font-size: 1.1rem;">
+                                    ${(historial[historial.length-1].tiempo_vuelta - mejorGlobal.tiempo > 0 ? '+' : '')}
+                                    ${this.formatearTiempo(Math.abs(historial[historial.length-1].tiempo_vuelta - mejorGlobal.tiempo))}
                                 </span>
                             </div>
                         </div>
                     ` : ''}
+                    
+                    <!-- TENDENCIA (OPCIONAL) -->
+                    ${historial.length >= 3 ? (() => {
+                        const primero = historial[0].tiempo_vuelta;
+                        const ultimo = historial[historial.length - 1].tiempo_vuelta;
+                        const tendencia = primero - ultimo;
+                        const tendenciaColor = tendencia > 0.05 ? '#4CAF50' : tendencia < -0.05 ? '#e10600' : '#FF9800';
+                        const tendenciaIcono = tendencia > 0.05 ? 'fa-arrow-down' : tendencia < -0.05 ? 'fa-arrow-up' : 'fa-minus';
+                        const tendenciaTexto = tendencia > 0.05 ? 'MEJORANDO' : tendencia < -0.05 ? 'EMPEORANDO' : 'ESTABLE';
+                        
+                        return `
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px; 
+                                        padding: 6px 12px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+                                <i class="fas ${tendenciaIcono}" style="color: ${tendenciaColor};"></i>
+                                <span style="color: ${tendenciaColor}; font-size: 0.8rem; font-weight: bold;">
+                                    ${tendenciaTexto}
+                                </span>
+                                <span style="color: #aaa; font-size: 0.8rem;">
+                                    (${tendencia > 0 ? '-' : '+'}${this.formatearTiempo(Math.abs(tendencia))} en ${historial.length} pruebas)
+                                </span>
+                            </div>
+                        `;
+                    })() : ''}
                 </div>
             `;
             
