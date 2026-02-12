@@ -486,8 +486,21 @@ class EstrategiaManager {
         const filtros = document.querySelectorAll('.filtro-especialidad');
         
         // Actualizar botones activos
-        filtros.forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`.filtro-especialidad[data-especialidad="${especialidadId}"]`).classList.add('active');
+        // Actualizar botones activos - CON ESTILOS CORREGIDOS
+        filtros.forEach(btn => {
+            btn.classList.remove('active');
+            // Resetear estilos inline
+            btn.style.background = 'rgba(0,210,190,0.1)';
+            btn.style.color = '#00d2be';
+            btn.style.border = '1px solid #00d2be';
+        });
+        
+        const botonActivo = document.querySelector(`.filtro-especialidad[data-especialidad="${especialidadId}"]`);
+        botonActivo.classList.add('active');
+        // Aplicar estilos activos
+        botonActivo.style.background = '#00d2be';
+        botonActivo.style.color = 'black';
+        botonActivo.style.border = 'none';
         
         // Filtrar cards
         cards.forEach(card => {
@@ -1145,10 +1158,22 @@ class EstrategiaManager {
     // CAMBIAR PESTAÑA GESTIÓN
     // ========================
     async cambiarTabGestion(tabId) {
-        // Actualizar botones
+
+        // Actualizar botones - CON ESTILOS CORREGIDOS
         document.querySelectorAll('.tab-gestion').forEach(btn => {
             btn.classList.remove('active');
-            if (btn.dataset.tab === tabId) btn.classList.add('active');
+            // Resetear estilos inline
+            btn.style.background = 'rgba(0,210,190,0.1)';
+            btn.style.color = '#00d2be';
+            btn.style.border = '1px solid #00d2be';
+            
+            if (btn.dataset.tab === tabId) {
+                btn.classList.add('active');
+                // Aplicar estilos activos
+                btn.style.background = '#00d2be';
+                btn.style.color = 'black';
+                btn.style.border = 'none';
+            }
         });
         
         // Cargar contenido
@@ -1303,10 +1328,22 @@ class EstrategiaManager {
     filtrarCatalogoGestion(especialidadId) {
         const cards = document.querySelectorAll('.estratega-card-completo');
         const filtros = document.querySelectorAll('.filtro-catalogo');
+
+        // Actualizar botones activos - CON ESTILOS CORREGIDOS
+        filtros.forEach(btn => {
+            btn.classList.remove('active');
+            // Resetear estilos inline
+            btn.style.background = 'rgba(0,210,190,0.1)';
+            btn.style.color = '#00d2be';
+            btn.style.border = '1px solid #00d2be';
+        });
         
-        // Actualizar botones activos
-        filtros.forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`.filtro-catalogo[data-especialidad="${especialidadId}"]`).classList.add('active');
+        const botonActivo = document.querySelector(`.filtro-catalogo[data-especialidad="${especialidadId}"]`);
+        botonActivo.classList.add('active');
+        // Aplicar estilos activos
+        botonActivo.style.background = '#00d2be';
+        botonActivo.style.color = 'black';
+        botonActivo.style.border = 'none';
         
         // Filtrar cards
         cards.forEach(card => {
