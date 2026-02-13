@@ -176,6 +176,16 @@ class MercadoManager {
                     /* ==================== */
                     /* ESTILOS MERCADO COMPACTO */
                     /* ==================== */
+                    /* Estilo para botón deshabilitado */
+                    .btn-confirmar:disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                        background: linear-gradient(135deg, #666, #444);
+                    }
+                    
+                    .btn-confirmar:disabled:hover {
+                        background: linear-gradient(135deg, #666, #444);
+                    }                    
                     .mercado-container {
                         padding: 12px;
                         color: white;
@@ -1274,7 +1284,6 @@ calcularCostoFabricacion(pieza) {
     // ========================
     async mostrarModalVenta(pieza) {
         if (!document.getElementById('modal-venta')) {
-            // CORREGIDO: llamar a la función global, no como método de clase
             return mostrarModalVentaBasico(pieza);
         }
         const modal = document.getElementById('modal-venta');
@@ -1286,9 +1295,9 @@ calcularCostoFabricacion(pieza) {
         // Calcular costo de fabricación
         const costoFabricacion = this.calcularCostoFabricacion(pieza);
         
-        // Calcular ganancia potencial
-        const gananciaPotencial = precioSugerido - costoFabricacion;
-        const porcentajeGanancia = ((gananciaPotencial / costoFabricacion) * 100).toFixed(1);
+        // Calcular precio mínimo (costo + 10%)
+        const porcentajeComision = 10; // 10% por envío y comisiones
+        const precioMinimo = Math.ceil(costoFabricacion * (1 + porcentajeComision / 100));
     
         modalBody.innerHTML = `
             <div class="venta-info">
@@ -1313,18 +1322,18 @@ calcularCostoFabricacion(pieza) {
                     <span style="color: #FFD700; font-size: 1.1rem;">${costoFabricacion.toLocaleString()}€</span>
                 </div>
                 
-                <!-- Análisis de ganancia -->
-                <div class="info-item analisis-ganancia" style="
-                    background: rgba(76, 175, 80, 0.1);
-                    border-left: 3px solid #4CAF50;
+                <!-- NUEVO: Precio mínimo (con explicación del 10%) -->
+                <div class="info-item precio-minimo" style="
+                    background: rgba(255, 152, 0, 0.1);
+                    border-left: 3px solid #FF9800;
                     padding: 8px;
                     margin-top: 5px;
                 ">
-                    <strong>📊 Análisis de venta:</strong><br>
-                    <span style="color: ${gananciaPotencial >= 0 ? '#4CAF50' : '#f44336'};">
-                        ${gananciaPotencial >= 0 ? '✅ Ganancia:' : '❌ Pérdida:'} 
-                        ${Math.abs(gananciaPotencial).toLocaleString()}€ (${porcentajeGanancia}%)
-                    </span>
+                    <strong>📦 Precio mínimo recomendado:</strong> 
+                    <span style="color: #FF9800; font-size: 1.1rem;">${precioMinimo.toLocaleString()}€</span>
+                    <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #aaa;">
+                        <i class="fas fa-truck"></i> Incluye costes de envío (5%) + comisión del mercado (5%)
+                    </p>
                 </div>
             </div>
             
@@ -1336,21 +1345,26 @@ calcularCostoFabricacion(pieza) {
             
             <div class="form-group">
                 <label for="precio-venta">Precio de venta (€)</label>
-                <input type="number" id="precio-venta" value="${precioSugerido}" min="1000" max="1000000" step="1000">
-                <p class="small">Mínimo: 1,000€ - Máximo: 1,000,000€</p>
+                <input type="number" id="precio-venta" value="${precioSugerido}" min="${precioMinimo}" max="1000000" step="1000">
+                <p class="small" style="color: #FF9800;">
+                    <i class="fas fa-info-circle"></i> 
+                    Precio mínimo: ${precioMinimo.toLocaleString()}€ (costo fabricación + 10% envío/comisiones)
+                </p>
             </div>
             
-            <!-- Preview dinámico de ganancia -->
-            <div id="preview-ganancia" style="
-                margin: 10px 0;
-                padding: 8px;
-                background: rgba(0,0,0,0.3);
+            <!-- Mensaje de error si el precio es menor al mínimo (oculto inicialmente) -->
+            <div id="error-precio-minimo" style="
+                display: none;
+                background: rgba(244, 67, 54, 0.2);
+                border: 1px solid #f44336;
                 border-radius: 5px;
-                text-align: center;
-                font-size: 0.9rem;
+                padding: 8px;
+                margin: 10px 0;
+                color: #f44336;
+                font-size: 0.85rem;
             ">
-                <span id="preview-texto">Con este precio: </span>
-                <span id="preview-cantidad" style="color: #FFD700;">${precioSugerido.toLocaleString()}€</span>
+                <i class="fas fa-exclamation-triangle"></i>
+                El precio no puede ser menor a ${precioMinimo.toLocaleString()}€ (costo + 10%)
             </div>
             
             <div class="precios-mercado">
@@ -1365,25 +1379,37 @@ calcularCostoFabricacion(pieza) {
     
         modal.style.display = 'flex';
     
-        // Actualizar preview cuando cambie el precio
+        // Validar precio en tiempo real
         const precioInput = document.getElementById('precio-venta');
-        const previewTexto = document.getElementById('preview-texto');
-        const previewCantidad = document.getElementById('preview-cantidad');
+        const errorDiv = document.getElementById('error-precio-minimo');
+        const confirmBtn = document.getElementById('btn-confirmar-venta');
         
-        const actualizarPreview = () => {
+        const validarPrecio = () => {
             const precioActual = parseInt(precioInput.value) || 0;
-            const gananciaActual = precioActual - costoFabricacion;
-            const porcentajeActual = ((gananciaActual / costoFabricacion) * 100).toFixed(1);
             
-            previewTexto.innerText = gananciaActual >= 0 ? '✅ Ganancia: ' : '❌ Pérdida: ';
-            previewCantidad.innerHTML = `${Math.abs(gananciaActual).toLocaleString()}€ (${porcentajeActual}%)`;
-            previewCantidad.style.color = gananciaActual >= 0 ? '#4CAF50' : '#f44336';
+            if (precioActual < precioMinimo) {
+                errorDiv.style.display = 'block';
+                confirmBtn.disabled = true;
+                confirmBtn.style.opacity = '0.5';
+                confirmBtn.style.cursor = 'not-allowed';
+            } else {
+                errorDiv.style.display = 'none';
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = '1';
+                confirmBtn.style.cursor = 'pointer';
+            }
         };
         
-        precioInput.addEventListener('input', actualizarPreview);
+        precioInput.addEventListener('input', validarPrecio);
+        validarPrecio(); // Validar inicial
     
         // Evento confirmar venta
-        document.getElementById('btn-confirmar-venta').addEventListener('click', async () => {
+        confirmBtn.addEventListener('click', async () => {
+            const precioActual = parseInt(precioInput.value) || 0;
+            if (precioActual < precioMinimo) {
+                alert(`❌ El precio mínimo es ${precioMinimo.toLocaleString()}€ (costo + 10% por envío y comisiones)`);
+                return;
+            }
             await this.procesarVenta(pieza);
         });
     }
@@ -1538,7 +1564,7 @@ async function mostrarModalVentaBasico(pieza) {
     // Calcular costo de fabricación
     const costoFabricacion = window.mercadoManager.calcularCostoFabricacion(pieza);
     const precioSugerido = window.mercadoManager.calcularPrecioSugerido(pieza.nivel, pieza.calidad);
-    const gananciaPotencial = precioSugerido - costoFabricacion;
+    const precioMinimo = Math.ceil(costoFabricacion * 1.1); // +10%
     
     // Crear modal simple
     const modalHTML = `
@@ -1582,7 +1608,7 @@ async function mostrarModalVentaBasico(pieza) {
                     <p><strong>Calidad:</strong> ${pieza.calidad || 'Normal'}</p>
                     <p><strong>Puntos:</strong> ${pieza.puntos_base || 10}</p>
                     
-                    <!-- NUEVO: Costo de fabricación -->
+                    <!-- Costo de fabricación -->
                     <div style="
                         background: rgba(0, 100, 255, 0.1);
                         border-left: 3px solid #00d2be;
@@ -1593,18 +1619,18 @@ async function mostrarModalVentaBasico(pieza) {
                         <span style="color: #FFD700;">${costoFabricacion.toLocaleString()}€</span>
                     </div>
                     
-                    <!-- NUEVO: Análisis de ganancia -->
+                    <!-- Precio mínimo -->
                     <div style="
-                        background: rgba(76, 175, 80, 0.1);
-                        border-left: 3px solid ${gananciaPotencial >= 0 ? '#4CAF50' : '#f44336'};
+                        background: rgba(255, 152, 0, 0.1);
+                        border-left: 3px solid #FF9800;
                         padding: 8px;
                         margin-top: 5px;
                     ">
-                        <strong>📊 ${gananciaPotencial >= 0 ? 'Ganancia' : 'Pérdida'} esperada:</strong> 
-                        <span style="color: ${gananciaPotencial >= 0 ? '#4CAF50' : '#f44336'};">
-                            ${Math.abs(gananciaPotencial).toLocaleString()}€ 
-                            (${((gananciaPotencial / costoFabricacion) * 100).toFixed(1)}%)
-                        </span>
+                        <strong>📦 Precio mínimo:</strong> 
+                        <span style="color: #FF9800;">${precioMinimo.toLocaleString()}€</span>
+                        <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #aaa;">
+                            <i class="fas fa-truck"></i> Incluye envío (5%) + comisión (5%)
+                        </p>
                     </div>
                 </div>
                 
@@ -1615,7 +1641,7 @@ async function mostrarModalVentaBasico(pieza) {
                     <input type="number" 
                            id="precio-rapido" 
                            value="${precioSugerido}" 
-                           min="1000" 
+                           min="${precioMinimo}" 
                            max="1000000" 
                            step="1000"
                            style="
@@ -1627,12 +1653,13 @@ async function mostrarModalVentaBasico(pieza) {
                                 color: white;
                                 font-size: 1rem;
                            ">
-                    <p style="font-size: 0.8rem; color: #aaa; margin-top: 5px;">
-                        Precio sugerido: ${precioSugerido.toLocaleString()}€
+                    <p style="font-size: 0.8rem; color: #FF9800; margin-top: 5px;">
+                        <i class="fas fa-info-circle"></i> 
+                        Mínimo: ${precioMinimo.toLocaleString()}€ (costo + 10%)
                     </p>
                 </div>
                 
-                <button onclick="window.mercadoManager.procesarVentaRapida('${pieza.id}')" style="
+                <button onclick="procesarVentaSimple('${pieza.id}')" style="
                     width: 100%;
                     padding: 12px;
                     background: linear-gradient(135deg, #00d2be, #009688);
