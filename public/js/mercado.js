@@ -1558,15 +1558,17 @@ calcularCostoFabricacion(pieza) {
 // ========================
 // 10. MODAL BÁSICO PARA VENDER DESDE ALMACÉN
 // ========================
+// ========================
+// MODAL BÁSICO PARA VENDER DESDE ALMACÉN (SIN PRECIO POR DEFECTO)
+// ========================
 async function mostrarModalVentaBasico(pieza) {
     console.log('🔧 Mostrando modal básico para venta desde almacén');
     
     // Calcular costo de fabricación
     const costoFabricacion = window.mercadoManager.calcularCostoFabricacion(pieza);
-    const precioSugerido = window.mercadoManager.calcularPrecioSugerido(pieza.nivel, pieza.calidad);
     const precioMinimo = Math.ceil(costoFabricacion * 1.1); // +10%
     
-    // Crear modal simple
+    // Crear modal simple (SIN value en el input)
     const modalHTML = `
         <div id="modal-venta-rapido" style="
             position: fixed;
@@ -1606,7 +1608,6 @@ async function mostrarModalVentaBasico(pieza) {
                     <p><strong>Pieza:</strong> ${window.mercadoManager.getAreaNombre(pieza.area)}</p>
                     <p><strong>Nivel:</strong> ${pieza.nivel}</p>
                     <p><strong>Calidad:</strong> ${pieza.calidad || 'Normal'}</p>
-                    <p><strong>Puntos:</strong> ${pieza.puntos_base || 10}</p>
                     
                     <!-- Costo de fabricación -->
                     <div style="
@@ -1640,7 +1641,7 @@ async function mostrarModalVentaBasico(pieza) {
                     </label>
                     <input type="number" 
                            id="precio-rapido" 
-                           value="${precioSugerido}" 
+                           placeholder="Introduce precio" 
                            min="${precioMinimo}" 
                            max="1000000" 
                            step="1000"
@@ -1659,7 +1660,7 @@ async function mostrarModalVentaBasico(pieza) {
                     </p>
                 </div>
                 
-                <button onclick="procesarVentaSimple('${pieza.id}')" style="
+                <button onclick="window.procesarVentaSimple('${pieza.id}')" style="
                     width: 100%;
                     padding: 12px;
                     background: linear-gradient(135deg, #00d2be, #009688);
@@ -1679,7 +1680,6 @@ async function mostrarModalVentaBasico(pieza) {
     // Añadir al body
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
-
 
 // ========================
 // 9. FUNCIÓN PARA VENDER DESDE ALMACÉN
@@ -1788,7 +1788,86 @@ window.venderPiezaDesdeAlmacen = async function(piezaId) {
         alert('Error: ' + error.message);
     }
 };
-
+// ========================
+// PROCESAR VENTA SIMPLE (para modal básico)
+// ========================
+window.procesarVentaSimple = async function(piezaId) {
+    try {
+        const precioInput = document.getElementById('precio-rapido');
+        const precio = parseInt(precioInput.value);
+        const modal = document.getElementById('modal-venta-rapido');
+        
+        // Obtener la pieza para validar precio mínimo
+        const { data: pieza } = await supabase
+            .from('almacen_piezas')
+            .select('*')
+            .eq('id', piezaId)
+            .single();
+        
+        // Calcular costo y precio mínimo
+        const costoFabricacion = window.mercadoManager.calcularCostoFabricacion(pieza);
+        const precioMinimo = Math.ceil(costoFabricacion * 1.1); // +10%
+        
+        if (!precio || precio < precioMinimo) {
+            alert(`❌ Precio mínimo: ${precioMinimo.toLocaleString()}€ (costo + 10% por envío/comisiones)`);
+            return;
+        }
+        
+        if (precio > 1000000) {
+            alert('❌ Precio máximo: 1,000,000€');
+            return;
+        }
+        
+        // Crear orden en mercado
+        const { error: mercadoError } = await supabase
+            .from('mercado')
+            .insert([{
+                vendedor_id: window.f1Manager.escuderia.id,
+                vendedor_nombre: window.f1Manager.escuderia.nombre,
+                pieza_id: piezaId,
+                pieza_nombre: pieza.componente,
+                area: pieza.area,
+                nivel: pieza.nivel,
+                calidad: pieza.calidad || 'Normal',
+                precio: precio,
+                estado: 'disponible',
+                creada_en: new Date().toISOString()
+            }]);
+        
+        if (mercadoError) throw mercadoError;
+        
+        // Marcar pieza como en venta
+        await supabase
+            .from('almacen_piezas')
+            .update({ en_venta: true })
+            .eq('id', piezaId);
+        
+        // Cerrar modal
+        if (modal) modal.remove();
+        
+        // Mostrar notificación
+        if (window.f1Manager?.showNotification) {
+            window.f1Manager.showNotification(`✅ Pieza puesta en venta por ${precio.toLocaleString()}€`, 'success');
+        } else {
+            alert(`✅ Pieza puesta en venta por ${precio.toLocaleString()}€`);
+        }
+        
+        // Recargar almacén y mercado
+        if (window.tabManager?.loadAlmacenPiezas) {
+            setTimeout(() => window.tabManager.loadAlmacenPiezas(), 500);
+        }
+        
+        if (window.mercadoManager?.cargarTabMercado) {
+            setTimeout(() => window.mercadoManager.cargarTabMercado(), 500);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error en venta:', error);
+        alert('❌ Error: ' + error.message);
+        const modal = document.getElementById('modal-venta-rapido');
+        if (modal) modal.remove();
+    }
+};
 
 
 // ========================
