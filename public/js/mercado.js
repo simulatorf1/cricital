@@ -927,20 +927,29 @@ calcularCostoFabricacion(pieza) {
             });
         });
         // Eventos para cerrar modal de venta
+
         const modalVenta = document.getElementById('modal-venta');
         if (modalVenta) {
-            modalVenta.querySelectorAll('.btn-cerrar-modal, .btn-cerrar').forEach(btn => {
+            // Botón X
+            modalVenta.querySelectorAll('.btn-cerrar-modal').forEach(btn => {
                 btn.addEventListener('click', () => {
                     modalVenta.style.display = 'none';
+                    // Limpiar contenido
+                    const modalBody = document.getElementById('modal-venta-body');
+                    if (modalBody) modalBody.innerHTML = '';
                 });
             });
             
+            // Clic en overlay
             modalVenta.addEventListener('click', (e) => {
                 if (e.target === modalVenta) {
                     modalVenta.style.display = 'none';
+                    // Limpiar contenido
+                    const modalBody = document.getElementById('modal-venta-body');
+                    if (modalBody) modalBody.innerHTML = '';
                 }
             });
-        }        
+        }  
     }
 
 
@@ -1278,7 +1287,31 @@ calcularCostoFabricacion(pieza) {
             modal.style.display = 'none';
         });
     }
-
+    // ========================
+    // RESETEAR Y LIMPIAR MODALES
+    // ========================
+    resetearModales() {
+        // Eliminar cualquier modal básico flotante
+        const modalBasico = document.getElementById('modal-venta-rapido');
+        if (modalBasico) modalBasico.remove();
+        
+        // Ocultar y limpiar el modal mejorado
+        const modalMejorado = document.getElementById('modal-venta');
+        if (modalMejorado) {
+            modalMejorado.style.display = 'none';
+            const modalBody = document.getElementById('modal-venta-body');
+            if (modalBody) modalBody.innerHTML = ''; // Limpiar contenido
+        }
+        
+        // Eliminar cualquier otro modal que pueda estar abierto
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            if (modal.id !== 'modal-compra') { // Conservar modal de compra si existe
+                modal.style.display = 'none';
+            }
+        });
+        
+        console.log('🧹 Modales reseteados');
+    }
     // ========================
     // 7. FUNCIONES PARA VENDER DESDE ALMACÉN
     // ========================
@@ -1452,6 +1485,7 @@ calcularCostoFabricacion(pieza) {
             // 3. Actualizar UI
             this.ocultarModales();
             this.mostrarNotificacion(`✅ Pieza puesta en venta por ${precio.toLocaleString()}€`, 'success');
+            this.resetearModales(); // Asegurar limpieza completa
 
             // 4. Recargar mercado
             await this.cargarTabMercado();
@@ -1745,6 +1779,11 @@ window.venderPiezaDesdeAlmacen = async function(piezaId) {
     }
     
     try {
+        // 🔴 NUEVO: Resetear modales antes de abrir uno nuevo
+        if (window.mercadoManager) {
+            window.mercadoManager.resetearModales();
+        }
+        
         // Obtener datos de la pieza
         const { data: pieza, error } = await supabase
             .from('almacen_piezas')
