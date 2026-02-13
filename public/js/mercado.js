@@ -1274,7 +1274,8 @@ calcularCostoFabricacion(pieza) {
     // ========================
     async mostrarModalVenta(pieza) {
         if (!document.getElementById('modal-venta')) {
-            return this.mostrarModalVentaBasico(pieza);
+            // CORREGIDO: llamar a la función global, no como método de clase
+            return mostrarModalVentaBasico(pieza);
         }
         const modal = document.getElementById('modal-venta');
         const modalBody = document.getElementById('modal-venta-body');
