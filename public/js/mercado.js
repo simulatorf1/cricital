@@ -1312,272 +1312,172 @@ calcularCostoFabricacion(pieza) {
         
         console.log('🧹 Modales reseteados');
     }
+
     // ========================
-    // 7. FUNCIONES PARA VENDER DESDE ALMACÉN
-    // ========================
-    // ========================
-    // MOSTRAR MODAL VENTA - VERSIÓN CORREGIDA
+    // MOSTRAR MODAL VENTA - VERSIÓN DEFINITIVA
     // ========================
     async mostrarModalVenta(pieza) {
         console.log('🟡 Abriendo modal venta para:', pieza.componente);
         
-        // Obtener o crear el modal
-        let modal = document.getElementById('modal-venta');
-        let modalBody = document.getElementById('modal-venta-body');
+        // 1. ELIMINAR MODAL ANTERIOR (si existe)
+        const oldModal = document.getElementById('modal-venta');
+        if (oldModal) oldModal.remove();
         
-        // Si no existe el modal, CREARLO AQUÍ MISMO (no confiar en que esté en el HTML)
-        if (!modal) {
-            console.log('🔧 Creando modal venta desde cero...');
-            
-            // Crear contenedor modal
-            modal = document.createElement('div');
-            modal.id = 'modal-venta';
-            modal.className = 'modal-overlay';
-            modal.style.cssText = `
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background: rgba(0, 0, 0, 0.95);
-                z-index: 999999;
-                justify-content: center;
-                align-items: center;
-            `;
-            
-            // Crear contenido del modal
-            modal.innerHTML = `
-                <div class="modal-container" style="
-                    background: #1a1a2e;
-                    border-radius: 12px;
-                    width: 90%;
-                    max-width: 450px;
-                    border: 3px solid #00d2be;
-                    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-                ">
-                    <div class="modal-header" style="
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        padding: 12px 15px;
-                        border-bottom: 1px solid rgba(255,255,255,0.1);
-                    ">
-                        <h3 style="margin:0; color:white; font-family:Orbitron;">
-                            <i class="fas fa-tag"></i> VENDER PIEZA
-                        </h3>
-                        <button class="btn-cerrar-modal" style="
-                            background:none; 
-                            border:none; 
-                            color:white; 
-                            font-size:1.5rem; 
-                            cursor:pointer;
-                            line-height:1;
-                        ">&times;</button>
-                    </div>
-                    <div class="modal-body" id="modal-venta-body" style="padding:15px;">
-                        <!-- Contenido dinámico -->
-                    </div>
-                </div>
-            `;
-            
-            // Añadir al body
-            document.body.appendChild(modal);
-            
-            // Asignar variables
-            modalBody = document.getElementById('modal-venta-body');
-            
-            // Configurar eventos de cierre
-            const cerrarModal = () => {
-                modal.style.display = 'none';
-                if (modalBody) modalBody.innerHTML = '';
-            };
-            
-            modal.querySelector('.btn-cerrar-modal').addEventListener('click', cerrarModal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) cerrarModal();
-            });
-        }
-        
-        if (!modalBody) {
-            console.error('❌ No se pudo crear el modal body');
-            return;
-        }
-        
-        // Calcular valores
-        const areaNombre = this.getAreaNombre(pieza.area) || pieza.area;
-        const costoFabricacion = this.calcularCostoFabricacion(pieza);
-        const precioSugerido = this.calcularPrecioSugerido(pieza.nivel, pieza.calidad);
-        const precioMinimo = Math.ceil(costoFabricacion * 1.1); // +10%
-        
-        // Generar precios similares (con try/catch por si falla)
-        let preciosSimilaresHTML = '<p class="small" style="color:#aaa;">No hay precios similares</p>';
-        try {
-            const similares = this.generarPreciosSimilares(pieza.area, pieza.nivel);
-            if (similares && similares.length > 0) {
-                preciosSimilaresHTML = similares;
-            }
-        } catch (e) {
-            console.warn('Error generando precios similares:', e);
-        }
-        
-        // Generar HTML del contenido
-        modalBody.innerHTML = `
-            <div class="venta-info">
-                <div class="info-item" style="margin-bottom:8px;">
-                    <strong>Pieza:</strong> ${areaNombre} Nivel ${pieza.nivel}
-                </div>
-                <div class="info-item" style="margin-bottom:8px;">
-                    <strong>Calidad:</strong> ${pieza.calidad || 'Normal'}
-                </div>
-                <div class="info-item" style="margin-bottom:8px;">
-                    <strong>Puntos base:</strong> ${pieza.puntos_base || 0}
-                </div>
-                
-                <!-- Costo de fabricación -->
-                <div style="
-                    background: rgba(0, 100, 255, 0.1);
-                    border-left: 3px solid #00d2be;
-                    padding: 8px;
-                    margin: 10px 0;
-                ">
-                    <strong>💰 Costo de fabricación:</strong> 
-                    <span style="color: #FFD700; font-size: 1.1rem;">${costoFabricacion.toLocaleString()}€</span>
-                </div>
-                
-                <!-- Precio mínimo (costo + 10%) -->
-                <div style="
-                    background: rgba(255, 152, 0, 0.1);
-                    border-left: 3px solid #FF9800;
-                    padding: 8px;
-                    margin: 10px 0;
-                ">
-                    <strong>📦 Precio mínimo (envío 5% + comisión 5%):</strong> 
-                    <span style="color: #FF9800; font-size: 1.1rem;">${precioMinimo.toLocaleString()}€</span>
-                </div>
-            </div>
-            
-            <!-- Precio sugerido -->
-            <div style="
-                background: rgba(255,255,255,0.05);
-                padding: 8px;
-                border-radius: 5px;
-                margin: 15px 0;
-                text-align: center;
-            ">
-                <i class="fas fa-lightbulb" style="color:#FFD700;"></i>
-                Precio sugerido: <strong style="color:#FFD700;">${precioSugerido.toLocaleString()}€</strong>
-            </div>
-            
-            <!-- Input precio -->
-            <div style="margin: 15px 0;">
-                <label for="precio-venta" style="display:block; margin-bottom:5px; color:#aaa;">
-                    Precio de venta (€):
-                </label>
-                <input type="number" 
-                       id="precio-venta" 
-                       value="${precioSugerido}" 
-                       min="${precioMinimo}" 
-                       max="1000000" 
-                       step="1000"
-                       style="
-                            width: 100%;
-                            padding: 10px;
-                            background: rgba(255,255,255,0.1);
-                            border: 1px solid #00d2be;
-                            border-radius: 5px;
-                            color: white;
-                            font-size: 1rem;
-                       ">
-                <p style="font-size:0.8rem; color:#FF9800; margin-top:5px;">
-                    <i class="fas fa-info-circle"></i> 
-                    Mínimo: ${precioMinimo.toLocaleString()}€ (costo + 10%)
-                </p>
-            </div>
-            
-            <!-- Mensaje error precio mínimo -->
-            <div id="error-precio-minimo" style="
-                display: none;
-                background: rgba(244, 67, 54, 0.2);
-                border: 1px solid #f44336;
-                border-radius: 5px;
-                padding: 8px;
-                margin: 10px 0;
-                color: #f44336;
-            ">
-                <i class="fas fa-exclamation-triangle"></i>
-                El precio no puede ser menor a ${precioMinimo.toLocaleString()}€
-            </div>
-            
-            <!-- Precios similares -->
-            <div style="margin: 15px 0;">
-                <h4 style="color:#aaa; font-size:0.9rem; margin-bottom:5px;">
-                    <i class="fas fa-store"></i> Precios similares:
-                </h4>
-                ${preciosSimilaresHTML}
-            </div>
-            
-            <!-- Botón confirmar -->
-            <button id="btn-confirmar-venta" style="
-                width: 100%;
-                padding: 12px;
-                background: linear-gradient(135deg, #00d2be, #009688);
-                border: none;
-                border-radius: 5px;
-                color: white;
-                font-weight: bold;
-                cursor: pointer;
-                font-size: 1rem;
-            ">
-                PUBLICAR VENTA
-            </button>
+        // 2. CREAR MODAL NUEVO (siempre nuevo, siempre fuera de contenedores)
+        const modal = document.createElement('div');
+        modal.id = 'modal-venta';
+        modal.style.cssText = `
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background: rgba(0, 0, 0, 0.95) !important;
+            z-index: 999999999 !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            margin: 0 !important;
+            padding: 0 !important;
         `;
         
-        // Mostrar modal
-        modal.style.display = 'flex';
+        // 3. CALCULAR VALORES
+        const areaNombre = this.getAreaNombre(pieza.area) || pieza.area;
+        const costoFabricacion = this.calcularCostoFabricacion(pieza);
+        const precioSugerido = Math.ceil(costoFabricacion * 1.2); // 20% beneficio
+        const precioMinimo = Math.ceil(costoFabricacion * 1.1);   // +10% (envío + comisión)
         
-        // Configurar validación de precio
-        const precioInput = document.getElementById('precio-venta');
-        const errorDiv = document.getElementById('error-precio-minimo');
-        const confirmBtn = document.getElementById('btn-confirmar-venta');
-        
-        if (precioInput && errorDiv && confirmBtn) {
-            const validarPrecio = () => {
-                const precioActual = parseInt(precioInput.value) || 0;
-                if (precioActual < precioMinimo) {
-                    errorDiv.style.display = 'block';
-                    confirmBtn.disabled = true;
-                    confirmBtn.style.opacity = '0.5';
-                    confirmBtn.style.cursor = 'not-allowed';
-                } else {
-                    errorDiv.style.display = 'none';
-                    confirmBtn.disabled = false;
-                    confirmBtn.style.opacity = '1';
-                    confirmBtn.style.cursor = 'pointer';
-                }
-            };
-            
-            precioInput.addEventListener('input', validarPrecio);
-            validarPrecio(); // Validar inicial
-            
-            // Evento click del botón
-            confirmBtn.onclick = async () => {
-                const precioActual = parseInt(precioInput.value) || 0;
-                if (precioActual < precioMinimo) {
-                    alert(`❌ El precio mínimo es ${precioMinimo.toLocaleString()}€`);
-                    return;
-                }
+        // 4. CONTENIDO DEL MODAL
+        modal.innerHTML = `
+            <div style="
+                background: #1a1a2e;
+                border-radius: 12px;
+                width: 90%;
+                max-width: 450px;
+                border: 3px solid #00d2be;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+                color: white;
+            ">
+                <div style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 12px 15px;
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                ">
+                    <h3 style="margin:0; color:white; font-family:Orbitron;">
+                        <i class="fas fa-tag"></i> VENDER PIEZA
+                    </h3>
+                    <button id="cerrar-modal-venta" style="
+                        background:none; 
+                        border:none; 
+                        color:white; 
+                        font-size:1.5rem; 
+                        cursor:pointer;
+                        line-height:1;
+                    ">&times;</button>
+                </div>
                 
-                // Ejecutar venta
-                await this.procesarVenta(pieza);
-                
-                // Cerrar modal después de vender
-                modal.style.display = 'none';
-                if (modalBody) modalBody.innerHTML = '';
-            };
-        }
+                <div style="padding:15px;">
+                    <!-- Info pieza -->
+                    <div style="margin-bottom:8px;"><strong>Pieza:</strong> ${areaNombre} Nivel ${pieza.nivel}</div>
+                    <div style="margin-bottom:8px;"><strong>Calidad:</strong> ${pieza.calidad || 'Normal'}</div>
+                    
+                    <!-- Costo fabricación -->
+                    <div style="
+                        background: rgba(0,100,255,0.1);
+                        border-left: 3px solid #00d2be;
+                        padding: 8px;
+                        margin: 10px 0;
+                    ">
+                        <strong>💰 Costo fabricación:</strong> 
+                        <span style="color:#FFD700;">${costoFabricacion.toLocaleString()}€</span>
+                    </div>
+                    
+                    <!-- Precio mínimo -->
+                    <div style="
+                        background: rgba(255,152,0,0.1);
+                        border-left: 3px solid #FF9800;
+                        padding: 8px;
+                        margin: 10px 0;
+                    ">
+                        <strong>📦 Precio mínimo (envío 5% + comisión 5%):</strong> 
+                        <span style="color:#FF9800;">${precioMinimo.toLocaleString()}€</span>
+                    </div>
+                    
+                    <!-- Input precio (SIN VALOR POR DEFECTO) -->
+                    <div style="margin: 15px 0;">
+                        <label style="display:block; margin-bottom:5px; color:#aaa;">
+                            Precio de venta (€):
+                        </label>
+                        <input type="number" 
+                               id="precio-venta-input" 
+                               placeholder="Introduce precio"
+                               min="${precioMinimo}" 
+                               max="1000000" 
+                               step="1000"
+                               style="
+                                    width: 100%;
+                                    padding: 10px;
+                                    background: rgba(255,255,255,0.1);
+                                    border: 1px solid #00d2be;
+                                    border-radius: 5px;
+                                    color: white;
+                                    font-size: 1rem;
+                               ">
+                        <p style="font-size:0.8rem; color:#FF9800; margin-top:5px;">
+                            <i class="fas fa-info-circle"></i> 
+                            Precio sugerido: ${precioSugerido.toLocaleString()}€
+                        </p>
+                    </div>
+                    
+                    <!-- Botón publicar -->
+                    <button id="publicar-venta-btn" style="
+                        width: 100%;
+                        padding: 12px;
+                        background: linear-gradient(135deg, #00d2be, #009688);
+                        border: none;
+                        border-radius: 5px;
+                        color: white;
+                        font-weight: bold;
+                        cursor: pointer;
+                        font-size: 1rem;
+                    ">
+                        PUBLICAR VENTA
+                    </button>
+                </div>
+            </div>
+        `;
         
-        console.log('✅ Modal venta mostrado correctamente');
+        // 5. AÑADIR AL BODY
+        document.body.appendChild(modal);
+        
+        // 6. EVENTO CERRAR
+        document.getElementById('cerrar-modal-venta').onclick = () => {
+            modal.remove(); // Eliminar completamente
+        };
+        
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.remove();
+        };
+        
+        // 7. EVENTO PUBLICAR
+        document.getElementById('publicar-venta-btn').onclick = async () => {
+            const input = document.getElementById('precio-venta-input');
+            const precio = parseInt(input.value);
+            
+            if (!precio || precio < precioMinimo) {
+                alert(`❌ Precio mínimo: ${precioMinimo.toLocaleString()}€`);
+                return;
+            }
+            
+            // Ejecutar venta
+            pieza.precioVenta = precio; // Añadir precio a la pieza
+            await this.procesarVenta(pieza);
+            
+            // Eliminar modal
+            modal.remove();
+        };
     }
     async procesarVenta(pieza) {
         const precioInput = document.getElementById('precio-venta');
