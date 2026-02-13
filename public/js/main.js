@@ -771,6 +771,9 @@ class F1Manager {
     // ========================
     // MÉTODO PARA CARGAR PESTAÑA TALLER (VERSIÓN CORREGIDA - BLOQUEO TOTAL POR ÁREA)
     // ========================
+    // ========================
+    // MÉTODO PARA CARGAR PESTAÑA TALLER (CON TIEMPO DE FABRICACIÓN)
+    // ========================
     async cargarTabTaller() {
         console.log('🔧 Cargando pestaña taller con filtros...');
         
@@ -790,7 +793,7 @@ class F1Manager {
             
             const { data: piezasFabricadas, error: errorPiezas } = await this.supabase
                 .from('almacen_piezas')
-                .select('area, nivel, calidad, numero_global, componente')  // ✅ SIN 'origen'
+                .select('area, nivel, calidad, numero_global, componente')
                 .eq('escuderia_id', this.escuderia.id)
                 .order('numero_global', { ascending: true });
         
@@ -902,6 +905,22 @@ class F1Manager {
                     const costoPieza = this.calcularCostoPieza(nivel, numeroPiezaEnNivel);
                     const nombrePieza = this.nombresPiezas[area.id]?.[piezaNum - 1] || `${area.nombre} Mejora ${piezaNum}`;
                     
+                    // ===== CALCULAR TIEMPO DE FABRICACIÓN =====
+                    const tiempoMinutos = this.calcularTiempoProgresivo(piezaNum);
+                    let tiempoFormateado = '';
+                    
+                    if (tiempoMinutos < 60) {
+                        tiempoFormateado = `${tiempoMinutos}m`;
+                    } else if (tiempoMinutos < 1440) {
+                        const horas = Math.floor(tiempoMinutos / 60);
+                        const minutos = tiempoMinutos % 60;
+                        tiempoFormateado = minutos > 0 ? `${horas}h ${minutos}m` : `${horas}h`;
+                    } else {
+                        const dias = Math.floor(tiempoMinutos / 1440);
+                        const horas = Math.floor((tiempoMinutos % 1440) / 60);
+                        tiempoFormateado = horas > 0 ? `${dias}d ${horas}h` : `${dias}d`;
+                    }
+                    
                     // ===== VERIFICACIÓN: ¿YA TENGO ESTE NOMBRE EN ALMACÉN? =====
                     const yaFabricada = piezasAreaFabricadasAll.some(p => p.componente === nombrePieza);
                     const esCompradaMercado = yaFabricada ? piezasAreaFabricadasAll.find(p => p.componente === nombrePieza)?.origen === 'mercado' || false : false;
@@ -913,7 +932,7 @@ class F1Manager {
                         html += `<button class="${claseCSS}" disabled title="${nombrePieza}">`;
                         html += `<i class="fas ${icono}"></i>`;
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
+                        html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()} (${tiempoFormateado})</div>`;
                         html += '</button>';
                         
                     } else {
@@ -940,7 +959,7 @@ class F1Manager {
                             html += `onclick="iniciarFabricacionConBloqueo('${area.id}', ${nivel}, '${nombrePieza.replace(/'/g, "\\'")}', ${piezaNum})" `;
                         }
                         
-                        html += `title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()} ${tituloExtra ? ' - ' + tituloExtra : ''}">`;
+                        html += `title="${nombrePieza} - Costo: €${costoPieza.toLocaleString()} - Tiempo: ${tiempoFormateado} ${tituloExtra ? ' - ' + tituloExtra : ''}">`;
                         
                         if (tieneFabricacionActiva) {
                             html += `<i class="fas ${iconoBoton}"></i>`;
@@ -950,7 +969,7 @@ class F1Manager {
                         }
                         
                         html += `<div class="pieza-nombre-50">${nombrePieza}</div>`;
-                        html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()}</div>`;
+                        html += `<div class="pieza-precio-50">€${costoPieza.toLocaleString()} (${tiempoFormateado})</div>`;
                         html += '</button>';
                     }
                 }
