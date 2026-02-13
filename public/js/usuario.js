@@ -1213,6 +1213,7 @@ const styleElement = document.createElement('style');
 styleElement.textContent = perfilStyles;
 document.head.appendChild(styleElement);
 
+
 // ========================
 // INICIALIZACIÓN
 // ========================
@@ -1240,3 +1241,27 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('✅ Sistema de perfiles listo');
+
+
+// ========================
+// EXPONER PERFIL MANAGER GLOBALMENTE
+// ========================
+// Crear instancia inmediatamente y exponerla
+window.perfilManager = new PerfilManager();
+console.log('✅ PerfilManager instanciado globalmente');
+
+// También asegurar que se pueda acceder después de carga completa
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.perfilManager) {
+            window.perfilManager = new PerfilManager();
+        }
+        console.log('👤 PerfilManager listo (DOMContentLoaded)');
+    });
+} else {
+    // Ya está cargado, asegurar instancia
+    if (!window.perfilManager) {
+        window.perfilManager = new PerfilManager();
+    }
+    console.log('👤 PerfilManager listo inmediatamente');
+}
