@@ -76,17 +76,41 @@ class PerfilManager {
             if (errorEscuderia) throw errorEscuderia;
 
             // 2. ESTRATEGAS CONTRATADOS
-            const { data: estrategas, error: errorEstrategas } = await supabase
-                .from('pilotos_contratados')
-                .select(`
-                    id,
-                    nombre,
-                    especialidad,
-                    salario,
-                    bonificacion_valor
-                `)
-                .eq('escuderia_id', escuderiaId)
-                .eq('activo', true);
+            let estrategas = [];
+            try {
+                // Consulta que une contrataciones con el catálogo de estrategas
+                const { data, error } = await supabase
+                    .from('estrategas_contrataciones')
+                    .select(`
+                        id,
+                        slot_asignado,
+                        fecha_inicio_contrato,
+                        estratega_id,
+                        estrategas_catalogo!inner (
+                            nombre,
+                            especialidad_nombre,
+                            sueldo_semanal,
+                            porcentaje_bono,
+                            icono
+                        )
+                    `)
+                    .eq('escuderia_id', escuderiaId)
+                    .eq('estado', 'activo');
+            
+                if (!error && data) {
+                    estrategas = data.map(c => ({
+                        id: c.id,
+                        nombre: c.estrategas_catalogo.nombre,
+                        especialidad: c.estrategas_catalogo.especialidad_nombre,
+                        salario: c.estrategas_catalogo.sueldo_semanal,
+                        bonificacion_valor: c.estrategas_catalogo.porcentaje_bono,
+                        icono: c.estrategas_catalogo.icono,
+                        slot: c.slot_asignado
+                    }));
+                }
+            } catch (e) {
+                console.log('ℹ️ No se pudieron cargar los estrategas');
+            }
 
             // 3. PRONÓSTICOS ACERTADOS
             const { data: pronosticos, error: errorPronosticos } = await supabase
