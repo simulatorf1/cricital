@@ -1502,40 +1502,70 @@ class F1Manager {
     }
     
     calcularTiempoProgresivo(numeroPiezaGlobal) {
-        // Tabla de tiempos para 50 piezas en minutos
+        // Tabla de tiempos para 50 piezas en minutos - TODOS ENTRE 2min Y 12 HORAS (720min)
+        // Sin progresión, cada pieza tiene su propio tiempo arbitrario y bien repartido
         const tiemposPorPiezaGlobal = {
-            1: 2,      // Nivel 1, Pieza 1: 2 min
-            2: 15,     // Nivel 1, Pieza 2: 15 min
-            3: 30,     // Nivel 1, Pieza 3: 30 min
-            4: 60,     // Nivel 1, Pieza 4: 1 hora
-            5: 120,    // Nivel 1, Pieza 5: 2 horas
-            6: 180,    // Nivel 2, Pieza 1: 3 horas
-            7: 240,    // Nivel 2, Pieza 2: 4 horas
-            8: 360,    // Nivel 2, Pieza 3: 6 horas
-            9: 480,    // Nivel 2, Pieza 4: 8 horas
-            10: 720,   // Nivel 2, Pieza 5: 12 horas
-            11: 900,   // Nivel 3, Pieza 1: 15 horas
-            12: 1080,  // Nivel 3, Pieza 2: 18 horas
-            13: 1260,  // Nivel 3, Pieza 3: 21 horas
-            14: 1440,  // Nivel 3, Pieza 4: 1 día
-            15: 1620,  // Nivel 3, Pieza 5: 1.125 días
-            // Niveles 4-10: progresión más lenta
-            16: 1800, 17: 2160, 18: 2520, 19: 2880, 20: 3240, // Nivel 4: 1.25-2.25 días
-            21: 3600, 22: 4320, 23: 5040, 24: 5760, 25: 6480, // Nivel 5: 2.5-4.5 días
-            26: 7200, 27: 8640, 28: 10080, 29: 11520, 30: 12960, // Nivel 6: 5-9 días
-            31: 14400, 32: 17280, 33: 20160, 34: 23040, 35: 25920, // Nivel 7: 10-18 días
-            36: 28800, 37: 34560, 38: 40320, 39: 46080, 40: 51840, // Nivel 8: 20-36 días
-            41: 57600, 42: 69120, 43: 80640, 44: 92160, 45: 103680, // Nivel 9: 40-72 días
-            46: 115200, 47: 126720, 48: 138240, 49: 149760, 50: 161280 // Nivel 10: 80-112 días
+            // Mezcla de tiempos muy cortos, cortos, medios, largos y máximos
+            1: 2,      // 2 minutos
+            2: 45,     // 45 minutos
+            3: 15,     // 15 minutos
+            4: 180,    // 3 horas
+            5: 90,     // 1.5 horas
+            6: 5,      // 5 minutos
+            7: 360,    // 6 horas
+            8: 30,     // 30 minutos
+            9: 480,    // 8 horas
+            10: 10,    // 10 minutos
+            11: 600,   // 10 horas
+            12: 75,    // 1 hora 15 minutos
+            13: 20,    // 20 minutos
+            14: 270,   // 4.5 horas
+            15: 720,   // 12 horas (máximo)
+            16: 8,     // 8 minutos
+            17: 420,   // 7 horas
+            18: 55,    // 55 minutos
+            19: 540,   // 9 horas
+            20: 12,    // 12 minutos
+            21: 240,   // 4 horas
+            22: 25,    // 25 minutos
+            23: 390,   // 6.5 horas
+            24: 40,    // 40 minutos
+            25: 660,   // 11 horas
+            26: 3,     // 3 minutos
+            27: 300,   // 5 horas
+            28: 85,    // 1 hora 25 minutos
+            29: 510,   // 8.5 horas
+            30: 18,    // 18 minutos
+            31: 450,   // 7.5 horas
+            32: 35,    // 35 minutos
+            33: 200,   // 3 horas 20 minutos
+            34: 120,   // 2 horas
+            35: 570,   // 9.5 horas
+            36: 7,     // 7 minutos
+            37: 330,   // 5.5 horas
+            38: 95,    // 1 hora 35 minutos
+            39: 140,   // 2 horas 20 minutos
+            40: 22,    // 22 minutos
+            41: 630,   // 10.5 horas
+            42: 50,    // 50 minutos
+            43: 380,   // 6 horas 20 minutos
+            44: 220,   // 3 horas 40 minutos
+            45: 28,    // 28 minutos
+            46: 690,   // 11.5 horas
+            47: 70,    // 1 hora 10 minutos
+            48: 400,   // 6 horas 40 minutos
+            49: 100,   // 1 hora 40 minutos
+            50: 80     // 1 hora 20 minutos
         };
         
-        // Si es una pieza mayor a 50, usar progresión continua
+        // Si es una pieza mayor a 50, tiempo pseudo-aleatorio entre 2 y 720 minutos
         if (numeroPiezaGlobal > 50) {
-            const diasExtra = Math.floor((numeroPiezaGlobal - 50) / 5) * 7;
-            return 161280 + (diasExtra * 24 * 60);
+            // Usar un pseudo-aleatorio basado en el número para mantener consistencia
+            const pseudoRandom = ((numeroPiezaGlobal * 997) % 719) + 2;
+            return pseudoRandom;
         }
         
-        return tiemposPorPiezaGlobal[numeroPiezaGlobal] || 161280;
+        return tiemposPorPiezaGlobal[numeroPiezaGlobal] || 120; // 2 horas por defecto
     }
 
     calcularCostoPieza(nivel, numeroPiezaEnNivel) {
