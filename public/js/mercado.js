@@ -1461,7 +1461,8 @@ calcularCostoFabricacion(pieza) {
             if (e.target === modal) modal.remove();
         };
         
-        // 7. EVENTO PUBLICAR
+
+        // 7. EVENTO PUBLICAR - MODIFICADO PARA SER COMPATIBLE
         document.getElementById('publicar-venta-btn').onclick = async () => {
             const input = document.getElementById('precio-venta-input');
             const precio = parseInt(input.value);
@@ -1471,11 +1472,21 @@ calcularCostoFabricacion(pieza) {
                 return;
             }
             
-            // Ejecutar venta
-            pieza.precioVenta = precio; // Añadir precio a la pieza
+            // 🔴 CREAR UN INPUT OCULTO TEMPORAL para que procesarVenta lo encuentre
+            const oldInput = document.getElementById('precio-venta');
+            if (oldInput) oldInput.remove();
+            
+            const inputTemp = document.createElement('input');
+            inputTemp.type = 'hidden';
+            inputTemp.id = 'precio-venta';
+            inputTemp.value = precio;
+            document.body.appendChild(inputTemp);
+            
+            // Ejecutar venta (ahora encontrará el input con id='precio-venta')
             await this.procesarVenta(pieza);
             
-            // Eliminar modal
+            // Limpiar y cerrar
+            inputTemp.remove();
             modal.remove();
         };
     }
