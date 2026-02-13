@@ -2384,20 +2384,21 @@ class F1Manager {
                                 align-items: center;
                                 margin-bottom: 10px;
                             ">
-                                <div class="logo-compacto" style="
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 10px;
-                                    color: white;
-                                    font-size: 1.4rem;
-                                    font-weight: bold;
-                                    font-family: 'Orbitron', sans-serif;
-                                    text-align: center;
-                                ">
-                                    <i class="fas fa-flag-checkered" style="color: #00d2be; font-size: 1.3rem;"></i>
-                                    <span id="escuderia-nombre" style="color: white;">${this.escuderia.nombre}</span>
-                                </div>
+                            <div class="logo-compacto" style="
+                                display: flex;
+                                align-items: center;
+                                gap: 10px;
+                                color: white;
+                                font-size: 1.4rem;
+                                font-weight: bold;
+                                font-family: 'Orbitron', sans-serif;
+                                text-align: center;
+                                cursor: pointer;
+                            " onclick="abrirPerfilDesdeHeader()">
+                                <i class="fas fa-flag-checkered" style="color: #00d2be; font-size: 1.3rem;"></i>
+                                <span id="escuderia-nombre" style="color: white;">${this.escuderia.nombre}</span>
                             </div>
+
                             
                             <!-- FILA INFERIOR CON DINERO Y ESTRELLAS -->
                             <div class="header-bottom-row" style="
@@ -5620,7 +5621,36 @@ setTimeout(() => {
                 window.f1Manager.cargarUltimoTiempoUI();
             }, 1000);
         }
-    });    
+    }); 
+    // ========================
+    // FUNCIÓN PARA ABRIR PERFIL DESDE CUALQUIER PARTE
+    // ========================
+    window.abrirPerfilDesdeHeader = function() {
+        console.log('👤 Intentando abrir perfil...');
+        
+        // Método 1: Usar perfilManager global
+        if (window.perfilManager && typeof window.perfilManager.mostrarPerfil === 'function') {
+            console.log('✅ Usando perfilManager existente');
+            window.perfilManager.mostrarPerfil();
+            return;
+        }
+        
+        // Método 2: Si no existe, intentar crearlo
+        if (typeof PerfilManager !== 'undefined') {
+            console.log('⚡ Creando nuevo PerfilManager');
+            window.perfilManager = new PerfilManager();
+            setTimeout(() => {
+                window.perfilManager.mostrarPerfil();
+            }, 100);
+            return;
+        }
+        
+        // Método 3: Error
+        console.error('❌ PerfilManager no disponible');
+        alert('Error: Sistema de perfiles no cargado. Recarga la página.');
+    };
+
+    
     // ========================
     // FIX PARA MÁRGENES MÓVILES Y SCROLL
     // ========================
