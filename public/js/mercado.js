@@ -1449,12 +1449,12 @@ calcularCostoFabricacion(pieza) {
     async procesarVenta(pieza) {
         const precioInput = document.getElementById('precio-venta');
         const precio = parseInt(precioInput.value);
-
+    
         if (!precio || precio < 1000 || precio > 1000000) {
             alert('❌ Precio inválido. Debe estar entre 1,000€ y 1,000,000€');
             return;
         }
-
+    
         try {
             // 1. Crear orden en mercado
             const { error: mercadoError } = await this.supabase
@@ -1471,36 +1471,56 @@ calcularCostoFabricacion(pieza) {
                     estado: 'disponible',
                     creada_en: new Date().toISOString()
                 }]);
-
+    
             if (mercadoError) throw mercadoError;
-
+    
             // 2. Marcar pieza como en venta en almacén
             const { error: piezaError } = await this.supabase
                 .from('almacen_piezas')
                 .update({ en_venta: true })
                 .eq('id', pieza.id);
-
+    
             if (piezaError) throw piezaError;
-
-            // 3. Actualizar UI
-            this.ocultarModales();
-            this.mostrarNotificacion(`✅ Pieza puesta en venta por ${precio.toLocaleString()}€`, 'success');
-            this.resetearModales(); // Asegurar limpieza completa
-
-            // 4. Recargar mercado
-            await this.cargarTabMercado();
-
-            // 5. Recargar almacén si está abierto
-            if (window.almacenManager && typeof window.almacenManager.cargarPiezas === 'function') {
-                await window.almacenManager.cargarPiezas();
+    
+            // 🔴🔴🔴 NUEVO: CERRAR MODAL INMEDIATAMENTE 🔴🔴🔴
+            // Cerrar el modal de venta
+            const modalVenta = document.getElementById('modal-venta');
+            if (modalVenta) {
+                modalVenta.style.display = 'none';
+                const modalBody = document.getElementById('modal-venta-body');
+                if (modalBody) modalBody.innerHTML = ''; // Limpiar contenido
             }
-
+            
+            // Eliminar cualquier modal básico que pueda existir
+            const modalBasico = document.getElementById('modal-venta-rapido');
+            if (modalBasico) modalBasico.remove();
+            
+            // 3. Mostrar notificación
+            this.mostrarNotificacion(`✅ Pieza puesta en venta por ${precio.toLocaleString()}€`, 'success');
+    
+            // 4. Recargar datos
+            await this.cargarOrdenesDisponibles();
+            await this.cargarMisOrdenes();
+            
+            // 5. Actualizar UI del mercado si está visible
+            if (document.getElementById('tab-mercado') && 
+                document.getElementById('tab-mercado').style.display !== 'none') {
+                await this.cargarTabMercado();
+            }
+    
+            // 6. Recargar almacén si está abierto
+            if (window.tabManager?.currentTab === 'almacen' && 
+                typeof window.tabManager.loadAlmacenPiezas === 'function') {
+                setTimeout(() => {
+                    window.tabManager.loadAlmacenPiezas();
+                }, 500);
+            }
+    
         } catch (error) {
             console.error('❌ Error procesando venta:', error);
             this.mostrarNotificacion(`❌ Error: ${error.message}`, 'error');
         }
     }
-
     calcularPrecioSugerido(nivel, calidad) {
         const base = nivel * 5000;
         const multiplicador = {
@@ -1881,7 +1901,7 @@ window.procesarVentaSimple = async function(piezaId) {
             .update({ en_venta: true })
             .eq('id', piezaId);
         
-        // Cerrar modal
+        // 🔴🔴🔴 CERRAR MODAL 🔴🔴🔴
         if (modal) modal.remove();
         
         // Mostrar notificación
