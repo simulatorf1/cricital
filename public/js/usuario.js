@@ -65,7 +65,7 @@ class PerfilManager {
                     dinero,
                     puntos,
                     estrellas_semana,
-                    created_at,
+                    creada_en,
                     ultimo_login_dia,
                     descripcion,
                     grupo_id
