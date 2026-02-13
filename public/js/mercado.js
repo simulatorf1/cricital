@@ -696,6 +696,19 @@ class MercadoManager {
                         }
                     }
                 </style>
+                <!-- Modal de venta (oculto por defecto) -->
+                <div id="modal-venta" class="modal-overlay" style="display: none;">
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <h3><i class="fas fa-tag"></i> VENDER PIEZA</h3>
+                            <button class="btn-cerrar-modal">&times;</button>
+                        </div>
+                        <div class="modal-body" id="modal-venta-body">
+                            <!-- Contenido dinámico -->
+                        </div>
+                    </div>
+                </div>
+                
             </div>
         `;
     }
@@ -776,25 +789,24 @@ class MercadoManager {
     // ========================
     // CALCULAR COSTO DE FABRICACIÓN
     // ========================
-    calcularCostoFabricacion(pieza) {
-        // Si la pieza ya tiene el campo costo_fabricacion, úsalo
-        if (pieza.costo_fabricacion) {
-            return pieza.costo_fabricacion;
-        }
-        
-        // Si no, calcula según la fórmula que uses en fabricación
-        // Esta es la función que mencionaste antes:
-        const costesBase = [
-            0, 100000, 350000, 700000, 1200000, 
-            2000000, 4000000, 8000000, 13000000, 18000000, 23000000
-        ];
-        
-        const base = costesBase[pieza.nivel] || 23000000;
-        
-        // Aquí asumo que numeroPiezaEnNivel es 1 (primera pieza)
-        // Si guardas el número de pieza en el nivel, deberías obtenerlo de la BD
-        return Math.floor(base * Math.pow(1.1, 1 - 1)); // = base
+// ========================
+// CALCULAR COSTO DE FABRICACIÓN
+// ========================
+calcularCostoFabricacion(pieza) {
+    // Si la pieza ya tiene el campo costo_fabricacion, úsalo
+    if (pieza.costo_fabricacion) {
+        return pieza.costo_fabricacion;
     }
+    
+    // Si no, calcula según la fórmula
+    const costesBase = [
+        0, 100000, 350000, 700000, 1200000, 
+        2000000, 4000000, 8000000, 13000000, 18000000, 23000000
+    ];
+    
+    const base = costesBase[pieza.nivel] || 23000000;
+    return Math.floor(base); // = base
+}
     generarHTMLMisVentas() {
         if (this.misOrdenes.length === 0) {
             return `
@@ -904,6 +916,21 @@ class MercadoManager {
                 }
             });
         });
+        // Eventos para cerrar modal de venta
+        const modalVenta = document.getElementById('modal-venta');
+        if (modalVenta) {
+            modalVenta.querySelectorAll('.btn-cerrar-modal, .btn-cerrar').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    modalVenta.style.display = 'none';
+                });
+            });
+            
+            modalVenta.addEventListener('click', (e) => {
+                if (e.target === modalVenta) {
+                    modalVenta.style.display = 'none';
+                }
+            });
+        }        
     }
 
 
@@ -1274,7 +1301,7 @@ class MercadoManager {
                     <strong>Puntos base:</strong> ${pieza.puntos_base || 0}
                 </div>
                 
-                <!-- NUEVO: Costo de fabricación -->
+                <!-- Costo de fabricación -->
                 <div class="info-item costo-fabricacion" style="
                     background: rgba(0, 100, 255, 0.1);
                     border-left: 3px solid #00d2be;
@@ -1285,7 +1312,7 @@ class MercadoManager {
                     <span style="color: #FFD700; font-size: 1.1rem;">${costoFabricacion.toLocaleString()}€</span>
                 </div>
                 
-                <!-- NUEVO: Análisis de ganancia -->
+                <!-- Análisis de ganancia -->
                 <div class="info-item analisis-ganancia" style="
                     background: rgba(76, 175, 80, 0.1);
                     border-left: 3px solid #4CAF50;
@@ -1312,7 +1339,7 @@ class MercadoManager {
                 <p class="small">Mínimo: 1,000€ - Máximo: 1,000,000€</p>
             </div>
             
-            <!-- NUEVO: Preview dinámico de ganancia -->
+            <!-- Preview dinámico de ganancia -->
             <div id="preview-ganancia" style="
                 margin: 10px 0;
                 padding: 8px;
@@ -1337,7 +1364,7 @@ class MercadoManager {
     
         modal.style.display = 'flex';
     
-        // NUEVO: Actualizar preview cuando cambie el precio
+        // Actualizar preview cuando cambie el precio
         const precioInput = document.getElementById('precio-venta');
         const previewTexto = document.getElementById('preview-texto');
         const previewCantidad = document.getElementById('preview-cantidad');
@@ -1721,118 +1748,12 @@ window.venderPiezaDesdeAlmacen = async function(piezaId) {
             return;
         }
         
-        // Crear modal de venta simple
-        const modalHTML = `
-            <div id="modal-venta-rapido" style="
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.85); z-index: 9999;
-                display: flex; align-items: center; justify-content: center;
-            ">
-                <div style="background: #1a1a2e; border-radius: 10px; padding: 20px;
-                    border: 3px solid #00d2be; max-width: 450px; width: 90%; color: white;">
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="margin: 0; color: #00d2be;">
-                            <i class="fas fa-tag"></i> VENDER PIEZA
-                        </h3>
-                        <button onclick="document.getElementById('modal-venta-rapido').remove()" style="
-                            background: none; border: none; color: white;
-                            font-size: 1.5rem; cursor: pointer;">&times;</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <p><strong>Pieza:</strong> ${window.mercadoManager.getAreaNombre(pieza.area)}</p>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; color: #aaa;">
-                            <i class="fas fa-euro-sign"></i> Precio de venta:
-                        </label>
-                        <input type="number" id="precio-rapido" 
-                               value="${pieza.nivel * 5000}" 
-                               min="1000" max="1000000" step="1000"
-                               style="width: 100%; padding: 10px;
-                               background: rgba(255,255,255,0.1);
-                               border: 1px solid #00d2be; border-radius: 5px;
-                               color: white; font-size: 1rem;">
-                    </div>
-                    
-                    <button onclick="procesarVentaSimple('${piezaId}')" style="
-                        width: 100%; padding: 12px;
-                        background: linear-gradient(135deg, #00d2be, #009688);
-                        border: none; border-radius: 8px; color: white;
-                        font-weight: bold; cursor: pointer; font-size: 1rem;">
-                        <i class="fas fa-check"></i> PUBLICAR VENTA
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Añadir modal al body
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
-        // Crear función para procesar la venta
-        window.procesarVentaSimple = async function(piezaIdParam) {
-            try {
-                const precioInput = document.getElementById('precio-rapido');
-                const precio = parseInt(precioInput.value);
-                const modal = document.getElementById('modal-venta-rapido');
-                
-                if (!precio || precio < 1000) {
-                    alert('❌ Precio mínimo: 1,000€');
-                    return;
-                }
-                
-                // Crear orden en mercado (solo con columnas que existen)
-                const { error: mercadoError } = await supabase
-                    .from('mercado')
-                    .insert([{
-                        vendedor_id: window.f1Manager.escuderia.id,
-                        vendedor_nombre: window.f1Manager.escuderia.nombre,
-                        pieza_id: piezaIdParam,
-                        pieza_nombre: pieza.componente,
-                        area: pieza.area,
-                        nivel: pieza.nivel,
-                        calidad: pieza.calidad || 'Normal',
-                        precio: precio,
-                        estado: 'disponible',
-                        creada_en: new Date().toISOString()
-                    }]);
-                
-                if (mercadoError) throw mercadoError;
-                
-                // Marcar pieza como en venta
-                await supabase
-                    .from('almacen_piezas')
-                    .update({ 
-                        en_venta: true
-                    })
-                    .eq('id', piezaIdParam);
-                
-                // Cerrar modal
-                if (modal) modal.remove();
-                
-                // Mostrar notificación
-                if (window.f1Manager?.showNotification) {
-                    window.f1Manager.showNotification(`✅ Pieza puesta en venta por ${precio.toLocaleString()}€`, 'success');
-                }
-                
-                // Recargar almacén y mercado
-                if (window.tabManager?.loadAlmacenPiezas) {
-                    setTimeout(() => window.tabManager.loadAlmacenPiezas(), 500);
-                }
-                
-                if (window.mercadoManager?.cargarTabMercado) {
-                    setTimeout(() => window.mercadoManager.cargarTabMercado(), 500);
-                }
-                
-            } catch (error) {
-                console.error('❌ Error en venta:', error);
-                alert('❌ Error: ' + error.message);
-                const modal = document.getElementById('modal-venta-rapido');
-                if (modal) modal.remove();
-            }
-        };
+        // USAR EL MODAL MEJORADO
+        if (window.mercadoManager) {
+            await window.mercadoManager.mostrarModalVenta(pieza);
+        } else {
+            alert('❌ Error: Sistema de mercado no disponible');
+        }
         
     } catch (error) {
         console.error('❌ Error vendiendo pieza:', error);
