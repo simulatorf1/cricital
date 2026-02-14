@@ -1187,34 +1187,48 @@ calcularCostoFabricacion(pieza) {
             // ========================
             // NOTIFICACIÓN AL VENDEDOR - NUEVO BLOQUE
             // ========================
-            // NOTIFICACIÓN AL VENDEDOR - VERSIÓN CORREGIDA
             // ========================
-            // Enviar notificación al vendedor
+            // NOTIFICACIÓN AL VENDEDOR - VERSIÓN CON RECARGA AUTOMÁTICA
+            // ========================
             try {
-                if (window.notificacionesManager) {
-                    // Ver qué métodos tiene realmente
-                    console.log('Métodos disponibles:', Object.getOwnPropertyNames(Object.getPrototypeOf(window.notificacionesManager)));
+                // Obtener el user_id del vendedor desde auth.users
+                const { data: vendedorAuth, error: authError } = await this.supabase
+                    .from('users')
+                    .select('id')
+                    .eq('escuderia_id', orden.vendedor_id)
+                    .single();
+                
+                if (!authError && vendedorAuth) {
+                    // Crear notificación en la BD
+                    await this.supabase
+                        .from('notificaciones_usuarios')
+                        .insert([{
+                            usuario_id: vendedorAuth.id,
+                            tipo: 'venta',
+                            titulo: '💰 Pieza vendida',
+                            mensaje: `${orden.pieza_nombre} comprada por ${this.escuderia.nombre} por ${orden.precio.toLocaleString()}€`,
+                            tipo_relacion: 'pieza',
+                            leida: false,
+                            fecha_creacion: new Date().toISOString()
+                        }]);
                     
-                    // Intentar con el método correcto (agregarNotificacion)
-                    if (typeof window.notificacionesManager.agregarNotificacion === 'function') {
-                        console.log('📬 Enviando notificación de venta...');
-                        
-                        await window.notificacionesManager.agregarNotificacion(
-                            orden.vendedor_id,                    // usuario_id (vendedor)
-                            'venta',                               // tipo
-                            '💰 Pieza vendida',                    // titulo
-                            `${orden.pieza_nombre} comprada por ${this.escuderia.nombre} por ${orden.precio.toLocaleString()}€`, // mensaje
-                            orden.pieza_id,                        // relacion_id
-                            'pieza'                                 // tipo_relacion
-                        );
-                        
-                        console.log('✅ Notificación enviada correctamente');
-                    } else {
-                        console.warn('⚠️ No se encontró el método agregarNotificacion');
+                    console.log('✅ Notificación de venta creada');
+                    
+                    // 🔴 FORZAR ACTUALIZACIÓN DEL CONTADOR 🔴
+                    if (window.notificacionesManager) {
+                        setTimeout(async () => {
+                            await window.notificacionesManager.cargarContador();
+                            console.log('🔄 Contador actualizado forzadamente');
+                            
+                            // Si el panel está abierto, recargar notificaciones
+                            if (window.notificacionesManager.panelAbierto) {
+                                await window.notificacionesManager.cargarNotificaciones();
+                            }
+                        }, 500); // Pequeño delay para asegurar que la BD se actualizó
                     }
                 }
             } catch (notifError) {
-                console.error('❌ Error enviando notificación:', notifError);
+                console.warn('⚠️ Error en notificación:', notifError);
             }
     
             // 5. Actualizar el dinero local del comprador
