@@ -1188,7 +1188,7 @@ calcularCostoFabricacion(pieza) {
             // NOTIFICACIÓN AL VENDEDOR - NUEVO BLOQUE
             // ========================
             // ========================
-            // NOTIFICACIÓN AL VENDEDOR - VERSIÓN DEFINITIVA
+            // NOTIFICACIÓN AL VENDEDOR - VERSIÓN FINAL FUNCIONAL
             // ========================
             try {
                 // Obtener el user_id de la escudería del vendedor
@@ -1199,11 +1199,13 @@ calcularCostoFabricacion(pieza) {
                     .single();
                 
                 if (!escuderiaError && escuderiaVendedor?.user_id) {
+                    console.log('📬 Enviando notificación al vendedor:', escuderiaVendedor.user_id);
+                    
                     // Crear notificación en la BD
-                    await this.supabase
+                    const { error: insertError } = await this.supabase
                         .from('notificaciones_usuarios')
                         .insert([{
-                            usuario_id: escuderiaVendedor.user_id,  // ← AHORA SÍ, el user_id real
+                            usuario_id: escuderiaVendedor.user_id,
                             tipo: 'venta',
                             titulo: '💰 Pieza vendida',
                             mensaje: `${orden.pieza_nombre} comprada por ${this.escuderia.nombre} por ${orden.precio.toLocaleString()}€`,
@@ -1212,14 +1214,18 @@ calcularCostoFabricacion(pieza) {
                             fecha_creacion: new Date().toISOString()
                         }]);
                     
-                    console.log('✅ Notificación de venta creada para el vendedor');
-                    
-                    // 🔴 FORZAR ACTUALIZACIÓN DEL CONTADOR 🔴
-                    if (window.notificacionesManager) {
-                        setTimeout(async () => {
-                            await window.notificacionesManager.cargarContador();
-                            console.log('🔄 Contador actualizado');
-                        }, 500);
+                    if (!insertError) {
+                        console.log('✅ Notificación de venta creada');
+                        
+                        // FORZAR ACTUALIZACIÓN DEL CONTADOR
+                        if (window.notificacionesManager) {
+                            setTimeout(() => {
+                                window.notificacionesManager.cargarContador();
+                                console.log('🔄 Contador actualizado');
+                            }, 500);
+                        }
+                    } else {
+                        console.warn('⚠️ Error insertando notificación:', insertError);
                     }
                 } else {
                     console.warn('⚠️ No se encontró user_id para la escudería', orden.vendedor_id);
