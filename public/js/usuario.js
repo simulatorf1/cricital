@@ -259,7 +259,7 @@ class PerfilManager {
                     <button class="modal-perfil-cerrar" onclick="window.perfilManager.cerrarModal()">
                         <i class="fas fa-times"></i>
                     </button>
-                    
+
                     <div class="perfil-header">
                         <div class="perfil-avatar">
                             <i class="fas fa-flag-checkered"></i>
@@ -271,12 +271,18 @@ class PerfilManager {
                                 <span>Miembro desde ${fechaCreacion}</span>
                             </div>
                         </div>
-
-                        ${!esMiPerfil ? `
-                            <div style="margin-left: 10px; padding: 3px 8px; background: rgba(0,210,190,0.1); border: 1px solid #00d2be; border-radius: 12px; font-size: 0.65rem; color: #00d2be;">
+                        
+                        <!-- 🔴 BOTÓN DE EDITAR (solo para el propietario) -->
+                        ${esMiPerfil ? `
+                            <button class="perfil-btn-editar" onclick="window.perfilManager.editarDescripcion()">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                        ` : `
+                            <!-- Badge de perfil público (solo para visitantes) -->
+                            <div class="perfil-publico-badge">
                                 <i class="fas fa-eye"></i> Perfil público
                             </div>
-                        ` : ''}
+                        `}
                     </div>
                     
                     <div class="perfil-descripcion" id="perfil-descripcion">
