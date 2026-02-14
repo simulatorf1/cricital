@@ -428,13 +428,13 @@ class PerfilManager {
         if (modalExistente) {
             modalExistente.remove();
         }
-
+    
         const fechaCreacion = datos.fechaCreacion ? new Date(datos.fechaCreacion).toLocaleDateString('es-ES', {
             day: '2-digit',
             month: 'long',
             year: 'numeric'
         }) : 'Fecha desconocida';
-
+    
         // Calcular medalla según posición
         let medalla = '';
         let colorPosicion = '#888';
@@ -448,7 +448,7 @@ class PerfilManager {
             medalla = '🥉';
             colorPosicion = '#CD7F32';
         }
-
+    
         // Crear modal
         const modal = document.createElement('div');
         modal.id = 'modal-perfil';
@@ -458,7 +458,7 @@ class PerfilManager {
                     <button class="modal-perfil-cerrar" onclick="window.perfilManager.cerrarModal()">
                         <i class="fas fa-times"></i>
                     </button>
-
+    
                     <div class="perfil-header">
                         <div class="perfil-avatar">
                             <i class="fas fa-flag-checkered"></i>
@@ -596,7 +596,7 @@ class PerfilManager {
                         `}
                     </div>
                     
-
+    
                     ${!esMiPerfil ? `
                         <div class="perfil-acciones" id="perfil-acciones-${datos.escuderia.id}">
                             <div class="acciones-loading">
@@ -607,15 +607,20 @@ class PerfilManager {
                 </div>
             </div>
         `;
-
+    
         document.body.appendChild(modal);
+        
+        // 🔴🔴🔴 AÑADE ESTO - LLAMAR A cargarEstadoAmistad 🔴🔴🔴
+        if (!esMiPerfil) {
+            console.log('🔄 Cargando botones de acción para:', datos.escuderia.id);
+            this.cargarEstadoAmistad(datos.escuderia.id);
+        }
         
         // Animar entrada
         setTimeout(() => {
             modal.classList.add('visible');
         }, 10);
     }
-
     // ========================
     // EDITAR DESCRIPCIÓN
     // ========================
