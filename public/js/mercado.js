@@ -1127,7 +1127,7 @@ calcularCostoFabricacion(pieza) {
             
             if (updateCompradorError) throw updateCompradorError;
             
-            // 4b. Sumar dinero al vendedor (SIN RPC - UPDATE DIRECTO)
+            // 4b. Sumar dinero al vendedor
             const { data: vendedor, error: vendedorError } = await this.supabase
                 .from('escuderias')
                 .select('dinero')
@@ -1144,7 +1144,7 @@ calcularCostoFabricacion(pieza) {
             
             if (updateVendedorError) throw updateVendedorError;
             
-            // 4c. Registrar transacción (VERSIÓN CORRECTA para tu tabla)
+            // 4c. Registrar transacciones
             try {
                 // Para el COMPRADOR: es un GASTO
                 await this.supabase
@@ -1159,7 +1159,7 @@ calcularCostoFabricacion(pieza) {
                         categoria: 'mercado'
                     }]);
             
-                // Para el VENDEDOR: es un INGRESO (necesitamos su ID y saldo)
+                // Para el VENDEDOR: es un INGRESO
                 const { data: vendedor } = await this.supabase
                     .from('escuderias')
                     .select('dinero')
@@ -1184,11 +1184,23 @@ calcularCostoFabricacion(pieza) {
                 // Continuar aunque falle el registro de transacción
             }
     
+            // 5. Actualizar el dinero local del comprador
+            this.escuderia.dinero -= orden.precio;
+            
+            // 6. Marcar orden como vendida en la tabla MERCADO
+            const { error: updateError } = await this.supabase
+                .from('mercado')
+                .update({
+                    estado: 'vendido',
+                    vendida_en: new Date().toISOString(),
+                    comprador_id: this.escuderia.id
+                })
+                .eq('id', orden.id);
+            
+            if (updateError) throw updateError;
+            
             // ========================
-            // NOTIFICACIÓN AL VENDEDOR - NUEVO BLOQUE
-            // ========================
-            // ========================
-            // NOTIFICACIÓN AL VENDEDOR - VERSIÓN FINAL FUNCIONAL
+            // NOTIFICACIÓN AL VENDEDOR - ÚNICA Y CORRECTA
             // ========================
             try {
                 // Obtener el user_id de la escudería del vendedor
@@ -1233,57 +1245,6 @@ calcularCostoFabricacion(pieza) {
             } catch (notifError) {
                 console.warn('⚠️ Error en notificación:', notifError);
             }
-    
-            // 5. Actualizar el dinero local del comprador
-            // 5. Actualizar el dinero local del comprador
-            this.escuderia.dinero -= orden.precio;
-            
-            // 6. Marcar orden como vendida en la tabla MERCADO
-            const { error: updateError } = await this.supabase
-                .from('mercado')
-                .update({
-                    estado: 'vendido',
-                    vendida_en: new Date().toISOString(),
-                    comprador_id: this.escuderia.id
-                })
-                .eq('id', orden.id);
-            
-            if (updateError) throw updateError;
-            
-            // ========================
-            // NOTIFICACIÓN AL VENDEDOR
-            // ========================
-            try {
-                const { data: escuderiaVendedor, error: escuderiaError } = await this.supabase
-                    .from('escuderias')
-                    .select('user_id')
-                    .eq('id', orden.vendedor_id)
-                    .single();
-                
-                if (!escuderiaError && escuderiaVendedor?.user_id) {
-                    await this.supabase
-                        .from('notificaciones_usuarios')
-                        .insert([{
-                            usuario_id: escuderiaVendedor.user_id,
-                            tipo: 'venta',
-                            titulo: '💰 Pieza vendida',
-                            mensaje: `${orden.pieza_nombre} comprada por ${this.escuderia.nombre} por ${orden.precio.toLocaleString()}€`,
-                            tipo_relacion: 'pieza',
-                            leida: false,
-                            fecha_creacion: new Date().toISOString()
-                        }]);
-                    
-                    console.log('✅ Notificación de venta creada');
-                    
-                    if (window.notificacionesManager) {
-                        setTimeout(() => {
-                            window.notificacionesManager.cargarContador();
-                        }, 500);
-                    }
-                }
-            } catch (notifError) {
-                console.warn('⚠️ Error en notificación:', notifError);
-            }
             
             // 7. Actualizar UI
             this.ocultarModales();
@@ -1304,6 +1265,12 @@ calcularCostoFabricacion(pieza) {
                     window.f1Manager.cargarTabTaller();
                 }, 500);
             }
+    
+        } catch (error) {
+            console.error('❌ Error procesando compra:', error);
+            this.mostrarNotificacion(`❌ Error: ${error.message}`, 'error');
+        }
+    }
     async cancelarVenta(ordenId) {
         try {
             console.log('❌ Cancelando venta:', ordenId);
