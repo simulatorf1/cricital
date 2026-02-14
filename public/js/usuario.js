@@ -71,6 +71,205 @@ class PerfilManager {
         this.mostrarPerfil(escuderiaId, escuderiaNombre);
     }
     // ========================
+    // SISTEMA DE AMIGOS
+    // ========================
+    
+    /**
+     * Enviar solicitud de amistad
+     */
+    async agregarAmigo(escuderiaId) {
+        if (!window.f1Manager?.escuderia?.id) {
+            this.mostrarNotificacion('❌ No has iniciado sesión', 'error');
+            return;
+        }
+    
+        // No puedes agregarte a ti mismo
+        if (escuderiaId === window.f1Manager.escuderia.id) {
+            this.mostrarNotificacion('❌ No puedes agregarte a ti mismo', 'error');
+            return;
+        }
+    
+        try {
+            // Verificar si ya existe una solicitud
+            const { data: existing, error: checkError } = await supabase
+                .from('friendships')
+                .select('*')
+                .or(`and(sender_id.eq.${window.f1Manager.escuderia.id},receiver_id.eq.${escuderiaId}),and(sender_id.eq.${escuderiaId},receiver_id.eq.${window.f1Manager.escuderia.id})`);
+    
+            if (checkError) throw checkError;
+    
+            if (existing && existing.length > 0) {
+                const friendship = existing[0];
+                if (friendship.status === 'pending') {
+                    this.mostrarNotificacion('⏳ Ya tienes una solicitud pendiente con este usuario', 'info');
+                } else if (friendship.status === 'accepted') {
+                    this.mostrarNotificacion('👥 Ya sois amigos', 'info');
+                }
+                return;
+            }
+    
+            // Crear nueva solicitud
+            const { error } = await supabase
+                .from('friendships')
+                .insert([{
+                    sender_id: window.f1Manager.escuderia.id,
+                    receiver_id: escuderiaId,
+                    status: 'pending'
+                }]);
+    
+            if (error) throw error;
+    
+            // Obtener nombre del receptor para la notificación
+            const { data: receptor } = await supabase
+                .from('escuderias')
+                .select('nombre, user_id')
+                .eq('id', escuderiaId)
+                .single();
+    
+            // Crear notificación para el receptor
+            if (receptor?.user_id && window.notificacionesManager) {
+                await window.notificacionesManager.crearNotificacion(
+                    receptor.user_id,
+                    'amistad',
+                    '👋 Solicitud de amistad',
+                    `${window.f1Manager.escuderia.nombre} quiere ser tu amigo`,
+                    null,
+                    'friendship_request'
+                );
+            }
+    
+            this.mostrarNotificacion('✅ Solicitud de amistad enviada', 'success');
+    
+            // Opcional: recargar perfil para mostrar cambio
+            setTimeout(() => this.recargarPerfil(), 1000);
+    
+        } catch (error) {
+            console.error('❌ Error enviando solicitud:', error);
+            this.mostrarNotificacion('❌ Error al enviar solicitud', 'error');
+        }
+    }
+    
+    /**
+     * Aceptar solicitud de amistad
+     */
+    async aceptarAmistad(friendshipId) {
+        try {
+            const { error } = await supabase
+                .from('friendships')
+                .update({ 
+                    status: 'accepted',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', friendshipId);
+    
+            if (error) throw error;
+    
+            this.mostrarNotificacion('✅ Amistad aceptada', 'success');
+            
+            // Recargar perfil si está abierto
+            if (this.modalAbierto) {
+                this.recargarPerfil();
+            }
+    
+        } catch (error) {
+            console.error('❌ Error aceptando amistad:', error);
+            this.mostrarNotificacion('❌ Error al aceptar', 'error');
+        }
+    }
+    
+    /**
+     * Rechazar o eliminar amistad
+     */
+    async eliminarAmistad(friendshipId) {
+        if (!confirm('¿Eliminar esta amistad?')) return;
+    
+        try {
+            const { error } = await supabase
+                .from('friendships')
+                .delete()
+                .eq('id', friendshipId);
+    
+            if (error) throw error;
+    
+            this.mostrarNotificacion('✅ Amistad eliminada', 'success');
+            
+            if (this.modalAbierto) {
+                this.recargarPerfil();
+            }
+    
+        } catch (error) {
+            console.error('❌ Error eliminando amistad:', error);
+            this.mostrarNotificacion('❌ Error al eliminar', 'error');
+        }
+    }
+    
+    /**
+     * Obtener lista de amigos
+     */
+    async obtenerAmigos(escuderiaId = null) {
+        const id = escuderiaId || window.f1Manager?.escuderia?.id;
+        if (!id) return [];
+    
+        try {
+            // Buscar amistades aceptadas donde la escudería es sender o receiver
+            const { data, error } = await supabase
+                .from('friendships')
+                .select(`
+                    id,
+                    sender_id,
+                    receiver_id,
+                    status,
+                    created_at,
+                    sender:escuderias!friendships_sender_id_fkey (
+                        id, nombre, puntos, dinero
+                    ),
+                    receiver:escuderias!friendships_receiver_id_fkey (
+                        id, nombre, puntos, dinero
+                    )
+                `)
+                .or(`sender_id.eq.${id},receiver_id.eq.${id}`)
+                .eq('status', 'accepted');
+    
+            if (error) throw error;
+    
+            // Transformar para obtener siempre el "otro" usuario
+            return data.map(f => ({
+                friendshipId: f.id,
+                amigo: f.sender_id === id ? f.receiver : f.sender,
+                desde: f.created_at
+            }));
+    
+        } catch (error) {
+            console.error('❌ Error obteniendo amigos:', error);
+            return [];
+        }
+    }
+    
+    /**
+     * Verificar estado de amistad con otra escudería
+     */
+    async verificarAmistad(otraEscuderiaId) {
+        const miId = window.f1Manager?.escuderia?.id;
+        if (!miId || !otraEscuderiaId) return null;
+    
+        try {
+            const { data, error } = await supabase
+                .from('friendships')
+                .select('*')
+                .or(`and(sender_id.eq.${miId},receiver_id.eq.${otraEscuderiaId}),and(sender_id.eq.${otraEscuderiaId},receiver_id.eq.${miId})`)
+                .maybeSingle();
+    
+            if (error) throw error;
+            return data;
+    
+        } catch (error) {
+            console.error('❌ Error verificando amistad:', error);
+            return null;
+        }
+    }
+
+    
+    // ========================
     // CARGAR TODOS LOS DATOS DEL PERFIL
     // ========================
     async cargarDatosPerfil(escuderiaId) {
@@ -397,16 +596,12 @@ class PerfilManager {
                         `}
                     </div>
                     
+
                     ${!esMiPerfil ? `
-                        <div class="perfil-acciones">
-                            <button class="btn-enviar-mensaje" onclick="window.perfilManager.enviarMensaje('${datos.escuderia.id}')">
-                                <i class="fas fa-envelope"></i>
-                                Enviar mensaje
-                            </button>
-                            <button class="btn-agregar-amigo" onclick="window.perfilManager.agregarAmigo('${datos.escuderia.id}')">
-                                <i class="fas fa-user-plus"></i>
-                                Agregar amigo
-                            </button>
+                        <div class="perfil-acciones" id="perfil-acciones-${datos.escuderia.id}">
+                            <div class="acciones-loading">
+                                <i class="fas fa-spinner fa-spin"></i> Cargando...
+                            </div>
                         </div>
                     ` : ''}
                 </div>
@@ -597,8 +792,67 @@ class PerfilManager {
         `;
         
         document.body.appendChild(modal);
+        if (!esMiPerfil) {
+            this.cargarEstadoAmistad(datos.escuderia.id);
+        }        
     }
-
+    async cargarEstadoAmistad(otraEscuderiaId) {
+        const contenedor = document.getElementById(`perfil-acciones-${otraEscuderiaId}`);
+        if (!contenedor) return;
+    
+        const amistad = await this.verificarAmistad(otraEscuderiaId);
+        
+        let html = '';
+        if (!amistad) {
+            // No hay relación - mostrar botón enviar solicitud
+            html = `
+                <button class="btn-agregar-amigo" onclick="window.perfilManager.agregarAmigo('${otraEscuderiaId}')">
+                    <i class="fas fa-user-plus"></i>
+                    Agregar amigo
+                </button>
+            `;
+        } else if (amistad.status === 'pending') {
+            if (amistad.sender_id === window.f1Manager.escuderia.id) {
+                // Yo envié la solicitud
+                html = `
+                    <button class="btn-pendiente" disabled>
+                        <i class="fas fa-clock"></i>
+                        Solicitud enviada
+                    </button>
+                    <button class="btn-cancelar" onclick="window.perfilManager.eliminarAmistad('${amistad.id}')">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                `;
+            } else {
+                // Me enviaron solicitud a mí
+                html = `
+                    <button class="btn-aceptar" onclick="window.perfilManager.aceptarAmistad('${amistad.id}')">
+                        <i class="fas fa-check"></i>
+                        Aceptar
+                    </button>
+                    <button class="btn-rechazar" onclick="window.perfilManager.eliminarAmistad('${amistad.id}')">
+                        <i class="fas fa-times"></i>
+                        Rechazar
+                    </button>
+                `;
+            }
+        } else if (amistad.status === 'accepted') {
+            // Ya son amigos
+            html = `
+                <button class="btn-amigo" disabled>
+                    <i class="fas fa-check-circle"></i>
+                    Amigos
+                </button>
+                <button class="btn-enviar-mensaje" onclick="window.perfilManager.abrirChat('${otraEscuderiaId}')">
+                    <i class="fas fa-envelope"></i>
+                    Mensaje
+                </button>
+            `;
+        }
+    
+        contenedor.innerHTML = html;
+    }
     // ========================
     // CREAR GRUPO
     // ========================
@@ -721,7 +975,311 @@ class PerfilManager {
         
         document.body.appendChild(modal);
     }
-
+    // ========================
+    // SISTEMA DE MENSAJES
+    // ========================
+    
+    /**
+     * Abrir chat con otro usuario
+     */
+    async abrirChat(otraEscuderiaId) {
+        const miId = window.f1Manager?.escuderia?.id;
+        if (!miId) return;
+    
+        try {
+            // Buscar o crear conversación
+            let conversacion = await this.obtenerConversacion(miId, otraEscuderiaId);
+            
+            if (!conversacion) {
+                conversacion = await this.crearConversacion(miId, otraEscuderiaId);
+            }
+    
+            // Abrir modal de chat
+            this.mostrarModalChat(conversacion);
+    
+        } catch (error) {
+            console.error('❌ Error abriendo chat:', error);
+            this.mostrarNotificacion('❌ Error al abrir chat', 'error');
+        }
+    }
+    
+    /**
+     * Obtener conversación existente
+     */
+    async obtenerConversacion(esc1, esc2) {
+        const { data, error } = await supabase
+            .from('conversaciones')
+            .select('*')
+            .or(`and(escuderia1_id.eq.${esc1},escuderia2_id.eq.${esc2}),and(escuderia1_id.eq.${esc2},escuderia2_id.eq.${esc1})`)
+            .maybeSingle();
+    
+        if (error) throw error;
+        return data;
+    }
+    
+    /**
+     * Crear nueva conversación
+     */
+    async crearConversacion(esc1, esc2) {
+        const { data, error } = await supabase
+            .from('conversaciones')
+            .insert([{
+                escuderia1_id: esc1,
+                escuderia2_id: esc2
+            }])
+            .select()
+            .single();
+    
+        if (error) throw error;
+        return data;
+    }
+    
+    /**
+     * Mostrar modal de chat
+     */
+    mostrarModalChat(conversacion) {
+        // Eliminar modal existente
+        document.getElementById('modal-chat')?.remove();
+    
+        const otroUsuarioId = conversacion.escuderia1_id === window.f1Manager.escuderia.id 
+            ? conversacion.escuderia2_id 
+            : conversacion.escuderia1_id;
+    
+        const modal = document.createElement('div');
+        modal.id = 'modal-chat';
+        modal.innerHTML = `
+            <div class="modal-chat-overlay" onclick="if(event.target === this) document.getElementById('modal-chat').remove()">
+                <div class="modal-chat-contenedor">
+                    <div class="modal-chat-header">
+                        <h3><i class="fas fa-comment"></i> Chat</h3>
+                        <button class="modal-chat-cerrar" onclick="document.getElementById('modal-chat').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-chat-mensajes" id="chat-mensajes-${conversacion.id}">
+                        <div class="chat-loading">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando mensajes...
+                        </div>
+                    </div>
+                    
+                    <div class="modal-chat-input">
+                        <textarea id="chat-input-${conversacion.id}" 
+                            placeholder="Escribe un mensaje..."
+                            rows="2"></textarea>
+                        <button onclick="window.perfilManager.enviarMensaje('${conversacion.id}')">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    
+        document.body.appendChild(modal);
+    
+        // Cargar mensajes
+        this.cargarMensajes(conversacion.id);
+    
+        // Configurar Realtime
+        this.escucharMensajes(conversacion.id);
+    }
+    
+    /**
+     * Cargar mensajes de una conversación
+     */
+    async cargarMensajes(conversacionId) {
+        try {
+            const { data, error } = await supabase
+                .from('mensajes')
+                .select(`
+                    *,
+                    sender:escuderias!sender_id (
+                        nombre
+                    )
+                `)
+                .eq('conversacion_id', conversacionId)
+                .order('created_at', { ascending: true });
+    
+            if (error) throw error;
+    
+            this.renderizarMensajes(conversacionId, data);
+    
+            // Marcar como leídos
+            await this.marcarMensajesLeidos(conversacionId);
+    
+        } catch (error) {
+            console.error('❌ Error cargando mensajes:', error);
+        }
+    }
+    
+    /**
+     * Renderizar mensajes en el chat
+     */
+    renderizarMensajes(conversacionId, mensajes) {
+        const contenedor = document.getElementById(`chat-mensajes-${conversacionId}`);
+        if (!contenedor) return;
+    
+        if (mensajes.length === 0) {
+            contenedor.innerHTML = `
+                <div class="chat-vacio">
+                    <i class="fas fa-comment-dots"></i>
+                    <p>No hay mensajes todavía</p>
+                    <small>Escribe el primer mensaje</small>
+                </div>
+            `;
+            return;
+        }
+    
+        const miId = window.f1Manager.escuderia.id;
+        let html = '';
+    
+        mensajes.forEach(msg => {
+            const esMio = msg.sender_id === miId;
+            html += `
+                <div class="chat-mensaje ${esMio ? 'propio' : 'ajeno'}">
+                    <div class="chat-mensaje-contenido">
+                        <div class="chat-mensaje-texto">${this.escapeHTML(msg.contenido)}</div>
+                        <div class="chat-mensaje-info">
+                            <span class="chat-mensaje-hora">
+                                ${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                            </span>
+                            ${esMio && msg.leido ? '<span class="chat-mensaje-leido">✓✓</span>' : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    
+        contenedor.innerHTML = html;
+        contenedor.scrollTop = contenedor.scrollHeight;
+    }
+    
+    /**
+     * Escuchar mensajes nuevos en tiempo real
+     */
+    escucharMensajes(conversacionId) {
+        const channel = supabase
+            .channel(`mensajes:${conversacionId}`)
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'mensajes',
+                filter: `conversacion_id=eq.${conversacionId}`
+            }, (payload) => {
+                // Añadir nuevo mensaje al chat
+                this.agregarMensajeNuevo(conversacionId, payload.new);
+            })
+            .subscribe();
+    
+        // Guardar referencia para limpiar después
+        if (this.channelRef) {
+            supabase.removeChannel(this.channelRef);
+        }
+        this.channelRef = channel;
+    }
+    
+    /**
+     * Enviar un mensaje
+     */
+    async enviarMensaje(conversacionId) {
+        const input = document.getElementById(`chat-input-${conversacionId}`);
+        const contenido = input.value.trim();
+        
+        if (!contenido) return;
+    
+        try {
+            const { error } = await supabase
+                .from('mensajes')
+                .insert([{
+                    conversacion_id: conversacionId,
+                    sender_id: window.f1Manager.escuderia.id,
+                    contenido: contenido
+                }]);
+    
+            if (error) throw error;
+    
+            // Limpiar input
+            input.value = '';
+    
+            // Actualizar último mensaje en conversación
+            await supabase
+                .from('conversaciones')
+                .update({
+                    ultimo_mensaje: contenido,
+                    ultimo_mensaje_time: new Date().toISOString()
+                })
+                .eq('id', conversacionId);
+    
+        } catch (error) {
+            console.error('❌ Error enviando mensaje:', error);
+            this.mostrarNotificacion('❌ Error al enviar mensaje', 'error');
+        }
+    }
+    
+    /**
+     * Marcar mensajes como leídos
+     */
+    async marcarMensajesLeidos(conversacionId) {
+        try {
+            await supabase
+                .from('mensajes')
+                .update({ leido: true })
+                .eq('conversacion_id', conversacionId)
+                .neq('sender_id', window.f1Manager.escuderia.id)
+                .eq('leido', false);
+        } catch (error) {
+            console.error('❌ Error marcando mensajes:', error);
+        }
+    }
+    
+    /**
+     * Añadir mensaje nuevo al chat (tiempo real)
+     */
+    agregarMensajeNuevo(conversacionId, mensaje) {
+        const contenedor = document.getElementById(`chat-mensajes-${conversacionId}`);
+        if (!contenedor) return;
+    
+        // Eliminar mensaje de "chat vacío" si existe
+        const vacio = contenedor.querySelector('.chat-vacio');
+        if (vacio) vacio.remove();
+    
+        const esMio = mensaje.sender_id === window.f1Manager.escuderia.id;
+        const msgHTML = `
+            <div class="chat-mensaje ${esMio ? 'propio' : 'ajeno'}">
+                <div class="chat-mensaje-contenido">
+                    <div class="chat-mensaje-texto">${this.escapeHTML(mensaje.contenido)}</div>
+                    <div class="chat-mensaje-info">
+                        <span class="chat-mensaje-hora">
+                            ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `;
+    
+        contenedor.insertAdjacentHTML('beforeend', msgHTML);
+        contenedor.scrollTop = contenedor.scrollHeight;
+    }
+    
+    /**
+     * Escapar HTML para evitar inyección
+     */
+    escapeHTML(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    /**
+     * Mostrar notificaciones (método auxiliar)
+     */
+    mostrarNotificacion(mensaje, tipo = 'info') {
+        if (window.f1Manager?.showNotification) {
+            window.f1Manager.showNotification(mensaje, tipo);
+        } else {
+            alert(mensaje);
+        }
+    }
     // ========================
     // UNIRSE A GRUPO
     // ========================
@@ -907,7 +1465,57 @@ const perfilStyles = `
         color: white;
         transform: scale(1.1);
     }
+    .btn-pendiente, .btn-amigo {
+        padding: 10px 20px;
+        background: rgba(255, 152, 0, 0.1);
+        border: 1px solid #FF9800;
+        color: #FF9800;
+        border-radius: 4px;
+        cursor: default;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
     
+    .btn-aceptar {
+        background: rgba(76, 175, 80, 0.1);
+        border: 1px solid #4CAF50;
+        color: #4CAF50;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-rechazar, .btn-cancelar {
+        background: rgba(244, 67, 54, 0.1);
+        border: 1px solid #F44336;
+        color: #F44336;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-aceptar:hover {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-rechazar:hover, .btn-cancelar:hover {
+        background: #F44336;
+        color: white;
+    }
+    
+    .acciones-loading {
+        padding: 10px;
+        color: #888;
+        text-align: center;
+    }    
     .perfil-header {
         display: flex;
         align-items: center;
@@ -940,7 +1548,171 @@ const perfilStyles = `
         color: #00d2be;
         font-family: 'Orbitron', sans-serif;
     }
+    /* Modal de chat */
+    .modal-chat-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2147483647;
+    }
     
+    .modal-chat-contenedor {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border: 3px solid #00d2be;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 500px;
+        height: 600px;
+        display: flex;
+        flex-direction: column;
+        color: white;
+    }
+    
+    .modal-chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .modal-chat-header h3 {
+        margin: 0;
+        color: #00d2be;
+        font-family: 'Orbitron', sans-serif;
+    }
+    
+    .modal-chat-cerrar {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-chat-cerrar:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .modal-chat-mensajes {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .chat-loading, .chat-vacio {
+        text-align: center;
+        padding: 40px 20px;
+        color: #888;
+    }
+    
+    .chat-vacio i {
+        font-size: 2rem;
+        color: #444;
+        margin-bottom: 10px;
+    }
+    
+    .chat-mensaje {
+        display: flex;
+        margin-bottom: 10px;
+    }
+    
+    .chat-mensaje.propio {
+        justify-content: flex-end;
+    }
+    
+    .chat-mensaje.ajeno {
+        justify-content: flex-start;
+    }
+    
+    .chat-mensaje-contenido {
+        max-width: 70%;
+        padding: 8px 12px;
+        border-radius: 12px;
+        position: relative;
+    }
+    
+    .propio .chat-mensaje-contenido {
+        background: linear-gradient(135deg, #00d2be, #0066cc);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .ajeno .chat-mensaje-contenido {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .chat-mensaje-texto {
+        word-wrap: break-word;
+        margin-bottom: 4px;
+    }
+    
+    .chat-mensaje-info {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.65rem;
+        opacity: 0.7;
+    }
+    
+    .chat-mensaje-leido {
+        color: #00d2be;
+    }
+    
+    .modal-chat-input {
+        padding: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        gap: 10px;
+    }
+    
+    .modal-chat-input textarea {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid #00d2be;
+        border-radius: 8px;
+        color: white;
+        padding: 8px 12px;
+        resize: none;
+        font-family: inherit;
+    }
+    
+    .modal-chat-input button {
+        background: #00d2be;
+        border: none;
+        border-radius: 8px;
+        color: #1a1a2e;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .modal-chat-input button:hover {
+        background: #00fff0;
+    }    
     .perfil-fecha-creacion {
         display: flex;
         align-items: center;
