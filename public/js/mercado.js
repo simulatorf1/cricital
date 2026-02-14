@@ -1106,8 +1106,6 @@ calcularCostoFabricacion(pieza) {
                 return;
             }
     
-
-            
             // 3. TRANSFERIR la pieza al comprador - SOLO CAMBIAR escuderia_id
             const { error: transferPiezaError } = await this.supabase
                 .from('almacen_piezas')
@@ -1184,6 +1182,27 @@ calcularCostoFabricacion(pieza) {
             } catch (error) {
                 console.warn('⚠️ Error registrando transacción:', error);
                 // Continuar aunque falle el registro de transacción
+            }
+    
+            // ========================
+            // NOTIFICACIÓN AL VENDEDOR - NUEVO BLOQUE
+            // ========================
+            // Enviar notificación al vendedor
+            if (window.notificacionesManager) {
+                try {
+                    await window.notificacionesManager.crearNotificacion(
+                        orden.vendedor_id,                    // usuario_id (vendedor)
+                        'venta',                               // tipo
+                        '💰 Pieza vendida',                    // titulo
+                        `${orden.pieza_nombre} comprada por ${this.escuderia.nombre} por ${orden.precio.toLocaleString()}€`, // mensaje
+                        orden.pieza_id,                        // relacion_id
+                        'pieza'                                 // tipo_relacion
+                    );
+                    console.log('📬 Notificación de venta enviada al vendedor');
+                } catch (notifError) {
+                    console.warn('⚠️ Error enviando notificación:', notifError);
+                    // Continuamos aunque falle la notificación
+                }
             }
     
             // 5. Actualizar el dinero local del comprador
