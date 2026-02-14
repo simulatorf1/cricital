@@ -9,6 +9,8 @@ class MercadoManager {
         this.escuderia = null;
         this.ordenesDisponibles = [];
         this.misOrdenes = [];
+        this.procesandoCompra = false; // Flag para evitar compras múltiples
+        this.botonesBloqueados = new Set(); // Set para trackear botones bloqueados
     }
 
     // ========================
@@ -1027,12 +1029,18 @@ calcularCostoFabricacion(pieza) {
         }
     }
     async mostrarModalCompra(ordenId) {
+        // NUEVA LÍNEA AL INICIO:
+        if (this.procesandoCompra) {
+            console.log('⏳ Ya hay una compra en proceso, espera...');
+            this.mostrarNotificacion('⏳ Procesando compra anterior, espera...', 'warning');
+            return;
+        }
+        
         const orden = this.ordenesDisponibles.find(o => o.id === ordenId);
         if (!orden) return;
     
         console.log('🔍 Verificando compra - Área:', orden.area, 'Nivel:', orden.nivel);
         
-        // VERIFICAR SI YA TIENE UNA PIEZA SIMILAR O MEJOR
         const tieneDuplicada = await this.verificarPiezaDuplicada(orden.pieza_nombre);
         console.log('🔍 Resultado verificación:', tieneDuplicada ? '❌ BLOQUEADA' : '✅ PERMITIDA');
         
@@ -1071,12 +1079,10 @@ calcularCostoFabricacion(pieza) {
                 Tu saldo actual: <strong>${this.escuderia.dinero.toLocaleString()}€</strong>
             </div>
             
-            <!-- BOTONES DEL MODAL -->
             <div class="modal-buttons">
                 <button class="btn-cerrar" onclick="window.mercadoManager.ocultarModales()">
                     Cerrar
                 </button>
-                <!-- SOLO MOSTRAR BOTÓN DE CONFIRMAR SI NO TIENE LA PIEZA DUPLICADA -->
                 ${!tieneDuplicada ? 
                     `<button class="btn-confirmar" id="btn-confirmar-compra">
                         ✅ Confirmar compra
@@ -1087,11 +1093,20 @@ calcularCostoFabricacion(pieza) {
     
         modal.style.display = 'flex';
     
-        // Solo configurar evento si el botón existe (cuando NO tiene duplicada)
         if (!tieneDuplicada) {
             const confirmBtn = document.getElementById('btn-confirmar-compra');
             if (confirmBtn) {
-                confirmBtn.addEventListener('click', async () => {
+                // Remover event listeners anteriores
+                const nuevoBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(nuevoBtn, confirmBtn);
+                
+                nuevoBtn.addEventListener('click', async () => {
+                    // Bloquear botón inmediatamente
+                    nuevoBtn.disabled = true;
+                    nuevoBtn.style.opacity = '0.5';
+                    nuevoBtn.style.cursor = 'not-allowed';
+                    nuevoBtn.textContent = '⏳ PROCESANDO...';
+                    
                     await this.procesarCompra(orden);
                 });
             }
@@ -1099,13 +1114,34 @@ calcularCostoFabricacion(pieza) {
     }
 
     async procesarCompra(orden) {
+        // AÑADE ESTAS LÍNEAS AL PRINCIPIO:
+        if (this.procesandoCompra) {
+            console.log('⏳ Ya hay una compra en proceso, ignorando...');
+            this.mostrarNotificacion('⏳ Ya se está procesando una compra', 'warning');
+            return;
+        }
+        
         try {
+            // AÑADE ESTA LÍNEA:
+            this.procesandoCompra = true;
+            
             // 1. Verificar saldo
             if (this.escuderia.dinero < orden.precio) {
                 alert('❌ Saldo insuficiente');
                 return;
             }
-    
+            // AÑADE ESTA VERIFICACIÓN:
+            const { data: ordenActual, error: checkError } = await this.supabase
+                .from('mercado')
+                .select('estado')
+                .eq('id', orden.id)
+                .single();
+            
+            if (checkError) throw checkError;
+            
+            if (ordenActual.estado !== 'disponible') {
+                throw new Error('Esta orden ya no está disponible');
+            }    
             // 3. TRANSFERIR la pieza al comprador - SOLO CAMBIAR escuderia_id
             const { error: transferPiezaError } = await this.supabase
                 .from('almacen_piezas')
@@ -1265,10 +1301,13 @@ calcularCostoFabricacion(pieza) {
                     window.f1Manager.cargarTabTaller();
                 }, 500);
             }
-    
+            // AÑADE ESTO ANTES DEL catch:
+            // Limpiar flag de procesamiento
+            this.procesandoCompra = false;    
         } catch (error) {
             console.error('❌ Error procesando compra:', error);
             this.mostrarNotificacion(`❌ Error: ${error.message}`, 'error');
+            this.procesandoCompra = false;            
         }
     }
     async cancelarVenta(ordenId) {
