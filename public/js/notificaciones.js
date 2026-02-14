@@ -3,26 +3,166 @@
 // ========================
 console.log('🔔 Cargando sistema de notificaciones...');
 
+// Estilos
+if (!document.getElementById('estilos-notificaciones')) {
+    const style = document.createElement('style');
+    style.id = 'estilos-notificaciones';
+    style.textContent = `
+        @keyframes campana {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            50% { transform: rotate(-15deg); }
+            75% { transform: rotate(7deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        #panel-notificaciones {
+            position: fixed;
+            width: 350px;
+            max-width: calc(100vw - 30px);
+            max-height: 500px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid #00d2be;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 2147483646;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notificaciones-loading, .notificaciones-vacio, .notificaciones-error {
+            padding: 40px 20px;
+            text-align: center;
+            color: #888;
+        }
+
+        .notificaciones-loading i, .notificaciones-vacio i, .notificaciones-error i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #00d2be;
+        }
+
+        .notificaciones-lista {
+            overflow-y: auto;
+            max-height: 450px;
+        }
+
+        .notificacion-item {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            display: flex;
+            gap: 12px;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .notificacion-item:hover {
+            background: rgba(0, 210, 190, 0.1);
+        }
+
+        .notificacion-item.no-leida {
+            background: rgba(0, 210, 190, 0.05);
+        }
+
+        .notificacion-icono {
+            width: 35px;
+            height: 35px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .notificacion-contenido {
+            flex: 1;
+        }
+
+        .notificacion-titulo {
+            font-weight: bold;
+            color: #00d2be;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+
+        .notificacion-mensaje {
+            color: white;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+
+        .notificacion-fecha {
+            color: #888;
+            font-size: 0.65rem;
+        }
+
+        .notificacion-no-leida-punto {
+            width: 8px;
+            height: 8px;
+            background: #00d2be;
+            border-radius: 50%;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        .notificaciones-footer {
+            padding: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .btn-marcar-todas {
+            background: transparent;
+            border: 1px solid #00d2be;
+            color: #00d2be;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-marcar-todas:hover {
+            background: #00d2be;
+            color: black;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Clase principal
 class NotificacionesManager {
     constructor() {
-        this.intervalo = null;
         this.notificacionesNoLeidas = 0;
         this.panelAbierto = false;
     }
 
-    // Inicializar el sistema
+    // Inicializar
     inicializar() {
-        this.crearIconoNotificaciones();
-        this.cargarContadorNoLeidas();
-        this.iniciarPolling();
-        this.configurarEventos();
+        console.log('🔔 Inicializando notificaciones...');
+        setTimeout(() => {
+            this.crearIcono();
+            this.cargarContador();
+            this.iniciarPolling();
+        }, 2000); // Esperar a que cargue el dashboard
     }
 
-    // Crear el icono en el header
-    crearIconoNotificaciones() {
-        // Buscar donde insertar el icono (al lado de las estrellas)
-        const estrellasDisplay = document.querySelector('.estrellas-display-compacto');
-        if (!estrellasDisplay) return;
+    // Crear icono
+    crearIcono() {
+        const estrellas = document.querySelector('.estrellas-display-compacto');
+        if (!estrellas) {
+            console.log('❌ No se encontraron las estrellas, reintentando...');
+            setTimeout(() => this.crearIcono(), 1000);
+            return;
+        }
+
+        console.log('✅ Estrellas encontradas, insertando icono');
 
         const contenedor = document.createElement('div');
         contenedor.id = 'notificaciones-icono';
@@ -54,31 +194,43 @@ class NotificacionesManager {
             ">0</span>
         `;
 
-        // Insertar después de las estrellas
-        estrellasDisplay.parentNode.insertBefore(contenedor, estrellasDisplay.nextSibling);
+        estrellas.parentNode.insertBefore(contenedor, estrellas.nextSibling);
+
+        // Evento click
+        contenedor.onclick = (e) => {
+            e.stopPropagation();
+            this.abrirPanel();
+        };
+
+        // Cerrar al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (this.panelAbierto && 
+                !e.target.closest('#notificaciones-icono') && 
+                !e.target.closest('#panel-notificaciones')) {
+                this.cerrarPanel();
+            }
+        });
     }
 
-    // Cargar contador de notificaciones no leídas
-    async cargarContadorNoLeidas() {
+    // Cargar contador
+    async cargarContador() {
         if (!window.f1Manager?.user?.id) return;
 
         try {
-            const { count, error } = await supabase
+            const { count } = await supabase
                 .from('notificaciones_usuarios')
                 .select('*', { count: 'exact', head: true })
                 .eq('usuario_id', window.f1Manager.user.id)
                 .eq('leida', false);
 
-            if (!error) {
-                this.notificacionesNoLeidas = count || 0;
-                this.actualizarContadorUI();
-            }
+            this.notificacionesNoLeidas = count || 0;
+            this.actualizarContadorUI();
         } catch (error) {
             console.error('Error cargando contador:', error);
         }
     }
 
-    // Actualizar el número en el icono
+    // Actualizar UI del contador
     actualizarContadorUI() {
         const contador = document.getElementById('notificaciones-contador');
         if (!contador) return;
@@ -87,7 +239,6 @@ class NotificacionesManager {
             contador.textContent = this.notificacionesNoLeidas > 99 ? '99+' : this.notificacionesNoLeidas;
             contador.style.display = 'flex';
             
-            // Animación si hay nuevas
             const icono = document.querySelector('#notificaciones-icono i');
             if (icono) {
                 icono.style.color = '#00d2be';
@@ -102,30 +253,14 @@ class NotificacionesManager {
         }
     }
 
-    // Iniciar polling cada 30 segundos
+    // Iniciar polling
     iniciarPolling() {
-        this.intervalo = setInterval(() => {
-            this.cargarContadorNoLeidas();
+        setInterval(() => {
+            this.cargarContador();
         }, 30000);
     }
 
-    // Configurar eventos
-    configurarEventos() {
-        document.addEventListener('click', (e) => {
-            const icono = document.getElementById('notificaciones-icono');
-            const panel = document.getElementById('panel-notificaciones');
-
-            if (icono?.contains(e.target)) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.abrirPanel();
-            } else if (panel && !panel.contains(e.target)) {
-                this.cerrarPanel();
-            }
-        });
-    }
-
-    // Abrir panel de notificaciones
+    // Abrir panel
     async abrirPanel() {
         if (this.panelAbierto) {
             this.cerrarPanel();
@@ -148,7 +283,7 @@ class NotificacionesManager {
         await this.cargarNotificaciones();
     }
 
-    // Posicionar el panel debajo del icono
+    // Posicionar panel
     posicionarPanel() {
         const icono = document.getElementById('notificaciones-icono');
         const panel = document.getElementById('panel-notificaciones');
@@ -180,7 +315,7 @@ class NotificacionesManager {
         }
     }
 
-    // Renderizar lista de notificaciones
+    // Renderizar
     renderizarNotificaciones(notificaciones) {
         const panel = document.getElementById('panel-notificaciones');
         if (!panel) return;
@@ -206,12 +341,8 @@ class NotificacionesManager {
             });
 
             html += `
-                <div class="notificacion-item ${!notif.leida ? 'no-leida' : ''}" 
-                     data-id="${notif.id}"
-                     data-tipo="${notif.tipo}"
-                     data-relacion="${notif.relacion_id || ''}"
-                     data-tipo-relacion="${notif.tipo_relacion || ''}">
-                    <div class="notificacion-icono">${this.getIconoPorTipo(notif.tipo)}</div>
+                <div class="notificacion-item ${!notif.leida ? 'no-leida' : ''}" data-id="${notif.id}">
+                    <div class="notificacion-icono">${this.getIcono(notif.tipo)}</div>
                     <div class="notificacion-contenido">
                         <div class="notificacion-titulo">${notif.titulo}</div>
                         <div class="notificacion-mensaje">${notif.mensaje}</div>
@@ -224,7 +355,6 @@ class NotificacionesManager {
 
         html += '</div>';
         
-        // Botón de marcar todas como leídas
         if (this.notificacionesNoLeidas > 0) {
             html += `
                 <div class="notificaciones-footer">
@@ -237,129 +367,83 @@ class NotificacionesManager {
 
         panel.innerHTML = html;
 
-        // Añadir eventos a cada notificación
+        // Eventos
         document.querySelectorAll('.notificacion-item').forEach(item => {
-            item.addEventListener('click', (e) => {
+            item.onclick = () => {
                 const id = item.dataset.id;
-                const tipo = item.dataset.tipo;
-                const relacionId = item.dataset.relacion;
-                const tipoRelacion = item.dataset.tipoRelacion;
-                
                 this.marcarComoLeida(id);
-                this.accionPorTipo(tipo, relacionId, tipoRelacion);
-            });
+            };
         });
     }
 
-    // Obtener icono según tipo
-    getIconoPorTipo(tipo) {
+    getIcono(tipo) {
         const iconos = {
             'pronostico': '📊',
             'venta': '💰',
+            'compra': '🛒',
             'grupo_invitacion': '👥',
             'grupo_aceptada': '✅',
             'mensaje': '💬',
             'desgaste': '⚠️',
-            'presupuesto': '📅',
-            'default': '📌'
+            'presupuesto': '📅'
         };
-        return iconos[tipo] || iconos.default;
+        return iconos[tipo] || '📌';
     }
 
-    // Acción al hacer clic según tipo
-    accionPorTipo(tipo, relacionId, tipoRelacion) {
-        switch(tipo) {
-            case 'pronostico':
-                if (window.tabManager) window.tabManager.switchTab('pronosticos');
-                break;
-            case 'venta':
-                if (window.tabManager) window.tabManager.switchTab('mercado');
-                break;
-            case 'grupo_invitacion':
-            case 'grupo_aceptada':
-                if (window.perfilManager) window.perfilManager.mostrarPerfil();
-                break;
-            case 'mensaje':
-                if (window.perfilManager) window.perfilManager.mostrarPerfil();
-                break;
-            case 'desgaste':
-                if (window.tabManager) window.tabManager.switchTab('almacen');
-                break;
-            case 'presupuesto':
-                if (window.tabManager) window.tabManager.switchTab('presupuesto');
-                break;
-        }
-    }
-
-    // Marcar como leída
-    async marcarComoLeida(notificacionId) {
+    async marcarComoLeida(id) {
         try {
             await supabase
                 .from('notificaciones_usuarios')
-                .update({ 
-                    leida: true,
-                    fecha_leida: new Date().toISOString()
-                })
-                .eq('id', notificacionId);
+                .update({ leida: true, fecha_leida: new Date().toISOString() })
+                .eq('id', id);
 
             this.notificacionesNoLeidas = Math.max(0, this.notificacionesNoLeidas - 1);
             this.actualizarContadorUI();
 
-            // Actualizar UI del item
-            const item = document.querySelector(`.notificacion-item[data-id="${notificacionId}"]`);
+            const item = document.querySelector(`.notificacion-item[data-id="${id}"]`);
             if (item) {
                 item.classList.remove('no-leida');
                 const punto = item.querySelector('.notificacion-no-leida-punto');
                 if (punto) punto.remove();
             }
         } catch (error) {
-            console.error('Error marcando como leída:', error);
+            console.error('Error:', error);
         }
     }
 
-    // Marcar todas como leídas
     async marcarTodasLeidas() {
         if (!window.f1Manager?.user?.id) return;
 
         try {
             await supabase
                 .from('notificaciones_usuarios')
-                .update({ 
-                    leida: true,
-                    fecha_leida: new Date().toISOString()
-                })
+                .update({ leida: true, fecha_leida: new Date().toISOString() })
                 .eq('usuario_id', window.f1Manager.user.id)
                 .eq('leida', false);
 
             this.notificacionesNoLeidas = 0;
             this.actualizarContadorUI();
-
-            // Actualizar UI
+            
             document.querySelectorAll('.notificacion-item').forEach(item => {
                 item.classList.remove('no-leida');
                 const punto = item.querySelector('.notificacion-no-leida-punto');
                 if (punto) punto.remove();
             });
 
-            // Quitar botón
             const footer = document.querySelector('.notificaciones-footer');
             if (footer) footer.remove();
 
         } catch (error) {
-            console.error('Error marcando todas como leídas:', error);
+            console.error('Error:', error);
         }
     }
 
-    // Cerrar panel
     cerrarPanel() {
         const panel = document.getElementById('panel-notificaciones');
-        if (panel) {
-            panel.remove();
-        }
+        if (panel) panel.remove();
         this.panelAbierto = false;
     }
 
-    // Renderizar error
     renderizarError() {
         const panel = document.getElementById('panel-notificaciones');
         if (panel) {
@@ -374,303 +458,28 @@ class NotificacionesManager {
             `;
         }
     }
-
-    // ============================================
-    // FUNCIONES PARA CREAR NOTIFICACIONES
-    // ============================================
-
-    async crearNotificacion(usuarioId, tipo, titulo, mensaje, relacionId = null, tipoRelacion = null) {
-        try {
-            const { error } = await supabase
-                .from('notificaciones_usuarios')
-                .insert([{
-                    usuario_id: usuarioId,
-                    tipo: tipo,
-                    titulo: titulo,
-                    mensaje: mensaje,
-                    relacion_id: relacionId,
-                    tipo_relacion: tipoRelacion,
-                    leida: false,
-                    fecha_creacion: new Date().toISOString()
-                }]);
-
-            if (!error && usuarioId === window.f1Manager?.user?.id) {
-                this.notificacionesNoLeidas++;
-                this.actualizarContadorUI();
-            }
-
-            return !error;
-        } catch (error) {
-            console.error('Error creando notificación:', error);
-            return false;
-        }
-    }
-
-    // Notificación de pronóstico acertado
-    async notificarPronosticoAcertado(usuarioId, gpNombre, puntos) {
-        return this.crearNotificacion(
-            usuarioId,
-            'pronostico',
-            '🎯 Pronóstico acertado',
-            `Acertaste en ${gpNombre} y ganaste ${puntos} puntos`,
-            null,
-            null
-        );
-    }
-
-    // Notificación de venta en mercado
-    async notificarVentaRealizada(usuarioId, piezaNombre, precio, compradorNombre) {
-        return this.crearNotificacion(
-            usuarioId,
-            'venta',
-            '💰 Pieza vendida',
-            `${piezaNombre} vendida a ${compradorNombre} por €${precio.toLocaleString()}`,
-            null,
-            'mercado'
-        );
-    }
-
-    // Notificación de compra en mercado
-    async notificarCompraRealizada(usuarioId, piezaNombre, precio, vendedorNombre) {
-        return this.crearNotificacion(
-            usuarioId,
-            'compra',
-            '🛒 Pieza comprada',
-            `Compraste ${piezaNombre} a ${vendedorNombre} por €${precio.toLocaleString()}`,
-            null,
-            'mercado'
-        );
-    }
-
-    // Notificación de invitación a grupo
-    async notificarInvitacionGrupo(usuarioId, grupoNombre, invitadorNombre, grupoId) {
-        return this.crearNotificacion(
-            usuarioId,
-            'grupo_invitacion',
-            '👥 Invitación a grupo',
-            `${invitadorNombre} te ha invitado a unirte a "${grupoNombre}"`,
-            grupoId,
-            'grupo'
-        );
-    }
-
-    // Notificación de aceptación de invitación
-    async notificarAceptacionGrupo(usuarioId, grupoNombre, nuevoMiembroNombre, grupoId) {
-        return this.crearNotificacion(
-            usuarioId,
-            'grupo_aceptada',
-            '✅ Nuevo miembro en el grupo',
-            `${nuevoMiembroNombre} se ha unido a "${grupoNombre}"`,
-            grupoId,
-            'grupo'
-        );
-    }
-
-    // Notificación de mensaje de chat
-    async notificarMensaje(usuarioId, remitenteNombre, mensajePreview, chatId) {
-        return this.crearNotificacion(
-            usuarioId,
-            'mensaje',
-            `💬 Mensaje de ${remitenteNombre}`,
-            mensajePreview,
-            chatId,
-            'chat'
-        );
-    }
-
-    // Notificación de pieza destruida
-    async notificarPiezaDestruida(usuarioId, piezaNombre, areaNombre) {
-        return this.crearNotificacion(
-            usuarioId,
-            'desgaste',
-            '⚠️ Pieza destruida',
-            `Tu ${piezaNombre} (${areaNombre}) ha llegado al 0% de desgaste y se ha destruido`,
-            null,
-            'almacen'
-        );
-    }
-
-    // Notificación de presupuesto semanal
-    async notificarPresupuestoSemanal(usuarioId, estrellas, dineroGanado) {
-        return this.crearNotificacion(
-            usuarioId,
-            'presupuesto',
-            '📅 Pago semanal recibido',
-            `Tus ${estrellas}🌟 se convirtieron en €${dineroGanado.toLocaleString()}`,
-            null,
-            'presupuesto'
-        );
-    }
 }
 
-// ============================================
-// ESTILOS CSS
-// ============================================
-const notificacionesStyles = `
-    @keyframes campana {
-        0% { transform: rotate(0deg); }
-        25% { transform: rotate(15deg); }
-        50% { transform: rotate(-15deg); }
-        75% { transform: rotate(7deg); }
-        100% { transform: rotate(0deg); }
-    }
-
-    #panel-notificaciones {
-        position: fixed;
-        width: 350px;
-        max-width: calc(100vw - 30px);
-        max-height: 500px;
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        border: 2px solid #00d2be;
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        z-index: 2147483646;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .notificaciones-loading, .notificaciones-vacio, .notificaciones-error {
-        padding: 40px 20px;
-        text-align: center;
-        color: #888;
-    }
-
-    .notificaciones-loading i, .notificaciones-vacio i, .notificaciones-error i {
-        font-size: 2rem;
-        margin-bottom: 10px;
-        color: #00d2be;
-    }
-
-    .notificaciones-lista {
-        overflow-y: auto;
-        max-height: 450px;
-    }
-
-    .notificacion-item {
-        padding: 15px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        cursor: pointer;
-        display: flex;
-        gap: 12px;
-        transition: background 0.2s;
-        position: relative;
-    }
-
-    .notificacion-item:hover {
-        background: rgba(0, 210, 190, 0.1);
-    }
-
-    .notificacion-item.no-leida {
-        background: rgba(0, 210, 190, 0.05);
-    }
-
-    .notificacion-icono {
-        width: 35px;
-        height: 35px;
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-    }
-
-    .notificacion-contenido {
-        flex: 1;
-    }
-
-    .notificacion-titulo {
-        font-weight: bold;
-        color: #00d2be;
-        font-size: 0.9rem;
-        margin-bottom: 3px;
-    }
-
-    .notificacion-mensaje {
-        color: white;
-        font-size: 0.8rem;
-        margin-bottom: 5px;
-        line-height: 1.3;
-    }
-
-    .notificacion-fecha {
-        color: #888;
-        font-size: 0.65rem;
-    }
-
-    .notificacion-no-leida-punto {
-        width: 8px;
-        height: 8px;
-        background: #00d2be;
-        border-radius: 50%;
-        position: absolute;
-        top: 15px;
-        right: 15px;
-    }
-
-    .notificaciones-footer {
-        padding: 10px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        text-align: center;
-    }
-
-    .btn-marcar-todas {
-        background: transparent;
-        border: 1px solid #00d2be;
-        color: #00d2be;
-        padding: 8px 15px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        transition: all 0.2s;
-        width: 100%;
-    }
-
-    .btn-marcar-todas:hover {
-        background: #00d2be;
-        color: black;
-    }
-
-    .notificaciones-error button {
-        margin-top: 10px;
-        padding: 5px 15px;
-        background: #00d2be;
-        border: none;
-        color: black;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    @media (max-width: 768px) {
-        #panel-notificaciones {
-            width: 300px;
-            right: 10px !important;
-        }
-    }
-`;
-
-// Añadir estilos al head
-// Añadir estilos al head (con nombre único)
-if (!document.getElementById('estilos-notificaciones')) {
-    const styleNotif = document.createElement('style');
-    styleNotif.id = 'estilos-notificaciones';
-    styleNotif.textContent = notificacionesStyles;
-    document.head.appendChild(styleNotif);
-}
-
-// ============================================
-// EXPORTAR E INICIALIZAR
-// ============================================
+// Inicializar cuando todo esté listo
 window.NotificacionesManager = NotificacionesManager;
 
-// Inicializar cuando el f1Manager esté listo
+function iniciarNotificaciones() {
+    if (!window.notificacionesManager) {
+        window.notificacionesManager = new NotificacionesManager();
+        window.notificacionesManager.inicializar();
+    }
+}
+
+// Intentar varias veces
+if (document.readyState === 'complete') {
+    setTimeout(iniciarNotificaciones, 2000);
+} else {
+    window.addEventListener('load', () => setTimeout(iniciarNotificaciones, 2000));
+}
+
+// También intentar después de auth
 document.addEventListener('auth-completado', () => {
-    setTimeout(() => {
-        if (!window.notificacionesManager) {
-            window.notificacionesManager = new NotificacionesManager();
-            window.notificacionesManager.inicializar();
-            console.log('✅ Sistema de notificaciones inicializado');
-        }
-    }, 3000);
+    setTimeout(iniciarNotificaciones, 2000);
 });
+
+console.log('✅ Sistema de notificaciones listo');
