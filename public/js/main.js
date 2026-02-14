@@ -2372,7 +2372,8 @@ class F1Manager {
                         padding: 0;
                     ">
 
-                        <!-- HEADER PRINCIPAL CON NOMBRE DEL EQUIPO ARRIBA -->
+
+                        <!-- HEADER PRINCIPAL -->
                         <header class="dashboard-header-compacto" style="
                             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
                             border-bottom: 3px solid #00d2be;
@@ -2384,7 +2385,7 @@ class F1Manager {
                                 display: flex;
                                 justify-content: center;
                                 align-items: center;
-                                margin-bottom: 8px;
+                                margin-bottom: 10px;
                             ">
                                 <div class="logo-compacto" style="
                                     display: flex;
@@ -2402,95 +2403,60 @@ class F1Manager {
                                 </div>
                             </div>
                             
-                            <!-- FILA INFERIOR: DINERO, ESTRELLAS Y NOTIFICACIONES EN HORIZONTAL -->
+                            <!-- FILA INFERIOR: DINERO, ESTRELLAS Y NOTIFICACIONES -->
                             <div class="header-bottom-row" style="
                                 display: flex;
-                                justify-content: space-between;
+                                justify-content: center;
                                 align-items: center;
                                 gap: 8px;
                             ">
-                                <!-- DINERO -->
+                                <!-- DINERO - SE AJUSTA AL CONTENIDO -->
                                 <div class="money-display-compacto" style="
                                     display: flex;
                                     align-items: center;
-                                    gap: 8px;
+                                    gap: 6px;
                                     background: rgba(0, 0, 0, 0.4);
                                     border: 2px solid #FFD700;
                                     border-radius: 8px;
-                                    padding: 8px 12px;
+                                    padding: 6px 10px;
                                     color: white;
-                                    flex: 1;
-                                    min-width: 0;
+                                    width: auto;
+                                    flex: 0 0 auto;
                                 ">
-                                    <i class="fas fa-coins" style="color: #FFD700; font-size: 1.1rem;"></i>
+                                    <i class="fas fa-coins" style="color: #FFD700; font-size: 1rem;"></i>
                                     <span id="money-value" style="
                                         font-weight: bold;
-                                        font-size: 0.95rem;
-                                        white-space: nowrap;
-                                        overflow: hidden;
-                                        text-overflow: ellipsis;
+                                        font-size: 0.9rem;
                                         color: #FFD700;
+                                        white-space: nowrap;
                                     ">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
                                 </div>
                                 
-                                <!-- ESTRELLAS -->
+                                <!-- ESTRELLAS - SE AJUSTA AL CONTENIDO -->
                                 <div class="estrellas-display-compacto" onclick="mostrarExplicacionEstrellas()" 
                                     title="Click para más info" style="
                                     display: flex;
                                     align-items: center;
-                                    gap: 8px;
+                                    gap: 6px;
                                     background: rgba(0, 0, 0, 0.4);
                                     border: 2px solid #FF9800;
                                     border-radius: 8px;
-                                    padding: 8px 12px;
+                                    padding: 6px 10px;
                                     color: white;
-                                    flex: 1;
-                                    min-width: 0;
+                                    width: auto;
+                                    flex: 0 0 auto;
                                     cursor: pointer;
                                 ">
-                                    <i class="fas fa-star" style="color: #FFD700; font-size: 1.1rem;"></i>
+                                    <i class="fas fa-star" style="color: #FFD700; font-size: 1rem;"></i>
                                     <span id="estrellas-value" style="
                                         font-weight: bold;
-                                        font-size: 0.95rem;
-                                        white-space: nowrap;
-                                        overflow: hidden;
-                                        text-overflow: ellipsis;
+                                        font-size: 0.9rem;
                                         color: #FFD700;
+                                        white-space: nowrap;
                                     ">${this.escuderia?.estrellas_semana || 0}</span>
                                 </div>
                                 
-                                <!-- NOTIFICACIONES (NUEVO) -->
-                                <div class="notificaciones-display-compacto" onclick="mostrarCentroNotificaciones()" 
-                                    title="Ver notificaciones" style="
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    background: rgba(0, 0, 0, 0.4);
-                                    border: 2px solid #00d2be;
-                                    border-radius: 8px;
-                                    padding: 8px;
-                                    color: white;
-                                    cursor: pointer;
-                                    position: relative;
-                                ">
-                                    <i class="fas fa-bell" style="color: #00d2be; font-size: 1.2rem;"></i>
-                                    <span id="notificaciones-badge" style="
-                                        position: absolute;
-                                        top: -5px;
-                                        right: -5px;
-                                        background: #e10600;
-                                        color: white;
-                                        border-radius: 50%;
-                                        width: 18px;
-                                        height: 18px;
-                                        font-size: 0.65rem;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        font-weight: bold;
-                                        border: 2px solid #1a1a2e;
-                                    ">0</span>
-                                </div>
+
                             </div>
                         </header>
                         
