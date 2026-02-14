@@ -800,58 +800,70 @@ class PerfilManager {
         const contenedor = document.getElementById(`perfil-acciones-${otraEscuderiaId}`);
         if (!contenedor) return;
     
-        const amistad = await this.verificarAmistad(otraEscuderiaId);
-        
-        let html = '';
-        if (!amistad) {
-            // No hay relación - mostrar botón enviar solicitud
-            html = `
-                <button class="btn-agregar-amigo" onclick="window.perfilManager.agregarAmigo('${otraEscuderiaId}')">
-                    <i class="fas fa-user-plus"></i>
-                    Agregar amigo
-                </button>
-            `;
-        } else if (amistad.status === 'pending') {
-            if (amistad.sender_id === window.f1Manager.escuderia.id) {
-                // Yo envié la solicitud
-                html = `
-                    <button class="btn-pendiente" disabled>
-                        <i class="fas fa-clock"></i>
-                        Solicitud enviada
-                    </button>
-                    <button class="btn-cancelar" onclick="window.perfilManager.eliminarAmistad('${amistad.id}')">
-                        <i class="fas fa-times"></i>
-                        Cancelar
-                    </button>
-                `;
-            } else {
-                // Me enviaron solicitud a mí
-                html = `
-                    <button class="btn-aceptar" onclick="window.perfilManager.aceptarAmistad('${amistad.id}')">
-                        <i class="fas fa-check"></i>
-                        Aceptar
-                    </button>
-                    <button class="btn-rechazar" onclick="window.perfilManager.eliminarAmistad('${amistad.id}')">
-                        <i class="fas fa-times"></i>
-                        Rechazar
-                    </button>
-                `;
-            }
-        } else if (amistad.status === 'accepted') {
-            // Ya son amigos
-            html = `
-                <button class="btn-amigo" disabled>
-                    <i class="fas fa-check-circle"></i>
-                    Amigos
-                </button>
-                <button class="btn-enviar-mensaje" onclick="window.perfilManager.abrirChat('${otraEscuderiaId}')">
-                    <i class="fas fa-envelope"></i>
-                    Mensaje
-                </button>
-            `;
-        }
+        // 🔴 MOSTRAR BOTONES BÁSICOS INMEDIATAMENTE
+        const miId = window.f1Manager.escuderia.id;
+        contenedor.innerHTML = `
+            <button class="btn-agregar-amigo" onclick="window.perfilManager.agregarAmigo('${otraEscuderiaId}')">
+                <i class="fas fa-user-plus"></i>
+                Agregar amigo
+            </button>
+            <button class="btn-enviar-mensaje" onclick="window.perfilManager.abrirChat('${otraEscuderiaId}')">
+                <i class="fas fa-envelope"></i>
+                Mensaje
+            </button>
+        `;
     
-        contenedor.innerHTML = html;
+        // 🔴 LUEGO, en segundo plano, verificar el estado real
+        try {
+            const amistad = await this.verificarAmistad(otraEscuderiaId);
+            
+            if (amistad) {
+                let html = '';
+                if (amistad.status === 'pending') {
+                    if (amistad.sender_id === miId) {
+                        html = `
+                            <button class="btn-pendiente" disabled>
+                                <i class="fas fa-clock"></i>
+                                Solicitud enviada
+                            </button>
+                            <button class="btn-cancelar" onclick="window.perfilManager.eliminarAmistad('${amistad.id}')">
+                                <i class="fas fa-times"></i>
+                                Cancelar
+                            </button>
+                        `;
+                    } else {
+                        html = `
+                            <button class="btn-aceptar" onclick="window.perfilManager.aceptarAmistad('${amistad.id}')">
+                                <i class="fas fa-check"></i>
+                                Aceptar
+                            </button>
+                            <button class="btn-rechazar" onclick="window.perfilManager.eliminarAmistad('${amistad.id}')">
+                                <i class="fas fa-times"></i>
+                                Rechazar
+                            </button>
+                        `;
+                    }
+                } else if (amistad.status === 'accepted') {
+                    html = `
+                        <button class="btn-amigo" disabled>
+                            <i class="fas fa-check-circle"></i>
+                            Amigos
+                        </button>
+                        <button class="btn-enviar-mensaje" onclick="window.perfilManager.abrirChat('${otraEscuderiaId}')">
+                            <i class="fas fa-envelope"></i>
+                            Mensaje
+                        </button>
+                    `;
+                }
+                
+                if (html) {
+                    contenedor.innerHTML = html;
+                }
+            }
+        } catch (error) {
+            console.error('Error verificando amistad:', error);
+            // Si hay error, ya tenemos los botones básicos
+        }
     }
     // ========================
     // CREAR GRUPO
