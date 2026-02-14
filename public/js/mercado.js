@@ -1187,26 +1187,31 @@ calcularCostoFabricacion(pieza) {
             // ========================
             // NOTIFICACIÓN AL VENDEDOR - NUEVO BLOQUE
             // ========================
+            // NOTIFICACIÓN AL VENDEDOR - VERSIÓN CORREGIDA
+            // ========================
             // Enviar notificación al vendedor
             try {
-                if (window.notificacionesManager && typeof window.notificacionesManager.crearNotificacion === 'function') {
-                    console.log('📬 Enviando notificación de venta...');
+                if (window.notificacionesManager) {
+                    // Ver qué métodos tiene realmente
+                    console.log('Métodos disponibles:', Object.getOwnPropertyNames(Object.getPrototypeOf(window.notificacionesManager)));
                     
-                    const resultado = await window.notificacionesManager.crearNotificacion(
-                        orden.vendedor_id,                    // usuario_id (vendedor)
-                        'venta',                               // tipo
-                        '💰 Pieza vendida',                    // titulo
-                        `${orden.pieza_nombre} comprada por ${this.escuderia.nombre} por ${orden.precio.toLocaleString()}€`, // mensaje
-                        orden.pieza_id,                        // relacion_id
-                        'pieza'                                 // tipo_relacion
-                    );
-                    
-                    console.log('✅ Notificación enviada, resultado:', resultado);
-                } else {
-                    console.warn('⚠️ notificacionesManager.crearNotificacion no está disponible', {
-                        existe: !!window.notificacionesManager,
-                        esFuncion: window.notificacionesManager ? typeof window.notificacionesManager.crearNotificacion : 'no existe'
-                    });
+                    // Intentar con el método correcto (agregarNotificacion)
+                    if (typeof window.notificacionesManager.agregarNotificacion === 'function') {
+                        console.log('📬 Enviando notificación de venta...');
+                        
+                        await window.notificacionesManager.agregarNotificacion(
+                            orden.vendedor_id,                    // usuario_id (vendedor)
+                            'venta',                               // tipo
+                            '💰 Pieza vendida',                    // titulo
+                            `${orden.pieza_nombre} comprada por ${this.escuderia.nombre} por ${orden.precio.toLocaleString()}€`, // mensaje
+                            orden.pieza_id,                        // relacion_id
+                            'pieza'                                 // tipo_relacion
+                        );
+                        
+                        console.log('✅ Notificación enviada correctamente');
+                    } else {
+                        console.warn('⚠️ No se encontró el método agregarNotificacion');
+                    }
                 }
             } catch (notifError) {
                 console.error('❌ Error enviando notificación:', notifError);
