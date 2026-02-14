@@ -304,15 +304,7 @@ class PerfilManager {
                                 <span class="stat-valor">€${datos.escuderia.dinero?.toLocaleString() || '0'}</span>
                             </div>
                         </div>
-                        
-                        <div class="perfil-stat-card" style="border-left-color: #00d2be;">
-                            <div class="stat-icon"><i class="fas fa-star"></i></div>
-                            <div class="stat-content">
-                                <span class="stat-label">Puntos Totales</span>
-                                <span class="stat-valor">${datos.escuderia.puntos || 0}</span>
-                            </div>
-                        </div>
-                        
+                                             
                         <div class="perfil-stat-card" style="border-left-color: #FF9800;">
                             <div class="stat-icon"><i class="fas fa-stopwatch"></i></div>
                             <div class="stat-content">
@@ -329,13 +321,6 @@ class PerfilManager {
                             </div>
                         </div>
                         
-                        <div class="perfil-stat-card" style="border-left-color: #2196F3;">
-                            <div class="stat-icon"><i class="fas fa-users"></i></div>
-                            <div class="stat-content">
-                                <span class="stat-label">Estrategas</span>
-                                <span class="stat-valor">${datos.estrategas.length}/4</span>
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="perfil-grupo">
