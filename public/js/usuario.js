@@ -211,7 +211,7 @@ class PerfilManager {
                 totalEscuderias,
                 grupo,
                 trofeos,
-                fechaCreacion: escuderia.created_at
+                fechaCreacion: escuderia.creada_en
             };
 
         } catch (error) {
