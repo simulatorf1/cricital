@@ -1254,7 +1254,6 @@ calcularCostoFabricacion(pieza) {
             // NOTIFICACIÓN AL VENDEDOR
             // ========================
             try {
-                // Obtener el user_id de la escudería del vendedor
                 const { data: escuderiaVendedor, error: escuderiaError } = await this.supabase
                     .from('escuderias')
                     .select('user_id')
@@ -1262,7 +1261,6 @@ calcularCostoFabricacion(pieza) {
                     .single();
                 
                 if (!escuderiaError && escuderiaVendedor?.user_id) {
-                    // Crear notificación en la BD
                     await this.supabase
                         .from('notificaciones_usuarios')
                         .insert([{
@@ -1277,17 +1275,14 @@ calcularCostoFabricacion(pieza) {
                     
                     console.log('✅ Notificación de venta creada');
                     
-                    // Forzar actualización del contador
                     if (window.notificacionesManager) {
                         setTimeout(() => {
                             window.notificacionesManager.cargarContador();
                         }, 500);
                     }
-                } else {
-                    console.warn('⚠️ No se encontró user_id para la escudería', orden.vendedor_id);
                 }
             } catch (notifError) {
-                console.warn('⚠️ Error en notificación (no crítico):', notifError);
+                console.warn('⚠️ Error en notificación:', notifError);
             }
             
             // 7. Actualizar UI
