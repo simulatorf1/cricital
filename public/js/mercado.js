@@ -1912,17 +1912,7 @@ window.venderPiezaDesdeAlmacen = async function(piezaId) {
             return;
         }
         
-        // Verificar que no esté ya en venta
-        const { data: yaEnVenta } = await supabase
-            .from('mercado')
-            .select('id')
-            .eq('pieza_id', piezaId)
-            .eq('estado', 'disponible');
-            
-        if (yaEnVenta && yaEnVenta.length > 0) {
-            alert('⚠️ Esta pieza ya está en venta en el mercado');
-            return;
-        }
+
         
         // USAR EL MODAL MEJORADO
         if (window.mercadoManager) {
