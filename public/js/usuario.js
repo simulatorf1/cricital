@@ -271,7 +271,7 @@ class PerfilManager {
                                 <span>Miembro desde ${fechaCreacion}</span>
                             </div>
                         </div>
-                        // AÑADE justo después del cierre de .perfil-titulo (antes del botón editar):
+
                         ${!esMiPerfil ? `
                             <div style="margin-left: 10px; padding: 3px 8px; background: rgba(0,210,190,0.1); border: 1px solid #00d2be; border-radius: 12px; font-size: 0.65rem; color: #00d2be;">
                                 <i class="fas fa-eye"></i> Perfil público
