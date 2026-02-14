@@ -47,7 +47,29 @@ class PerfilManager {
             }
         }
     }
-
+    // ========================
+    // ABRIR PERFIL DE USUARIO (desde cualquier parte)
+    // ========================
+    abrirPerfilUsuario(escuderiaId, escuderiaNombre = null, evento = null) {
+        // Prevenir propagación si viene de un evento
+        if (evento) {
+            evento.preventDefault();
+            evento.stopPropagation();
+        }
+        
+        console.log('👤 Abriendo perfil de usuario:', escuderiaId, escuderiaNombre);
+        
+        if (!escuderiaId) {
+            console.error('❌ No se puede abrir perfil: sin ID de usuario');
+            if (window.f1Manager?.showNotification) {
+                window.f1Manager.showNotification('❌ Error: Usuario no identificado', 'error');
+            }
+            return;
+        }
+        
+        // Llamar al método existente mostrarPerfil con el ID
+        this.mostrarPerfil(escuderiaId, escuderiaNombre);
+    }
     // ========================
     // CARGAR TODOS LOS DATOS DEL PERFIL
     // ========================
@@ -249,10 +271,11 @@ class PerfilManager {
                                 <span>Miembro desde ${fechaCreacion}</span>
                             </div>
                         </div>
-                        ${esMiPerfil ? `
-                            <button class="perfil-btn-editar" onclick="window.perfilManager.editarDescripcion()">
-                                <i class="fas fa-pen"></i>
-                            </button>
+                        // AÑADE justo después del cierre de .perfil-titulo (antes del botón editar):
+                        ${!esMiPerfil ? `
+                            <div style="margin-left: 10px; padding: 3px 8px; background: rgba(0,210,190,0.1); border: 1px solid #00d2be; border-radius: 12px; font-size: 0.65rem; color: #00d2be;">
+                                <i class="fas fa-eye"></i> Perfil público
+                            </div>
                         ` : ''}
                     </div>
                     
