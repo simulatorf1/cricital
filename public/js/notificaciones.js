@@ -293,7 +293,54 @@ class NotificacionesManager {
         panel.style.top = (rect.bottom + 10) + 'px';
         panel.style.right = (window.innerWidth - rect.right) + 'px';
     }
-
+    // ============================================
+    // MÉTODO PARA CREAR NOTIFICACIONES NUEVAS
+    // ============================================
+    async crearNotificacion(usuarioId, tipo, titulo, mensaje, relacionId = null, tipoRelacion = null) {
+        try {
+            console.log(`🔔 Creando notificación para ${usuarioId}: ${titulo}`);
+            
+            const { error } = await supabase
+                .from('notificaciones_usuarios')
+                .insert([{
+                    usuario_id: usuarioId,
+                    tipo: tipo,
+                    titulo: titulo,
+                    mensaje: mensaje,
+                    relacion_id: relacionId,
+                    tipo_relacion: tipoRelacion,
+                    leida: false,
+                    fecha_creacion: new Date().toISOString()
+                }]);
+    
+            if (error) {
+                console.error('❌ Error creando notificación:', error);
+                return false;
+            }
+    
+            // Si la notificación es para el usuario actual, actualizar el contador
+            if (usuarioId === window.f1Manager?.user?.id) {
+                this.notificacionesNoLeidas++;
+                this.actualizarContadorUI();
+                
+                // Animar campana
+                const icono = document.querySelector('#notificaciones-icono i');
+                if (icono) {
+                    icono.style.color = '#00d2be';
+                    icono.style.animation = 'none';
+                    icono.offsetHeight;
+                    icono.style.animation = 'campana 0.5s ease';
+                }
+            }
+    
+            console.log('✅ Notificación creada correctamente');
+            return true;
+    
+        } catch (error) {
+            console.error('❌ Error en crearNotificacion:', error);
+            return false;
+        }
+    }
     // Cargar notificaciones
     async cargarNotificaciones() {
         if (!window.f1Manager?.user?.id) return;
