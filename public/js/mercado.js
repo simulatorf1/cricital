@@ -69,11 +69,34 @@ class MercadoManager {
         }
     }
 
-    // ========================
-    // VERIFICAR PIEZA DUPLICADA - VERSIÓN CORREGIDA
-    // ========================
 
-
+    // ========================
+    // CONFIGURAR EVENTOS DE VENDEDORES
+    // ========================
+    configurarEventosVendedor() {
+        // Eventos para los nombres de vendedor cliqueables
+        document.querySelectorAll('.vendedor-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const vendedorId = e.target.dataset.vendedorId;
+                const vendedorNombre = e.target.dataset.vendedorNombre;
+                
+                console.log('👤 Clic en vendedor:', vendedorNombre, 'ID:', vendedorId);
+                
+                // Usar el perfilManager global para abrir el perfil
+                if (window.perfilManager) {
+                    window.perfilManager.abrirPerfilUsuario(vendedorId, vendedorNombre, e);
+                } else {
+                    console.error('❌ perfilManager no disponible');
+                    if (window.f1Manager?.showNotification) {
+                        window.f1Manager.showNotification('❌ Error: Sistema de perfiles no disponible', 'error');
+                    }
+                }
+            });
+        });
+    }
     
     
     // ========================
@@ -136,13 +159,17 @@ class MercadoManager {
                                     ${this.ordenesDisponibles.map(orden => {
                                         const esMiOrden = orden.vendedor_id === this.escuderia.id;
                                         
-                                        // Verificar si ya tiene la pieza (necesitarías cargar esta info)
-                                        // Por ahora, mantenemos la lógica original
-                                        
                                         return `
                                             <tr>
                                                 <td class="pieza-nombre-col">${orden.pieza_nombre}</td>
-                                                <td class="vendedor-col">${orden.vendedor_nombre}</td>
+                                                <td class="vendedor-col">
+                                                    <span class="vendedor-link" 
+                                                          data-vendedor-id="${orden.vendedor_id}"
+                                                          data-vendedor-nombre="${orden.vendedor_nombre}"
+                                                          style="cursor: pointer; color: #00d2be; text-decoration: underline; text-decoration-style: dotted;">
+                                                        ${orden.vendedor_nombre}
+                                                    </span>
+                                                </td>
                                                 <td class="precio-col">${orden.precio.toLocaleString()}€</td>
                                                 <td class="accion-col">
                                                     ${esMiOrden ? 
@@ -201,7 +228,27 @@ class MercadoManager {
                         padding-bottom: 12px;
                         border-bottom: 2px solid rgba(0, 210, 190, 0.3);
                     }
+                    // Añade esto dentro del bloque <style> existente, donde van los demás estilos:
+                    .vendedor-link {
+                        cursor: pointer;
+                        color: #00d2be;
+                        text-decoration: underline;
+                        text-decoration-style: dotted;
+                        transition: all 0.2s;
+                        display: inline-block;
+                        padding: 2px 4px;
+                        border-radius: 3px;
+                    }
                     
+                    .vendedor-link:hover {
+                        color: #00fff0;
+                        text-decoration-style: solid;
+                        background: rgba(0, 210, 190, 0.1);
+                    }
+                    
+                    .vendedor-link:active {
+                        transform: scale(0.95);
+                    }                    
                     .mercado-header h1 {
                         font-family: 'Orbitron', sans-serif;
                         font-size: 1.3rem;
@@ -951,7 +998,9 @@ calcularCostoFabricacion(pieza) {
                     if (modalBody) modalBody.innerHTML = '';
                 }
             });
-        }  
+        } 
+        // 🔴 NUEVO: Configurar eventos para los nombres de vendedor
+        this.configurarEventosVendedor();        
     }
 
 
