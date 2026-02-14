@@ -1837,31 +1837,127 @@ class PronosticosManager {
     }
     
     async crearNotificacionesResultados(carreraId) {
-        const { data: pronosticos } = await this.supabase
-            .from('pronosticos_usuario')
-            .select('usuario_id')
-            .eq('carrera_id', carreraId);
-        
-        if (!pronosticos) return;
-        
-        const { data: carrera } = await this.supabase
-            .from('calendario_gp')
-            .select('nombre')
-            .eq('id', carreraId)
-            .single();
-        
-        const notificaciones = pronosticos.map(p => ({
-            usuario_id: p.usuario_id,
-            tipo: 'resultados',
-            titulo: 'Resultados disponibles',
-            mensaje: `Los resultados del GP ${carrera.nombre} están disponibles`,
-            fecha_creacion: new Date().toISOString(),
-            vista: false
-        }));
-        
-        await this.supabase
-            .from('notificaciones_usuarios')
-            .insert(notificaciones);
+        try {
+            console.log("🔔 Creando notificaciones de resultados para carrera:", carreraId);
+            
+            // 1. Obtener TODOS los pronósticos de esta carrera con usuario_id
+            const { data: pronosticos, error: errorPronosticos } = await this.supabase
+                .from('pronosticos_usuario')
+                .select(`
+                    *,
+                    escuderias!inner(usuario_id)
+                `)
+                .eq('carrera_id', carreraId);
+            
+            if (errorPronosticos || !pronosticos) {
+                console.error("❌ Error obteniendo pronósticos:", errorPronosticos);
+                return;
+            }
+            
+            // 2. Obtener los resultados correctos de la carrera
+            const { data: resultados, error: errorResultados } = await this.supabase
+                .from('resultados_carrera')
+                .select('respuestas_correctas')
+                .eq('carrera_id', carreraId)
+                .single();
+            
+            if (errorResultados || !resultados) {
+                console.error("❌ Error obteniendo resultados:", errorResultados);
+                return;
+            }
+            
+            // 3. Obtener nombre del GP
+            const { data: carrera, error: errorCarrera } = await this.supabase
+                .from('calendario_gp')
+                .select('nombre')
+                .eq('id', carreraId)
+                .single();
+            
+            if (errorCarrera || !carrera) {
+                console.error("❌ Error obteniendo nombre del GP:", errorCarrera);
+                return;
+            }
+            
+            const respuestasCorrectas = resultados.respuestas_correctas;
+            const notificaciones = [];
+            
+            // 4. Procesar cada pronóstico y calcular sus aciertos
+            for (const pronostico of pronosticos) {
+                const usuarioId = pronostico.escuderias?.usuario_id;
+                if (!usuarioId) continue;
+                
+                // Calcular cuántos aciertos tuvo
+                let aciertos = 0;
+                const respuestasUsuario = pronostico.respuestas;
+                
+                for (let i = 1; i <= 10; i++) {
+                    if (respuestasUsuario[`p${i}`] === respuestasCorrectas[`p${i}`]) {
+                        aciertos++;
+                    }
+                }
+                
+                // Calcular puntos si tuvo aciertos
+                let puntosFinales = 0;
+                if (aciertos > 0) {
+                    const puntosBase = aciertos * 100;
+                    
+                    // Aplicar bonificaciones de estrategas
+                    let bonificacionTotal = 0;
+                    const estrategas = pronostico.estrategas_snapshot || [];
+                    
+                    estrategas.forEach(estratega => {
+                        if (estratega.bonificacion_valor) {
+                            bonificacionTotal += estratega.bonificacion_valor;
+                        }
+                    });
+                    
+                    puntosFinales = Math.round(puntosBase * (1 + bonificacionTotal / 100));
+                }
+                
+                // Crear notificación personalizada según resultados
+                if (aciertos > 0) {
+                    // ✅ Tuvo aciertos - notificación de éxito
+                    notificaciones.push({
+                        usuario_id: usuarioId,
+                        tipo: 'pronostico',
+                        titulo: '🎯 ¡Pronóstico acertado!',
+                        mensaje: `Acertaste ${aciertos}/10 en ${carrera.nombre} y ganaste ${puntosFinales} puntos`,
+                        relacion_id: carreraId,
+                        tipo_relacion: 'gp',
+                        fecha_creacion: new Date().toISOString(),
+                        vista: false
+                    });
+                } else {
+                    // ❌ No acertó nada - notificación informativa
+                    notificaciones.push({
+                        usuario_id: usuarioId,
+                        tipo: 'pronostico',
+                        titulo: '📊 Resultados disponibles',
+                        mensaje: `Ya puedes ver los resultados del GP ${carrera.nombre}. Esta vez no hubo aciertos, ¡suerte en la próxima!`,
+                        relacion_id: carreraId,
+                        tipo_relacion: 'gp',
+                        fecha_creacion: new Date().toISOString(),
+                        vista: false
+                    });
+                }
+            }
+            
+            // 5. Insertar todas las notificaciones de una vez (MÁS EFICIENTE)
+            if (notificaciones.length > 0) {
+                const { error: insertError } = await this.supabase
+                    .from('notificaciones_usuarios')
+                    .insert(notificaciones);
+                
+                if (insertError) {
+                    console.error("❌ Error insertando notificaciones:", insertError);
+                } else {
+                    console.log(`✅ ${notificaciones.length} notificaciones creadas correctamente`);
+                }
+            }
+            
+        } catch (error) {
+            console.error("💥 Error en crearNotificacionesResultados:", error);
+        }
     }
 }
 
