@@ -1235,8 +1235,9 @@ calcularCostoFabricacion(pieza) {
             }
     
             // 5. Actualizar el dinero local del comprador
+            // 5. Actualizar el dinero local del comprador
             this.escuderia.dinero -= orden.precio;
-    
+            
             // 6. Marcar orden como vendida en la tabla MERCADO
             const { error: updateError } = await this.supabase
                 .from('mercado')
@@ -1246,34 +1247,68 @@ calcularCostoFabricacion(pieza) {
                     comprador_id: this.escuderia.id
                 })
                 .eq('id', orden.id);
-    
+            
             if (updateError) throw updateError;
-    
+            
+            // ========================
+            // NOTIFICACIÓN AL VENDEDOR
+            // ========================
+            try {
+                // Obtener el user_id de la escudería del vendedor
+                const { data: escuderiaVendedor, error: escuderiaError } = await this.supabase
+                    .from('escuderias')
+                    .select('user_id')
+                    .eq('id', orden.vendedor_id)
+                    .single();
+                
+                if (!escuderiaError && escuderiaVendedor?.user_id) {
+                    // Crear notificación en la BD
+                    await this.supabase
+                        .from('notificaciones_usuarios')
+                        .insert([{
+                            usuario_id: escuderiaVendedor.user_id,
+                            tipo: 'venta',
+                            titulo: '💰 Pieza vendida',
+                            mensaje: `${orden.pieza_nombre} comprada por ${this.escuderia.nombre} por ${orden.precio.toLocaleString()}€`,
+                            tipo_relacion: 'pieza',
+                            leida: false,
+                            fecha_creacion: new Date().toISOString()
+                        }]);
+                    
+                    console.log('✅ Notificación de venta creada');
+                    
+                    // Forzar actualización del contador
+                    if (window.notificacionesManager) {
+                        setTimeout(() => {
+                            window.notificacionesManager.cargarContador();
+                        }, 500);
+                    }
+                } else {
+                    console.warn('⚠️ No se encontró user_id para la escudería', orden.vendedor_id);
+                }
+            } catch (notifError) {
+                console.warn('⚠️ Error en notificación (no crítico):', notifError);
+            }
+            
             // 7. Actualizar UI
             this.ocultarModales();
             await this.cargarTabMercado();
-    
+            
             // 8. Mostrar notificación
             this.mostrarNotificacion(`✅ Compra realizada: ${orden.pieza_nombre} por ${orden.precio.toLocaleString()}€`, 'success');
-    
+            
             // 9. RECARGAR ALMACÉN Y TALLER
             if (window.tabManager?.currentTab === 'almacen' && window.tabManager.loadAlmacenPiezas) {
                 setTimeout(() => {
                     window.tabManager.loadAlmacenPiezas();
                 }, 500);
             }
-    
+            
             if (window.tabManager?.currentTab === 'taller' && window.f1Manager?.cargarTabTaller) {
                 setTimeout(() => {
                     window.f1Manager.cargarTabTaller();
                 }, 500);
             }
-    
-        } catch (error) {
-            console.error('❌ Error procesando compra:', error);
-            this.mostrarNotificacion(`❌ Error: ${error.message}`, 'error');
-        }
-    }
     async cancelarVenta(ordenId) {
         try {
             console.log('❌ Cancelando venta:', ordenId);
