@@ -416,9 +416,35 @@ class NotificacionesManager {
 
         // Eventos
         document.querySelectorAll('.notificacion-item').forEach(item => {
-            item.onclick = () => {
+            item.onclick = async (e) => {
                 const id = item.dataset.id;
-                this.marcarComoLeida(id);
+                const notificacion = notificaciones.find(n => n.id === id);
+                
+                // Marcar como leída primero
+                await this.marcarComoLeida(id);
+                
+                // Si la notificación es de tipo que tiene usuario origen, abrir perfil
+                if (notificacion && (notificacion.tipo === 'venta' || notificacion.tipo === 'compra' || notificacion.tipo === 'mensaje')) {
+                    
+                    // Necesitamos obtener el ID del usuario relacionado
+                    // Esto depende de cómo tengas estructurada tu BD
+                    // Opción 1: Si la notificación guarda el ID del usuario origen
+                    if (notificacion.usuario_origen_id) {
+                        if (window.perfilManager) {
+                            window.perfilManager.abrirPerfilUsuario(
+                                notificacion.usuario_origen_id, 
+                                null, 
+                                e
+                            );
+                        }
+                    } 
+                    // Opción 2: Si necesitas buscar quién es el vendedor/comprador
+                    else if (notificacion.tipo_relacion === 'pieza' && notificacion.relacion_id) {
+                        // Aquí podrías hacer una consulta para obtener el vendedor/comprador
+                        console.log('🔍 Notificación de pieza, ID:', notificacion.relacion_id);
+                        // Por ahora solo mostramos la notificación marcada
+                    }
+                }
             };
         });
     }
