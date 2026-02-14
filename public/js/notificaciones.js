@@ -651,9 +651,13 @@ const notificacionesStyles = `
 `;
 
 // Añadir estilos al head
-const styleElement = document.createElement('style');
-styleElement.textContent = notificacionesStyles;
-document.head.appendChild(styleElement);
+// Añadir estilos al head (con nombre único)
+if (!document.getElementById('estilos-notificaciones')) {
+    const styleNotif = document.createElement('style');
+    styleNotif.id = 'estilos-notificaciones';
+    styleNotif.textContent = notificacionesStyles;
+    document.head.appendChild(styleNotif);
+}
 
 // ============================================
 // EXPORTAR E INICIALIZAR
