@@ -2371,43 +2371,45 @@ class F1Manager {
                         margin: 0;
                         padding: 0;
                     ">
-                        <!-- HEADER PRINCIPAL CON NOMBRE DEL EQUIPO -->
+
+                        <!-- HEADER PRINCIPAL CON NOMBRE DEL EQUIPO ARRIBA -->
                         <header class="dashboard-header-compacto" style="
                             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
                             border-bottom: 3px solid #00d2be;
-                            padding: 12px 15px;
+                            padding: 10px 15px;
                             z-index: 1000;
                         ">
+                            <!-- FILA SUPERIOR: SOLO EL NOMBRE DE LA ESCUDERÍA -->
                             <div class="header-top-row" style="
                                 display: flex;
                                 justify-content: center;
                                 align-items: center;
-                                margin-bottom: 10px;
+                                margin-bottom: 8px;
                             ">
-                            <div class="logo-compacto" style="
-                                display: flex;
-                                align-items: center;
-                                gap: 10px;
-                                color: white;
-                                font-size: 1.4rem;
-                                font-weight: bold;
-                                font-family: 'Orbitron', sans-serif;
-                                text-align: center;
-                                cursor: pointer;
-                            " onclick="abrirPerfilDesdeHeader()">
-                                <i class="fas fa-flag-checkered" style="color: #00d2be; font-size: 1.3rem;"></i>
-                                <span id="escuderia-nombre" style="color: white;">${this.escuderia.nombre}</span>
+                                <div class="logo-compacto" style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 10px;
+                                    color: white;
+                                    font-size: 1.4rem;
+                                    font-weight: bold;
+                                    font-family: 'Orbitron', sans-serif;
+                                    text-align: center;
+                                    cursor: pointer;
+                                " onclick="abrirPerfilDesdeHeader()">
+                                    <i class="fas fa-flag-checkered" style="color: #00d2be; font-size: 1.3rem;"></i>
+                                    <span id="escuderia-nombre" style="color: white;">${this.escuderia.nombre}</span>
+                                </div>
                             </div>
-
                             
-                            <!-- FILA INFERIOR CON DINERO Y ESTRELLAS -->
+                            <!-- FILA INFERIOR: DINERO, ESTRELLAS Y NOTIFICACIONES EN HORIZONTAL -->
                             <div class="header-bottom-row" style="
                                 display: flex;
                                 justify-content: space-between;
                                 align-items: center;
-                                gap: 10px;  /* ← REDUCE EL GAP */
-                                overflow: visible;  /* ← AÑADE ESTO */
+                                gap: 8px;
                             ">
+                                <!-- DINERO -->
                                 <div class="money-display-compacto" style="
                                     display: flex;
                                     align-items: center;
@@ -2415,11 +2417,10 @@ class F1Manager {
                                     background: rgba(0, 0, 0, 0.4);
                                     border: 2px solid #FFD700;
                                     border-radius: 8px;
-                                    padding: 8px 15px;
+                                    padding: 8px 12px;
                                     color: white;
-                                    flex-shrink: 0;  /* ← CAMBIA ESTO */
-                                    white-space: nowrap;  /* ← AÑADE ESTO */
-
+                                    flex: 1;
+                                    min-width: 0;
                                 ">
                                     <i class="fas fa-coins" style="color: #FFD700; font-size: 1.1rem;"></i>
                                     <span id="money-value" style="
@@ -2432,6 +2433,7 @@ class F1Manager {
                                     ">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
                                 </div>
                                 
+                                <!-- ESTRELLAS -->
                                 <div class="estrellas-display-compacto" onclick="mostrarExplicacionEstrellas()" 
                                     title="Click para más info" style="
                                     display: flex;
@@ -2444,7 +2446,6 @@ class F1Manager {
                                     color: white;
                                     flex: 1;
                                     min-width: 0;
-                                    overflow: hidden;
                                     cursor: pointer;
                                 ">
                                     <i class="fas fa-star" style="color: #FFD700; font-size: 1.1rem;"></i>
@@ -2456,6 +2457,39 @@ class F1Manager {
                                         text-overflow: ellipsis;
                                         color: #FFD700;
                                     ">${this.escuderia?.estrellas_semana || 0}</span>
+                                </div>
+                                
+                                <!-- NOTIFICACIONES (NUEVO) -->
+                                <div class="notificaciones-display-compacto" onclick="mostrarCentroNotificaciones()" 
+                                    title="Ver notificaciones" style="
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    background: rgba(0, 0, 0, 0.4);
+                                    border: 2px solid #00d2be;
+                                    border-radius: 8px;
+                                    padding: 8px;
+                                    color: white;
+                                    cursor: pointer;
+                                    position: relative;
+                                ">
+                                    <i class="fas fa-bell" style="color: #00d2be; font-size: 1.2rem;"></i>
+                                    <span id="notificaciones-badge" style="
+                                        position: absolute;
+                                        top: -5px;
+                                        right: -5px;
+                                        background: #e10600;
+                                        color: white;
+                                        border-radius: 50%;
+                                        width: 18px;
+                                        height: 18px;
+                                        font-size: 0.65rem;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        font-weight: bold;
+                                        border: 2px solid #1a1a2e;
+                                    ">0</span>
                                 </div>
                             </div>
                         </header>
