@@ -1188,9 +1188,11 @@ calcularCostoFabricacion(pieza) {
             // NOTIFICACIÓN AL VENDEDOR - NUEVO BLOQUE
             // ========================
             // Enviar notificación al vendedor
-            if (window.notificacionesManager) {
-                try {
-                    await window.notificacionesManager.crearNotificacion(
+            try {
+                if (window.notificacionesManager && typeof window.notificacionesManager.crearNotificacion === 'function') {
+                    console.log('📬 Enviando notificación de venta...');
+                    
+                    const resultado = await window.notificacionesManager.crearNotificacion(
                         orden.vendedor_id,                    // usuario_id (vendedor)
                         'venta',                               // tipo
                         '💰 Pieza vendida',                    // titulo
@@ -1198,11 +1200,16 @@ calcularCostoFabricacion(pieza) {
                         orden.pieza_id,                        // relacion_id
                         'pieza'                                 // tipo_relacion
                     );
-                    console.log('📬 Notificación de venta enviada al vendedor');
-                } catch (notifError) {
-                    console.warn('⚠️ Error enviando notificación:', notifError);
-                    // Continuamos aunque falle la notificación
+                    
+                    console.log('✅ Notificación enviada, resultado:', resultado);
+                } else {
+                    console.warn('⚠️ notificacionesManager.crearNotificacion no está disponible', {
+                        existe: !!window.notificacionesManager,
+                        esFuncion: window.notificacionesManager ? typeof window.notificacionesManager.crearNotificacion : 'no existe'
+                    });
                 }
+            } catch (notifError) {
+                console.error('❌ Error enviando notificación:', notifError);
             }
     
             // 5. Actualizar el dinero local del comprador
