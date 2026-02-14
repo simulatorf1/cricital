@@ -1539,7 +1539,7 @@ calcularCostoFabricacion(pieza) {
         const precioInput = document.getElementById('precio-venta');
         const precio = parseInt(precioInput.value);
     
-        if (!precio || precio < 1000 || precio > 1000000) {
+        if (!precio || precio < 1000 || precio > 100000000) {
             alert('❌ Precio inválido. Debe estar entre 1,000€ y 1,000,000€');
             return;
         }
