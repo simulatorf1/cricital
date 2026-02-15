@@ -47,7 +47,323 @@ class PerfilManager {
             }
         }
     }
+// ========================
+// ABRIR VENTANA DE MENSAJES CON DOS COLUMNAS
+// ========================
+abrirVentanaMensajes(conversacionId = null, escuderiaId = null) {
+    // Eliminar si ya existe
+    const existente = document.getElementById('ventana-mensajes');
+    if (existente) existente.remove();
     
+    const modal = document.createElement('div');
+    modal.id = 'ventana-mensajes';
+    modal.className = 'modal-chat-overlay';
+    
+    modal.innerHTML = `
+        <div class="modal-chat-contenedor" style="width: 900px; height: 600px; display: flex; flex-direction: column;">
+            <div class="modal-chat-header">
+                <h3><i class="fas fa-comment"></i> MENSAJES</h3>
+                <button class="modal-chat-cerrar" onclick="this.closest('#ventana-mensajes').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div style="display: flex; flex: 1; min-height: 0;">
+                <!-- Columna izquierda (200px) -->
+                <div style="width: 200px; border-right: 2px solid #00d2be; display: flex; flex-direction: column;">
+                    <div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <input type="text" id="buscador-escuderias" placeholder="🔍 Buscar escudería..." 
+                               style="width: 100%; padding: 8px; background: rgba(255,255,255,0.1); border: 2px solid #00d2be; border-radius: 5px; color: white;">
+                    </div>
+                    <div id="lista-escuderias" style="flex: 1; overflow-y: auto; padding: 8px;">
+                        <div style="color: #888; text-align: center; padding: 20px;">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando escuderías...
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Columna derecha -->
+                <div id="columna-chat-activo" style="flex: 1; display: flex; flex-direction: column; background: rgba(0,0,0,0.2);">
+                    ${!conversacionId ? `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                            <i class="fas fa-comment-dots" style="font-size: 3rem; color: #444; margin-bottom: 15px;"></i>
+                            <p style="color: #888;">Selecciona una escudería para chatear</p>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Cargar escuderías en la columna izquierda
+    this.cargarEscuderias();
+    
+    // Si viene una conversación, cargarla directamente
+    if (conversacionId && escuderiaId) {
+        this.cargarChatEnColumna(conversacionId, escuderiaId);
+    }
+}
+
+// ========================
+// CARGAR ESCUDERÍAS EN LA COLUMNA IZQUIERDA
+// ========================
+async cargarEscuderias() {
+    const contenedor = document.getElementById('lista-escuderias');
+    if (!contenedor) return;
+    
+    const miId = window.f1Manager?.escuderia?.id;
+    
+    const { data: escuderias } = await supabase
+        .from('escuderias')
+        .select('id, nombre')
+        .neq('id', miId)
+        .order('nombre');
+    
+    if (!escuderias || escuderias.length === 0) {
+        contenedor.innerHTML = '<div class="sin-conversaciones">No hay otras escuderías</div>';
+        return;
+    }
+    
+    let html = '';
+    escuderias.forEach(esc => {
+        html += `
+            <div class="conversacion-item" 
+                 onclick="window.perfilManager.seleccionarEscuderia('${esc.id}', '${esc.nombre}')"
+                 data-escuderia-id="${esc.id}">
+                <div class="conversacion-info">
+                    <div class="conversacion-nombre">${esc.nombre}</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    contenedor.innerHTML = html;
+}
+
+// ========================
+// SELECCIONAR UNA ESCUDERÍA DE LA LISTA
+// ========================
+async seleccionarEscuderia(escuderiaId, escuderiaNombre) {
+    const miId = window.f1Manager?.escuderia?.id;
+    if (!miId) return;
+    
+    // Marcar elemento como activo
+    document.querySelectorAll('.conversacion-item').forEach(el => {
+        el.classList.remove('activa');
+    });
+    const itemActivo = document.querySelector(`[data-escuderia-id="${escuderiaId}"]`);
+    if (itemActivo) itemActivo.classList.add('activa');
+    
+    try {
+        // Buscar o crear conversación
+        let conversacion = await this.obtenerConversacion(miId, escuderiaId);
+        
+        if (!conversacion) {
+            conversacion = await this.crearConversacion(miId, escuderiaId);
+        }
+        
+        // Cargar chat en columna derecha
+        this.cargarChatEnColumna(conversacion.id, escuderiaId);
+        
+    } catch (error) {
+        console.error('Error al abrir chat:', error);
+    }
+}
+
+// ========================
+// CARGAR CHAT EN LA COLUMNA DERECHA
+// ========================
+cargarChatEnColumna(conversacionId, escuderiaId) {
+    const columna = document.getElementById('columna-chat-activo');
+    if (!columna) return;
+    
+    // Obtener nombre de la escudería
+    supabase
+        .from('escuderias')
+        .select('nombre')
+        .eq('id', escuderiaId)
+        .single()
+        .then(({ data }) => {
+            const nombre = data?.nombre || 'Usuario';
+            
+            columna.innerHTML = `
+                <div style="padding: 12px 15px; border-bottom: 2px solid #00d2be; background: rgba(0,0,0,0.3);">
+                    <span style="color: #00d2be; font-weight: bold;">🏁 ${nombre}</span>
+                </div>
+                
+                <div id="chat-columna-mensajes-${conversacionId}" 
+                     style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px;">
+                </div>
+                
+                <div style="padding: 15px; border-top: 2px solid #00d2be; background: rgba(0,0,0,0.5);">
+                    <div style="display: flex; gap: 8px;">
+                        <textarea id="chat-columna-input-${conversacionId}" 
+                            placeholder="Escribe un mensaje... (Enter para enviar)"
+                            rows="1"
+                            style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 2px solid #00d2be; border-radius: 8px; color: white; resize: none;"></textarea>
+                        <button onclick="window.perfilManager.enviarMensajeColumna('${conversacionId}')"
+                            style="background: #00d2be; border: none; border-radius: 8px; color: #1a1a2e; width: 45px; cursor: pointer;">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Cargar mensajes
+            this.cargarMensajesColumna(conversacionId);
+            this.escucharMensajesColumna(conversacionId);
+            
+            // Configurar Enter
+            setTimeout(() => {
+                const input = document.getElementById(`chat-columna-input-${conversacionId}`);
+                if (input) {
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            this.enviarMensajeColumna(conversacionId);
+                        }
+                    });
+                }
+            }, 100);
+        });
+}
+
+// ========================
+// CARGAR MENSAJES EN COLUMNA
+// ========================
+async cargarMensajesColumna(conversacionId) {
+    try {
+        const { data, error } = await supabase
+            .from('mensajes')
+            .select(`
+                *,
+                sender:escuderias!sender_id (nombre)
+            `)
+            .eq('conversacion_id', conversacionId)
+            .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        this.renderizarMensajesColumna(conversacionId, data);
+        await this.marcarMensajesLeidos(conversacionId);
+
+    } catch (error) {
+        console.error('❌ Error cargando mensajes:', error);
+    }
+}
+
+// ========================
+// RENDERIZAR MENSAJES EN COLUMNA
+// ========================
+renderizarMensajesColumna(conversacionId, mensajes) {
+    const contenedor = document.getElementById(`chat-columna-mensajes-${conversacionId}`);
+    if (!contenedor) return;
+
+    if (mensajes.length === 0) {
+        contenedor.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: #888;">
+                <i class="fas fa-comment-dots" style="font-size: 2rem; color: #444; margin-bottom: 10px;"></i>
+                <p>No hay mensajes todavía</p>
+                <small>Escribe el primer mensaje</small>
+            </div>
+        `;
+        return;
+    }
+
+    const miId = window.f1Manager.escuderia.id;
+    let html = '';
+
+    mensajes.forEach(msg => {
+        const esMio = msg.sender_id === miId;
+        html += `
+            <div style="display: flex; margin-bottom: 5px; ${esMio ? 'justify-content: flex-end;' : 'justify-content: flex-start;'}">
+                <div style="max-width: 70%; padding: 8px 12px; border-radius: 12px; ${esMio ? 'background: linear-gradient(135deg, #00d2be, #0066cc); border-bottom-right-radius: 4px;' : 'background: rgba(255,255,255,0.1); border-bottom-left-radius: 4px;'} color: white;">
+                    <div style="word-wrap: break-word; margin-bottom: 4px;">${this.escapeHTML(msg.contenido)}</div>
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 5px; font-size: 0.65rem; opacity: 0.7;">
+                        <span>${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                        ${esMio && msg.leido ? '<span style="color: #00d2be;">✓✓</span>' : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    contenedor.innerHTML = html;
+    contenedor.scrollTop = contenedor.scrollHeight;
+}
+
+// ========================
+// ESCUCHAR MENSAJES NUEVOS EN COLUMNA
+// ========================
+escucharMensajesColumna(conversacionId) {
+    if (this.columnaChannelRef) {
+        supabase.removeChannel(this.columnaChannelRef);
+    }
+    
+    const channel = supabase
+        .channel(`columna-mensajes:${conversacionId}`)
+        .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'mensajes',
+            filter: `conversacion_id=eq.${conversacionId}`
+        }, (payload) => {
+            this.agregarMensajeNuevoColumna(conversacionId, payload.new);
+        })
+        .subscribe();
+
+    this.columnaChannelRef = channel;
+}
+
+// ========================
+// AÑADIR MENSAJE NUEVO EN COLUMNA
+// ========================
+agregarMensajeNuevoColumna(conversacionId, mensaje) {
+    const contenedor = document.getElementById(`chat-columna-mensajes-${conversacionId}`);
+    if (!contenedor) return;
+
+    const esMio = mensaje.sender_id === window.f1Manager.escuderia.id;
+    const msgHTML = `
+        <div style="display: flex; margin-bottom: 5px; ${esMio ? 'justify-content: flex-end;' : 'justify-content: flex-start;'}">
+            <div style="max-width: 70%; padding: 8px 12px; border-radius: 12px; ${esMio ? 'background: linear-gradient(135deg, #00d2be, #0066cc); border-bottom-right-radius: 4px;' : 'background: rgba(255,255,255,0.1); border-bottom-left-radius: 4px;'} color: white;">
+                <div style="word-wrap: break-word; margin-bottom: 4px;">${this.escapeHTML(mensaje.contenido)}</div>
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 5px; font-size: 0.65rem; opacity: 0.7;">
+                    <span>${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    contenedor.insertAdjacentHTML('beforeend', msgHTML);
+    contenedor.scrollTop = contenedor.scrollHeight;
+}
+
+// ========================
+// ENVIAR MENSAJE DESDE COLUMNA
+// ========================
+async enviarMensajeColumna(conversacionId) {
+    const input = document.getElementById(`chat-columna-input-${conversacionId}`);
+    const contenido = input.value.trim();
+    
+    if (!contenido) return;
+
+    try {
+        await supabase
+            .from('mensajes')
+            .insert([{
+                conversacion_id: conversacionId,
+                sender_id: window.f1Manager.escuderia.id,
+                contenido: contenido
+            }]);
+
+        input.value = '';
+
+    } catch (error) {
+        console.error('❌ Error enviando mensaje:', error);
+    }
+}    
     // ========================
     // ABRIR PERFIL DE USUARIO (desde cualquier parte)
     // ========================
@@ -1280,8 +1596,8 @@ class PerfilManager {
                 conversacion = await this.crearConversacion(miId, otraEscuderiaId);
             }
     
-            // Abrir modal de chat
-            this.mostrarModalChat(conversacion);
+            // Abrir ventana de mensajes con esa conversación seleccionada
+            this.abrirVentanaMensajes(conversacion.id, otraEscuderiaId);
     
         } catch (error) {
             console.error('❌ Error abriendo chat:', error);
@@ -1320,55 +1636,7 @@ class PerfilManager {
         return data;
     }
     
-    /**
-     * Mostrar modal de chat
-     */
-    mostrarModalChat(conversacion) {
-        // Eliminar modal existente
-        document.getElementById('modal-chat')?.remove();
-    
-        const otroUsuarioId = conversacion.escuderia1_id === window.f1Manager.escuderia.id 
-            ? conversacion.escuderia2_id 
-            : conversacion.escuderia1_id;
-    
-        const modal = document.createElement('div');
-        modal.id = 'modal-chat';
-        modal.innerHTML = `
-            <div class="modal-chat-overlay" onclick="if(event.target === this) document.getElementById('modal-chat').remove()">
-                <div class="modal-chat-contenedor">
-                    <div class="modal-chat-header">
-                        <h3><i class="fas fa-comment"></i> Chat</h3>
-                        <button class="modal-chat-cerrar" onclick="document.getElementById('modal-chat').remove()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="modal-chat-mensajes" id="chat-mensajes-${conversacion.id}">
-                        <div class="chat-loading">
-                            <i class="fas fa-spinner fa-spin"></i> Cargando mensajes...
-                        </div>
-                    </div>
-                    
-                    <div class="modal-chat-input">
-                        <textarea id="chat-input-${conversacion.id}" 
-                            placeholder="Escribe un mensaje..."
-                            rows="2"></textarea>
-                        <button onclick="window.perfilManager.enviarMensaje('${conversacion.id}')">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    
-        document.body.appendChild(modal);
-    
-        // Cargar mensajes
-        this.cargarMensajes(conversacion.id);
-    
-        // Configurar Realtime
-        this.escucharMensajes(conversacion.id);
-    }
+
     
     /**
      * Cargar mensajes de una conversación
