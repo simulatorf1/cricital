@@ -245,7 +245,8 @@ if (!document.getElementById('estilos-notificaciones')) {
         .conversacion-item {
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: space-between;  /* <-- CAMBIA ESTO */
+            gap: 4px;  /* <-- REDUCE EL GAP */
             padding: 6px 8px;
             border-radius: 4px;
             cursor: pointer;
@@ -271,6 +272,7 @@ if (!document.getElementById('estilos-notificaciones')) {
             flex: 1;
             overflow: hidden;
             min-width: 0;
+            white-space: nowrap;
         }
         
         .conversacion-nombre {
@@ -280,6 +282,8 @@ if (!document.getElementById('estilos-notificaciones')) {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            display: inline-block;  /* <-- AÑADE ESTO */
+            max-width: calc(100% - 25px);  /* <-- RESERVA ESPACIO PARA EL NÚMERO */
         }
         
         /* OCULTAR "Sin mensajes" */
@@ -300,6 +304,7 @@ if (!document.getElementById('estilos-notificaciones')) {
             justify-content: center;
             padding: 0 4px;
             flex-shrink: 0;
+            margin-left: auto;  /* <-- EMPUJA EL NÚMERO A LA DERECHA */
         }
         
         .sin-conversaciones {
@@ -377,6 +382,7 @@ if (!document.getElementById('estilos-notificaciones')) {
             padding: 15px;
             display: flex;
             flex-direction: column;
+            min-height: 0;  /* <-- IMPORTANTE PARA FLEXBOX */
             gap: 6px;
         }
         
