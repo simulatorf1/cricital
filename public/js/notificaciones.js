@@ -827,22 +827,27 @@ class NotificacionesManager {
     // ============================================
     // MÉTODO PARA CREAR NOTIFICACIONES NUEVAS
     // ============================================
-    async crearNotificacion(usuarioId, tipo, titulo, mensaje, relacionId = null, tipoRelacion = null) {
+    // ========================
+    // CREAR NOTIFICACIÓN (VERSIÓN CORREGIDA)
+    // ========================
+    async crearNotificacion(usuarioId, tipo, titulo, mensaje, solicitudId = null, tipoRelacion = null) {
         try {
             console.log(`🔔 Creando notificación para ${usuarioId}: ${titulo}`);
             
+            // Preparar los datos - NO usamos relacion_id porque es integer
+            const notificacionData = {
+                usuario_id: usuarioId,
+                tipo: tipo,
+                titulo: titulo,
+                mensaje: mensaje,
+                tipo_relacion: solicitudId, // Guardamos el UUID aquí
+                leida: false,
+                fecha_creacion: new Date().toISOString()
+            };
+            
             const { error } = await supabase
                 .from('notificaciones_usuarios')
-                .insert([{
-                    usuario_id: usuarioId,
-                    tipo: tipo,
-                    titulo: titulo,
-                    mensaje: mensaje,
-                    relacion_id: relacionId,
-                    tipo_relacion: tipoRelacion,
-                    leida: false,
-                    fecha_creacion: new Date().toISOString()
-                }]);
+                .insert([notificacionData]);
     
             if (error) {
                 console.error('❌ Error creando notificación:', error);
@@ -895,10 +900,13 @@ class NotificacionesManager {
     }
 
     // Renderizar
+    // ========================
+    // RENDERIZAR NOTIFICACIONES CON BOTONES PARA SOLICITUDES
+    // ========================
     renderizarNotificaciones(notificaciones) {
         const panel = document.getElementById('panel-notificaciones');
         if (!panel) return;
-
+    
         if (notificaciones.length === 0) {
             panel.innerHTML = `
                 <div class="notificaciones-vacio">
@@ -908,30 +916,42 @@ class NotificacionesManager {
             `;
             return;
         }
-
+    
         let html = '<div class="notificaciones-lista">';
         
-        notificaciones.forEach(notif => {
+        for (const notif of notificaciones) {
             const fecha = new Date(notif.fecha_creacion).toLocaleString('es-ES', {
                 hour: '2-digit',
                 minute: '2-digit',
                 day: '2-digit',
                 month: '2-digit'
             });
-
+    
             html += `
-                <div class="notificacion-item ${!notif.leida ? 'no-leida' : ''}" data-id="${notif.id}">
+                <div class="notificacion-item ${!notif.leida ? 'no-leida' : ''}" data-id="${notif.id}" data-tipo="${notif.tipo}" data-relacion="${notif.relacion_id || ''}" data-tipo-relacion="${notif.tipo_relacion || ''}">
                     <div class="notificacion-icono">${this.getIcono(notif.tipo)}</div>
                     <div class="notificacion-contenido">
                         <div class="notificacion-titulo">${notif.titulo}</div>
                         <div class="notificacion-mensaje">${notif.mensaje}</div>
                         <div class="notificacion-fecha">${fecha}</div>
+                        
+                        <!-- BOTONES PARA SOLICITUDES DE GRUPO (solo si es tipo grupo_solicitud y no está leída) -->
+                        ${notif.tipo === 'grupo_solicitud' && !notif.leida ? `
+                            <div class="notificacion-acciones" style="display: flex; gap: 8px; margin-top: 10px;">
+                                <button class="notificacion-btn notificacion-btn-aceptar" data-solicitud-id="${notif.tipo_relacion}" data-notif-id="${notif.id}" style="flex: 1; padding: 6px; background: #4CAF50; border: none; color: white; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold;">
+                                    <i class="fas fa-check"></i> ACEPTAR
+                                </button>
+                                <button class="notificacion-btn notificacion-btn-rechazar" data-solicitud-id="${notif.tipo_relacion}" data-notif-id="${notif.id}" style="flex: 1; padding: 6px; background: #f44336; border: none; color: white; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold;">
+                                    <i class="fas fa-times"></i> RECHAZAR
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
                     ${!notif.leida ? '<div class="notificacion-no-leida-punto"></div>' : ''}
                 </div>
             `;
-        });
-
+        }
+    
         html += '</div>';
         
         if (this.notificacionesNoLeidas > 0) {
@@ -943,41 +963,53 @@ class NotificacionesManager {
                 </div>
             `;
         }
-
+    
         panel.innerHTML = html;
-
-        // Eventos
-        document.querySelectorAll('.notificacion-item').forEach(item => {
-            item.onclick = async (e) => {
-                const id = item.dataset.id;
-                const notificacion = notificaciones.find(n => n.id === id);
+    
+        // Eventos para los botones de aceptar/rechazar
+        document.querySelectorAll('.notificacion-btn-aceptar').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const solicitudId = btn.dataset.solicitudId;
+                const notifId = btn.dataset.notifId;
                 
-                // Marcar como leída primero
-                await this.marcarComoLeida(id);
-                
-                // Si la notificación es de tipo que tiene usuario origen, abrir perfil
-                if (notificacion && (notificacion.tipo === 'venta' || notificacion.tipo === 'compra' || notificacion.tipo === 'mensaje')) {
-                    
-                    // Necesitamos obtener el ID del usuario relacionado
-                    // Esto depende de cómo tengas estructurada tu BD
-                    // Opción 1: Si la notificación guarda el ID del usuario origen
-                    if (notificacion.usuario_origen_id) {
-                        if (window.perfilManager) {
-                            window.perfilManager.abrirPerfilUsuario(
-                                notificacion.usuario_origen_id, 
-                                null, 
-                                e
-                            );
-                        }
-                    } 
-                    // Opción 2: Si necesitas buscar quién es el vendedor/comprador
-                    else if (notificacion.tipo_relacion === 'pieza' && notificacion.relacion_id) {
-                        // Aquí podrías hacer una consulta para obtener el vendedor/comprador
-                        console.log('🔍 Notificación de pieza, ID:', notificacion.relacion_id);
-                        // Por ahora solo mostramos la notificación marcada
-                    }
+                if (window.perfilManager) {
+                    await window.perfilManager.aceptarSolicitudGrupo(solicitudId);
+                    // Marcar notificación como leída
+                    await this.marcarComoLeida(notifId);
+                    // Recargar notificaciones
+                    this.cargarNotificaciones();
                 }
-            };
+            });
+        });
+    
+        document.querySelectorAll('.notificacion-btn-rechazar').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const solicitudId = btn.dataset.solicitudId;
+                const notifId = btn.dataset.notifId;
+                
+                if (window.perfilManager) {
+                    await window.perfilManager.rechazarSolicitudGrupo(solicitudId);
+                    // Marcar notificación como leída
+                    await this.marcarComoLeida(notifId);
+                    // Recargar notificaciones
+                    this.cargarNotificaciones();
+                }
+            });
+        });
+    
+        // Evento para abrir perfil (solo si no es grupo_solicitud o ya está leída)
+        document.querySelectorAll('.notificacion-item').forEach(item => {
+            if (item.dataset.tipo !== 'grupo_solicitud' || item.classList.contains('no-leida') === false) {
+                item.onclick = async (e) => {
+                    // No hacer nada si el click fue en un botón
+                    if (e.target.closest('.notificacion-btn')) return;
+                    
+                    const id = item.dataset.id;
+                    await this.marcarComoLeida(id);
+                };
+            }
         });
     }
 
