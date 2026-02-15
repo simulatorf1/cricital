@@ -515,12 +515,17 @@ class NotificacionesManager {
     inicializar() {
         console.log('🔔 Inicializando notificaciones...');
         
-        // Intentar crear icono
+        // Intentar crear icono de notificaciones
         this.crearIcono();
         
-        // Si no hay icono después de 2 segundos, crear el fallback
+        // Intentar crear icono de mensajes TAMBIÉN
+        if (typeof this.crearIconoMensajes === 'function') {
+            this.crearIconoMensajes();
+        }
+        
+        // Si no hay iconos después de 2 segundos, usar fallback
         setTimeout(() => {
-            if (!document.getElementById('notificaciones-icono')) {
+            if (!document.getElementById('notificaciones-icono') || !document.getElementById('mensajes-icono')) {
                 console.log('📱 Usando fallback para móvil');
                 this.crearIconosFallback();
             }
