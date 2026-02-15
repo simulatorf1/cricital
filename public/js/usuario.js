@@ -2708,23 +2708,64 @@ async function contarNoLeidos(conversacionId, miId) {
 // Actualizar contador global de mensajes
 async function actualizarContadorMensajes() {
     const miId = window.f1Manager?.escuderia?.id;
-    if (!miId) return;
+    if (!miId) {
+        console.log('No hay sesión activa');
+        return;
+    }
     
-    // Contar mensajes no leídos de OTROS
-    const { count } = await supabase
-        .from('mensajes')
-        .select('*', { count: 'exact', head: true })
-        .eq('leido', false)
-        .neq('sender_id', miId);
-    
-    const contador = document.getElementById('mensajes-contador');
-    if (contador) {
-        if (count > 0) {
-            contador.textContent = count > 99 ? '99+' : count;
-            contador.style.display = 'flex';
-        } else {
-            contador.style.display = 'none';
+    try {
+        // Obtener todas las conversaciones del usuario
+        const { data: conversaciones, error: convError } = await supabase
+            .from('conversaciones')
+            .select('id')
+            .or(`escuderia1_id.eq.${miId},escuderia2_id.eq.${miId}`);
+        
+        if (convError || !conversaciones) {
+            console.error('Error obteniendo conversaciones:', convError);
+            return;
         }
+        
+        // Si no hay conversaciones, ocultar contador
+        if (conversaciones.length === 0) {
+            const contador = document.getElementById('mensajes-contador');
+            if (contador) contador.style.display = 'none';
+            return;
+        }
+        
+        // Contar mensajes NO leídos que NO sean del usuario actual
+        let totalNoLeidos = 0;
+        
+        for (const conv of conversaciones) {
+            const { count, error: msgError } = await supabase
+                .from('mensajes')
+                .select('*', { count: 'exact', head: true })
+                .eq('conversacion_id', conv.id)
+                .eq('leido', false)
+                .neq('sender_id', miId);  // Solo mensajes de OTROS usuarios
+            
+            if (msgError) {
+                console.error('Error contando mensajes:', msgError);
+                continue;
+            }
+            
+            totalNoLeidos += count || 0;
+        }
+        
+        // Actualizar el contador en el icono
+        const contador = document.getElementById('mensajes-contador');
+        if (contador) {
+            if (totalNoLeidos > 0) {
+                contador.textContent = totalNoLeidos > 99 ? '99+' : totalNoLeidos;
+                contador.style.display = 'flex';
+                console.log(`📬 ${totalNoLeidos} mensajes no leídos de otros usuarios`);
+            } else {
+                contador.style.display = 'none';
+                console.log('📬 No hay mensajes nuevos de otros usuarios');
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Error en actualizarContadorMensajes:', error);
     }
 }
 
