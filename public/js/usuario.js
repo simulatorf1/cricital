@@ -47,6 +47,7 @@ class PerfilManager {
             }
         }
     }
+    
     // ========================
     // ABRIR PERFIL DE USUARIO (desde cualquier parte)
     // ========================
@@ -70,6 +71,7 @@ class PerfilManager {
         // Llamar al método existente mostrarPerfil con el ID
         this.mostrarPerfil(escuderiaId, escuderiaNombre);
     }
+    
     // ========================
     // SISTEMA DE AMIGOS
     // ========================
@@ -610,7 +612,6 @@ class PerfilManager {
     
         document.body.appendChild(modal);
         
-        // 🔴🔴🔴 AÑADE ESTO - LLAMAR A cargarEstadoAmistad 🔴🔴🔴
         if (!esMiPerfil) {
             console.log('🔄 Cargando botones de acción para:', datos.escuderia.id);
             this.cargarEstadoAmistad(datos.escuderia.id);
@@ -621,6 +622,7 @@ class PerfilManager {
             modal.classList.add('visible');
         }, 10);
     }
+    
     // ========================
     // EDITAR DESCRIPCIÓN
     // ========================
@@ -796,16 +798,14 @@ class PerfilManager {
             </div>
         `;
         
-        document.body.appendChild(modal);
-        if (!esMiPerfil) {
-            this.cargarEstadoAmistad(datos.escuderia.id);
-        }        
+        document.body.appendChild(modal);      
     }
+    
     async cargarEstadoAmistad(otraEscuderiaId) {
         const contenedor = document.getElementById(`perfil-acciones-${otraEscuderiaId}`);
         if (!contenedor) return;
     
-        // 🔴 MOSTRAR BOTONES BÁSICOS INMEDIATAMENTE
+        // MOSTRAR BOTONES BÁSICOS INMEDIATAMENTE
         const miId = window.f1Manager.escuderia.id;
         contenedor.innerHTML = `
             <button class="btn-agregar-amigo" onclick="window.perfilManager.agregarAmigo('${otraEscuderiaId}')">
@@ -818,7 +818,7 @@ class PerfilManager {
             </button>
         `;
     
-        // 🔴 LUEGO, en segundo plano, verificar el estado real
+        // LUEGO, en segundo plano, verificar el estado real
         try {
             const amistad = await this.verificarAmistad(otraEscuderiaId);
             
@@ -870,6 +870,7 @@ class PerfilManager {
             // Si hay error, ya tenemos los botones básicos
         }
     }
+    
     // ========================
     // CREAR GRUPO
     // ========================
@@ -992,6 +993,7 @@ class PerfilManager {
         
         document.body.appendChild(modal);
     }
+    
     // ========================
     // SISTEMA DE MENSAJES
     // ========================
@@ -1297,6 +1299,7 @@ class PerfilManager {
             alert(mensaje);
         }
     }
+    
     // ========================
     // UNIRSE A GRUPO
     // ========================
@@ -1386,11 +1389,250 @@ class PerfilManager {
         }
     }
 
-
+    // ========================
+    // NUEVOS MÉTODOS PARA CHAT EN PANEL
+    // ========================
+    
+    /**
+     * Abrir chat desde la lista de conversaciones
+     */
+    abrirChatDesdeLista(conversacionId, otroUsuarioId) {
+        this.mostrarChatEnPanel(conversacionId, otroUsuarioId);
+    }
+    
+    /**
+     * Mostrar chat en el panel principal
+     */
+    async mostrarChatEnPanel(conversacionId, otroUsuarioId) {
+        const panel = document.getElementById('panel-chat');
+        if (!panel) return;
+        
+        // Marcar conversación como activa
+        document.querySelectorAll('.conversacion-item').forEach(el => {
+            el.classList.remove('activa');
+        });
+        
+        // Buscar el elemento clickeado y marcarlo como activo
+        const conversacionActiva = document.querySelector(`[onclick*="${conversacionId}"]`);
+        if (conversacionActiva) {
+            conversacionActiva.classList.add('activa');
+        }
+        
+        // Obtener nombre del otro usuario
+        const { data: escuderia } = await supabase
+            .from('escuderias')
+            .select('nombre')
+            .eq('id', otroUsuarioId)
+            .single();
+        
+        // Crear estructura del chat en el panel
+        panel.innerHTML = `
+            <div class="chat-panel-header">
+                <div class="chat-panel-usuario">
+                    <i class="fas fa-flag-checkered"></i>
+                    <span>${escuderia?.nombre || 'Usuario'}</span>
+                </div>
+                <button class="chat-panel-cerrar" onclick="document.getElementById('panel-chat').innerHTML = '<div class=\'chat-placeholder\'><i class=\'fas fa-comment-dots\'></i><p>Selecciona una conversación</p></div>'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chat-panel-mensajes" id="chat-panel-mensajes-${conversacionId}">
+                <div class="chat-loading">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando mensajes...
+                </div>
+            </div>
+            <div class="chat-panel-input">
+                <textarea id="chat-panel-input-${conversacionId}" 
+                    placeholder="Escribe un mensaje..."
+                    rows="2"></textarea>
+                <button onclick="window.perfilManager.enviarMensajePanel('${conversacionId}')">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        `;
+        
+        // Cargar mensajes
+        await this.cargarMensajesPanel(conversacionId);
+        
+        // Configurar Realtime
+        this.escucharMensajesPanel(conversacionId);
+    }
+    
+    /**
+     * Cargar mensajes en el panel
+     */
+    async cargarMensajesPanel(conversacionId) {
+        try {
+            const { data, error } = await supabase
+                .from('mensajes')
+                .select(`
+                    *,
+                    sender:escuderias!sender_id (
+                        nombre
+                    )
+                `)
+                .eq('conversacion_id', conversacionId)
+                .order('created_at', { ascending: true });
+    
+            if (error) throw error;
+    
+            this.renderizarMensajesPanel(conversacionId, data);
+    
+            // Marcar como leídos
+            await this.marcarMensajesLeidos(conversacionId);
+            
+            // Actualizar contador global
+            if (typeof actualizarContadorMensajes === 'function') {
+                actualizarContadorMensajes();
+            }
+    
+        } catch (error) {
+            console.error('❌ Error cargando mensajes:', error);
+        }
+    }
+    
+    /**
+     * Renderizar mensajes en el panel
+     */
+    renderizarMensajesPanel(conversacionId, mensajes) {
+        const contenedor = document.getElementById(`chat-panel-mensajes-${conversacionId}`);
+        if (!contenedor) return;
+    
+        if (mensajes.length === 0) {
+            contenedor.innerHTML = `
+                <div class="chat-vacio">
+                    <i class="fas fa-comment-dots"></i>
+                    <p>No hay mensajes todavía</p>
+                    <small>Escribe el primer mensaje</small>
+                </div>
+            `;
+            return;
+        }
+    
+        const miId = window.f1Manager.escuderia.id;
+        let html = '';
+    
+        mensajes.forEach(msg => {
+            const esMio = msg.sender_id === miId;
+            html += `
+                <div class="chat-mensaje ${esMio ? 'propio' : 'ajeno'}">
+                    <div class="chat-mensaje-contenido">
+                        <div class="chat-mensaje-texto">${this.escapeHTML(msg.contenido)}</div>
+                        <div class="chat-mensaje-info">
+                            <span class="chat-mensaje-hora">
+                                ${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                            </span>
+                            ${esMio && msg.leido ? '<span class="chat-mensaje-leido">✓✓</span>' : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    
+        contenedor.innerHTML = html;
+        contenedor.scrollTop = contenedor.scrollHeight;
+    }
+    
+    /**
+     * Escuchar mensajes nuevos en el panel
+     */
+    escucharMensajesPanel(conversacionId) {
+        // Limpiar canal anterior si existe
+        if (this.panelChannelRef) {
+            supabase.removeChannel(this.panelChannelRef);
+        }
+        
+        const channel = supabase
+            .channel(`panel-mensajes:${conversacionId}`)
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'mensajes',
+                filter: `conversacion_id=eq.${conversacionId}`
+            }, (payload) => {
+                // Añadir nuevo mensaje al panel
+                this.agregarMensajeNuevoPanel(conversacionId, payload.new);
+            })
+            .subscribe();
+    
+        this.panelChannelRef = channel;
+    }
+    
+    /**
+     * Añadir mensaje nuevo al panel
+     */
+    agregarMensajeNuevoPanel(conversacionId, mensaje) {
+        const contenedor = document.getElementById(`chat-panel-mensajes-${conversacionId}`);
+        if (!contenedor) return;
+    
+        // Eliminar mensaje de "chat vacío" si existe
+        const vacio = contenedor.querySelector('.chat-vacio');
+        if (vacio) vacio.remove();
+    
+        const esMio = mensaje.sender_id === window.f1Manager.escuderia.id;
+        const msgHTML = `
+            <div class="chat-mensaje ${esMio ? 'propio' : 'ajeno'}">
+                <div class="chat-mensaje-contenido">
+                    <div class="chat-mensaje-texto">${this.escapeHTML(mensaje.contenido)}</div>
+                    <div class="chat-mensaje-info">
+                        <span class="chat-mensaje-hora">
+                            ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `;
+    
+        contenedor.insertAdjacentHTML('beforeend', msgHTML);
+        contenedor.scrollTop = contenedor.scrollHeight;
+    }
+    
+    /**
+     * Enviar mensaje desde el panel
+     */
+    async enviarMensajePanel(conversacionId) {
+        const input = document.getElementById(`chat-panel-input-${conversacionId}`);
+        const contenido = input.value.trim();
+        
+        if (!contenido) return;
+    
+        try {
+            const { error } = await supabase
+                .from('mensajes')
+                .insert([{
+                    conversacion_id: conversacionId,
+                    sender_id: window.f1Manager.escuderia.id,
+                    contenido: contenido
+                }]);
+    
+            if (error) throw error;
+    
+            // Limpiar input
+            input.value = '';
+    
+            // Actualizar último mensaje en conversación
+            await supabase
+                .from('conversaciones')
+                .update({
+                    ultimo_mensaje: contenido,
+                    ultimo_mensaje_time: new Date().toISOString()
+                })
+                .eq('id', conversacionId);
+            
+            // Recargar lista de conversaciones para actualizar el orden
+            if (typeof cargarConversaciones === 'function') {
+                cargarConversaciones();
+            }
+    
+        } catch (error) {
+            console.error('❌ Error enviando mensaje:', error);
+            this.mostrarNotificacion('❌ Error al enviar mensaje', 'error');
+        }
+    }
 }
 
 // ========================
-// ESTILOS DEL PERFIL
+// ESTILOS DEL PERFIL (INCLUYE LOS NUEVOS ESTILOS DE MENSAJES)
 // ========================
 const perfilStyles = `
     #modal-perfil, #modal-editar-descripcion, #modal-crear-grupo, #modal-unirse-grupo {
@@ -1469,6 +1711,7 @@ const perfilStyles = `
         color: white;
         transform: scale(1.1);
     }
+    
     .btn-pendiente, .btn-amigo {
         padding: 10px 20px;
         background: rgba(255, 152, 0, 0.1);
@@ -1520,6 +1763,7 @@ const perfilStyles = `
         color: #888;
         text-align: center;
     }    
+    
     .perfil-header {
         display: flex;
         align-items: center;
@@ -1552,6 +1796,7 @@ const perfilStyles = `
         color: #00d2be;
         font-family: 'Orbitron', sans-serif;
     }
+    
     /* Modal de chat */
     .modal-chat-overlay {
         position: fixed;
@@ -1717,6 +1962,7 @@ const perfilStyles = `
     .modal-chat-input button:hover {
         background: #00fff0;
     }    
+    
     .perfil-fecha-creacion {
         display: flex;
         align-items: center;
@@ -1998,6 +2244,250 @@ const perfilStyles = `
         transform: translateY(-2px);
     }
     
+    /* ======================== */
+    /* ESTILOS PARA SECCIÓN DE MENSAJES */
+    /* ======================== */
+    
+    #seccion-mensajes {
+        padding: 20px;
+        height: calc(100vh - 200px);
+    }
+    
+    .mensajes-container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 20px;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        border: 1px solid #00d2be;
+        overflow: hidden;
+    }
+    
+    .mensajes-sidebar {
+        background: rgba(0, 0, 0, 0.5);
+        border-right: 1px solid rgba(0, 210, 190, 0.3);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .buscador-usuarios {
+        padding: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+    }
+    
+    .buscador-usuarios i {
+        position: absolute;
+        left: 25px;
+        top: 25px;
+        color: #888;
+    }
+    
+    .buscador-usuarios input {
+        width: 100%;
+        padding: 10px 10px 10px 35px;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid #00d2be;
+        border-radius: 5px;
+        color: white;
+        font-size: 0.9rem;
+    }
+    
+    .buscador-usuarios input:focus {
+        outline: none;
+        box-shadow: 0 0 10px rgba(0, 210, 190, 0.3);
+    }
+    
+    .lista-conversaciones {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+    
+    .conversacion-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 5px;
+        position: relative;
+    }
+    
+    .conversacion-item:hover {
+        background: rgba(0, 210, 190, 0.1);
+    }
+    
+    .conversacion-item.activa {
+        background: rgba(0, 210, 190, 0.2);
+        border-left: 3px solid #00d2be;
+    }
+    
+    .conversacion-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #00d2be, #0066cc);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+    
+    .conversacion-info {
+        flex: 1;
+        overflow: hidden;
+    }
+    
+    .conversacion-nombre {
+        font-weight: bold;
+        color: white;
+        margin-bottom: 3px;
+        font-size: 0.9rem;
+    }
+    
+    .conversacion-ultimo {
+        color: #888;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .conversacion-no-leidos {
+        background: #e10600;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: bold;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+        margin-left: 5px;
+    }
+    
+    .sin-conversaciones {
+        text-align: center;
+        padding: 40px 20px;
+        color: #888;
+        font-style: italic;
+    }
+    
+    .mensajes-chat {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .chat-placeholder {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #888;
+    }
+    
+    .chat-placeholder i {
+        font-size: 3rem;
+        color: #444;
+        margin-bottom: 15px;
+    }
+    
+    /* Estilos para chat en panel */
+    .chat-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .chat-panel-usuario {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #00d2be;
+        font-weight: bold;
+    }
+    
+    .chat-panel-usuario i {
+        font-size: 1.2rem;
+    }
+    
+    .chat-panel-cerrar {
+        background: none;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        font-size: 1rem;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .chat-panel-cerrar:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+    
+    .chat-panel-mensajes {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .chat-panel-input {
+        padding: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        gap: 10px;
+    }
+    
+    .chat-panel-input textarea {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid #00d2be;
+        border-radius: 5px;
+        color: white;
+        padding: 8px 12px;
+        resize: none;
+        font-family: inherit;
+    }
+    
+    .chat-panel-input button {
+        background: #00d2be;
+        border: none;
+        border-radius: 5px;
+        color: #1a1a2e;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .chat-panel-input button:hover {
+        background: #00fff0;
+    }
+    
     @media (max-width: 768px) {
         .modal-perfil-contenedor {
             padding: 20px;
@@ -2019,6 +2509,22 @@ const perfilStyles = `
         .perfil-acciones {
             flex-direction: column;
         }
+        
+        .mensajes-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .mensajes-sidebar {
+            display: none;
+        }
+        
+        .mensajes-sidebar.visible {
+            display: flex;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
     }
 `;
 
@@ -2027,35 +2533,11 @@ const styleElement = document.createElement('style');
 styleElement.textContent = perfilStyles;
 document.head.appendChild(styleElement);
 
+// ========================
+// FUNCIONES GLOBALES PARA MENSAJES
+// ========================
 
-// ========================
-// INICIALIZACIÓN
-// ========================
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('👤 Inicializando PerfilManager...');
-    
-    if (!window.perfilManager) {
-        window.perfilManager = new PerfilManager();
-    }
-    
-    // Configurar evento para abrir perfil al hacer clic en el nombre
-    setTimeout(() => {
-        const nombreEscuderia = document.getElementById('escuderia-nombre');
-        if (nombreEscuderia) {
-            nombreEscuderia.style.cursor = 'pointer';
-            nombreEscuderia.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (window.perfilManager) {
-                    window.perfilManager.mostrarPerfil();
-                }
-            });
-        }
-    }, 2000);
-});
-// ========================
-// FUNCIONES PARA LISTA DE CONVERSACIONES
-// ========================
+// Cargar lista de conversaciones
 async function cargarConversaciones() {
     const miId = window.f1Manager?.escuderia?.id;
     if (!miId) return;
@@ -2075,6 +2557,7 @@ async function cargarConversaciones() {
     renderizarConversaciones(data);
 }
 
+// Renderizar conversaciones
 async function renderizarConversaciones(conversaciones) {
     const contenedor = document.getElementById('lista-conversaciones');
     if (!contenedor) return;
@@ -2108,6 +2591,7 @@ async function renderizarConversaciones(conversaciones) {
     contenedor.innerHTML = html;
 }
 
+// Contar mensajes no leídos
 async function contarNoLeidos(conversacionId, miId) {
     const { count } = await supabase
         .from('mensajes')
@@ -2119,6 +2603,7 @@ async function contarNoLeidos(conversacionId, miId) {
     return count;
 }
 
+// Actualizar contador global de mensajes
 async function actualizarContadorMensajes() {
     const miId = window.f1Manager?.escuderia?.id;
     if (!miId) return;
@@ -2140,40 +2625,21 @@ async function actualizarContadorMensajes() {
     }
     
     const contador = document.getElementById('mensajes-contador');
-    if (total > 0) {
-        contador.textContent = total;
-        contador.style.display = 'flex';
-    } else {
-        contador.style.display = 'none';
+    if (contador) {
+        if (total > 0) {
+            contador.textContent = total;
+            contador.style.display = 'flex';
+        } else {
+            contador.style.display = 'none';
+        }
     }
 }
 
-// AÑADIR método a PerfilManager
-PerfilManager.prototype.abrirChatDesdeLista = function(conversacionId, otroUsuarioId) {
-    // Reutilizar el chat que ya existe pero en el panel
-    this.mostrarChatEnPanel(conversacionId, otroUsuarioId);
-};
-
-PerfilManager.prototype.mostrarChatEnPanel = function(conversacionId, otroUsuarioId) {
-    const panel = document.getElementById('panel-chat');
-    if (!panel) return;
-    
-    // Marcar conversación como activa
-    document.querySelectorAll('.conversacion-item').forEach(el => {
-        el.classList.remove('activa');
-    });
-    event?.currentTarget?.classList.add('activa');
-    
-    // Aquí reutilizas el código del modal pero para el panel
-    // Puedes copiar la parte de renderizar mensajes de abrirChat()
-    this.cargarMensajesPanel(conversacionId, otroUsuarioId);
-};
-
-// Iniciar polling
+// Iniciar polling de mensajes no leídos
 setInterval(actualizarContadorMensajes, 30000);
-actualizarContadorMensajes();
+setTimeout(actualizarContadorMensajes, 2000);
 
-// Buscador
+// Buscador de usuarios en tiempo real
 document.addEventListener('input', function(e) {
     if (e.target.id === 'buscador-usuarios') {
         const busqueda = e.target.value.trim();
@@ -2185,15 +2651,39 @@ document.addEventListener('input', function(e) {
             .ilike('nombre', `%${busqueda}%`)
             .limit(10)
             .then(({ data }) => {
-                // Mostrar resultados
+                // Mostrar resultados (pendiente de implementar)
                 console.log('Resultados:', data);
             });
     }
 });
 
+// ========================
+// INICIALIZACIÓN
+// ========================
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('👤 Inicializando PerfilManager...');
+    
+    if (!window.perfilManager) {
+        window.perfilManager = new PerfilManager();
+    }
+    
+    // Configurar evento para abrir perfil al hacer clic en el nombre
+    setTimeout(() => {
+        const nombreEscuderia = document.getElementById('escuderia-nombre');
+        if (nombreEscuderia) {
+            nombreEscuderia.style.cursor = 'pointer';
+            nombreEscuderia.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.perfilManager) {
+                    window.perfilManager.mostrarPerfil();
+                }
+            });
+        }
+    }, 2000);
+});
 
 console.log('✅ Sistema de perfiles listo');
-
 
 // ========================
 // EXPONER PERFIL MANAGER GLOBALMENTE
