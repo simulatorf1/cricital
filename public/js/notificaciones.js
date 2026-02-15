@@ -36,7 +36,28 @@ if (!document.getElementById('estilos-notificaciones')) {
             text-align: center;
             color: #888;
         }
-
+        .boton-header {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            position: relative;
+            padding: 8px;
+        }
+        
+        .contador-notificaciones {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #e10600;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
         .notificaciones-loading i, .notificaciones-vacio i, .notificaciones-error i {
             font-size: 2rem;
             margin-bottom: 10px;
