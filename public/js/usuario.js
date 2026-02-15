@@ -2053,6 +2053,144 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 2000);
 });
+// ========================
+// FUNCIONES PARA LISTA DE CONVERSACIONES
+// ========================
+async function cargarConversaciones() {
+    const miId = window.f1Manager?.escuderia?.id;
+    if (!miId) return;
+    
+    const { data } = await supabase
+        .from('conversaciones')
+        .select(`
+            *,
+            escuderia1:escuderias!conversaciones_escuderia1_id_fkey (id, nombre),
+            escuderia2:escuderias!conversaciones_escuderia2_id_fkey (id, nombre),
+            ultimo_mensaje,
+            ultimo_mensaje_time
+        `)
+        .or(`escuderia1_id.eq.${miId},escuderia2_id.eq.${miId}`)
+        .order('ultimo_mensaje_time', { ascending: false });
+    
+    renderizarConversaciones(data);
+}
+
+async function renderizarConversaciones(conversaciones) {
+    const contenedor = document.getElementById('lista-conversaciones');
+    if (!contenedor) return;
+    
+    if (!conversaciones?.length) {
+        contenedor.innerHTML = '<div class="sin-conversaciones">No tienes conversaciones</div>';
+        return;
+    }
+    
+    const miId = window.f1Manager.escuderia.id;
+    let html = '';
+    
+    for (const conv of conversaciones) {
+        const otro = conv.escuderia1_id === miId ? conv.escuderia2 : conv.escuderia1;
+        const noLeidos = await contarNoLeidos(conv.id, miId);
+        
+        html += `
+            <div class="conversacion-item" onclick="window.perfilManager.abrirChatDesdeLista('${conv.id}', '${otro.id}')">
+                <div class="conversacion-avatar">
+                    <i class="fas fa-flag-checkered"></i>
+                </div>
+                <div class="conversacion-info">
+                    <div class="conversacion-nombre">${otro.nombre}</div>
+                    <div class="conversacion-ultimo">${conv.ultimo_mensaje || 'Sin mensajes'}</div>
+                </div>
+                ${noLeidos > 0 ? `<span class="conversacion-no-leidos">${noLeidos}</span>` : ''}
+            </div>
+        `;
+    }
+    
+    contenedor.innerHTML = html;
+}
+
+async function contarNoLeidos(conversacionId, miId) {
+    const { count } = await supabase
+        .from('mensajes')
+        .select('*', { count: 'exact', head: true })
+        .eq('conversacion_id', conversacionId)
+        .eq('leido', false)
+        .neq('sender_id', miId);
+    
+    return count;
+}
+
+async function actualizarContadorMensajes() {
+    const miId = window.f1Manager?.escuderia?.id;
+    if (!miId) return;
+    
+    const { data: conversaciones } = await supabase
+        .from('conversaciones')
+        .select('id')
+        .or(`escuderia1_id.eq.${miId},escuderia2_id.eq.${miId}`);
+    
+    let total = 0;
+    for (const conv of conversaciones || []) {
+        const { count } = await supabase
+            .from('mensajes')
+            .select('*', { count: 'exact', head: true })
+            .eq('conversacion_id', conv.id)
+            .eq('leido', false)
+            .neq('sender_id', miId);
+        total += count;
+    }
+    
+    const contador = document.getElementById('mensajes-contador');
+    if (total > 0) {
+        contador.textContent = total;
+        contador.style.display = 'flex';
+    } else {
+        contador.style.display = 'none';
+    }
+}
+
+// AÑADIR método a PerfilManager
+PerfilManager.prototype.abrirChatDesdeLista = function(conversacionId, otroUsuarioId) {
+    // Reutilizar el chat que ya existe pero en el panel
+    this.mostrarChatEnPanel(conversacionId, otroUsuarioId);
+};
+
+PerfilManager.prototype.mostrarChatEnPanel = function(conversacionId, otroUsuarioId) {
+    const panel = document.getElementById('panel-chat');
+    if (!panel) return;
+    
+    // Marcar conversación como activa
+    document.querySelectorAll('.conversacion-item').forEach(el => {
+        el.classList.remove('activa');
+    });
+    event?.currentTarget?.classList.add('activa');
+    
+    // Aquí reutilizas el código del modal pero para el panel
+    // Puedes copiar la parte de renderizar mensajes de abrirChat()
+    this.cargarMensajesPanel(conversacionId, otroUsuarioId);
+};
+
+// Iniciar polling
+setInterval(actualizarContadorMensajes, 30000);
+actualizarContadorMensajes();
+
+// Buscador
+document.addEventListener('input', function(e) {
+    if (e.target.id === 'buscador-usuarios') {
+        const busqueda = e.target.value.trim();
+        if (busqueda.length < 2) return;
+        
+        supabase
+            .from('escuderias')
+            .select('id, nombre')
+            .ilike('nombre', `%${busqueda}%`)
+            .limit(10)
+            .then(({ data }) => {
+                // Mostrar resultados
+                console.log('Resultados:', data);
+            });
+    }
+});
+
 
 console.log('✅ Sistema de perfiles listo');
 
