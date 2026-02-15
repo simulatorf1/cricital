@@ -1415,7 +1415,7 @@ class PerfilManager {
     /**
      * Mostrar chat en el panel principal
      */
-    async mostrarChatEnPanel(conversacionId, otroUsuarioId) {
+    mostrarChatEnPanel(conversacionId, otroUsuarioId) {
         const panel = document.getElementById('panel-chat');
         if (!panel) return;
         
@@ -1424,49 +1424,44 @@ class PerfilManager {
             el.classList.remove('activa');
         });
         
-        // Buscar el elemento clickeado y marcarlo como activo
-        const conversacionActiva = document.querySelector(`[onclick*="${conversacionId}"]`);
-        if (conversacionActiva) {
-            conversacionActiva.classList.add('activa');
-        }
+        // Marcar este item como activo
+        const itemActivo = document.querySelector(`[onclick*="${conversacionId}"]`);
+        if (itemActivo) itemActivo.classList.add('activa');
         
-        // Obtener nombre del otro usuario
-        const { data: escuderia } = await supabase
-            .from('escuderias')
-            .select('nombre')
-            .eq('id', otroUsuarioId)
-            .single();
-        
-        // Crear estructura del chat en el panel
         panel.innerHTML = `
             <div class="chat-panel-header">
                 <div class="chat-panel-usuario">
                     <i class="fas fa-flag-checkered"></i>
-                    <span>${escuderia?.nombre || 'Usuario'}</span>
+                    <span>Cargando...</span>
                 </div>
-                <button class="chat-panel-cerrar" onclick="document.getElementById('panel-chat').innerHTML = '<div class=\'chat-placeholder\'><i class=\'fas fa-comment-dots\'></i><p>Selecciona una conversación</p></div>'">
+                <button class="chat-panel-cerrar" onclick="document.getElementById('panel-chat').innerHTML = '<div class=\\'chat-placeholder\\'><i class=\\'fas fa-comment-dots\\'></i><p>Selecciona una conversación</p></div>'">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div class="chat-panel-mensajes" id="chat-panel-mensajes-${conversacionId}">
-                <div class="chat-loading">
-                    <i class="fas fa-spinner fa-spin"></i> Cargando mensajes...
-                </div>
-            </div>
-            <div class="chat-panel-input">
+            <div class="chat-panel-mensajes" id="chat-panel-mensajes-${conversacionId}" style="flex: 1; overflow-y: auto; min-height: 0; max-height: 100%; display: flex; flex-direction: column;"></div>
+            <div class="chat-panel-input" style="flex-shrink: 0;">
                 <textarea id="chat-panel-input-${conversacionId}" 
                     placeholder="Escribe un mensaje..."
-                    rows="2"></textarea>
+                    rows="1"
+                    style="flex: 1; resize: none;"></textarea>
                 <button onclick="window.perfilManager.enviarMensajePanel('${conversacionId}')">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
         `;
         
-        // Cargar mensajes
-        await this.cargarMensajesPanel(conversacionId);
+        // Obtener nombre y cargar mensajes
+        supabase
+            .from('escuderias')
+            .select('nombre')
+            .eq('id', otroUsuarioId)
+            .single()
+            .then(({ data }) => {
+                const header = panel.querySelector('.chat-panel-usuario span');
+                if (header) header.textContent = data?.nombre || 'Usuario';
+            });
         
-        // Configurar Realtime
+        this.cargarMensajesPanel(conversacionId);
         this.escucharMensajesPanel(conversacionId);
     }
     
@@ -1490,12 +1485,14 @@ class PerfilManager {
     
             this.renderizarMensajesPanel(conversacionId, data);
     
-            // Marcar como leídos
+            // Marcar como leídos y esperar a que termine
             await this.marcarMensajesLeidos(conversacionId);
             
-            // Actualizar contador global
-            if (typeof actualizarContadorMensajes === 'function') {
-                actualizarContadorMensajes();
+            console.log('✅ Mensajes marcados como leídos');
+            
+            // Recargar lista de conversaciones para quitar números
+            if (typeof window.cargarConversaciones === 'function') {
+                setTimeout(window.cargarConversaciones, 500);
             }
     
         } catch (error) {
@@ -1577,7 +1574,6 @@ class PerfilManager {
         const contenedor = document.getElementById(`chat-panel-mensajes-${conversacionId}`);
         if (!contenedor) return;
     
-        // Eliminar mensaje de "chat vacío" si existe
         const vacio = contenedor.querySelector('.chat-vacio');
         if (vacio) vacio.remove();
     
@@ -1596,7 +1592,11 @@ class PerfilManager {
         `;
     
         contenedor.insertAdjacentHTML('beforeend', msgHTML);
-        contenedor.scrollTop = contenedor.scrollHeight;
+        
+        // Scroll automático al nuevo mensaje
+        setTimeout(() => {
+            contenedor.scrollTop = contenedor.scrollHeight;
+        }, 50);
     }
     
     /**
@@ -1619,26 +1619,18 @@ class PerfilManager {
     
             if (error) throw error;
     
-            // Limpiar input
             input.value = '';
-    
-            // Actualizar último mensaje en conversación
-            await supabase
-                .from('conversaciones')
-                .update({
-                    ultimo_mensaje: contenido,
-                    ultimo_mensaje_time: new Date().toISOString()
-                })
-                .eq('id', conversacionId);
             
-            // Recargar lista de conversaciones para actualizar el orden
-            if (typeof cargarConversaciones === 'function') {
-                cargarConversaciones();
-            }
+            // Scroll automático después de enviar
+            setTimeout(() => {
+                const contenedor = document.getElementById(`chat-panel-mensajes-${conversacionId}`);
+                if (contenedor) {
+                    contenedor.scrollTop = contenedor.scrollHeight;
+                }
+            }, 100);
     
         } catch (error) {
             console.error('❌ Error enviando mensaje:', error);
-            this.mostrarNotificacion('❌ Error al enviar mensaje', 'error');
         }
     }
 }
