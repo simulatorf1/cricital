@@ -1251,6 +1251,11 @@ class PerfilManager {
             if (typeof window.actualizarContadorMensajes === 'function') {
                 window.actualizarContadorMensajes();
             }
+            
+            // Recargar conversaciones para quitar el número
+            if (typeof window.cargarConversaciones === 'function') {
+                window.cargarConversaciones();
+            }
         } catch (error) {
             console.error('❌ Error marcando mensajes:', error);
         }
@@ -2578,7 +2583,7 @@ async function renderizarConversaciones(conversaciones) {
     for (const conv of conversaciones) {
         const otro = conv.escuderia1_id === miId ? conv.escuderia2 : conv.escuderia1;
         const noLeidos = await contarNoLeidos(conv.id, miId);
-        
+
         html += `
             <div class="conversacion-item" onclick="window.perfilManager.abrirChatDesdeLista('${conv.id}', '${otro.id}')">
                 <div class="conversacion-avatar">
