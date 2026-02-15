@@ -1631,8 +1631,12 @@ class PerfilManager {
     // ACTUALIZAR MÉTODO mostrarChatEnPanel (SIN buscador duplicado)
     // ========================
     
+    // ========================
+    // ACTUALIZAR MÉTODO mostrarChatEnPanel (VERSIÓN DEFINITIVA - SOLO DOS COLUMNAS)
+    // ========================
+    
     /**
-     * Mostrar chat en el panel principal (VERSIÓN CORREGIDA - SIN buscador extra)
+     * Mostrar chat en el panel principal
      */
     mostrarChatEnPanel(conversacionId, otroUsuarioId) {
         const panel = document.getElementById('panel-chat');
@@ -1644,21 +1648,21 @@ class PerfilManager {
         });
         
         // Marcar este item como activo
-        const itemActivo = document.querySelector(`[data-conversacion-id="${conversacionId}"]`);
+        const itemActivo = document.querySelector(`[onclick*="${conversacionId}"]`);
         if (itemActivo) itemActivo.classList.add('activa');
         
-        // Estructura CORREGIDA con flexbox para mantener input fijo
+        // SOLO DOS COLUMNAS: izquierda (conversaciones) y derecha (chat)
         panel.innerHTML = `
-            <div style="display: flex; height: 100%; width: 100%; overflow: hidden;">
-                <!-- Columna izquierda: Lista de conversaciones (más estrecha) -->
-                <div style="width: 25%; min-width: 200px; border-right: 1px solid rgba(255,255,255,0.1); overflow-y: auto; background: rgba(0,0,0,0.3);">
+            <div style="display: flex; height: 100%; width: 100%;">
+                <!-- Columna IZQUIERDA: Lista de conversaciones (MUY FINA) -->
+                <div style="width: 200px; border-right: 1px solid rgba(255,255,255,0.1); overflow-y: auto; background: rgba(0,0,0,0.3);">
                     <div id="lista-conversaciones" style="padding: 10px;">
                         <!-- Las conversaciones se cargarán aquí -->
                     </div>
                 </div>
                 
-                <!-- Columna derecha: Chat activo -->
-                <div style="width: 75%; display: flex; flex-direction: column; height: 100%; overflow: hidden;">
+                <!-- Columna DERECHA: Chat activo (OCUPA TODO EL RESTO) -->
+                <div style="flex: 1; display: flex; flex-direction: column; height: 100%;">
                     <div class="chat-panel-header" style="flex-shrink: 0;">
                         <div class="chat-panel-usuario">
                             <i class="fas fa-flag-checkered"></i>
