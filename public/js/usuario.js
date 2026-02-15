@@ -79,6 +79,9 @@ class PerfilManager {
     /**
      * Enviar solicitud para unirse a un grupo
      */
+    // ========================
+    // SOLICITAR UNIRSE A GRUPO (versión corregida)
+    // ========================
     async solicitarUnirseAGrupo(grupoId, grupoNombre) {
         const miId = window.f1Manager?.escuderia?.id;
         const miNombre = window.f1Manager?.escuderia?.nombre;
@@ -116,21 +119,23 @@ class PerfilManager {
                 } else if (solicitudExistente.estado === 'aceptada') {
                     this.mostrarNotificacion('❌ Ya eres miembro de este grupo', 'error');
                 } else if (solicitudExistente.estado === 'rechazada') {
-                    // Si fue rechazada, permitir enviar nueva (opcional)
-                    this.mostrarNotificacion('❌ Tu solicitud anterior fue rechazada', 'error');
+                    // Si fue rechazada, permitir enviar nueva
+                    this.mostrarNotificacion('❌ Tu solicitud anterior fue rechazada. Puedes intentar de nuevo.', 'error');
                 }
                 return;
             }
             
             // Crear nueva solicitud
-            const { error } = await supabase
+            const { data: nuevaSolicitud, error } = await supabase
                 .from('grupo_solicitudes')
                 .insert([{
                     grupo_id: grupoId,
                     escuderia_id: miId,
                     estado: 'pendiente',
                     fecha_solicitud: new Date().toISOString()
-                }]);
+                }])
+                .select()
+                .single();
             
             if (error) throw error;
             
@@ -141,7 +146,7 @@ class PerfilManager {
                 .eq('grupo_id', grupoId)
                 .eq('es_admin', true);
             
-            // Notificar a cada administrador
+            // Notificar a cada administrador (guardando el ID de la solicitud en tipo_relacion)
             for (const admin of admins || []) {
                 const { data: adminUser } = await supabase
                     .from('escuderias')
@@ -155,7 +160,7 @@ class PerfilManager {
                         'grupo_solicitud',
                         '👥 Solicitud para unirse al grupo',
                         `${miNombre} quiere unirse a "${grupoNombre}"`,
-                        grupoId,
+                        nuevaSolicitud.id, // Pasamos el ID de la solicitud (UUID)
                         'grupo_solicitud'
                     );
                 }
@@ -175,6 +180,9 @@ class PerfilManager {
     /**
      * Aceptar solicitud de unión a grupo (desde notificación)
      */
+    // ========================
+    // ACEPTAR SOLICITUD DE GRUPO (mejorado con notificación al solicitante)
+    // ========================
     async aceptarSolicitudGrupo(solicitudId) {
         try {
             // Obtener datos de la solicitud
@@ -187,12 +195,12 @@ class PerfilManager {
             if (errorSolicitud || !solicitud) throw errorSolicitud;
             
             // Verificar que el grupo no esté lleno
-            const { data: miembros } = await supabase
+            const { data: miembros, count } = await supabase
                 .from('grupo_miembros')
-                .select('*')
+                .select('*', { count: 'exact' })
                 .eq('grupo_id', solicitud.grupo_id);
             
-            if (miembros && miembros.length >= solicitud.grupo.max_miembros) {
+            if (count >= solicitud.grupo.max_miembros) {
                 this.mostrarNotificacion('❌ El grupo ha alcanzado el máximo de miembros', 'error');
                 
                 // Rechazar automáticamente la solicitud
@@ -224,13 +232,13 @@ class PerfilManager {
             
             if (errorUpdate) throw errorUpdate;
             
-            // Actualizar la escudería del usuario (opcional)
+            // Actualizar la escudería del usuario
             await supabase
                 .from('escuderias')
                 .update({ grupo_id: solicitud.grupo_id })
                 .eq('id', solicitud.escuderia_id);
             
-            // Notificar al usuario que su solicitud fue aceptada
+            // NOTIFICAR AL SOLICITANTE que fue aceptado
             const { data: usuario } = await supabase
                 .from('escuderias')
                 .select('user_id')
@@ -242,13 +250,18 @@ class PerfilManager {
                     usuario.user_id,
                     'grupo_aceptada',
                     '✅ Solicitud aceptada',
-                    `Has sido aceptado en el grupo "${solicitud.grupo.nombre}"`,
-                    solicitud.grupo_id,
+                    `¡Has sido aceptado en el grupo "${solicitud.grupo.nombre}"!`,
+                    null, // No necesitamos ID aquí
                     'grupo_aceptada'
                 );
             }
             
-            this.mostrarNotificacion('✅ Solicitud aceptada', 'success');
+            this.mostrarNotificacion('✅ Solicitud aceptada. El usuario ha sido añadido al grupo.', 'success');
+            
+            // Recargar perfil si está abierto
+            if (this.modalAbierto) {
+                this.recargarPerfil();
+            }
             
         } catch (error) {
             console.error('❌ Error aceptando solicitud:', error);
@@ -259,14 +272,45 @@ class PerfilManager {
     /**
      * Rechazar solicitud de unión a grupo (desde notificación)
      */
+    // ========================
+    // RECHAZAR SOLICITUD DE GRUPO (mejorado con notificación al solicitante)
+    // ========================
     async rechazarSolicitudGrupo(solicitudId) {
         try {
+            // Obtener datos de la solicitud para la notificación
+            const { data: solicitud, error: errorSolicitud } = await supabase
+                .from('grupo_solicitudes')
+                .select('*, grupo:grupos_amigos(*), escuderia:escuderias(*)')
+                .eq('id', solicitudId)
+                .single();
+            
+            if (errorSolicitud || !solicitud) throw errorSolicitud;
+            
+            // Actualizar la solicitud como rechazada
             const { error } = await supabase
                 .from('grupo_solicitudes')
                 .update({ estado: 'rechazada', fecha_respuesta: new Date().toISOString() })
                 .eq('id', solicitudId);
             
             if (error) throw error;
+            
+            // NOTIFICAR AL SOLICITANTE que fue rechazado
+            const { data: usuario } = await supabase
+                .from('escuderias')
+                .select('user_id')
+                .eq('id', solicitud.escuderia_id)
+                .single();
+            
+            if (usuario?.user_id && window.notificacionesManager) {
+                await window.notificacionesManager.crearNotificacion(
+                    usuario.user_id,
+                    'grupo_rechazada',
+                    '❌ Solicitud rechazada',
+                    `Tu solicitud para unirte al grupo "${solicitud.grupo.nombre}" ha sido rechazada`,
+                    null,
+                    'grupo_rechazada'
+                );
+            }
             
             this.mostrarNotificacion('✅ Solicitud rechazada', 'success');
             
