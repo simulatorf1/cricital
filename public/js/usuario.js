@@ -1248,8 +1248,8 @@ class PerfilManager {
                 .from('mensajes')
                 .update({ leido: true })
                 .eq('conversacion_id', conversacionId)
-                .eq('leido', false)
-                .neq('sender_id', miId);
+                .eq('leido', false);
+
     
             if (error) throw error;
             
