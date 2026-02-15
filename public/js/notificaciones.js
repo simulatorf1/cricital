@@ -1118,82 +1118,36 @@ if (document.readyState === 'complete') {
 document.addEventListener('auth-completado', () => {
     setTimeout(iniciarNotificaciones, 2000);
 });
-// Forzar creación manual si no funciona
-setTimeout(() => {
-    if (!document.getElementById('seccion-mensajes')) {
-        console.log('⚠️ Creando sección de mensajes manualmente');
-        const seccion = document.createElement('div');
-        seccion.id = 'seccion-mensajes';
-        seccion.className = 'seccion-juego';
-        seccion.style.display = 'none';
-        seccion.innerHTML = `
-            <div class="mensajes-container">
-                <div class="mensajes-sidebar">
-                    <div class="buscador-usuarios">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="buscador-usuarios" placeholder="Buscar usuario...">
-                    </div>
-                    <div id="lista-conversaciones" class="lista-conversaciones"></div>
-                </div>
-                <div class="mensajes-chat" id="panel-chat">
-                    <div class="chat-placeholder">
-                        <i class="fas fa-comment-dots"></i>
-                        <p>Selecciona una conversación</p>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(seccion);
-    }
-    
-    // 🔴 ESTA PARTE PODRÍA ESTAR CREANDO UN BOTÓN DUPLICADO
-    // Forzar evento click en el botón
-    const btnMensajes = document.getElementById('mensajes-icono');
-    if (btnMensajes) {
-        btnMensajes.onclick = (e) => {
-            e.stopPropagation();
-            console.log('💬 Click forzado');
-            
-            document.querySelectorAll('.seccion-juego').forEach(s => s.style.display = 'none');
-            const seccion = document.getElementById('seccion-mensajes');
-            if (seccion) {
-                seccion.style.display = 'block';
-                if (typeof cargarConversaciones === 'function') {
-                    setTimeout(cargarConversaciones, 100);
-                }
-            }
-            
-            // 🔴 AQUÍ NO SE ESTÁ CREANDO EL BOTÓN, ASÍ QUE ESTÁ BIEN
-        };
-    }
-}, 3000);
-// ELIMINAR EL setInterval ANTERIOR Y PONER ESTE:
-let iconosCreados = false;
+// Inicializar cuando todo esté listo
+window.NotificacionesManager = NotificacionesManager;
 
-function asegurarIconosUnicos() {
-    if (iconosCreados) return;
+let inicializado = false;
+
+function iniciarNotificaciones() {
+    if (inicializado) return;
     
-    const estrellas = document.querySelector('.estrellas-display-compacto');
-    if (!estrellas) return;
-    
-    // Eliminar iconos existentes para evitar duplicados
-    document.getElementById('notificaciones-icono')?.remove();
-    document.getElementById('mensajes-icono')?.remove();
-    
-    // Crear iconos solo una vez
-    if (window.notificacionesManager) {
-        window.notificacionesManager.crearIcono();
-        window.notificacionesManager.crearIconoMensajes();
-        iconosCreados = true;
-        console.log('✅ Iconos creados correctamente');
+    if (!window.notificacionesManager) {
+        window.notificacionesManager = new NotificacionesManager();
+        window.notificacionesManager.inicializar();
+        inicializado = true;
+        console.log('✅ Sistema de notificaciones inicializado');
     }
 }
 
-// Ejecutar una sola vez cuando esté listo
+// Solo UNA forma de inicialización
 if (document.readyState === 'complete') {
-    setTimeout(asegurarIconosUnicos, 2000);
+    setTimeout(iniciarNotificaciones, 2000);
 } else {
-    window.addEventListener('load', () => setTimeout(asegurarIconosUnicos, 2000));
+    window.addEventListener('load', () => setTimeout(iniciarNotificaciones, 2000));
 }
+
+// También intentar después de auth (solo actualizar datos, no reinicializar)
+document.addEventListener('auth-completado', () => {
+    if (window.notificacionesManager) {
+        window.notificacionesManager.cargarContador();
+    } else {
+        setTimeout(iniciarNotificaciones, 1000);
+    }
+});
 
 console.log('✅ Sistema de notificaciones listo');
