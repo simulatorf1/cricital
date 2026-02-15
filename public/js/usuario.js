@@ -539,8 +539,9 @@ class PerfilManager {
                             GRUPO DE AMIGOS
                         </h3>
                         
+                        <!-- Mostrar información del grupo actual SI existe -->
                         ${datos.grupo ? `
-                            <div class="grupo-info">
+                            <div class="grupo-info" style="margin-bottom: 20px;">
                                 <div class="grupo-nombre">
                                     <i class="fas fa-users" style="color: #00d2be;"></i>
                                     <span>${datos.grupo.nombre}</span>
@@ -585,23 +586,35 @@ class PerfilManager {
                                 ` : ''}
                             </div>
                         ` : `
-                            <div class="grupo-vacio">
+                            <!-- Mensaje cuando NO tiene grupo -->
+                            <div class="grupo-vacio" style="margin-bottom: 20px;">
                                 <i class="fas fa-user-friends"></i>
                                 <p>${datos.escuderia.nombre} no pertenece a ningún grupo</p>
-                                ${esMiPerfil ? `
-                                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
-                                        <button class="btn-crear-grupo" onclick="window.perfilManager.mostrarOpcionesGrupo()">
-                                            <i class="fas fa-plus-circle"></i>
-                                            CREAR GRUPO
-                                        </button>
-                                        <button class="btn-unirse-grupo" onclick="window.perfilManager.mostrarUnirseGrupo()">
-                                            <i class="fas fa-sign-in-alt"></i>
-                                            UNIRSE A GRUPO
-                                        </button>
-                                    </div>
-                                ` : ''}
                             </div>
                         `}
+                        
+                        <!-- SIEMPRE mostrar opciones de grupo para el propietario del perfil -->
+                        ${esMiPerfil ? `
+                            <div class="grupo-acciones" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                                <p style="color: #aaa; font-size: 0.8rem; margin-bottom: 10px;">
+                                    <i class="fas fa-cog"></i> GESTIÓN DE GRUPOS:
+                                </p>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="btn-crear-grupo" onclick="window.perfilManager.mostrarOpcionesGrupo()" style="flex: 1;">
+                                        <i class="fas fa-plus-circle"></i>
+                                        CREAR NUEVO GRUPO
+                                    </button>
+                                    <button class="btn-unirse-grupo" onclick="window.perfilManager.mostrarUnirseGrupo()" style="flex: 1;">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                        UNIRSE A OTRO GRUPO
+                                    </button>
+                                </div>
+                                <p style="color: #888; font-size: 0.7rem; margin-top: 10px; text-align: center;">
+                                    <i class="fas fa-info-circle"></i>
+                                    Puedes pertenecer a varios grupos simultáneamente
+                                </p>
+                            </div>
+                        ` : ''}
                     </div>
                     
                     <div class="perfil-trofeos">
@@ -2288,7 +2301,35 @@ const perfilStyles = `
         padding-bottom: 20px;
         border-bottom: 2px solid rgba(0, 210, 190, 0.3);
     }
+    /* Estilos para acciones de grupo siempre visibles */
+    .grupo-acciones {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        padding: 15px;
+    }
     
+    .grupo-acciones .btn-crear-grupo,
+    .grupo-acciones .btn-unirse-grupo {
+        margin: 0;
+        padding: 12px;
+        font-size: 0.85rem;
+    }
+    
+    .grupo-acciones .btn-crear-grupo {
+        background: linear-gradient(135deg, #00d2be, #0066cc);
+        color: white;
+        border: none;
+    }
+    
+    .grupo-acciones .btn-unirse-grupo {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid #00d2be;
+        color: #00d2be;
+    }
+    
+    .grupo-acciones .btn-unirse-grupo:hover {
+        background: rgba(0, 210, 190, 0.2);
+    }    
     .perfil-avatar {
         width: 80px;
         height: 80px;
