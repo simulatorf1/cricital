@@ -31,7 +31,51 @@ if (!document.getElementById('estilos-notificaciones')) {
             display: flex;
             flex-direction: column;
         }
-
+        /* Fondo oscuro cuando los mensajes están abiertos */
+        #seccion-mensajes.active {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2147483646;
+            padding: 80px 20px 20px 20px;
+            backdrop-filter: blur(5px);
+        }
+        
+        #seccion-mensajes.active .mensajes-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            height: calc(100vh - 120px);
+            box-shadow: 0 0 30px rgba(0, 210, 190, 0.3);
+        }
+        
+        /* Botón de cierre */
+        .btn-cerrar-mensajes {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(225, 6, 0, 0.2);
+            border: 2px solid #e10600;
+            color: #e10600;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+            z-index: 2147483647;
+        }
+        
+        .btn-cerrar-mensajes:hover {
+            background: #e10600;
+            color: white;
+            transform: scale(1.1);
+        }
         .notificaciones-loading, .notificaciones-vacio, .notificaciones-error {
             padding: 40px 20px;
             text-align: center;
@@ -588,37 +632,48 @@ class NotificacionesManager {
     abrirSeccionMensajes() {
         console.log('💬 Abriendo sección de mensajes - INICIO');
         
-        // Ocultar todas las secciones
-        document.querySelectorAll('.seccion-juego').forEach(s => {
-            console.log('Ocultando:', s.id);
-            s.style.display = 'none';
-        });
-        
-        // Mostrar sección de mensajes
+        // Añadir clase active para el fondo oscuro
         const seccionMensajes = document.getElementById('seccion-mensajes');
-        console.log('Sección encontrada:', seccionMensajes);
-        
         if (seccionMensajes) {
+            seccionMensajes.classList.add('active');
             seccionMensajes.style.display = 'block';
-            console.log('Sección mostrada');
             
-            // Cargar conversaciones al abrir
-            if (typeof window.cargarConversaciones === 'function') {
-                console.log('Llamando a cargarConversaciones');
-                window.cargarConversaciones();
-            } else {
-                console.log('❌ cargarConversaciones no es función');
+            // Añadir botón de cierre si no existe
+            if (!document.getElementById('btn-cerrar-mensajes')) {
+                const btnCerrar = document.createElement('button');
+                btnCerrar.id = 'btn-cerrar-mensajes';
+                btnCerrar.className = 'btn-cerrar-mensajes';
+                btnCerrar.innerHTML = '<i class="fas fa-times"></i>';
+                btnCerrar.onclick = () => {
+                    seccionMensajes.classList.remove('active');
+                    seccionMensajes.style.display = 'none';
+                };
+                document.body.appendChild(btnCerrar);
             }
-        } else {
-            console.log('❌ No se encontró seccion-mensajes');
+            
+            // Cargar conversaciones
+            if (typeof window.cargarConversaciones === 'function') {
+                window.cargarConversaciones();
+            }
         }
         
         // Cerrar panel de notificaciones si está abierto
         if (this.panelAbierto) {
             this.cerrarPanel();
         }
+    }
+    cerrarSeccionMensajes() {
+        const seccion = document.getElementById('seccion-mensajes');
+        const btnCerrar = document.getElementById('btn-cerrar-mensajes');
         
-        console.log('💬 Abriendo sección de mensajes - FIN');
+        if (seccion) {
+            seccion.classList.remove('active');
+            seccion.style.display = 'none';
+        }
+        
+        if (btnCerrar) {
+            btnCerrar.remove();
+        }
     }
     
     // Cargar contador
