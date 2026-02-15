@@ -507,9 +507,8 @@ class NotificacionesManager {
         contenedor.onclick = (e) => {
             e.stopPropagation();
             e.preventDefault();
-            console.log('💬 Click en mensajes - ANTES de abrir');
-            this.abrirSeccionMensajes();
-            console.log('💬 Click en mensajes - DESPUÉS de abrir');
+            console.log('🔔 Click en notificaciones');
+            this.abrirPanel(); // <-- ESTO ES LO CORRECTO
         };
 
         // Cerrar al hacer clic fuera
@@ -570,7 +569,9 @@ class NotificacionesManager {
         // Evento click
         contenedor.onclick = (e) => {
             e.stopPropagation();
-            this.abrirSeccionMensajes();
+            e.preventDefault();
+            console.log('💬 Click en mensajes');
+            this.abrirSeccionMensajes(); // <-- ESTO ESTÁ BIEN
         };
     }
     // Crear sección de mensajes
