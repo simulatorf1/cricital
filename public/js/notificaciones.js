@@ -514,23 +514,139 @@ class NotificacionesManager {
     // Inicializar
     inicializar() {
         console.log('🔔 Inicializando notificaciones...');
+        
+        // Intentar crear icono
+        this.crearIcono();
+        
+        // Si no hay icono después de 2 segundos, crear el fallback
         setTimeout(() => {
-            this.crearIcono();
-            this.cargarContador();
-            this.iniciarPolling();
-            this.crearIconoMensajes();
-            this.crearSeccionMensajes();
+            if (!document.getElementById('notificaciones-icono')) {
+                console.log('📱 Usando fallback para móvil');
+                this.crearIconosFallback();
+            }
         }, 2000);
         
-        // RESPALDO: Si después de 5 segundos no se ha creado, lo forzamos
+        // Crear sección de mensajes
+        this.crearSeccionMensajes();
+        
+        // Cargar contadores
         setTimeout(() => {
-            if (!document.getElementById('seccion-mensajes')) {
-                console.log('⚠️ Forzando creación de sección de mensajes');
-                this.crearSeccionMensajes();
+            this.cargarContador();
+            if (typeof window.actualizarContadorMensajes === 'function') {
+                window.actualizarContadorMensajes();
             }
-        }, 5000);
+        }, 1000);
+        
+        // Iniciar polling
+        this.iniciarPolling();
     }
-
+    crearIconosFallback() {
+        console.log('📱 Creando iconos flotantes para móvil');
+        
+        // Si ya existen, no hacer nada
+        if (document.getElementById('notificaciones-icono') || 
+            document.getElementById('mensajes-icono')) {
+            return;
+        }
+        
+        // Crear contenedor flotante
+        const container = document.createElement('div');
+        container.id = 'iconos-flotantes';
+        container.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 15px;
+            z-index: 999999;
+            background: rgba(26, 26, 46, 0.9);
+            padding: 8px 15px;
+            border-radius: 30px;
+            border: 1px solid #00d2be;
+            backdrop-filter: blur(5px);
+        `;
+        
+        // Icono notificaciones
+        const notiIcono = document.createElement('div');
+        notiIcono.id = 'notificaciones-icono';
+        notiIcono.style.cssText = `
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 5px;
+        `;
+        notiIcono.innerHTML = `
+            <i class="fas fa-bell" style="color: #888; font-size: 1.3rem;"></i>
+            <span id="notificaciones-contador" style="
+                position: absolute;
+                top: -2px;
+                right: -2px;
+                background: #e10600;
+                color: white;
+                font-size: 0.7rem;
+                font-weight: bold;
+                min-width: 18px;
+                height: 18px;
+                border-radius: 9px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 4px;
+                display: none;
+            ">0</span>
+        `;
+        
+        // Icono mensajes
+        const msgIcono = document.createElement('div');
+        msgIcono.id = 'mensajes-icono';
+        msgIcono.style.cssText = `
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 5px;
+        `;
+        msgIcono.innerHTML = `
+            <i class="fas fa-comment" style="color: #888; font-size: 1.3rem;"></i>
+            <span id="mensajes-contador" style="
+                position: absolute;
+                top: -2px;
+                right: -2px;
+                background: #e10600;
+                color: white;
+                font-size: 0.7rem;
+                font-weight: bold;
+                min-width: 18px;
+                height: 18px;
+                border-radius: 9px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 4px;
+                display: none;
+            ">0</span>
+        `;
+        
+        // Eventos
+        notiIcono.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.abrirPanel();
+        };
+        
+        msgIcono.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.abrirSeccionMensajes();
+        };
+        
+        container.appendChild(notiIcono);
+        container.appendChild(msgIcono);
+        document.body.appendChild(container);
+        
+        console.log('✅ Iconos flotantes creados');
+}
     // Crear icono
     crearIcono() {
         const estrellas = document.querySelector('.estrellas-display-compacto');
@@ -1098,102 +1214,28 @@ class NotificacionesManager {
 }
 
 // Inicializar cuando todo esté listo
+// ========================
+// INICIALIZACIÓN SIMPLE (PON ESTO AL FINAL DEL ARCHIVO)
+// ========================
 window.NotificacionesManager = NotificacionesManager;
 
 function iniciarNotificaciones() {
     if (!window.notificacionesManager) {
+        console.log('🔔 Creando notificacionesManager...');
         window.notificacionesManager = new NotificacionesManager();
         window.notificacionesManager.inicializar();
+    } else {
+        console.log('🔔 notificacionesManager ya existe');
     }
 }
 
-// Intentar varias veces
-if (document.readyState === 'complete') {
-    setTimeout(iniciarNotificaciones, 2000);
+// SOLO UNA EJECUCIÓN cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(iniciarNotificaciones, 1500);
+    });
 } else {
-    window.addEventListener('load', () => setTimeout(iniciarNotificaciones, 2000));
-}
-
-// También intentar después de auth
-document.addEventListener('auth-completado', () => {
-    setTimeout(iniciarNotificaciones, 2000);
-});
-// Forzar creación manual si no funciona
-setTimeout(() => {
-    if (!document.getElementById('seccion-mensajes')) {
-        console.log('⚠️ Creando sección de mensajes manualmente');
-        const seccion = document.createElement('div');
-        seccion.id = 'seccion-mensajes';
-        seccion.className = 'seccion-juego';
-        seccion.style.display = 'none';
-        seccion.innerHTML = `
-            <div class="mensajes-container">
-                <div class="mensajes-sidebar">
-                    <div class="buscador-usuarios">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="buscador-usuarios" placeholder="Buscar usuario...">
-                    </div>
-                    <div id="lista-conversaciones" class="lista-conversaciones"></div>
-                </div>
-                <div class="mensajes-chat" id="panel-chat">
-                    <div class="chat-placeholder">
-                        <i class="fas fa-comment-dots"></i>
-                        <p>Selecciona una conversación</p>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(seccion);
-    }
-    
-    // 🔴 ESTA PARTE PODRÍA ESTAR CREANDO UN BOTÓN DUPLICADO
-    // Forzar evento click en el botón
-    const btnMensajes = document.getElementById('mensajes-icono');
-    if (btnMensajes) {
-        btnMensajes.onclick = (e) => {
-            e.stopPropagation();
-            console.log('💬 Click forzado');
-            
-            document.querySelectorAll('.seccion-juego').forEach(s => s.style.display = 'none');
-            const seccion = document.getElementById('seccion-mensajes');
-            if (seccion) {
-                seccion.style.display = 'block';
-                if (typeof cargarConversaciones === 'function') {
-                    setTimeout(cargarConversaciones, 100);
-                }
-            }
-            
-            // 🔴 AQUÍ NO SE ESTÁ CREANDO EL BOTÓN, ASÍ QUE ESTÁ BIEN
-        };
-    }
-}, 3000);
-// ELIMINAR EL setInterval ANTERIOR Y PONER ESTE:
-let iconosCreados = false;
-
-function asegurarIconosUnicos() {
-    if (iconosCreados) return;
-    
-    const estrellas = document.querySelector('.estrellas-display-compacto');
-    if (!estrellas) return;
-    
-    // Eliminar iconos existentes para evitar duplicados
-    document.getElementById('notificaciones-icono')?.remove();
-    document.getElementById('mensajes-icono')?.remove();
-    
-    // Crear iconos solo una vez
-    if (window.notificacionesManager) {
-        window.notificacionesManager.crearIcono();
-        window.notificacionesManager.crearIconoMensajes();
-        iconosCreados = true;
-        console.log('✅ Iconos creados correctamente');
-    }
-}
-
-// Ejecutar una sola vez cuando esté listo
-if (document.readyState === 'complete') {
-    setTimeout(asegurarIconosUnicos, 2000);
-} else {
-    window.addEventListener('load', () => setTimeout(asegurarIconosUnicos, 2000));
+    setTimeout(iniciarNotificaciones, 1500);
 }
 
 console.log('✅ Sistema de notificaciones listo');
