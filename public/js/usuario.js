@@ -2632,7 +2632,7 @@ async function cargarConversaciones() {
 
 // Renderizar conversaciones
 async function renderizarConversaciones(conversaciones) {
-    const contenedor = document.getElementById('lista-conversaciones');
+    const contenedor = document.getElementById('lista-conversaciones-chat') || document.getElementById('lista-conversaciones');
     if (!contenedor) return;
     
     if (!conversaciones?.length) {
@@ -2779,7 +2779,7 @@ window.iniciarChatConUsuario = async function(otroUsuarioId, otroUsuarioNombre) 
 document.addEventListener('input', async function(e) {
     if (e.target.id === 'buscador-usuarios') {
         const busqueda = e.target.value.trim();
-        const contenedor = document.getElementById('lista-conversaciones');
+        const contenedor = document.getElementById('lista-conversaciones-chat') || document.getElementById('lista-conversaciones');
         
         if (busqueda.length < 2) {
             cargarConversaciones();
