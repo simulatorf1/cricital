@@ -172,6 +172,7 @@ class NotificacionesManager {
             this.cargarContador();
             this.iniciarPolling();
             this.crearIconoMensajes();
+            this.crearSeccionMensajes();
         }, 2000); // Esperar a que cargue el dashboard
     }
 
@@ -233,6 +234,44 @@ class NotificacionesManager {
             }
         });
     }
+
+    // EN notificaciones.js, DENTRO de la clase, crea este método:
+    crearSeccionMensajes() {
+        // Si ya existe, no la crees de nuevo
+        if (document.getElementById('seccion-mensajes')) return;
+        
+        const seccion = document.createElement('div');
+        seccion.id = 'seccion-mensajes';
+        seccion.className = 'seccion-juego';
+        seccion.style.display = 'none';
+        seccion.innerHTML = `
+            <div class="mensajes-container">
+                <div class="mensajes-sidebar">
+                    <div class="buscador-usuarios">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="buscador-usuarios" placeholder="Buscar usuario...">
+                    </div>
+                    <div id="lista-conversaciones" class="lista-conversaciones">
+                        <!-- Aquí irán las conversaciones -->
+                    </div>
+                </div>
+                
+                <div class="mensajes-chat" id="panel-chat">
+                    <div class="chat-placeholder">
+                        <i class="fas fa-comment-dots"></i>
+                        <p>Selecciona una conversación</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Añadir al DOM (donde están las otras secciones)
+        const contenedorPrincipal = document.querySelector('.contenido-principal') || 
+                                    document.querySelector('main') || 
+                                    document.body;
+        contenedorPrincipal.appendChild(seccion);
+    }
+    
     // ========================
     // CREAR ICONO DE MENSAJES
     // ========================
