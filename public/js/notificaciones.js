@@ -518,10 +518,8 @@ class NotificacionesManager {
         // Intentar crear icono de notificaciones
         this.crearIcono();
         
-        // Intentar crear icono de mensajes TAMBIÉN
-        if (typeof this.crearIconoMensajes === 'function') {
-            this.crearIconoMensajes();
-        }
+        // 🔴 AÑADE ESTA LÍNEA - CREA EL ICONO DE MENSAJES
+        this.crearIconoMensajes();
         
         // Si no hay iconos después de 2 segundos, usar fallback
         setTimeout(() => {
