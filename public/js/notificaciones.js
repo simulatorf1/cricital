@@ -150,6 +150,7 @@ class NotificacionesManager {
             this.crearIcono();
             this.cargarContador();
             this.iniciarPolling();
+            this.crearIconoMensajes();
         }, 2000); // Esperar a que cargue el dashboard
     }
 
@@ -211,7 +212,79 @@ class NotificacionesManager {
             }
         });
     }
-
+    // ========================
+    // CREAR ICONO DE MENSAJES
+    // ========================
+    crearIconoMensajes() {
+        const iconoNotis = document.getElementById('notificaciones-icono');
+        if (!iconoNotis) {
+            console.log('❌ No se encontró icono de notis, reintentando...');
+            setTimeout(() => this.crearIconoMensajes(), 1000);
+            return;
+        }
+    
+        console.log('✅ Insertando icono de mensajes');
+    
+        const contenedor = document.createElement('div');
+        contenedor.id = 'mensajes-icono';
+        contenedor.style.cssText = `
+            position: relative;
+            margin-left: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        `;
+        contenedor.innerHTML = `
+            <i class="fas fa-comment" style="color: #888; font-size: 1.2rem;"></i>
+            <span id="mensajes-contador" style="
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: #e10600;
+                color: white;
+                font-size: 0.65rem;
+                font-weight: bold;
+                min-width: 16px;
+                height: 16px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 3px;
+                display: none;
+            ">0</span>
+        `;
+    
+        // Insertar DESPUÉS del icono de notificaciones
+        iconoNotis.parentNode.insertBefore(contenedor, iconoNotis.nextSibling);
+    
+        // Evento click
+        contenedor.onclick = (e) => {
+            e.stopPropagation();
+            this.abrirSeccionMensajes();
+        };
+    }
+    
+    // ========================
+    // ABRIR SECCIÓN DE MENSAJES
+    // ========================
+    abrirSeccionMensajes() {
+        console.log('💬 Abriendo sección de mensajes');
+        
+        // Ocultar todas las secciones
+        document.querySelectorAll('.seccion-juego').forEach(s => s.style.display = 'none');
+        
+        // Mostrar sección de mensajes (la crearás en el HTML)
+        const seccionMensajes = document.getElementById('seccion-mensajes');
+        if (seccionMensajes) {
+            seccionMensajes.style.display = 'block';
+        }
+        
+        // Cerrar panel de notificaciones si está abierto
+        if (this.panelAbierto) {
+            this.cerrarPanel();
+        }
+    }
     // Cargar contador
     async cargarContador() {
         if (!window.f1Manager?.user?.id) return;
