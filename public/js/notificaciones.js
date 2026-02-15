@@ -36,6 +36,7 @@ if (!document.getElementById('estilos-notificaciones')) {
             text-align: center;
             color: #888;
         }
+        
         .boton-header {
             background: none;
             border: none;
@@ -58,6 +59,7 @@ if (!document.getElementById('estilos-notificaciones')) {
             min-width: 18px;
             text-align: center;
         }
+        
         .notificaciones-loading i, .notificaciones-vacio i, .notificaciones-error i {
             font-size: 2rem;
             margin-bottom: 10px;
@@ -235,7 +237,7 @@ class NotificacionesManager {
         });
     }
 
-    // EN notificaciones.js, DENTRO de la clase, crea este método:
+    // Crear sección de mensajes
     crearSeccionMensajes() {
         // Si ya existe, no la crees de nuevo
         if (document.getElementById('seccion-mensajes')) return;
@@ -334,10 +336,14 @@ class NotificacionesManager {
         // Ocultar todas las secciones
         document.querySelectorAll('.seccion-juego').forEach(s => s.style.display = 'none');
         
-        // Mostrar sección de mensajes (la crearás en el HTML)
+        // Mostrar sección de mensajes
         const seccionMensajes = document.getElementById('seccion-mensajes');
         if (seccionMensajes) {
             seccionMensajes.style.display = 'block';
+            // Cargar conversaciones al abrir
+            if (typeof cargarConversaciones === 'function') {
+                cargarConversaciones();
+            }
         }
         
         // Cerrar panel de notificaciones si está abierto
@@ -345,6 +351,7 @@ class NotificacionesManager {
             this.cerrarPanel();
         }
     }
+    
     // Cargar contador
     async cargarContador() {
         if (!window.f1Manager?.user?.id) return;
@@ -426,6 +433,7 @@ class NotificacionesManager {
         panel.style.top = (rect.bottom + 10) + 'px';
         panel.style.right = (window.innerWidth - rect.right) + 'px';
     }
+    
     // ============================================
     // MÉTODO PARA CREAR NOTIFICACIONES NUEVAS
     // ============================================
@@ -474,6 +482,7 @@ class NotificacionesManager {
             return false;
         }
     }
+    
     // Cargar notificaciones
     async cargarNotificaciones() {
         if (!window.f1Manager?.user?.id) return;
