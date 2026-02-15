@@ -175,7 +175,15 @@ class NotificacionesManager {
             this.iniciarPolling();
             this.crearIconoMensajes();
             this.crearSeccionMensajes();
-        }, 2000); // Esperar a que cargue el dashboard
+        }, 2000);
+        
+        // RESPALDO: Si después de 5 segundos no se ha creado, lo forzamos
+        setTimeout(() => {
+            if (!document.getElementById('seccion-mensajes')) {
+                console.log('⚠️ Forzando creación de sección de mensajes');
+                this.crearSeccionMensajes();
+            }
+        }, 5000);
     }
 
     // Crear icono
