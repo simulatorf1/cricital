@@ -641,6 +641,10 @@ class PerfilManager {
                                         CREAR NUEVO GRUPO
                                     </button>
                                 </div>
+                                <p style="color: #888; font-size: 0.7rem; margin-top: 10px; text-align: center;">
+                                    <i class="fas fa-info-circle"></i>
+                                    Como creador del grupo, recibirás notificaciones cuando alguien quiera unirse
+                                </p>
                             </div>
                         ` : ''}
                     </div>
