@@ -1247,20 +1247,55 @@ class PerfilManager {
                 .neq('sender_id', window.f1Manager.escuderia.id)
                 .eq('leido', false);
             
-            // FORZAR ACTUALIZACIÓN INMEDIATA
-            if (typeof window.actualizarContadorMensajes === 'function') {
-                await window.actualizarContadorMensajes();
-            }
+            // 1. ACTUALIZAR CONTADOR GLOBAL
+            await window.actualizarContadorMensajes();
             
-            // RECARGAR CONVERSACIONES
+            // 2. RECARGAR CONVERSACIONES PARA QUITAR EL NÚMERO DE LA LISTA
             if (typeof window.cargarConversaciones === 'function') {
                 await window.cargarConversaciones();
             }
             
+            // 3. FORZAR QUE EL CONTADOR DEL ICONO DESAPAREZCA INMEDIATAMENTE
+            const contadorIcono = document.getElementById('mensajes-contador');
+            const conversacionesRestantes = await this.verificarSiHayMasNoLeidos();
+            
+            if (contadorIcono) {
+                if (conversacionesRestantes > 0) {
+                    contadorIcono.textContent = conversacionesRestantes;
+                    contadorIcono.style.display = 'flex';
+                } else {
+                    contadorIcono.style.display = 'none';
+                }
+            }
+            
             console.log('✅ Mensajes marcados como leídos');
+            
         } catch (error) {
             console.error('❌ Error marcando mensajes:', error);
         }
+    }
+    
+    // AÑADE ESTE MÉTODO NUEVO justo después de marcarMensajesLeidos
+    async verificarSiHayMasNoLeidos() {
+        const miId = window.f1Manager?.escuderia?.id;
+        if (!miId) return 0;
+        
+        const { data: conversaciones } = await supabase
+            .from('conversaciones')
+            .select('id')
+            .or(`escuderia1_id.eq.${miId},escuderia2_id.eq.${miId}`);
+        
+        let total = 0;
+        for (const conv of conversaciones || []) {
+            const { count } = await supabase
+                .from('mensajes')
+                .select('*', { count: 'exact', head: true })
+                .eq('conversacion_id', conv.id)
+                .eq('leido', false)
+                .neq('sender_id', miId);
+            total += count;
+        }
+        return total;
     }
     
     /**
