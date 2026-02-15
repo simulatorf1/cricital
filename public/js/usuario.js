@@ -1238,55 +1238,54 @@ class PerfilManager {
     /**
      * Marcar mensajes como leídos
      */
+    // CÓDIGO CORREGIDO - USA ESTO EN TU MÉTODO
+    
     async marcarMensajesLeidos(conversacionId) {
         try {
-            const miId = window.f1Manager?.escuderia?.id;
-            if (!miId) return;
-    
-            // Marcar mensajes como leídos (solo los que NO son míos)
-            const { error } = await supabase
+            console.log(`🔵 Marcando conversación: ${conversacionId}`);
+            
+            // FUERZA BRUTA - SIN CONDICIONES COMPLEJAS
+            const { data, error } = await supabase
                 .from('mensajes')
                 .update({ leido: true })
+                .match({ 
+                    conversacion_id: conversacionId, 
+                    leido: false 
+                });
+            
+            if (error) {
+                console.error('❌ Error:', error);
+                return;
+            }
+            
+            console.log(`✅ Update ejecutado`);
+            
+            // Verificar
+            const { count } = await supabase
+                .from('mensajes')
+                .select('*', { count: 'exact', head: true })
                 .eq('conversacion_id', conversacionId)
                 .eq('leido', false);
-
-    
-            if (error) throw error;
             
-            console.log('✅ Mensajes marcados como leídos en conversación:', conversacionId);
-    
-            // 1. ACTUALIZAR CONTADOR GLOBAL
-            await window.actualizarContadorMensajes();
+            console.log(`📌 Quedan: ${count}`);
             
-            // 2. RECARGAR CONVERSACIONES INMEDIATAMENTE (sin setTimeout)
-            if (typeof window.cargarConversaciones === 'function') {
-                await window.cargarConversaciones();
-            }
-            
-            // 3. ACTUALIZAR EL ELEMENTO ESPECÍFICO EN LA LISTA (por si acaso)
-            const itemConversacion = document.querySelector(`.conversacion-item[data-conversacion-id="${conversacionId}"]`);
-            if (itemConversacion) {
-                const badge = itemConversacion.querySelector('.conversacion-no-leidos');
-                if (badge) {
-                    badge.remove(); // Eliminar el número visualmente
+            if (count === 0) {
+                // Actualizar UI
+                await window.actualizarContadorMensajes();
+                if (typeof window.cargarConversaciones === 'function') {
+                    await window.cargarConversaciones();
                 }
-                itemConversacion.classList.remove('tiene-no-leidos');
-            }
-            
-            // 4. ACTUALIZAR ICONO GLOBAL
-            const contadorIcono = document.getElementById('mensajes-contador');
-            if (contadorIcono) {
-                const totalNoLeidos = await this.contarMensajesNoLeidos();
-                if (totalNoLeidos > 0) {
-                    contadorIcono.textContent = totalNoLeidos > 99 ? '99+' : totalNoLeidos;
-                    contadorIcono.style.display = 'flex';
-                } else {
-                    contadorIcono.style.display = 'none';
+                
+                // Quitar badge
+                const itemConv = document.querySelector(`[onclick*="${conversacionId}"]`);
+                if (itemConv) {
+                    const badge = itemConv.querySelector('.conversacion-no-leidos');
+                    if (badge) badge.remove();
                 }
             }
             
         } catch (error) {
-            console.error('❌ Error marcando mensajes:', error);
+            console.error('❌ Error:', error);
         }
     }
     
