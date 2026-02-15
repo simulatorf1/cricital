@@ -1249,21 +1249,31 @@ class PerfilManager {
                 .update({ leido: true })
                 .eq('conversacion_id', conversacionId)
                 .eq('leido', false)
-                .neq('sender_id', miId);  // ❗ IMPORTANTE: solo mensajes de otros
+                .neq('sender_id', miId);
     
             if (error) throw error;
             
-            console.log('✅ Mensajes marcados como leídos');
+            console.log('✅ Mensajes marcados como leídos en conversación:', conversacionId);
     
-            // 1. Actualizar contador global
+            // 1. ACTUALIZAR CONTADOR GLOBAL
             await window.actualizarContadorMensajes();
             
-            // 2. Recargar lista de conversaciones (para quitar el número)
+            // 2. RECARGAR CONVERSACIONES INMEDIATAMENTE (sin setTimeout)
             if (typeof window.cargarConversaciones === 'function') {
                 await window.cargarConversaciones();
             }
             
-            // 3. ACTUALIZAR EL ICONO DIRECTAMENTE
+            // 3. ACTUALIZAR EL ELEMENTO ESPECÍFICO EN LA LISTA (por si acaso)
+            const itemConversacion = document.querySelector(`.conversacion-item[data-conversacion-id="${conversacionId}"]`);
+            if (itemConversacion) {
+                const badge = itemConversacion.querySelector('.conversacion-no-leidos');
+                if (badge) {
+                    badge.remove(); // Eliminar el número visualmente
+                }
+                itemConversacion.classList.remove('tiene-no-leidos');
+            }
+            
+            // 4. ACTUALIZAR ICONO GLOBAL
             const contadorIcono = document.getElementById('mensajes-contador');
             if (contadorIcono) {
                 const totalNoLeidos = await this.contarMensajesNoLeidos();
@@ -2629,6 +2639,7 @@ async function cargarConversaciones() {
 }
 
 // Renderizar conversaciones
+// Renderizar conversaciones
 async function renderizarConversaciones(conversaciones) {
     const contenedor = document.getElementById('lista-conversaciones');
     if (!contenedor) return;
@@ -2639,14 +2650,35 @@ async function renderizarConversaciones(conversaciones) {
     }
     
     const miId = window.f1Manager.escuderia.id;
+    
+    // Primero, obtener TODOS los contadores de una sola vez (más eficiente)
+    const promesasContadores = conversaciones.map(async (conv) => {
+        const { count } = await supabase
+            .from('mensajes')
+            .select('*', { count: 'exact', head: true })
+            .eq('conversacion_id', conv.id)
+            .eq('leido', false)
+            .neq('sender_id', miId);
+        
+        return { conversacionId: conv.id, noLeidos: count || 0 };
+    });
+    
+    const contadores = await Promise.all(promesasContadores);
+    const mapaContadores = Object.fromEntries(
+        contadores.map(c => [c.conversacionId, c.noLeidos])
+    );
+    
+    // Generar HTML
     let html = '';
     
     for (const conv of conversaciones) {
         const otro = conv.escuderia1_id === miId ? conv.escuderia2 : conv.escuderia1;
-        const noLeidos = await contarNoLeidos(conv.id, miId);
+        const noLeidos = mapaContadores[conv.id] || 0;
 
         html += `
-            <div class="conversacion-item" onclick="window.perfilManager.abrirChatDesdeLista('${conv.id}', '${otro.id}')">
+            <div class="conversacion-item ${noLeidos > 0 ? 'tiene-no-leidos' : ''}" 
+                 onclick="window.perfilManager.abrirChatDesdeLista('${conv.id}', '${otro.id}')"
+                 data-conversacion-id="${conv.id}">
                 <div class="conversacion-avatar">
                     <i class="fas fa-flag-checkered"></i>
                 </div>
@@ -2661,7 +2693,6 @@ async function renderizarConversaciones(conversaciones) {
     
     contenedor.innerHTML = html;
 }
-
 // Contar mensajes no leídos
 async function contarNoLeidos(conversacionId, miId) {
     const { count } = await supabase
