@@ -224,7 +224,9 @@ class NotificacionesManager {
         // Evento click
         contenedor.onclick = (e) => {
             e.stopPropagation();
-            this.abrirPanel();
+            e.preventDefault();
+            console.log('💬 Click en mensajes'); // Para ver si llega
+            this.abrirSeccionMensajes();
         };
 
         // Cerrar al hacer clic fuera
