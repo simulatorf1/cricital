@@ -233,8 +233,9 @@ class NotificacionesManager {
         contenedor.onclick = (e) => {
             e.stopPropagation();
             e.preventDefault();
-            console.log('💬 Click en mensajes'); // Para ver si llega
+            console.log('💬 Click en mensajes - ANTES de abrir');
             this.abrirSeccionMensajes();
+            console.log('💬 Click en mensajes - DESPUÉS de abrir');
         };
 
         // Cerrar al hacer clic fuera
@@ -341,25 +342,39 @@ class NotificacionesManager {
     // ABRIR SECCIÓN DE MENSAJES
     // ========================
     abrirSeccionMensajes() {
-        console.log('💬 Abriendo sección de mensajes');
+        console.log('💬 Abriendo sección de mensajes - INICIO');
         
         // Ocultar todas las secciones
-        document.querySelectorAll('.seccion-juego').forEach(s => s.style.display = 'none');
+        document.querySelectorAll('.seccion-juego').forEach(s => {
+            console.log('Ocultando:', s.id);
+            s.style.display = 'none';
+        });
         
         // Mostrar sección de mensajes
         const seccionMensajes = document.getElementById('seccion-mensajes');
+        console.log('Sección encontrada:', seccionMensajes);
+        
         if (seccionMensajes) {
             seccionMensajes.style.display = 'block';
+            console.log('Sección mostrada');
+            
             // Cargar conversaciones al abrir
-            if (typeof cargarConversaciones === 'function') {
-                cargarConversaciones();
+            if (typeof window.cargarConversaciones === 'function') {
+                console.log('Llamando a cargarConversaciones');
+                window.cargarConversaciones();
+            } else {
+                console.log('❌ cargarConversaciones no es función');
             }
+        } else {
+            console.log('❌ No se encontró seccion-mensajes');
         }
         
         // Cerrar panel de notificaciones si está abierto
         if (this.panelAbierto) {
             this.cerrarPanel();
         }
+        
+        console.log('💬 Abriendo sección de mensajes - FIN');
     }
     
     // Cargar contador
