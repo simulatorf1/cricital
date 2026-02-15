@@ -1246,6 +1246,11 @@ class PerfilManager {
                 .eq('conversacion_id', conversacionId)
                 .neq('sender_id', window.f1Manager.escuderia.id)
                 .eq('leido', false);
+            
+            // Actualizar contador global
+            if (typeof window.actualizarContadorMensajes === 'function') {
+                window.actualizarContadorMensajes();
+            }
         } catch (error) {
             console.error('❌ Error marcando mensajes:', error);
         }
