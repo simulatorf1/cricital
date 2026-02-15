@@ -681,8 +681,17 @@ class NotificacionesManager {
     // ========================
     // ABRIR SECCIÓN DE MENSAJES
     // ========================
+    // ========================
+    // ABRIR SECCIÓN DE MENSAJES
+    // ========================
     abrirSeccionMensajes() {
         console.log('💬 Abriendo sección de mensajes - INICIO');
+        
+        // ELIMINAR CUALQUIER BOTÓN DE CIERRE EXISTENTE PRIMERO
+        const btnExistente = document.getElementById('btn-cerrar-mensajes');
+        if (btnExistente) {
+            btnExistente.remove();
+        }
         
         // Añadir clase active para el fondo oscuro
         const seccionMensajes = document.getElementById('seccion-mensajes');
@@ -697,8 +706,7 @@ class NotificacionesManager {
                 btnCerrar.className = 'btn-cerrar-mensajes';
                 btnCerrar.innerHTML = '<i class="fas fa-times"></i>';
                 btnCerrar.onclick = () => {
-                    seccionMensajes.classList.remove('active');
-                    seccionMensajes.style.display = 'none';
+                    this.cerrarSeccionMensajes(); // USAR EL MÉTODO, NO FUNCIÓN ANÓNIMA
                 };
                 document.body.appendChild(btnCerrar);
             }
@@ -725,6 +733,12 @@ class NotificacionesManager {
         
         if (btnCerrar) {
             btnCerrar.remove();
+        }
+        
+        // También limpiar cualquier canal de suscripción si existe
+        if (this.panelChannelRef) {
+            supabase.removeChannel(this.panelChannelRef);
+            this.panelChannelRef = null;
         }
     }
     
@@ -1100,6 +1114,7 @@ setTimeout(() => {
         document.body.appendChild(seccion);
     }
     
+    // 🔴 ESTA PARTE PODRÍA ESTAR CREANDO UN BOTÓN DUPLICADO
     // Forzar evento click en el botón
     const btnMensajes = document.getElementById('mensajes-icono');
     if (btnMensajes) {
@@ -1115,9 +1130,11 @@ setTimeout(() => {
                     setTimeout(cargarConversaciones, 100);
                 }
             }
+            
+            // 🔴 AQUÍ NO SE ESTÁ CREANDO EL BOTÓN, ASÍ QUE ESTÁ BIEN
         };
     }
-}, 3000); // Esperar 3 segundos
+}, 3000);
 // ELIMINAR EL setInterval ANTERIOR Y PONER ESTE:
 let iconosCreados = false;
 
