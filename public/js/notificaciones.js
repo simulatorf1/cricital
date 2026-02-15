@@ -698,5 +698,50 @@ if (document.readyState === 'complete') {
 document.addEventListener('auth-completado', () => {
     setTimeout(iniciarNotificaciones, 2000);
 });
-
+// Forzar creación manual si no funciona
+setTimeout(() => {
+    if (!document.getElementById('seccion-mensajes')) {
+        console.log('⚠️ Creando sección de mensajes manualmente');
+        const seccion = document.createElement('div');
+        seccion.id = 'seccion-mensajes';
+        seccion.className = 'seccion-juego';
+        seccion.style.display = 'none';
+        seccion.innerHTML = `
+            <div class="mensajes-container">
+                <div class="mensajes-sidebar">
+                    <div class="buscador-usuarios">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="buscador-usuarios" placeholder="Buscar usuario...">
+                    </div>
+                    <div id="lista-conversaciones" class="lista-conversaciones"></div>
+                </div>
+                <div class="mensajes-chat" id="panel-chat">
+                    <div class="chat-placeholder">
+                        <i class="fas fa-comment-dots"></i>
+                        <p>Selecciona una conversación</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(seccion);
+    }
+    
+    // Forzar evento click en el botón
+    const btnMensajes = document.getElementById('mensajes-icono');
+    if (btnMensajes) {
+        btnMensajes.onclick = (e) => {
+            e.stopPropagation();
+            console.log('💬 Click forzado');
+            
+            document.querySelectorAll('.seccion-juego').forEach(s => s.style.display = 'none');
+            const seccion = document.getElementById('seccion-mensajes');
+            if (seccion) {
+                seccion.style.display = 'block';
+                if (typeof cargarConversaciones === 'function') {
+                    setTimeout(cargarConversaciones, 100);
+                }
+            }
+        };
+    }
+}, 3000); // Esperar 3 segundos
 console.log('✅ Sistema de notificaciones listo');
