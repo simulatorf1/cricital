@@ -2690,6 +2690,13 @@ console.log('✅ Sistema de perfiles listo');
 // ========================
 // Crear instancia inmediatamente y exponerla
 window.perfilManager = new PerfilManager();
+
+// ========================
+// EXPONER FUNCIONES GLOBALES PARA MENSAJES
+// ========================
+window.cargarConversaciones = cargarConversaciones;
+window.actualizarContadorMensajes = actualizarContadorMensajes;
+
 console.log('✅ PerfilManager instanciado globalmente');
 
 // También asegurar que se pueda acceder después de carga completa
