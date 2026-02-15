@@ -36,7 +36,21 @@ if (!document.getElementById('estilos-notificaciones')) {
             text-align: center;
             color: #888;
         }
+
+        .chat-panel-mensajes {
+            flex: 1 1 auto;
+            overflow-y: auto !important;
+            overflow-x: hidden;
+            height: 100%;
+            min-height: 0;
+            max-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
         
+        .chat-panel-mensajes > :last-child {
+            margin-bottom: 10px;
+        }        
         .boton-header {
             background: none;
             border: none;
@@ -1104,4 +1118,19 @@ setTimeout(() => {
         };
     }
 }, 3000); // Esperar 3 segundos
+// FORZAR VISIBILIDAD DE ICONOS EN MÓVIL
+setInterval(() => {
+    const iconoNotis = document.getElementById('notificaciones-icono');
+    const iconoMensajes = document.getElementById('mensajes-icono');
+    const estrellas = document.querySelector('.estrellas-display-compacto');
+    
+    if (estrellas && (!iconoNotis || !iconoMensajes)) {
+        console.log('📱 Recreando iconos en móvil...');
+        if (window.notificacionesManager) {
+            if (!iconoNotis) window.notificacionesManager.crearIcono();
+            if (!iconoMensajes) window.notificacionesManager.crearIconoMensajes();
+        }
+    }
+}, 5000);
+
 console.log('✅ Sistema de notificaciones listo');
