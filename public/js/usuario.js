@@ -1537,6 +1537,7 @@ class PerfilManager {
     /**
      * Mostrar chat en el panel principal
      */
+
     mostrarChatEnPanel(conversacionId, otroUsuarioId) {
         const panel = document.getElementById('panel-chat');
         if (!panel) return;
@@ -1550,25 +1551,39 @@ class PerfilManager {
         const itemActivo = document.querySelector(`[onclick*="${conversacionId}"]`);
         if (itemActivo) itemActivo.classList.add('activa');
         
+        // ESTRUCTURA CORREGIDA: header fijo, mensajes con scroll, input fijo abajo
         panel.innerHTML = `
-            <div class="chat-panel-header">
-                <div class="chat-panel-usuario">
-                    <i class="fas fa-flag-checkered"></i>
-                    <span>Cargando...</span>
+            <div class="chat-panel-container" style="display: flex; flex-direction: column; height: 100%;">
+                <!-- HEADER FIJO -->
+                <div class="chat-panel-header" style="flex-shrink: 0;">
+                    <div class="chat-panel-usuario">
+                        <i class="fas fa-flag-checkered"></i>
+                        <span>Cargando...</span>
+                    </div>
+                    <button class="chat-panel-cerrar" onclick="document.getElementById('panel-chat').innerHTML = '<div class=\\'chat-placeholder\\'><i class=\\'fas fa-comment-dots\\'></i><p>Selecciona una conversación</p></div>'">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <button class="chat-panel-cerrar" onclick="document.getElementById('panel-chat').innerHTML = '<div class=\\'chat-placeholder\\'><i class=\\'fas fa-comment-dots\\'></i><p>Selecciona una conversación</p></div>'">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="chat-panel-mensajes" id="chat-panel-mensajes-${conversacionId}" style="flex: 1; overflow-y: auto; min-height: 0; max-height: 100%; display: flex; flex-direction: column;"></div>
-            <div class="chat-panel-input" style="flex-shrink: 0;">
-                <textarea id="chat-panel-input-${conversacionId}" 
-                    placeholder="Escribe un mensaje..."
-                    rows="1"
-                    style="flex: 1; resize: none;"></textarea>
-                <button onclick="window.perfilManager.enviarMensajePanel('${conversacionId}')">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                
+                <!-- ÁREA DE MENSAJES CON SCROLL -->
+                <div class="chat-panel-mensajes" id="chat-panel-mensajes-${conversacionId}" 
+                     style="flex: 1; overflow-y: auto; min-height: 0; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+                    <div class="chat-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Cargando mensajes...
+                    </div>
+                </div>
+                
+                <!-- INPUT FIJO EN LA PARTE INFERIOR -->
+                <div class="chat-panel-input" style="flex-shrink: 0; padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; background: rgba(0,0,0,0.3);">
+                    <textarea id="chat-panel-input-${conversacionId}" 
+                        placeholder="Escribe un mensaje..."
+                        rows="1"
+                        style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #00d2be; border-radius: 5px; color: white; padding: 8px 12px; resize: none; font-family: inherit;"></textarea>
+                    <button onclick="window.perfilManager.enviarMensajePanel('${conversacionId}')"
+                        style="background: #00d2be; border: none; border-radius: 5px; color: #1a1a2e; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
         `;
         
@@ -1986,7 +2001,77 @@ const perfilStyles = `
         color: #00d2be;
         font-family: 'Orbitron', sans-serif;
     }
+    /* CORRECCIÓN PARA EL PANEL DE CHAT */
+    #panel-chat {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        overflow: hidden; /* Importante: evitar scroll en el panel */
+    }
     
+    .chat-panel-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+    }
+    
+    .chat-panel-mensajes {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0; /* Importante para flexbox */
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .chat-panel-input {
+        flex-shrink: 0; /* Evita que se encoja */
+        padding: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .chat-panel-input textarea {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid #00d2be;
+        border-radius: 5px;
+        color: white;
+        padding: 8px 12px;
+        resize: none;
+        font-family: inherit;
+        max-height: 80px; /* Límite de altura */
+    }
+    
+    .chat-panel-input button {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        background: #00d2be;
+        border: none;
+        border-radius: 5px;
+        color: #1a1a2e;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    /* Ajuste para el placeholder */
+    .chat-placeholder {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #888;
+    }    
     .modal-chat-cerrar {
         background: none;
         border: none;
