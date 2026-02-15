@@ -1629,6 +1629,13 @@ class PerfilManager {
     /**
      * Mostrar chat en el panel principal
      */
+    // ========================
+    // ACTUALIZAR MÉTODO mostrarChatEnPanel (reemplazar el existente)
+    // ========================
+    
+    /**
+     * Mostrar chat en el panel principal (VERSIÓN CORREGIDA)
+     */
     mostrarChatEnPanel(conversacionId, otroUsuarioId) {
         const panel = document.getElementById('panel-chat');
         if (!panel) return;
@@ -1639,50 +1646,69 @@ class PerfilManager {
         });
         
         // Marcar este item como activo
-        const itemActivo = document.querySelector(`[onclick*="${conversacionId}"]`);
+        const itemActivo = document.querySelector(`[data-conversacion-id="${conversacionId}"]`);
         if (itemActivo) itemActivo.classList.add('activa');
         
         // Estructura CORREGIDA con flexbox para mantener input fijo
         panel.innerHTML = `
-            <div class="chat-panel" style="display: flex; flex-direction: column; height: 100%; width: 100%;">
-                <div class="chat-panel-header" style="flex-shrink: 0;">
-                    <div class="chat-panel-usuario">
-                        <i class="fas fa-flag-checkered"></i>
-                        <span>Cargando...</span>
+            <div style="display: flex; height: 100%; width: 100%; overflow: hidden;">
+                <!-- Columna izquierda: Lista de conversaciones (más estrecha) -->
+                <div style="width: 25%; min-width: 200px; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; background: rgba(0,0,0,0.3);">
+                    <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <input type="text" 
+                               id="buscador-usuarios" 
+                               placeholder="🔍 Buscar usuario..." 
+                               style="width: 100%; padding: 8px; background: rgba(255,255,255,0.05); border: 2px solid #00d2be; border-radius: 4px; color: white;">
                     </div>
-                    <button class="chat-panel-cerrar" onclick="document.getElementById('panel-chat').innerHTML = '<div class=\\'chat-placeholder\\'><i class=\\'fas fa-comment-dots\\'></i><p>Selecciona una conversación</p></div>'">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <div id="lista-conversaciones" style="flex: 1; overflow-y: auto; padding: 10px;">
+                        <!-- Las conversaciones se cargarán aquí -->
+                    </div>
                 </div>
                 
-                <div class="chat-panel-mensajes" 
-                     id="chat-panel-mensajes-${conversacionId}" 
-                     style="flex: 1 1 auto; overflow-y: auto; min-height: 0; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
-                    <!-- Los mensajes se insertarán aquí -->
-                </div>
-                
-                <div class="chat-panel-input" style="flex-shrink: 0; padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; background: rgba(0,0,0,0.3);">
-                    <textarea id="chat-panel-input-${conversacionId}" 
-                        placeholder="Escribe un mensaje..."
-                        rows="1"
-                        style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #00d2be; border-radius: 5px; color: white; padding: 8px 12px; resize: none; font-family: inherit; max-height: 60px;"></textarea>
-                    <button onclick="window.perfilManager.enviarMensajePanel('${conversacionId}')"
-                        style="flex-shrink: 0; background: #00d2be; border: none; border-radius: 5px; color: #1a1a2e; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+                <!-- Columna derecha: Chat activo -->
+                <div style="width: 75%; display: flex; flex-direction: column; height: 100%; overflow: hidden;">
+                    <div class="chat-panel-header" style="flex-shrink: 0;">
+                        <div class="chat-panel-usuario">
+                            <i class="fas fa-flag-checkered"></i>
+                            <span id="chat-nombre-usuario">Cargando...</span>
+                        </div>
+                        <button class="chat-panel-cerrar" onclick="document.getElementById('panel-chat').innerHTML = '<div class=\\'chat-placeholder\\'><i class=\\'fas fa-comment-dots\\'></i><p>Selecciona una conversación</p></div>'">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Contenedor de mensajes (scrollable) -->
+                    <div class="chat-panel-mensajes" 
+                         id="chat-panel-mensajes-${conversacionId}" 
+                         style="flex: 1; overflow-y: auto; min-height: 0; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Los mensajes se insertarán aquí -->
+                    </div>
+                    
+                    <!-- Input fijo en la parte inferior -->
+                    <div style="flex-shrink: 0; padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; background: rgba(0,0,0,0.3);">
+                        <textarea id="chat-panel-input-${conversacionId}" 
+                            placeholder="Escribe un mensaje..."
+                            rows="1"
+                            style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #00d2be; border-radius: 5px; color: white; padding: 8px 12px; resize: none; font-family: inherit; max-height: 60px;"
+                            onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); window.perfilManager.enviarMensajePanel('${conversacionId}'); }"></textarea>
+                        <button onclick="window.perfilManager.enviarMensajePanel('${conversacionId}')"
+                            style="flex-shrink: 0; background: #00d2be; border: none; border-radius: 5px; color: #1a1a2e; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
         
-        // Obtener nombre y cargar mensajes
+        // Obtener nombre del usuario
         supabase
             .from('escuderias')
             .select('nombre')
             .eq('id', otroUsuarioId)
             .single()
             .then(({ data }) => {
-                const header = panel.querySelector('.chat-panel-usuario span');
-                if (header) header.textContent = data?.nombre || 'Usuario';
+                const nombreSpan = document.getElementById('chat-nombre-usuario');
+                if (nombreSpan) nombreSpan.textContent = data?.nombre || 'Usuario';
             });
         
         this.cargarMensajesPanel(conversacionId);
@@ -2598,7 +2624,7 @@ async function renderizarConversaciones(conversaciones) {
         html += `
             <div class="conversacion-item ${noLeidos > 0 ? 'tiene-no-leidos' : ''}" 
                  onclick="window.perfilManager.abrirChatDesdeLista('${conv.id}', '${otro.id}')"
-                 data-conversacion-id="${conv.id}">
+                 data-conversacion-id="${conv.id}">  <!-- AÑADE ESTA LÍNEA -->
                 <div class="conversacion-info">
                     <div class="conversacion-nombre">${otro.nombre}</div>
                 </div>
