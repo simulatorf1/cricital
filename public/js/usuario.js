@@ -1386,20 +1386,7 @@ class PerfilManager {
         }
     }
 
-    // ========================
-    // MÉTODOS PENDIENTES (para implementar después)
-    // ========================
-    enviarMensaje(escuderiaId) {
-        if (window.f1Manager?.showNotification) {
-            window.f1Manager.showNotification('📨 Sistema de mensajes en desarrollo', 'info');
-        }
-    }
 
-    agregarAmigo(escuderiaId) {
-        if (window.f1Manager?.showNotification) {
-            window.f1Manager.showNotification('👥 Sistema de amigos en desarrollo', 'info');
-        }
-    }
 }
 
 // ========================
