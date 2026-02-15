@@ -1118,19 +1118,33 @@ setTimeout(() => {
         };
     }
 }, 3000); // Esperar 3 segundos
-// FORZAR VISIBILIDAD DE ICONOS EN MÓVIL
-setInterval(() => {
-    const iconoNotis = document.getElementById('notificaciones-icono');
-    const iconoMensajes = document.getElementById('mensajes-icono');
-    const estrellas = document.querySelector('.estrellas-display-compacto');
+// ELIMINAR EL setInterval ANTERIOR Y PONER ESTE:
+let iconosCreados = false;
+
+function asegurarIconosUnicos() {
+    if (iconosCreados) return;
     
-    if (estrellas && (!iconoNotis || !iconoMensajes)) {
-        console.log('📱 Recreando iconos en móvil...');
-        if (window.notificacionesManager) {
-            if (!iconoNotis) window.notificacionesManager.crearIcono();
-            if (!iconoMensajes) window.notificacionesManager.crearIconoMensajes();
-        }
+    const estrellas = document.querySelector('.estrellas-display-compacto');
+    if (!estrellas) return;
+    
+    // Eliminar iconos existentes para evitar duplicados
+    document.getElementById('notificaciones-icono')?.remove();
+    document.getElementById('mensajes-icono')?.remove();
+    
+    // Crear iconos solo una vez
+    if (window.notificacionesManager) {
+        window.notificacionesManager.crearIcono();
+        window.notificacionesManager.crearIconoMensajes();
+        iconosCreados = true;
+        console.log('✅ Iconos creados correctamente');
     }
-}, 5000);
+}
+
+// Ejecutar una sola vez cuando esté listo
+if (document.readyState === 'complete') {
+    setTimeout(asegurarIconosUnicos, 2000);
+} else {
+    window.addEventListener('load', () => setTimeout(asegurarIconosUnicos, 2000));
+}
 
 console.log('✅ Sistema de notificaciones listo');
