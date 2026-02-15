@@ -47,323 +47,7 @@ class PerfilManager {
             }
         }
     }
-// ========================
-// ABRIR VENTANA DE MENSAJES CON DOS COLUMNAS
-// ========================
-abrirVentanaMensajes(conversacionId = null, escuderiaId = null) {
-    // Eliminar si ya existe
-    const existente = document.getElementById('ventana-mensajes');
-    if (existente) existente.remove();
     
-    const modal = document.createElement('div');
-    modal.id = 'ventana-mensajes';
-    modal.className = 'modal-chat-overlay';
-    
-    modal.innerHTML = `
-        <div class="modal-chat-contenedor" style="width: 900px; height: 600px; display: flex; flex-direction: column;">
-            <div class="modal-chat-header">
-                <h3><i class="fas fa-comment"></i> MENSAJES</h3>
-                <button class="modal-chat-cerrar" onclick="this.closest('#ventana-mensajes').remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div style="display: flex; flex: 1; min-height: 0;">
-                <!-- Columna izquierda (200px) -->
-                <div style="width: 200px; border-right: 2px solid #00d2be; display: flex; flex-direction: column;">
-                    <div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <input type="text" id="buscador-escuderias" placeholder="🔍 Buscar escudería..." 
-                               style="width: 100%; padding: 8px; background: rgba(255,255,255,0.1); border: 2px solid #00d2be; border-radius: 5px; color: white;">
-                    </div>
-                    <div id="lista-escuderias" style="flex: 1; overflow-y: auto; padding: 8px;">
-                        <div style="color: #888; text-align: center; padding: 20px;">
-                            <i class="fas fa-spinner fa-spin"></i> Cargando escuderías...
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Columna derecha -->
-                <div id="columna-chat-activo" style="flex: 1; display: flex; flex-direction: column; background: rgba(0,0,0,0.2);">
-                    ${!conversacionId ? `
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-                            <i class="fas fa-comment-dots" style="font-size: 3rem; color: #444; margin-bottom: 15px;"></i>
-                            <p style="color: #888;">Selecciona una escudería para chatear</p>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Cargar escuderías en la columna izquierda
-    this.cargarEscuderias();
-    
-    // Si viene una conversación, cargarla directamente
-    if (conversacionId && escuderiaId) {
-        this.cargarChatEnColumna(conversacionId, escuderiaId);
-    }
-}
-
-// ========================
-// CARGAR ESCUDERÍAS EN LA COLUMNA IZQUIERDA
-// ========================
-async cargarEscuderias() {
-    const contenedor = document.getElementById('lista-escuderias');
-    if (!contenedor) return;
-    
-    const miId = window.f1Manager?.escuderia?.id;
-    
-    const { data: escuderias } = await supabase
-        .from('escuderias')
-        .select('id, nombre')
-        .neq('id', miId)
-        .order('nombre');
-    
-    if (!escuderias || escuderias.length === 0) {
-        contenedor.innerHTML = '<div class="sin-conversaciones">No hay otras escuderías</div>';
-        return;
-    }
-    
-    let html = '';
-    escuderias.forEach(esc => {
-        html += `
-            <div class="conversacion-item" 
-                 onclick="window.perfilManager.seleccionarEscuderia('${esc.id}', '${esc.nombre}')"
-                 data-escuderia-id="${esc.id}">
-                <div class="conversacion-info">
-                    <div class="conversacion-nombre">${esc.nombre}</div>
-                </div>
-            </div>
-        `;
-    });
-    
-    contenedor.innerHTML = html;
-}
-
-// ========================
-// SELECCIONAR UNA ESCUDERÍA DE LA LISTA
-// ========================
-async seleccionarEscuderia(escuderiaId, escuderiaNombre) {
-    const miId = window.f1Manager?.escuderia?.id;
-    if (!miId) return;
-    
-    // Marcar elemento como activo
-    document.querySelectorAll('.conversacion-item').forEach(el => {
-        el.classList.remove('activa');
-    });
-    const itemActivo = document.querySelector(`[data-escuderia-id="${escuderiaId}"]`);
-    if (itemActivo) itemActivo.classList.add('activa');
-    
-    try {
-        // Buscar o crear conversación
-        let conversacion = await this.obtenerConversacion(miId, escuderiaId);
-        
-        if (!conversacion) {
-            conversacion = await this.crearConversacion(miId, escuderiaId);
-        }
-        
-        // Cargar chat en columna derecha
-        this.cargarChatEnColumna(conversacion.id, escuderiaId);
-        
-    } catch (error) {
-        console.error('Error al abrir chat:', error);
-    }
-}
-
-// ========================
-// CARGAR CHAT EN LA COLUMNA DERECHA
-// ========================
-cargarChatEnColumna(conversacionId, escuderiaId) {
-    const columna = document.getElementById('columna-chat-activo');
-    if (!columna) return;
-    
-    // Obtener nombre de la escudería
-    supabase
-        .from('escuderias')
-        .select('nombre')
-        .eq('id', escuderiaId)
-        .single()
-        .then(({ data }) => {
-            const nombre = data?.nombre || 'Usuario';
-            
-            columna.innerHTML = `
-                <div style="padding: 12px 15px; border-bottom: 2px solid #00d2be; background: rgba(0,0,0,0.3);">
-                    <span style="color: #00d2be; font-weight: bold;">🏁 ${nombre}</span>
-                </div>
-                
-                <div id="chat-columna-mensajes-${conversacionId}" 
-                     style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px;">
-                </div>
-                
-                <div style="padding: 15px; border-top: 2px solid #00d2be; background: rgba(0,0,0,0.5);">
-                    <div style="display: flex; gap: 8px;">
-                        <textarea id="chat-columna-input-${conversacionId}" 
-                            placeholder="Escribe un mensaje... (Enter para enviar)"
-                            rows="1"
-                            style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 2px solid #00d2be; border-radius: 8px; color: white; resize: none;"></textarea>
-                        <button onclick="window.perfilManager.enviarMensajeColumna('${conversacionId}')"
-                            style="background: #00d2be; border: none; border-radius: 8px; color: #1a1a2e; width: 45px; cursor: pointer;">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            // Cargar mensajes
-            this.cargarMensajesColumna(conversacionId);
-            this.escucharMensajesColumna(conversacionId);
-            
-            // Configurar Enter
-            setTimeout(() => {
-                const input = document.getElementById(`chat-columna-input-${conversacionId}`);
-                if (input) {
-                    input.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            this.enviarMensajeColumna(conversacionId);
-                        }
-                    });
-                }
-            }, 100);
-        });
-}
-
-// ========================
-// CARGAR MENSAJES EN COLUMNA
-// ========================
-async cargarMensajesColumna(conversacionId) {
-    try {
-        const { data, error } = await supabase
-            .from('mensajes')
-            .select(`
-                *,
-                sender:escuderias!sender_id (nombre)
-            `)
-            .eq('conversacion_id', conversacionId)
-            .order('created_at', { ascending: true });
-
-        if (error) throw error;
-
-        this.renderizarMensajesColumna(conversacionId, data);
-        await this.marcarMensajesLeidos(conversacionId);
-
-    } catch (error) {
-        console.error('❌ Error cargando mensajes:', error);
-    }
-}
-
-// ========================
-// RENDERIZAR MENSAJES EN COLUMNA
-// ========================
-renderizarMensajesColumna(conversacionId, mensajes) {
-    const contenedor = document.getElementById(`chat-columna-mensajes-${conversacionId}`);
-    if (!contenedor) return;
-
-    if (mensajes.length === 0) {
-        contenedor.innerHTML = `
-            <div style="text-align: center; padding: 40px 20px; color: #888;">
-                <i class="fas fa-comment-dots" style="font-size: 2rem; color: #444; margin-bottom: 10px;"></i>
-                <p>No hay mensajes todavía</p>
-                <small>Escribe el primer mensaje</small>
-            </div>
-        `;
-        return;
-    }
-
-    const miId = window.f1Manager.escuderia.id;
-    let html = '';
-
-    mensajes.forEach(msg => {
-        const esMio = msg.sender_id === miId;
-        html += `
-            <div style="display: flex; margin-bottom: 5px; ${esMio ? 'justify-content: flex-end;' : 'justify-content: flex-start;'}">
-                <div style="max-width: 70%; padding: 8px 12px; border-radius: 12px; ${esMio ? 'background: linear-gradient(135deg, #00d2be, #0066cc); border-bottom-right-radius: 4px;' : 'background: rgba(255,255,255,0.1); border-bottom-left-radius: 4px;'} color: white;">
-                    <div style="word-wrap: break-word; margin-bottom: 4px;">${this.escapeHTML(msg.contenido)}</div>
-                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 5px; font-size: 0.65rem; opacity: 0.7;">
-                        <span>${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-                        ${esMio && msg.leido ? '<span style="color: #00d2be;">✓✓</span>' : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-
-    contenedor.innerHTML = html;
-    contenedor.scrollTop = contenedor.scrollHeight;
-}
-
-// ========================
-// ESCUCHAR MENSAJES NUEVOS EN COLUMNA
-// ========================
-escucharMensajesColumna(conversacionId) {
-    if (this.columnaChannelRef) {
-        supabase.removeChannel(this.columnaChannelRef);
-    }
-    
-    const channel = supabase
-        .channel(`columna-mensajes:${conversacionId}`)
-        .on('postgres_changes', {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'mensajes',
-            filter: `conversacion_id=eq.${conversacionId}`
-        }, (payload) => {
-            this.agregarMensajeNuevoColumna(conversacionId, payload.new);
-        })
-        .subscribe();
-
-    this.columnaChannelRef = channel;
-}
-
-// ========================
-// AÑADIR MENSAJE NUEVO EN COLUMNA
-// ========================
-agregarMensajeNuevoColumna(conversacionId, mensaje) {
-    const contenedor = document.getElementById(`chat-columna-mensajes-${conversacionId}`);
-    if (!contenedor) return;
-
-    const esMio = mensaje.sender_id === window.f1Manager.escuderia.id;
-    const msgHTML = `
-        <div style="display: flex; margin-bottom: 5px; ${esMio ? 'justify-content: flex-end;' : 'justify-content: flex-start;'}">
-            <div style="max-width: 70%; padding: 8px 12px; border-radius: 12px; ${esMio ? 'background: linear-gradient(135deg, #00d2be, #0066cc); border-bottom-right-radius: 4px;' : 'background: rgba(255,255,255,0.1); border-bottom-left-radius: 4px;'} color: white;">
-                <div style="word-wrap: break-word; margin-bottom: 4px;">${this.escapeHTML(mensaje.contenido)}</div>
-                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 5px; font-size: 0.65rem; opacity: 0.7;">
-                    <span>${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-                </div>
-            </div>
-        </div>
-    `;
-
-    contenedor.insertAdjacentHTML('beforeend', msgHTML);
-    contenedor.scrollTop = contenedor.scrollHeight;
-}
-
-// ========================
-// ENVIAR MENSAJE DESDE COLUMNA
-// ========================
-async enviarMensajeColumna(conversacionId) {
-    const input = document.getElementById(`chat-columna-input-${conversacionId}`);
-    const contenido = input.value.trim();
-    
-    if (!contenido) return;
-
-    try {
-        await supabase
-            .from('mensajes')
-            .insert([{
-                conversacion_id: conversacionId,
-                sender_id: window.f1Manager.escuderia.id,
-                contenido: contenido
-            }]);
-
-        input.value = '';
-
-    } catch (error) {
-        console.error('❌ Error enviando mensaje:', error);
-    }
-}    
     // ========================
     // ABRIR PERFIL DE USUARIO (desde cualquier parte)
     // ========================
@@ -389,277 +73,204 @@ async enviarMensajeColumna(conversacionId) {
     }
     
     // ========================
-    // SOLICITUDES DE GRUPO
+    // SISTEMA DE AMIGOS
     // ========================
     
     /**
-     * Enviar solicitud para unirse a un grupo
+     * Enviar solicitud de amistad
      */
-    // ========================
-    // SOLICITAR UNIRSE A GRUPO (versión corregida)
-    // ========================
-    async solicitarUnirseAGrupo(grupoId, grupoNombre) {
-        const miId = window.f1Manager?.escuderia?.id;
-        const miNombre = window.f1Manager?.escuderia?.nombre;
-        
-        if (!miId) {
+    async agregarAmigo(escuderiaId) {
+        if (!window.f1Manager?.escuderia?.id) {
             this.mostrarNotificacion('❌ No has iniciado sesión', 'error');
             return;
         }
-        
+    
+        // No puedes agregarte a ti mismo
+        if (escuderiaId === window.f1Manager.escuderia.id) {
+            this.mostrarNotificacion('❌ No puedes agregarte a ti mismo', 'error');
+            return;
+        }
+    
         try {
-            // Verificar si ya es miembro del grupo
-            const { data: miembro } = await supabase
-                .from('grupo_miembros')
+            // Verificar si ya existe una solicitud
+            const { data: existing, error: checkError } = await supabase
+                .from('friendships')
                 .select('*')
-                .eq('grupo_id', grupoId)
-                .eq('escuderia_id', miId)
-                .maybeSingle();
-            
-            if (miembro) {
-                this.mostrarNotificacion('❌ Ya eres miembro de este grupo', 'error');
-                return;
-            }
-            
-            // Verificar si ya tiene una solicitud pendiente
-            const { data: solicitudExistente } = await supabase
-                .from('grupo_solicitudes')
-                .select('*')
-                .eq('grupo_id', grupoId)
-                .eq('escuderia_id', miId)
-                .maybeSingle();
-            
-            if (solicitudExistente) {
-                if (solicitudExistente.estado === 'pendiente') {
-                    this.mostrarNotificacion('⏳ Ya tienes una solicitud pendiente para este grupo', 'info');
-                } else if (solicitudExistente.estado === 'aceptada') {
-                    this.mostrarNotificacion('❌ Ya eres miembro de este grupo', 'error');
-                } else if (solicitudExistente.estado === 'rechazada') {
-                    // Si fue rechazada, permitir enviar nueva
-                    this.mostrarNotificacion('❌ Tu solicitud anterior fue rechazada. Puedes intentar de nuevo.', 'error');
+                .or(`and(sender_id.eq.${window.f1Manager.escuderia.id},receiver_id.eq.${escuderiaId}),and(sender_id.eq.${escuderiaId},receiver_id.eq.${window.f1Manager.escuderia.id})`);
+    
+            if (checkError) throw checkError;
+    
+            if (existing && existing.length > 0) {
+                const friendship = existing[0];
+                if (friendship.status === 'pending') {
+                    this.mostrarNotificacion('⏳ Ya tienes una solicitud pendiente con este usuario', 'info');
+                } else if (friendship.status === 'accepted') {
+                    this.mostrarNotificacion('👥 Ya sois amigos', 'info');
                 }
                 return;
             }
-            
+    
             // Crear nueva solicitud
-            const { data: nuevaSolicitud, error } = await supabase
-                .from('grupo_solicitudes')
+            const { error } = await supabase
+                .from('friendships')
                 .insert([{
-                    grupo_id: grupoId,
-                    escuderia_id: miId,
-                    estado: 'pendiente',
-                    fecha_solicitud: new Date().toISOString()
-                }])
-                .select()
-                .single();
-            
+                    sender_id: window.f1Manager.escuderia.id,
+                    receiver_id: escuderiaId,
+                    status: 'pending'
+                }]);
+    
             if (error) throw error;
-            
-            // Obtener los administradores del grupo para notificarles
-            const { data: admins } = await supabase
-                .from('grupo_miembros')
-                .select('escuderia_id')
-                .eq('grupo_id', grupoId)
-                .eq('es_admin', true);
-            
-            // Notificar a cada administrador (guardando el ID de la solicitud en tipo_relacion)
-            for (const admin of admins || []) {
-                const { data: adminUser } = await supabase
-                    .from('escuderias')
-                    .select('user_id')
-                    .eq('id', admin.escuderia_id)
-                    .single();
-                
-                if (adminUser?.user_id && window.notificacionesManager) {
-                    await window.notificacionesManager.crearNotificacion(
-                        adminUser.user_id,
-                        'grupo_solicitud',
-                        '👥 Solicitud para unirse al grupo',
-                        `${miNombre} quiere unirse a "${grupoNombre}"`,
-                        nuevaSolicitud.id, // Pasamos el ID de la solicitud (UUID)
-                        'grupo_solicitud'
-                    );
-                }
+    
+            // Obtener nombre del receptor para la notificación
+            const { data: receptor } = await supabase
+                .from('escuderias')
+                .select('nombre, user_id')
+                .eq('id', escuderiaId)
+                .single();
+    
+            // Crear notificación para el receptor
+            if (receptor?.user_id && window.notificacionesManager) {
+                await window.notificacionesManager.crearNotificacion(
+                    receptor.user_id,
+                    'amistad',
+                    '👋 Solicitud de amistad',
+                    `${window.f1Manager.escuderia.nombre} quiere ser tu amigo`,
+                    null,
+                    'friendship_request'
+                );
             }
-            
-            this.mostrarNotificacion('✅ Solicitud enviada al administrador del grupo', 'success');
-            
-            // Recargar perfil para actualizar el botón
+    
+            this.mostrarNotificacion('✅ Solicitud de amistad enviada', 'success');
+    
+            // Opcional: recargar perfil para mostrar cambio
             setTimeout(() => this.recargarPerfil(), 1000);
-            
+    
         } catch (error) {
             console.error('❌ Error enviando solicitud:', error);
-            this.mostrarNotificacion('❌ Error al enviar la solicitud', 'error');
+            this.mostrarNotificacion('❌ Error al enviar solicitud', 'error');
         }
     }
     
     /**
-     * Aceptar solicitud de unión a grupo (desde notificación)
+     * Aceptar solicitud de amistad
      */
-    // ========================
-    // ACEPTAR SOLICITUD DE GRUPO (mejorado con notificación al solicitante)
-    // ========================
-    async aceptarSolicitudGrupo(solicitudId) {
+    async aceptarAmistad(friendshipId) {
         try {
-            // Obtener datos de la solicitud
-            const { data: solicitud, error: errorSolicitud } = await supabase
-                .from('grupo_solicitudes')
-                .select('*, grupo:grupos_amigos(*), escuderia:escuderias(*)')
-                .eq('id', solicitudId)
-                .single();
-            
-            if (errorSolicitud || !solicitud) throw errorSolicitud;
-            
-            // Verificar que el grupo no esté lleno
-            const { data: miembros, count } = await supabase
-                .from('grupo_miembros')
-                .select('*', { count: 'exact' })
-                .eq('grupo_id', solicitud.grupo_id);
-            
-            if (count >= solicitud.grupo.max_miembros) {
-                this.mostrarNotificacion('❌ El grupo ha alcanzado el máximo de miembros', 'error');
-                
-                // Rechazar automáticamente la solicitud
-                await supabase
-                    .from('grupo_solicitudes')
-                    .update({ estado: 'rechazada', fecha_respuesta: new Date().toISOString() })
-                    .eq('id', solicitudId);
-                
-                return;
-            }
-            
-            // Añadir al usuario como miembro del grupo
-            const { error: errorMiembro } = await supabase
-                .from('grupo_miembros')
-                .insert([{
-                    grupo_id: solicitud.grupo_id,
-                    escuderia_id: solicitud.escuderia_id,
-                    es_admin: false,
-                    fecha_ingreso: new Date().toISOString()
-                }]);
-            
-            if (errorMiembro) throw errorMiembro;
-            
-            // Actualizar la solicitud como aceptada
-            const { error: errorUpdate } = await supabase
-                .from('grupo_solicitudes')
-                .update({ estado: 'aceptada', fecha_respuesta: new Date().toISOString() })
-                .eq('id', solicitudId);
-            
-            if (errorUpdate) throw errorUpdate;
-            
-            // Actualizar la escudería del usuario
-            await supabase
-                .from('escuderias')
-                .update({ grupo_id: solicitud.grupo_id })
-                .eq('id', solicitud.escuderia_id);
-            
-            // NOTIFICAR AL SOLICITANTE que fue aceptado
-            const { data: usuario } = await supabase
-                .from('escuderias')
-                .select('user_id')
-                .eq('id', solicitud.escuderia_id)
-                .single();
-            
-            if (usuario?.user_id && window.notificacionesManager) {
-                await window.notificacionesManager.crearNotificacion(
-                    usuario.user_id,
-                    'grupo_aceptada',
-                    '✅ Solicitud aceptada',
-                    `¡Has sido aceptado en el grupo "${solicitud.grupo.nombre}"!`,
-                    null, // No necesitamos ID aquí
-                    'grupo_aceptada'
-                );
-            }
-            
-            this.mostrarNotificacion('✅ Solicitud aceptada. El usuario ha sido añadido al grupo.', 'success');
+            const { error } = await supabase
+                .from('friendships')
+                .update({ 
+                    status: 'accepted',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', friendshipId);
+    
+            if (error) throw error;
+    
+            this.mostrarNotificacion('✅ Amistad aceptada', 'success');
             
             // Recargar perfil si está abierto
             if (this.modalAbierto) {
                 this.recargarPerfil();
             }
-            
+    
         } catch (error) {
-            console.error('❌ Error aceptando solicitud:', error);
-            this.mostrarNotificacion('❌ Error al aceptar la solicitud', 'error');
+            console.error('❌ Error aceptando amistad:', error);
+            this.mostrarNotificacion('❌ Error al aceptar', 'error');
         }
     }
     
     /**
-     * Rechazar solicitud de unión a grupo (desde notificación)
+     * Rechazar o eliminar amistad
      */
-    // ========================
-    // RECHAZAR SOLICITUD DE GRUPO (mejorado con notificación al solicitante)
-    // ========================
-    async rechazarSolicitudGrupo(solicitudId) {
+    async eliminarAmistad(friendshipId) {
+        if (!confirm('¿Eliminar esta amistad?')) return;
+    
         try {
-            // Obtener datos de la solicitud para la notificación
-            const { data: solicitud, error: errorSolicitud } = await supabase
-                .from('grupo_solicitudes')
-                .select('*, grupo:grupos_amigos(*), escuderia:escuderias(*)')
-                .eq('id', solicitudId)
-                .single();
-            
-            if (errorSolicitud || !solicitud) throw errorSolicitud;
-            
-            // Actualizar la solicitud como rechazada
             const { error } = await supabase
-                .from('grupo_solicitudes')
-                .update({ estado: 'rechazada', fecha_respuesta: new Date().toISOString() })
-                .eq('id', solicitudId);
-            
+                .from('friendships')
+                .delete()
+                .eq('id', friendshipId);
+    
             if (error) throw error;
+    
+            this.mostrarNotificacion('✅ Amistad eliminada', 'success');
             
-            // NOTIFICAR AL SOLICITANTE que fue rechazado
-            const { data: usuario } = await supabase
-                .from('escuderias')
-                .select('user_id')
-                .eq('id', solicitud.escuderia_id)
-                .single();
-            
-            if (usuario?.user_id && window.notificacionesManager) {
-                await window.notificacionesManager.crearNotificacion(
-                    usuario.user_id,
-                    'grupo_rechazada',
-                    '❌ Solicitud rechazada',
-                    `Tu solicitud para unirte al grupo "${solicitud.grupo.nombre}" ha sido rechazada`,
-                    null,
-                    'grupo_rechazada'
-                );
+            if (this.modalAbierto) {
+                this.recargarPerfil();
             }
-            
-            this.mostrarNotificacion('✅ Solicitud rechazada', 'success');
-            
+    
         } catch (error) {
-            console.error('❌ Error rechazando solicitud:', error);
-            this.mostrarNotificacion('❌ Error al rechazar la solicitud', 'error');
+            console.error('❌ Error eliminando amistad:', error);
+            this.mostrarNotificacion('❌ Error al eliminar', 'error');
         }
     }
     
     /**
-     * Verificar si el usuario actual tiene solicitud pendiente para un grupo
+     * Obtener lista de amigos
      */
-    async verificarSolicitudGrupo(grupoId) {
+    async obtenerAmigos(escuderiaId = null) {
+        const id = escuderiaId || window.f1Manager?.escuderia?.id;
+        if (!id) return [];
+    
+        try {
+            // Buscar amistades aceptadas donde la escudería es sender o receiver
+            const { data, error } = await supabase
+                .from('friendships')
+                .select(`
+                    id,
+                    sender_id,
+                    receiver_id,
+                    status,
+                    created_at,
+                    sender:escuderias!friendships_sender_id_fkey (
+                        id, nombre, puntos, dinero
+                    ),
+                    receiver:escuderias!friendships_receiver_id_fkey (
+                        id, nombre, puntos, dinero
+                    )
+                `)
+                .or(`sender_id.eq.${id},receiver_id.eq.${id}`)
+                .eq('status', 'accepted');
+    
+            if (error) throw error;
+    
+            // Transformar para obtener siempre el "otro" usuario
+            return data.map(f => ({
+                friendshipId: f.id,
+                amigo: f.sender_id === id ? f.receiver : f.sender,
+                desde: f.created_at
+            }));
+    
+        } catch (error) {
+            console.error('❌ Error obteniendo amigos:', error);
+            return [];
+        }
+    }
+    
+    /**
+     * Verificar estado de amistad con otra escudería
+     */
+    async verificarAmistad(otraEscuderiaId) {
         const miId = window.f1Manager?.escuderia?.id;
-        if (!miId || !grupoId) return null;
-        
+        if (!miId || !otraEscuderiaId) return null;
+    
         try {
             const { data, error } = await supabase
-                .from('grupo_solicitudes')
+                .from('friendships')
                 .select('*')
-                .eq('grupo_id', grupoId)
-                .eq('escuderia_id', miId)
+                .or(`and(sender_id.eq.${miId},receiver_id.eq.${otraEscuderiaId}),and(sender_id.eq.${otraEscuderiaId},receiver_id.eq.${miId})`)
                 .maybeSingle();
-            
+    
             if (error) throw error;
             return data;
-            
+    
         } catch (error) {
-            console.error('❌ Error verificando solicitud:', error);
+            console.error('❌ Error verificando amistad:', error);
             return null;
         }
     }
 
+    
     // ========================
     // CARGAR TODOS LOS DATOS DEL PERFIL
     // ========================
@@ -690,6 +301,7 @@ async enviarMensajeColumna(conversacionId) {
             // 2. ESTRATEGAS CONTRATADOS
             let estrategas = [];
             try {
+                // Consulta que une contrataciones con el catálogo de estrategas
                 const { data, error } = await supabase
                     .from('estrategas_contrataciones')
                     .select(`
@@ -741,7 +353,7 @@ async enviarMensajeColumna(conversacionId) {
                 .limit(1)
                 .maybeSingle();
 
-            // 5. POSICIÓN GLOBAL
+            // 5. POSICIÓN GLOBAL (usando el mismo sistema que tabs.js)
             const { data: ranking, error: errorRanking } = await supabase
                 .from('escuderias')
                 .select('id, puntos, dinero')
@@ -754,7 +366,7 @@ async enviarMensajeColumna(conversacionId) {
                 posicionGlobal = ranking.findIndex(e => e.id === escuderiaId) + 1;
             }
 
-            // 6. GRUPO DE AMIGOS CON MIEMBROS
+            // 6. GRUPO DE AMIGOS
             let grupo = null;
             if (escuderia.grupo_id) {
                 const { data: grupoData, error: errorGrupo } = await supabase
@@ -762,25 +374,23 @@ async enviarMensajeColumna(conversacionId) {
                     .select(`
                         id,
                         nombre,
-                        descripcion,
                         codigo_invitacion,
                         creador_id,
-                        max_miembros,
-                        es_publico,
-                        fecha_creacion
+                        created_at
                     `)
                     .eq('id', escuderia.grupo_id)
                     .single();
                 
                 if (!errorGrupo && grupoData) {
-                    // Obtener miembros del grupo
-                    const miembros = await this.obtenerMiembrosGrupo(grupoData.id);
+                    // Contar miembros del grupo
+                    const { count } = await supabase
+                        .from('escuderias')
+                        .select('id', { count: 'exact', head: true })
+                        .eq('grupo_id', grupoData.id);
                     
                     grupo = {
                         ...grupoData,
-                        miembros: miembros,
-                        miembros_count: miembros.length,
-                        esCreador: grupoData.creador_id === escuderiaId
+                        miembros_count: count || 1
                     };
                 }
             }
@@ -926,87 +536,42 @@ async enviarMensajeColumna(conversacionId) {
                             GRUPO DE AMIGOS
                         </h3>
                         
-                        <!-- Mostrar información del grupo actual SI existe -->
                         ${datos.grupo ? `
-                            <div class="grupo-info" style="margin-bottom: 20px;">
+                            <div class="grupo-info">
                                 <div class="grupo-nombre">
                                     <i class="fas fa-users" style="color: #00d2be;"></i>
                                     <span>${datos.grupo.nombre}</span>
-                                    ${datos.grupo.esCreador ? '<span class="grupo-creador-badge">👑 CREADOR</span>' : ''}
                                 </div>
-                                
-                                ${datos.grupo.descripcion ? `
-                                    <div class="grupo-descripcion">
-                                        <p>${datos.grupo.descripcion}</p>
+                                <div class="grupo-detalles">
+                                    <div class="grupo-miembros">
+                                        <i class="fas fa-user"></i>
+                                        <span>${datos.grupo.miembros_count} miembros</span>
                                     </div>
-                                ` : ''}
-                                
-                                <div class="grupo-miembros-lista">
-                                    <div class="grupo-miembros-header">
-                                        <span><i class="fas fa-users"></i> MIEMBROS (${datos.grupo.miembros_count}/${datos.grupo.max_miembros})</span>
-                                    </div>
-                                    
-                                    <div class="grupo-miembros-grid">
-                                        ${datos.grupo.miembros.map(m => `
-                                            <div class="grupo-miembro-item" onclick="window.perfilManager.abrirPerfilUsuario('${m.escuderia.id}')">
-                                                <div class="miembro-avatar">
-                                                    <i class="fas fa-flag-checkered"></i>
-                                                    ${m.es_admin ? '<span class="miembro-admin" title="Administrador">👑</span>' : ''}
-                                                </div>
-                                                <div class="miembro-info">
-                                                    <div class="miembro-nombre">${m.escuderia.nombre}</div>
-                                                    <div class="miembro-desde">
-                                                        ${new Date(m.fecha_ingreso).toLocaleDateString()}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                                
-                                ${datos.grupo.codigo_invitacion && datos.grupo.esCreador ? `
-                                    <div class="grupo-codigo-admin" onclick="window.perfilManager.copiarCodigo('${datos.grupo.codigo_invitacion}')">
-                                        <i class="fas fa-link"></i>
-                                        <span>Código: ${datos.grupo.codigo_invitacion}</span>
-                                        <small>(click para copiar - solo visible para ti)</small>
-                                    </div>
-                                ` : ''}
-                                
-                                <!-- 🔴 BOTÓN DE SOLICITUD PARA USUARIOS NO MIEMBROS (si no es mi perfil) -->
-                                ${!esMiPerfil ? `
-                                    <div id="boton-solicitud-grupo-${datos.grupo.id}" class="grupo-solicitud-container" style="margin-top: 15px;">
-                                        <div class="solicitud-loading">
-                                            <i class="fas fa-spinner fa-spin"></i> Cargando...
+                                    ${datos.grupo.codigo_invitacion ? `
+                                        <div class="grupo-codigo" onclick="window.perfilManager.copiarCodigo('${datos.grupo.codigo_invitacion}')">
+                                            <i class="fas fa-link"></i>
+                                            <span>${datos.grupo.codigo_invitacion}</span>
+                                            <small>(click para copiar)</small>
                                         </div>
-                                    </div>
-                                ` : ''}
+                                    ` : ''}
+                                </div>
                             </div>
                         ` : `
-                            <!-- Mensaje cuando NO tiene grupo -->
-                            <div class="grupo-vacio" style="margin-bottom: 20px;">
+                            <div class="grupo-vacio">
                                 <i class="fas fa-user-friends"></i>
                                 <p>${datos.escuderia.nombre} no pertenece a ningún grupo</p>
+                                ${esMiPerfil ? `
+                                    <button class="btn-crear-grupo" onclick="window.perfilManager.mostrarOpcionesGrupo()">
+                                        <i class="fas fa-plus-circle"></i>
+                                        CREAR GRUPO
+                                    </button>
+                                    <button class="btn-unirse-grupo" onclick="window.perfilManager.mostrarUnirseGrupo()">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                        UNIRSE A GRUPO
+                                    </button>
+                                ` : ''}
                             </div>
                         `}
-                        
-                        <!-- SOLO PARA EL PROPIETARIO: opciones de crear grupo -->
-                        ${esMiPerfil ? `
-                            <div class="grupo-acciones" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                                <p style="color: #aaa; font-size: 0.8rem; margin-bottom: 10px;">
-                                    <i class="fas fa-cog"></i> GESTIÓN DE GRUPOS:
-                                </p>
-                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <button class="btn-crear-grupo" onclick="window.perfilManager.mostrarOpcionesGrupo()" style="flex: 1;">
-                                        <i class="fas fa-plus-circle"></i>
-                                        CREAR NUEVO GRUPO
-                                    </button>
-                                </div>
-                                <p style="color: #888; font-size: 0.7rem; margin-top: 10px; text-align: center;">
-                                    <i class="fas fa-info-circle"></i>
-                                    Como creador del grupo, recibirás notificaciones cuando alguien quiera unirse
-                                </p>
-                            </div>
-                        ` : ''}
                     </div>
                     
                     <div class="perfil-trofeos">
@@ -1032,16 +597,24 @@ async enviarMensajeColumna(conversacionId) {
                             </div>
                         `}
                     </div>
+                    
+    
+                    ${!esMiPerfil ? `
+                        <div class="perfil-acciones" id="perfil-acciones-${datos.escuderia.id}">
+                            <div class="acciones-loading">
+                                <i class="fas fa-spinner fa-spin"></i> Cargando...
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
     
         document.body.appendChild(modal);
         
-        // Si hay un grupo y no es mi perfil, cargar el estado de la solicitud
-        if (!esMiPerfil && datos.grupo) {
-            console.log('🔄 Cargando estado de solicitud para grupo:', datos.grupo.id);
-            this.cargarEstadoSolicitud(datos.grupo.id);
+        if (!esMiPerfil) {
+            console.log('🔄 Cargando botones de acción para:', datos.escuderia.id);
+            this.cargarEstadoAmistad(datos.escuderia.id);
         }
         
         // Animar entrada
@@ -1050,79 +623,6 @@ async enviarMensajeColumna(conversacionId) {
         }, 10);
     }
     
-    // ========================
-    // CARGAR ESTADO DE SOLICITUD PARA MOSTRAR BOTÓN CORRECTO
-    // ========================
-    async cargarEstadoSolicitud(grupoId) {
-        const contenedor = document.getElementById(`boton-solicitud-grupo-${grupoId}`);
-        if (!contenedor) return;
-        
-        const miId = window.f1Manager?.escuderia?.id;
-        if (!miId) {
-            contenedor.innerHTML = `
-                <button class="btn-solicitud-grupo" disabled style="opacity: 0.5;">
-                    <i class="fas fa-lock"></i>
-                    Inicia sesión para solicitar
-                </button>
-            `;
-            return;
-        }
-        
-        // Verificar si ya es miembro
-        const { data: miembro } = await supabase
-            .from('grupo_miembros')
-            .select('*')
-            .eq('grupo_id', grupoId)
-            .eq('escuderia_id', miId)
-            .maybeSingle();
-        
-        if (miembro) {
-            contenedor.innerHTML = `
-                <button class="btn-solicitud-grupo" disabled style="background: rgba(76, 175, 80, 0.2); border-color: #4CAF50; color: #4CAF50;">
-                    <i class="fas fa-check-circle"></i>
-                    Ya eres miembro
-                </button>
-            `;
-            return;
-        }
-        
-        // Verificar solicitud existente
-        const solicitud = await this.verificarSolicitudGrupo(grupoId);
-        
-        if (solicitud) {
-            if (solicitud.estado === 'pendiente') {
-                contenedor.innerHTML = `
-                    <button class="btn-solicitud-grupo" disabled style="background: rgba(255, 152, 0, 0.2); border-color: #FF9800; color: #FF9800;">
-                        <i class="fas fa-clock"></i>
-                        Solicitud pendiente
-                    </button>
-                `;
-            } else if (solicitud.estado === 'aceptada') {
-                contenedor.innerHTML = `
-                    <button class="btn-solicitud-grupo" disabled style="background: rgba(76, 175, 80, 0.2); border-color: #4CAF50; color: #4CAF50;">
-                        <i class="fas fa-check-circle"></i>
-                        Ya eres miembro
-                    </button>
-                `;
-            } else if (solicitud.estado === 'rechazada') {
-                contenedor.innerHTML = `
-                    <button class="btn-solicitud-grupo" onclick="window.perfilManager.solicitarUnirseAGrupo('${grupoId}', '${this.perfilActual?.grupo?.nombre}')">
-                        <i class="fas fa-user-plus"></i>
-                        Solicitar unirse al grupo
-                    </button>
-                `;
-            }
-        } else {
-            // No hay solicitud, mostrar botón para solicitar
-            contenedor.innerHTML = `
-                <button class="btn-solicitud-grupo" onclick="window.perfilManager.solicitarUnirseAGrupo('${grupoId}', '${this.perfilActual?.grupo?.nombre}')">
-                    <i class="fas fa-user-plus"></i>
-                    Solicitar unirse al grupo
-                </button>
-            `;
-        }
-    }
-
     // ========================
     // EDITAR DESCRIPCIÓN
     // ========================
@@ -1238,159 +738,55 @@ async enviarMensajeColumna(conversacionId) {
     }
 
     // ========================
-    // OBTENER MIEMBROS DEL GRUPO
-    // ========================
-    async obtenerMiembrosGrupo(grupoId) {
-        try {
-            const { data, error } = await supabase
-                .from('grupo_miembros')
-                .select(`
-                    id,
-                    es_admin,
-                    fecha_ingreso,
-                    escuderia:escuderias!grupo_miembros_escuderia_id_fkey (
-                        id,
-                        nombre,
-                        puntos,
-                        dinero,
-                        ultimo_login_dia
-                    )
-                `)
-                .eq('grupo_id', grupoId)
-                .order('es_admin', { ascending: false })
-                .order('fecha_ingreso', { ascending: true });
-            
-            if (error) throw error;
-            return data || [];
-            
-        } catch (error) {
-            console.error('Error obteniendo miembros:', error);
-            return [];
-        }
-    }
-    
-    // ========================
-    // MOSTRAR FORMULARIO CREAR GRUPO
+    // OPCIONES DE GRUPO (CREAR O UNIRSE)
     // ========================
     mostrarOpcionesGrupo() {
         const modal = document.createElement('div');
         modal.id = 'modal-crear-grupo';
         modal.innerHTML = `
             <div class="modal-perfil-overlay" onclick="if(event.target === this) this.parentElement.remove()">
-                <div class="modal-perfil-contenedor" style="max-width: 500px;">
+                <div class="modal-perfil-contenedor" style="max-width: 400px;">
                     <button class="modal-perfil-cerrar" onclick="this.closest('#modal-crear-grupo').remove()">
                         <i class="fas fa-times"></i>
                     </button>
                     
-                    <h3 style="color: #00d2be; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <h3 style="color: #00d2be; margin-bottom: 20px;">
                         <i class="fas fa-users"></i>
                         CREAR GRUPO DE AMIGOS
                     </h3>
                     
-                    <div style="margin-bottom: 15px;">
-                        <label style="color: #aaa; font-size: 0.8rem; display: block; margin-bottom: 5px;">
-                            <i class="fas fa-tag"></i> NOMBRE DEL GRUPO *
-                        </label>
-                        <input type="text" id="nombre-grupo" 
-                            placeholder="Ej: Los Velocistas"
-                            style="
-                                width: 100%;
-                                padding: 12px;
-                                background: rgba(0,0,0,0.5);
-                                border: 2px solid #00d2be;
-                                border-radius: 6px;
-                                color: white;
-                                font-size: 0.9rem;
-                            ">
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="color: #aaa; font-size: 0.8rem; display: block; margin-bottom: 5px;">
-                            <i class="fas fa-align-left"></i> DESCRIPCIÓN
-                        </label>
-                        <textarea id="descripcion-grupo" 
-                            placeholder="Describe el propósito del grupo..."
-                            rows="3"
-                            style="
-                                width: 100%;
-                                padding: 12px;
-                                background: rgba(0,0,0,0.5);
-                                border: 2px solid #00d2be;
-                                border-radius: 6px;
-                                color: white;
-                                font-size: 0.9rem;
-                                resize: vertical;
-                            "></textarea>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                        <div>
-                            <label style="color: #aaa; font-size: 0.8rem; display: block; margin-bottom: 5px;">
-                                <i class="fas fa-users"></i> MÁX. MIEMBROS
-                            </label>
-                            <select id="max-miembros-grupo" style="
-                                width: 100%;
-                                padding: 12px;
-                                background: rgba(0,0,0,0.5);
-                                border: 2px solid #00d2be;
-                                border-radius: 6px;
-                                color: white;
-                            ">
-                                <option value="5">5 miembros</option>
-                                <option value="10" selected>10 miembros</option>
-                                <option value="15">15 miembros</option>
-                                <option value="20">20 miembros</option>
-                                <option value="30">30 miembros</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label style="color: #aaa; font-size: 0.8rem; display: block; margin-bottom: 5px;">
-                                <i class="fas fa-globe"></i> VISIBILIDAD
-                            </label>
-                            <div style="
-                                padding: 12px;
-                                background: rgba(0,0,0,0.5);
-                                border: 2px solid #00d2be;
-                                border-radius: 6px;
-                                display: flex;
-                                align-items: center;
-                                gap: 10px;
-                            ">
-                                <input type="checkbox" id="grupo-publico">
-                                <label for="grupo-publico" style="color: white;">Grupo público</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="background: rgba(0,210,190,0.1); padding: 12px; border-radius: 6px; margin-bottom: 20px;">
-                        <p style="color: #aaa; font-size: 0.8rem; margin: 0;">
-                            <i class="fas fa-info-circle" style="color: #00d2be;"></i>
-                            Al crear el grupo, recibirás un código de invitación que podrás compartir con tus amigos.
-                            Solo tú verás este código.
-                        </p>
-                    </div>
+                    <input type="text" id="nombre-grupo" 
+                        placeholder="Nombre del grupo (ej: Los Velocistas)"
+                        style="
+                            width: 100%;
+                            padding: 12px;
+                            background: rgba(0,0,0,0.5);
+                            border: 2px solid #00d2be;
+                            border-radius: 6px;
+                            color: white;
+                            margin-bottom: 20px;
+                            font-size: 0.9rem;
+                        ">
                     
                     <div style="display: flex; gap: 10px; justify-content: flex-end;">
                         <button onclick="this.closest('#modal-crear-grupo').remove()"
                             style="
-                                padding: 12px 25px;
+                                padding: 10px 20px;
                                 background: transparent;
                                 border: 1px solid #666;
                                 color: #aaa;
-                                border-radius: 6px;
+                                border-radius: 4px;
                                 cursor: pointer;
-                                font-weight: bold;
                             ">
-                            CANCELAR
+                            Cancelar
                         </button>
                         <button onclick="window.perfilManager.crearGrupo()"
                             style="
-                                padding: 12px 25px;
+                                padding: 10px 20px;
                                 background: linear-gradient(135deg, #00d2be, #0066cc);
                                 border: none;
                                 color: white;
-                                border-radius: 6px;
+                                border-radius: 4px;
                                 cursor: pointer;
                                 font-weight: bold;
                             ">
@@ -1402,7 +798,77 @@ async enviarMensajeColumna(conversacionId) {
             </div>
         `;
         
-        document.body.appendChild(modal);
+        document.body.appendChild(modal);      
+    }
+    
+    async cargarEstadoAmistad(otraEscuderiaId) {
+        const contenedor = document.getElementById(`perfil-acciones-${otraEscuderiaId}`);
+        if (!contenedor) return;
+    
+        // MOSTRAR BOTONES BÁSICOS INMEDIATAMENTE
+        const miId = window.f1Manager.escuderia.id;
+        contenedor.innerHTML = `
+            <button class="btn-agregar-amigo" onclick="window.perfilManager.agregarAmigo('${otraEscuderiaId}')">
+                <i class="fas fa-user-plus"></i>
+                Agregar amigo
+            </button>
+            <button class="btn-enviar-mensaje" onclick="window.perfilManager.abrirChat('${otraEscuderiaId}')">
+                <i class="fas fa-envelope"></i>
+                Mensaje
+            </button>
+        `;
+    
+        // LUEGO, en segundo plano, verificar el estado real
+        try {
+            const amistad = await this.verificarAmistad(otraEscuderiaId);
+            
+            if (amistad) {
+                let html = '';
+                if (amistad.status === 'pending') {
+                    if (amistad.sender_id === miId) {
+                        html = `
+                            <button class="btn-pendiente" disabled>
+                                <i class="fas fa-clock"></i>
+                                Solicitud enviada
+                            </button>
+                            <button class="btn-cancelar" onclick="window.perfilManager.eliminarAmistad('${amistad.id}')">
+                                <i class="fas fa-times"></i>
+                                Cancelar
+                            </button>
+                        `;
+                    } else {
+                        html = `
+                            <button class="btn-aceptar" onclick="window.perfilManager.aceptarAmistad('${amistad.id}')">
+                                <i class="fas fa-check"></i>
+                                Aceptar
+                            </button>
+                            <button class="btn-rechazar" onclick="window.perfilManager.eliminarAmistad('${amistad.id}')">
+                                <i class="fas fa-times"></i>
+                                Rechazar
+                            </button>
+                        `;
+                    }
+                } else if (amistad.status === 'accepted') {
+                    html = `
+                        <button class="btn-amigo" disabled>
+                            <i class="fas fa-check-circle"></i>
+                            Amigos
+                        </button>
+                        <button class="btn-enviar-mensaje" onclick="window.perfilManager.abrirChat('${otraEscuderiaId}')">
+                            <i class="fas fa-envelope"></i>
+                            Mensaje
+                        </button>
+                    `;
+                }
+                
+                if (html) {
+                    contenedor.innerHTML = html;
+                }
+            }
+        } catch (error) {
+            console.error('Error verificando amistad:', error);
+            // Si hay error, ya tenemos los botones básicos
+        }
     }
     
     // ========================
@@ -1410,19 +876,11 @@ async enviarMensajeColumna(conversacionId) {
     // ========================
     async crearGrupo() {
         const nombreInput = document.getElementById('nombre-grupo');
-        const descripcionInput = document.getElementById('descripcion-grupo');
-        const maxMiembrosInput = document.getElementById('max-miembros-grupo');
-        const esPublicoCheck = document.getElementById('grupo-publico');
-        
         if (!nombreInput) return;
         
         const nombre = nombreInput.value.trim();
-        const descripcion = descripcionInput ? descripcionInput.value.trim() : '';
-        const maxMiembros = maxMiembrosInput ? parseInt(maxMiembrosInput.value) || 10 : 10;
-        const esPublico = esPublicoCheck ? esPublicoCheck.checked : false;
-        
         if (!nombre) {
-            this.mostrarNotificacion('Por favor, introduce un nombre para el grupo', 'error');
+            alert('Por favor, introduce un nombre para el grupo');
             return;
         }
         
@@ -1435,34 +893,22 @@ async enviarMensajeColumna(conversacionId) {
                 .from('grupos_amigos')
                 .insert([{
                     nombre: nombre,
-                    descripcion: descripcion,
                     codigo_invitacion: codigoInvitacion,
                     creador_id: this.perfilActual?.escuderia?.id,
-                    max_miembros: maxMiembros,
-                    es_publico: esPublico,
-                    fecha_creacion: new Date().toISOString()
+                    created_at: new Date().toISOString()
                 }])
                 .select()
                 .single();
             
             if (errorGrupo) throw errorGrupo;
             
-            // Añadir al creador como admin en grupo_miembros
-            const { error: errorMiembro } = await window.supabase
-                .from('grupo_miembros')
-                .insert([{
-                    grupo_id: grupo.id,
-                    escuderia_id: this.perfilActual?.escuderia?.id,
-                    es_admin: true
-                }]);
-            
-            if (errorMiembro) throw errorMiembro;
-            
-            // Actualizar escudería
-            await window.supabase
+            // Asignar grupo a la escudería
+            const { error: errorUpdate } = await window.supabase
                 .from('escuderias')
                 .update({ grupo_id: grupo.id })
                 .eq('id', this.perfilActual?.escuderia?.id);
+            
+            if (errorUpdate) throw errorUpdate;
             
             // Cerrar modal
             document.getElementById('modal-crear-grupo')?.remove();
@@ -1470,64 +916,76 @@ async enviarMensajeColumna(conversacionId) {
             // Recargar perfil
             await this.recargarPerfil();
             
-            // Mostrar código SOLO al creador
-            this.mostrarModalCodigoGrupo(grupo);
+            // Mostrar código de invitación
+            alert(`✅ Grupo "${nombre}" creado con éxito!\n\nCódigo de invitación: ${codigoInvitacion}\n\nComparte este código con tus amigos para que se unan.`);
             
         } catch (error) {
             console.error('❌ Error creando grupo:', error);
-            this.mostrarNotificacion('Error al crear el grupo: ' + error.message, 'error');
+            alert('Error al crear el grupo: ' + error.message);
         }
     }
-    
+
     // ========================
-    // MOSTRAR CÓDIGO DEL GRUPO (SOLO PARA EL CREADOR)
+    // MOSTRAR FORMULARIO PARA UNIRSE A GRUPO
     // ========================
-    mostrarModalCodigoGrupo(grupo) {
+    mostrarUnirseGrupo() {
         const modal = document.createElement('div');
-        modal.id = 'modal-codigo-grupo';
+        modal.id = 'modal-unirse-grupo';
         modal.innerHTML = `
             <div class="modal-perfil-overlay" onclick="if(event.target === this) this.parentElement.remove()">
-                <div class="modal-perfil-contenedor" style="max-width: 450px; text-align: center;">
-                    <button class="modal-perfil-cerrar" onclick="this.closest('#modal-codigo-grupo').remove()">
+                <div class="modal-perfil-contenedor" style="max-width: 400px;">
+                    <button class="modal-perfil-cerrar" onclick="this.closest('#modal-unirse-grupo').remove()">
                         <i class="fas fa-times"></i>
                     </button>
                     
-                    <div style="margin: 20px 0;">
-                        <i class="fas fa-users" style="font-size: 3rem; color: #00d2be; margin-bottom: 15px;"></i>
-                        <h3 style="color: #00d2be; margin-bottom: 10px;">¡GRUPO CREADO!</h3>
-                        <p style="color: #aaa; margin-bottom: 20px;">Comparte este código con tus amigos para que se unan:</p>
-                        
-                        <div style="
-                            background: rgba(0, 210, 190, 0.1);
-                            border: 2px dashed #00d2be;
-                            border-radius: 10px;
-                            padding: 20px;
-                            margin: 20px 0;
-                            font-size: 2rem;
-                            font-weight: bold;
-                            color: #00d2be;
-                            letter-spacing: 5px;
-                            font-family: monospace;
-                        ">${grupo.codigo_invitacion}</div>
-                        
-                        <button onclick="navigator.clipboard.writeText('${grupo.codigo_invitacion}'); this.innerHTML = '✓ COPIADO'; setTimeout(() => this.innerHTML = '📋 COPIAR CÓDIGO', 2000);"
+                    <h3 style="color: #00d2be; margin-bottom: 20px;">
+                        <i class="fas fa-sign-in-alt"></i>
+                        UNIRSE A UN GRUPO
+                    </h3>
+                    
+                    <p style="color: #aaa; margin-bottom: 15px; font-size: 0.9rem;">
+                        Introduce el código de invitación que te ha dado el creador del grupo:
+                    </p>
+                    
+                    <input type="text" id="codigo-grupo" 
+                        placeholder="Ej: ABC123"
+                        style="
+                            width: 100%;
+                            padding: 12px;
+                            background: rgba(0,0,0,0.5);
+                            border: 2px solid #00d2be;
+                            border-radius: 6px;
+                            color: white;
+                            margin-bottom: 20px;
+                            font-size: 0.9rem;
+                            text-transform: uppercase;
+                        ">
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button onclick="this.closest('#modal-unirse-grupo').remove()"
                             style="
+                                padding: 10px 20px;
+                                background: transparent;
+                                border: 1px solid #666;
+                                color: #aaa;
+                                border-radius: 4px;
+                                cursor: pointer;
+                            ">
+                            Cancelar
+                        </button>
+                        <button onclick="window.perfilManager.unirseAGrupo()"
+                            style="
+                                padding: 10px 20px;
                                 background: linear-gradient(135deg, #00d2be, #0066cc);
                                 border: none;
                                 color: white;
-                                padding: 12px 30px;
-                                border-radius: 25px;
-                                font-weight: bold;
+                                border-radius: 4px;
                                 cursor: pointer;
-                                margin-bottom: 10px;
+                                font-weight: bold;
                             ">
-                            📋 COPIAR CÓDIGO
+                            <i class="fas fa-check"></i>
+                            UNIRSE
                         </button>
-                        
-                        <p style="color: #888; font-size: 0.8rem; margin-top: 15px;">
-                            <i class="fas fa-info-circle"></i>
-                            Este código solo es visible para ti, el creador del grupo
-                        </p>
                     </div>
                 </div>
             </div>
@@ -1535,50 +993,9 @@ async enviarMensajeColumna(conversacionId) {
         
         document.body.appendChild(modal);
     }
-
+    
     // ========================
-    // COPIAR CÓDIGO DE INVITACIÓN
-    // ========================
-    copiarCodigo(codigo) {
-        navigator.clipboard.writeText(codigo).then(() => {
-            if (window.f1Manager?.showNotification) {
-                window.f1Manager.showNotification('📋 Código copiado al portapapeles', 'info');
-            }
-        }).catch(() => {
-            alert(`Código: ${codigo}`);
-        });
-    }
-
-    // ========================
-    // RECARGAR PERFIL
-    // ========================
-    async recargarPerfil() {
-        const idPerfil = this.perfilActual?.escuderia?.id;
-        if (!idPerfil) return;
-        
-        const nuevosDatos = await this.cargarDatosPerfil(idPerfil);
-        if (nuevosDatos) {
-            this.perfilActual = nuevosDatos;
-            this.crearModalPerfil(nuevosDatos, idPerfil === window.f1Manager?.escuderia?.id);
-        }
-    }
-
-    // ========================
-    // CERRAR MODAL
-    // ========================
-    cerrarModal() {
-        const modal = document.getElementById('modal-perfil');
-        if (modal) {
-            modal.classList.remove('visible');
-            setTimeout(() => {
-                modal.remove();
-                this.modalAbierto = false;
-            }, 300);
-        }
-    }
-
-    // ========================
-    // SISTEMA DE MENSAJES (MANTENIDO DEL ORIGINAL)
+    // SISTEMA DE MENSAJES
     // ========================
     
     /**
@@ -1596,8 +1013,8 @@ async enviarMensajeColumna(conversacionId) {
                 conversacion = await this.crearConversacion(miId, otraEscuderiaId);
             }
     
-            // Abrir ventana de mensajes con esa conversación seleccionada
-            this.abrirVentanaMensajes(conversacion.id, otraEscuderiaId);
+            // Abrir modal de chat
+            this.mostrarModalChat(conversacion);
     
         } catch (error) {
             console.error('❌ Error abriendo chat:', error);
@@ -1636,7 +1053,55 @@ async enviarMensajeColumna(conversacionId) {
         return data;
     }
     
-
+    /**
+     * Mostrar modal de chat
+     */
+    mostrarModalChat(conversacion) {
+        // Eliminar modal existente
+        document.getElementById('modal-chat')?.remove();
+    
+        const otroUsuarioId = conversacion.escuderia1_id === window.f1Manager.escuderia.id 
+            ? conversacion.escuderia2_id 
+            : conversacion.escuderia1_id;
+    
+        const modal = document.createElement('div');
+        modal.id = 'modal-chat';
+        modal.innerHTML = `
+            <div class="modal-chat-overlay" onclick="if(event.target === this) document.getElementById('modal-chat').remove()">
+                <div class="modal-chat-contenedor">
+                    <div class="modal-chat-header">
+                        <h3><i class="fas fa-comment"></i> Chat</h3>
+                        <button class="modal-chat-cerrar" onclick="document.getElementById('modal-chat').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-chat-mensajes" id="chat-mensajes-${conversacion.id}">
+                        <div class="chat-loading">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando mensajes...
+                        </div>
+                    </div>
+                    
+                    <div class="modal-chat-input">
+                        <textarea id="chat-input-${conversacion.id}" 
+                            placeholder="Escribe un mensaje..."
+                            rows="2"></textarea>
+                        <button onclick="window.perfilManager.enviarMensaje('${conversacion.id}')">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    
+        document.body.appendChild(modal);
+    
+        // Cargar mensajes
+        this.cargarMensajes(conversacion.id);
+    
+        // Configurar Realtime
+        this.escucharMensajes(conversacion.id);
+    }
     
     /**
      * Cargar mensajes de una conversación
@@ -1773,10 +1238,39 @@ async enviarMensajeColumna(conversacionId) {
     /**
      * Marcar mensajes como leídos
      */
+    // CÓDIGO CORREGIDO - USA ESTO EN TU MÉTODO
+    
+    // REEMPLAZA TODO EL MÉTODO marcarMensajesLeidos CON ESTO:
+    
     async marcarMensajesLeidos(conversacionId) {
         try {
             console.log(`🔵 Intentando marcar conversación: ${conversacionId}`);
             
+            // MÉTODO 1: UPDATE CON FILTRO (el que no funciona)
+            const { data, error } = await supabase
+                .from('mensajes')
+                .update({ leido: true })
+                .eq('conversacion_id', conversacionId)
+                .eq('leido', false);
+            
+            console.log('Resultado update:', { data, error });
+            
+            if (error) {
+                console.error('Error en update:', error);
+                return;
+            }
+            
+            // MÉTODO 2: RPC (función en BD) - MÁS FIABLE
+            const { error: rpcError } = await supabase
+                .rpc('marcar_mensajes_leidos', {
+                    p_conversacion_id: conversacionId
+                });
+            
+            if (rpcError) {
+                console.log('RPC no disponible, continuamos...');
+            }
+            
+            // MÉTODO 3: ACTUALIZAR UNO POR UNO (EL QUE SÍ FUNCIONA SIEMPRE)
             const { data: mensajes, error: selectError } = await supabase
                 .from('mensajes')
                 .select('id')
@@ -1792,7 +1286,7 @@ async enviarMensajeColumna(conversacionId) {
             
             console.log(`📊 Intentando marcar ${mensajes.length} mensajes INDIVIDUALMENTE`);
             
-            // Marcar UNO POR UNO
+            // Marcar UNO POR UNO (ESTO SIEMPRE FUNCIONA)
             let exitosos = 0;
             for (const msg of mensajes) {
                 const { error: updateError } = await supabase
@@ -1827,11 +1321,68 @@ async enviarMensajeColumna(conversacionId) {
                 if (typeof window.cargarConversaciones === 'function') {
                     await window.cargarConversaciones();
                 }
+                
+                // Eliminar badge visualmente
+                const itemConv = document.querySelector(`[onclick*="${conversacionId}"]`);
+                if (itemConv) {
+                    const badge = itemConv.querySelector('.conversacion-no-leidos');
+                    if (badge) badge.remove();
+                }
             }
             
         } catch (error) {
             console.error('❌ Error general:', error);
         }
+    }
+    
+    // AÑADE ESTE MÉTODO NUEVO justo después
+    async contarMensajesNoLeidos() {
+        const miId = window.f1Manager?.escuderia?.id;
+        if (!miId) return 0;
+        
+        const { count } = await supabase
+            .from('mensajes')
+            .select('*', { count: 'exact', head: true })
+            .eq('leido', false)
+            .neq('sender_id', miId);  // Solo mensajes de OTROS
+        
+        return count || 0;
+    }
+    
+    // Añade este método auxiliar
+    async verificarNoLeidos() {
+        const miId = window.f1Manager?.escuderia?.id;
+        if (!miId) return 0;
+        
+        const { count } = await supabase
+            .from('mensajes')
+            .select('*', { count: 'exact', head: true })
+            .eq('leido', false);
+        
+        return count || 0;
+    }
+    
+    // AÑADE ESTE MÉTODO NUEVO justo después de marcarMensajesLeidos
+    async verificarSiHayMasNoLeidos() {
+        const miId = window.f1Manager?.escuderia?.id;
+        if (!miId) return 0;
+        
+        const { data: conversaciones } = await supabase
+            .from('conversaciones')
+            .select('id')
+            .or(`escuderia1_id.eq.${miId},escuderia2_id.eq.${miId}`);
+        
+        let total = 0;
+        for (const conv of conversaciones || []) {
+            const { count } = await supabase
+                .from('mensajes')
+                .select('*', { count: 'exact', head: true })
+                .eq('conversacion_id', conv.id)
+                .eq('leido', false)
+                .neq('sender_id', miId);
+            total += count;
+        }
+        return total;
     }
     
     /**
@@ -1884,6 +1435,95 @@ async enviarMensajeColumna(conversacionId) {
     }
     
     // ========================
+    // UNIRSE A GRUPO
+    // ========================
+    async unirseAGrupo() {
+        const codigoInput = document.getElementById('codigo-grupo');
+        if (!codigoInput) return;
+        
+        const codigo = codigoInput.value.trim().toUpperCase();
+        if (!codigo) {
+            alert('Por favor, introduce un código de invitación');
+            return;
+        }
+        
+        try {
+            // Buscar grupo por código
+            const { data: grupo, error: errorBusqueda } = await window.supabase
+                .from('grupos_amigos')
+                .select('*')
+                .eq('codigo_invitacion', codigo)
+                .single();
+            
+            if (errorBusqueda || !grupo) {
+                alert('❌ Código de invitación no válido');
+                return;
+            }
+            
+            // Asignar grupo a la escudería
+            const { error: errorUpdate } = await window.supabase
+                .from('escuderias')
+                .update({ grupo_id: grupo.id })
+                .eq('id', this.perfilActual?.escuderia?.id);
+            
+            if (errorUpdate) throw errorUpdate;
+            
+            // Cerrar modal
+            document.getElementById('modal-unirse-grupo')?.remove();
+            
+            // Recargar perfil
+            await this.recargarPerfil();
+            
+            alert(`✅ Te has unido al grupo "${grupo.nombre}" con éxito!`);
+            
+        } catch (error) {
+            console.error('❌ Error al unirse al grupo:', error);
+            alert('Error al unirse al grupo: ' + error.message);
+        }
+    }
+
+    // ========================
+    // COPIAR CÓDIGO DE INVITACIÓN
+    // ========================
+    copiarCodigo(codigo) {
+        navigator.clipboard.writeText(codigo).then(() => {
+            if (window.f1Manager?.showNotification) {
+                window.f1Manager.showNotification('📋 Código copiado al portapapeles', 'info');
+            }
+        }).catch(() => {
+            alert(`Código: ${codigo}`);
+        });
+    }
+
+    // ========================
+    // RECARGAR PERFIL
+    // ========================
+    async recargarPerfil() {
+        const idPerfil = this.perfilActual?.escuderia?.id;
+        if (!idPerfil) return;
+        
+        const nuevosDatos = await this.cargarDatosPerfil(idPerfil);
+        if (nuevosDatos) {
+            this.perfilActual = nuevosDatos;
+            this.crearModalPerfil(nuevosDatos, idPerfil === window.f1Manager?.escuderia?.id);
+        }
+    }
+
+    // ========================
+    // CERRAR MODAL
+    // ========================
+    cerrarModal() {
+        const modal = document.getElementById('modal-perfil');
+        if (modal) {
+            modal.classList.remove('visible');
+            setTimeout(() => {
+                modal.remove();
+                this.modalAbierto = false;
+            }, 300);
+        }
+    }
+
+    // ========================
     // NUEVOS MÉTODOS PARA CHAT EN PANEL
     // ========================
     
@@ -1894,110 +1534,57 @@ async enviarMensajeColumna(conversacionId) {
         this.mostrarChatEnPanel(conversacionId, otroUsuarioId);
     }
     
-
-    // ========================
-    // ACTUALIZAR MÉTODO mostrarChatEnPanel (SIN buscador duplicado)
-    // ========================
-    
     /**
-     * Mostrar chat en el panel principal - VERSIÓN CORREGIDA (sin paneles anidados)
+     * Mostrar chat en el panel principal
      */
     mostrarChatEnPanel(conversacionId, otroUsuarioId) {
         const panel = document.getElementById('panel-chat');
         if (!panel) return;
         
-        // Limpiar el panel pero NO cambiar sus estilos (ya los tiene)
-        panel.innerHTML = '';
+        // Marcar conversación como activa
+        document.querySelectorAll('.conversacion-item').forEach(el => {
+            el.classList.remove('activa');
+        });
         
-        // SOLO DOS COLUMNAS - SIN bordes ni estilos extra
+        // Marcar este item como activo
+        const itemActivo = document.querySelector(`[onclick*="${conversacionId}"]`);
+        if (itemActivo) itemActivo.classList.add('activa');
+        
         panel.innerHTML = `
-            <div style="display: flex; height: 100%; width: 100%;">
-                
-                <!-- COLUMNA IZQUIERDA (FINA) - 200px -->
-                <div style="width: 200px; height: 100%; display: flex; flex-direction: column; border-right: 2px solid #00d2be;">
-                    
-                    <!-- Buscador fijo arriba -->
-                    <div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <input type="text" 
-                               id="buscador-conversaciones"
-                               placeholder="🔍 Buscar conversación..." 
-                               style="width: 100%; padding: 8px; background: rgba(255,255,255,0.1); border: 2px solid #00d2be; border-radius: 5px; color: white;">
-                    </div>
-                    
-                    <!-- Lista de conversaciones (scrollable) -->
-                    <div id="lista-conversaciones-chat" style="flex: 1; overflow-y: auto; padding: 8px;">
-                        <div style="color: #888; text-align: center; padding: 20px;">
-                            <i class="fas fa-spinner fa-spin"></i> Cargando...
-                        </div>
-                    </div>
+            <div class="chat-panel-header">
+                <div class="chat-panel-usuario">
+                    <i class="fas fa-flag-checkered"></i>
+                    <span>Cargando...</span>
                 </div>
-                
-                <!-- COLUMNA DERECHA (ANCHA) - Todo lo que sobra -->
-                <div style="flex: 1; display: flex; flex-direction: column; height: 100%;">
-                    
-                    <!-- Nombre del usuario (fijo) -->
-                    <div style="padding: 12px 15px; border-bottom: 2px solid #00d2be; background: rgba(0,0,0,0.2);">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-flag-checkered" style="color: #00d2be;"></i>
-                            <span id="chat-nombre-usuario" style="color: white; font-weight: bold;">Cargando...</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Mensajes (SCROLLABLES) -->
-                    <div id="chat-panel-mensajes-${conversacionId}" 
-                         style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px;">
-                        <!-- Los mensajes se cargarán aquí -->
-                    </div>
-                    
-                    <!-- INPUT FIJO (siempre abajo) -->
-                    <div style="padding: 15px; border-top: 2px solid #00d2be; background: rgba(0,0,0,0.3);">
-                        <div style="display: flex; gap: 8px;">
-                            <textarea id="chat-panel-input-${conversacionId}" 
-                                placeholder="Escribe un mensaje... (Enter para enviar)"
-                                rows="1"
-                                style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 2px solid #00d2be; border-radius: 8px; color: white; resize: none; max-height: 60px;"></textarea>
-                            <button onclick="window.perfilManager.enviarMensajePanel('${conversacionId}')"
-                                style="background: #00d2be; border: none; border-radius: 8px; color: #1a1a2e; width: 45px; cursor: pointer;">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <button class="chat-panel-cerrar" onclick="document.getElementById('panel-chat').innerHTML = '<div class=\\'chat-placeholder\\'><i class=\\'fas fa-comment-dots\\'></i><p>Selecciona una conversación</p></div>'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chat-panel-mensajes" id="chat-panel-mensajes-${conversacionId}" style="flex: 1; overflow-y: auto; min-height: 0; max-height: 100%; display: flex; flex-direction: column;"></div>
+            <div class="chat-panel-input" style="flex-shrink: 0;">
+                <textarea id="chat-panel-input-${conversacionId}" 
+                    placeholder="Escribe un mensaje..."
+                    rows="1"
+                    style="flex: 1; resize: none;"></textarea>
+                <button onclick="window.perfilManager.enviarMensajePanel('${conversacionId}')">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
             </div>
         `;
         
-        // Obtener nombre del usuario
+        // Obtener nombre y cargar mensajes
         supabase
             .from('escuderias')
             .select('nombre')
             .eq('id', otroUsuarioId)
             .single()
             .then(({ data }) => {
-                const nombreSpan = document.getElementById('chat-nombre-usuario');
-                if (nombreSpan) nombreSpan.textContent = data?.nombre || 'Usuario';
+                const header = panel.querySelector('.chat-panel-usuario span');
+                if (header) header.textContent = data?.nombre || 'Usuario';
             });
         
-        // Cargar lista de conversaciones
-        if (typeof window.cargarConversaciones === 'function') {
-            window.cargarConversaciones();
-        }
-        
-        // Cargar mensajes
         this.cargarMensajesPanel(conversacionId);
         this.escucharMensajesPanel(conversacionId);
-        
-        // Configurar Enter para enviar
-        setTimeout(() => {
-            const textarea = document.getElementById(`chat-panel-input-${conversacionId}`);
-            if (textarea) {
-                textarea.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        this.enviarMensajePanel(conversacionId);
-                    }
-                });
-            }
-        }, 100);
     }
     
     /**
@@ -2044,8 +1631,8 @@ async enviarMensajeColumna(conversacionId) {
     
         if (mensajes.length === 0) {
             contenedor.innerHTML = `
-                <div class="chat-vacio" style="text-align: center; padding: 40px 20px; color: #888;">
-                    <i class="fas fa-comment-dots" style="font-size: 2rem; color: #444; margin-bottom: 10px;"></i>
+                <div class="chat-vacio">
+                    <i class="fas fa-comment-dots"></i>
                     <p>No hay mensajes todavía</p>
                     <small>Escribe el primer mensaje</small>
                 </div>
@@ -2059,14 +1646,14 @@ async enviarMensajeColumna(conversacionId) {
         mensajes.forEach(msg => {
             const esMio = msg.sender_id === miId;
             html += `
-                <div class="chat-mensaje ${esMio ? 'propio' : 'ajeno'}" style="display: flex; margin-bottom: 5px; ${esMio ? 'justify-content: flex-end;' : 'justify-content: flex-start;'}">
-                    <div class="chat-mensaje-contenido" style="max-width: 70%; padding: 8px 12px; border-radius: 12px; ${esMio ? 'background: linear-gradient(135deg, #00d2be, #0066cc); border-bottom-right-radius: 4px;' : 'background: rgba(255,255,255,0.1); border-bottom-left-radius: 4px;'} color: white;">
-                        <div class="chat-mensaje-texto" style="word-wrap: break-word; margin-bottom: 4px;">${this.escapeHTML(msg.contenido)}</div>
-                        <div class="chat-mensaje-info" style="display: flex; justify-content: flex-end; align-items: center; gap: 5px; font-size: 0.65rem; opacity: 0.7;">
+                <div class="chat-mensaje ${esMio ? 'propio' : 'ajeno'}">
+                    <div class="chat-mensaje-contenido">
+                        <div class="chat-mensaje-texto">${this.escapeHTML(msg.contenido)}</div>
+                        <div class="chat-mensaje-info">
                             <span class="chat-mensaje-hora">
                                 ${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
                             </span>
-                            ${esMio && msg.leido ? '<span class="chat-mensaje-leido" style="color: #00d2be;">✓✓</span>' : ''}
+                            ${esMio && msg.leido ? '<span class="chat-mensaje-leido">✓✓</span>' : ''}
                         </div>
                     </div>
                 </div>
@@ -2074,11 +1661,7 @@ async enviarMensajeColumna(conversacionId) {
         });
     
         contenedor.innerHTML = html;
-        
-        // Scroll al último mensaje
-        setTimeout(() => {
-            contenedor.scrollTop = contenedor.scrollHeight;
-        }, 100);
+        contenedor.scrollTop = contenedor.scrollHeight;
     }
     
     /**
@@ -2175,10 +1758,10 @@ async enviarMensajeColumna(conversacionId) {
 }
 
 // ========================
-// ESTILOS DEL PERFIL (ACTUALIZADOS)
+// ESTILOS DEL PERFIL (INCLUYE LOS NUEVOS ESTILOS DE MENSAJES)
 // ========================
 const perfilStyles = `
-    #modal-perfil, #modal-editar-descripcion, #modal-crear-grupo {
+    #modal-perfil, #modal-editar-descripcion, #modal-crear-grupo, #modal-unirse-grupo {
         position: fixed;
         top: 0;
         left: 0;
@@ -2190,7 +1773,7 @@ const perfilStyles = `
         pointer-events: none;
     }
     
-    #modal-perfil.visible, #modal-editar-descripcion, #modal-crear-grupo {
+    #modal-perfil.visible, #modal-editar-descripcion, #modal-crear-grupo, #modal-unirse-grupo {
         opacity: 1;
         pointer-events: auto;
     }
@@ -2254,6 +1837,81 @@ const perfilStyles = `
         color: white;
         transform: scale(1.1);
     }
+    .resultados-busqueda {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .resultado-busqueda-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 5px;
+        background: rgba(0, 210, 190, 0.05);
+        border: 1px solid rgba(0, 210, 190, 0.2);
+    }
+    
+    .resultado-busqueda-item:hover {
+        background: rgba(0, 210, 190, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 210, 190, 0.2);
+    }    
+    .btn-pendiente, .btn-amigo {
+        padding: 10px 20px;
+        background: rgba(255, 152, 0, 0.1);
+        border: 1px solid #FF9800;
+        color: #FF9800;
+        border-radius: 4px;
+        cursor: default;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-aceptar {
+        background: rgba(76, 175, 80, 0.1);
+        border: 1px solid #4CAF50;
+        color: #4CAF50;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-rechazar, .btn-cancelar {
+        background: rgba(244, 67, 54, 0.1);
+        border: 1px solid #F44336;
+        color: #F44336;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-aceptar:hover {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-rechazar:hover, .btn-cancelar:hover {
+        background: #F44336;
+        color: white;
+    }
+    
+    .acciones-loading {
+        padding: 10px;
+        color: #888;
+        text-align: center;
+    }    
     
     .perfil-header {
         display: flex;
@@ -2286,392 +1944,6 @@ const perfilStyles = `
         font-size: 1.8rem;
         color: #00d2be;
         font-family: 'Orbitron', sans-serif;
-    }
-    
-    .perfil-publico-badge {
-        background: rgba(0, 210, 190, 0.1);
-        border: 1px solid #00d2be;
-        color: #00d2be;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    .perfil-fecha-creacion {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        color: #aaa;
-        font-size: 0.85rem;
-    }
-    
-    .perfil-btn-editar {
-        background: rgba(0, 210, 190, 0.1);
-        border: 2px solid #00d2be;
-        color: #00d2be;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        font-size: 1rem;
-        transition: all 0.2s;
-    }
-    
-    .perfil-btn-editar:hover {
-        background: #00d2be;
-        color: black;
-        transform: scale(1.1);
-    }
-    
-    .perfil-descripcion {
-        background: rgba(0, 0, 0, 0.3);
-        border-left: 4px solid #00d2be;
-        padding: 15px;
-        margin-bottom: 25px;
-        border-radius: 8px;
-        font-style: italic;
-        line-height: 1.5;
-        color: #ddd;
-    }
-    
-    .perfil-descripcion-vacia {
-        color: #888;
-        text-align: center;
-        font-style: normal;
-        margin: 0;
-    }
-    
-    .perfil-estadisticas {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 15px;
-        margin-bottom: 25px;
-    }
-    
-    .perfil-stat-card {
-        background: rgba(0, 0, 0, 0.3);
-        border-left: 4px solid;
-        border-radius: 8px;
-        padding: 15px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        transition: transform 0.2s;
-    }
-    
-    .perfil-stat-card:hover {
-        transform: translateY(-2px);
-    }
-    
-    .stat-icon {
-        width: 45px;
-        height: 45px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        color: #00d2be;
-    }
-    
-    .stat-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .stat-label {
-        font-size: 0.7rem;
-        color: #aaa;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .stat-valor {
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: white;
-        margin-top: 2px;
-    }
-    
-    .perfil-grupo {
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 25px;
-    }
-    
-    .perfil-grupo h3 {
-        color: #00d2be;
-        margin: 0 0 15px 0;
-        font-size: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .grupo-info {
-        background: rgba(0, 210, 190, 0.1);
-        border: 1px solid rgba(0, 210, 190, 0.3);
-        border-radius: 6px;
-        padding: 15px;
-    }
-    
-    .grupo-nombre {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: bold;
-        color: white;
-        margin-bottom: 10px;
-        font-size: 1.1rem;
-    }
-    
-    .grupo-creador-badge {
-        background: gold;
-        color: black;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.65rem;
-        font-weight: bold;
-        margin-left: 10px;
-    }
-    
-    .grupo-descripcion {
-        background: rgba(0,0,0,0.2);
-        padding: 12px;
-        border-radius: 6px;
-        margin: 10px 0;
-        color: #ddd;
-        font-style: italic;
-        font-size: 0.9rem;
-    }
-    
-    .grupo-miembros-lista {
-        margin-top: 15px;
-        border-top: 1px solid rgba(255,255,255,0.1);
-        padding-top: 15px;
-    }
-    
-    .grupo-miembros-header {
-        color: #00d2be;
-        font-size: 0.8rem;
-        margin-bottom: 10px;
-        font-weight: bold;
-    }
-    
-    .grupo-miembros-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 10px;
-        max-height: 300px;
-        overflow-y: auto;
-        padding: 5px;
-    }
-    
-    .grupo-miembro-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px;
-        background: rgba(0,0,0,0.3);
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s;
-        border: 1px solid transparent;
-    }
-    
-    .grupo-miembro-item:hover {
-        background: rgba(0,210,190,0.1);
-        border-color: #00d2be;
-        transform: translateY(-2px);
-    }
-    
-    .miembro-avatar {
-        position: relative;
-        width: 35px;
-        height: 35px;
-        background: linear-gradient(135deg, #00d2be, #0066cc);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1rem;
-    }
-    
-    .miembro-admin {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background: gold;
-        color: black;
-        border-radius: 50%;
-        width: 16px;
-        height: 16px;
-        font-size: 0.7rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .miembro-info {
-        flex: 1;
-        overflow: hidden;
-    }
-    
-    .miembro-nombre {
-        color: white;
-        font-size: 0.8rem;
-        font-weight: bold;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .miembro-desde {
-        color: #888;
-        font-size: 0.6rem;
-    }
-    
-    .grupo-codigo-admin {
-        margin-top: 15px;
-        padding: 10px;
-        background: rgba(0,210,190,0.1);
-        border: 1px dashed #00d2be;
-        border-radius: 6px;
-        color: #00d2be;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.8rem;
-    }
-    
-    .grupo-codigo-admin small {
-        color: #888;
-        font-size: 0.65rem;
-        margin-left: auto;
-    }
-    
-    /* Estilo para el botón de solicitud de grupo */
-    .btn-solicitud-grupo {
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(135deg, #00d2be, #0066cc);
-        border: none;
-        color: white;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: transform 0.2s;
-        font-size: 0.9rem;
-    }
-    
-    .btn-solicitud-grupo:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 210, 190, 0.3);
-    }
-    
-    .btn-solicitud-grupo:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-    }
-    
-    .solicitud-loading {
-        text-align: center;
-        padding: 10px;
-        color: #888;
-    }
-    
-    .grupo-vacio {
-        text-align: center;
-        padding: 20px;
-        color: #888;
-    }
-    
-    .grupo-vacio i {
-        font-size: 2rem;
-        color: #444;
-        margin-bottom: 10px;
-    }
-    
-    .btn-crear-grupo {
-        margin: 10px 5px 0;
-        padding: 10px 20px;
-        background: linear-gradient(135deg, #00d2be, #0066cc);
-        border: none;
-        color: white;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: transform 0.2s;
-    }
-    
-    .btn-crear-grupo:hover {
-        transform: translateY(-2px);
-    }
-    
-    .perfil-trofeos {
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 25px;
-    }
-    
-    .perfil-trofeos h3 {
-        color: #FFD700;
-        margin: 0 0 15px 0;
-        font-size: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .trofeos-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 10px;
-    }
-    
-    .trofeo-item {
-        background: rgba(255, 215, 0, 0.1);
-        border: 1px solid rgba(255, 215, 0, 0.3);
-        border-radius: 6px;
-        padding: 10px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        text-align: center;
-        font-size: 0.8rem;
-    }
-    
-    .trofeo-item i {
-        font-size: 1.5rem;
-    }
-    
-    .trofeos-vacio {
-        text-align: center;
-        padding: 20px;
-        color: #888;
-    }
-    
-    .trofeos-vacio i {
-        font-size: 2rem;
-        color: #444;
-        margin-bottom: 10px;
     }
     
     /* Modal de chat */
@@ -2838,6 +2110,570 @@ const perfilStyles = `
     
     .modal-chat-input button:hover {
         background: #00fff0;
+    }    
+    
+    .perfil-fecha-creacion {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #aaa;
+        font-size: 0.85rem;
+    }
+    
+    .perfil-btn-editar {
+        background: rgba(0, 210, 190, 0.1);
+        border: 2px solid #00d2be;
+        color: #00d2be;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+    
+    .perfil-btn-editar:hover {
+        background: #00d2be;
+        color: black;
+        transform: scale(1.1);
+    }
+    
+    .perfil-descripcion {
+        background: rgba(0, 0, 0, 0.3);
+        border-left: 4px solid #00d2be;
+        padding: 15px;
+        margin-bottom: 25px;
+        border-radius: 8px;
+        font-style: italic;
+        line-height: 1.5;
+        color: #ddd;
+    }
+    
+    .perfil-descripcion-vacia {
+        color: #888;
+        text-align: center;
+        font-style: normal;
+        margin: 0;
+    }
+    
+    .perfil-estadisticas {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .perfil-stat-card {
+        background: rgba(0, 0, 0, 0.3);
+        border-left: 4px solid;
+        border-radius: 8px;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: transform 0.2s;
+    }
+    
+    .perfil-stat-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: #00d2be;
+    }
+    
+    .stat-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .stat-label {
+        font-size: 0.7rem;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-valor {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: white;
+        margin-top: 2px;
+    }
+    
+    .perfil-grupo {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .perfil-grupo h3 {
+        color: #00d2be;
+        margin: 0 0 15px 0;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .grupo-info {
+        background: rgba(0, 210, 190, 0.1);
+        border: 1px solid rgba(0, 210, 190, 0.3);
+        border-radius: 6px;
+        padding: 15px;
+    }
+    
+    .grupo-nombre {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+    }
+    
+    .grupo-detalles {
+        display: flex;
+        gap: 20px;
+        color: #aaa;
+        font-size: 0.9rem;
+        flex-wrap: wrap;
+    }
+    
+    .grupo-miembros, .grupo-codigo {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .grupo-codigo {
+        cursor: pointer;
+        color: #00d2be;
+        transition: opacity 0.2s;
+    }
+    
+    .grupo-codigo:hover {
+        opacity: 0.8;
+    }
+    
+    .grupo-codigo small {
+        font-size: 0.65rem;
+        color: #888;
+        margin-left: 5px;
+    }
+    
+    .grupo-vacio {
+        text-align: center;
+        padding: 20px;
+        color: #888;
+    }
+    
+    .grupo-vacio i {
+        font-size: 2rem;
+        color: #444;
+        margin-bottom: 10px;
+    }
+    
+    .btn-crear-grupo, .btn-unirse-grupo {
+        margin: 10px 5px 0;
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #00d2be, #0066cc);
+        border: none;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.2s;
+    }
+    
+    .btn-crear-grupo:hover, .btn-unirse-grupo:hover {
+        transform: translateY(-2px);
+    }
+    
+    .btn-unirse-grupo {
+        background: linear-gradient(135deg, #666, #333);
+    }
+    
+    .perfil-trofeos {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .perfil-trofeos h3 {
+        color: #FFD700;
+        margin: 0 0 15px 0;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .trofeos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+    }
+    
+    .trofeo-item {
+        background: rgba(255, 215, 0, 0.1);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        border-radius: 6px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        text-align: center;
+        font-size: 0.8rem;
+    }
+    
+    .trofeo-item i {
+        font-size: 1.5rem;
+    }
+    
+    .trofeos-vacio {
+        text-align: center;
+        padding: 20px;
+        color: #888;
+    }
+    
+    .trofeos-vacio i {
+        font-size: 2rem;
+        color: #444;
+        margin-bottom: 10px;
+    }
+    
+    .perfil-acciones {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+    
+    .btn-enviar-mensaje, .btn-agregar-amigo {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-enviar-mensaje {
+        background: rgba(0, 210, 190, 0.1);
+        border: 1px solid #00d2be;
+        color: #00d2be;
+    }
+    
+    .btn-agregar-amigo {
+        background: rgba(76, 175, 80, 0.1);
+        border: 1px solid #4CAF50;
+        color: #4CAF50;
+    }
+    
+    .btn-enviar-mensaje:hover, .btn-agregar-amigo:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* ======================== */
+    /* ESTILOS PARA SECCIÓN DE MENSAJES */
+    /* ======================== */
+    
+    #seccion-mensajes {
+        padding: 20px;
+        height: calc(100vh - 200px);
+    }
+    
+    .mensajes-container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 20px;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        border: 1px solid #00d2be;
+        overflow: hidden;
+    }
+    
+    .mensajes-sidebar {
+        background: rgba(0, 0, 0, 0.5);
+        border-right: 1px solid rgba(0, 210, 190, 0.3);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .buscador-usuarios {
+        padding: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+    }
+    
+    .buscador-usuarios i {
+        position: absolute;
+        left: 25px;
+        top: 25px;
+        color: #888;
+    }
+    
+    .buscador-usuarios input {
+        width: 100%;
+        padding: 10px 10px 10px 35px;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid #00d2be;
+        border-radius: 5px;
+        color: white;
+        font-size: 0.9rem;
+    }
+    
+    .buscador-usuarios input:focus {
+        outline: none;
+        box-shadow: 0 0 10px rgba(0, 210, 190, 0.3);
+    }
+    
+    .lista-conversaciones {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+    
+    .conversacion-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 5px;
+        position: relative;
+    }
+    
+    .conversacion-item:hover {
+        background: rgba(0, 210, 190, 0.1);
+    }
+    
+    .conversacion-item.activa {
+        background: rgba(0, 210, 190, 0.2);
+        border-left: 3px solid #00d2be;
+    }
+    
+    .conversacion-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #00d2be, #0066cc);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+    
+    .conversacion-info {
+        flex: 1;
+        overflow: hidden;
+    }
+    
+    .conversacion-nombre {
+        font-weight: bold;
+        color: white;
+        margin-bottom: 3px;
+        font-size: 0.9rem;
+    }
+    
+    .conversacion-ultimo {
+        color: #888;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .conversacion-no-leidos {
+        background: #e10600;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: bold;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+        margin-left: 5px;
+    }
+    
+    .sin-conversaciones {
+        text-align: center;
+        padding: 40px 20px;
+        color: #888;
+        font-style: italic;
+    }
+    
+    .mensajes-chat {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .chat-placeholder {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #888;
+    }
+    
+    .chat-placeholder i {
+        font-size: 3rem;
+        color: #444;
+        margin-bottom: 15px;
+    }
+    
+    /* Estilos para chat en panel */
+    .chat-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .chat-panel-usuario {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #00d2be;
+        font-weight: bold;
+    }
+    
+    .chat-panel-usuario i {
+        font-size: 1.2rem;
+    }
+    
+    .chat-panel-cerrar {
+        background: none;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        font-size: 1rem;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .chat-panel-cerrar:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+    
+    .chat-panel-mensajes {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .chat-panel-input {
+        padding: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        gap: 10px;
+    }
+    
+    .chat-panel-input textarea {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid #00d2be;
+        border-radius: 5px;
+        color: white;
+        padding: 8px 12px;
+        resize: none;
+        font-family: inherit;
+    }
+    
+    .chat-panel-input button {
+        background: #00d2be;
+        border: none;
+        border-radius: 5px;
+        color: #1a1a2e;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .chat-panel-input button:hover {
+        background: #00fff0;
+    }
+    
+    @media (max-width: 768px) {
+        .modal-perfil-contenedor {
+            padding: 20px;
+        }
+        
+        .perfil-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .perfil-titulo h2 {
+            font-size: 1.4rem;
+        }
+        
+        .perfil-estadisticas {
+            grid-template-columns: 1fr;
+        }
+        
+        .perfil-acciones {
+            flex-direction: column;
+        }
+        
+        .mensajes-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .mensajes-sidebar {
+            display: none;
+        }
+        
+        .mensajes-sidebar.visible {
+            display: flex;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
     }
 `;
 
@@ -2847,7 +2683,7 @@ styleElement.textContent = perfilStyles;
 document.head.appendChild(styleElement);
 
 // ========================
-// FUNCIONES GLOBALES PARA MENSAJES (MANTENIDAS)
+// FUNCIONES GLOBALES PARA MENSAJES
 // ========================
 
 // Cargar lista de conversaciones
@@ -2871,8 +2707,9 @@ async function cargarConversaciones() {
 }
 
 // Renderizar conversaciones
+// Renderizar conversaciones
 async function renderizarConversaciones(conversaciones) {
-    const contenedor = document.getElementById('lista-conversaciones-chat') || document.getElementById('lista-conversaciones');
+    const contenedor = document.getElementById('lista-conversaciones');
     if (!contenedor) return;
     
     if (!conversaciones?.length) {
@@ -2882,7 +2719,7 @@ async function renderizarConversaciones(conversaciones) {
     
     const miId = window.f1Manager.escuderia.id;
     
-    // Obtener contadores
+    // Primero, obtener TODOS los contadores de una sola vez (más eficiente)
     const promesasContadores = conversaciones.map(async (conv) => {
         const { count } = await supabase
             .from('mensajes')
@@ -2909,9 +2746,13 @@ async function renderizarConversaciones(conversaciones) {
         html += `
             <div class="conversacion-item ${noLeidos > 0 ? 'tiene-no-leidos' : ''}" 
                  onclick="window.perfilManager.abrirChatDesdeLista('${conv.id}', '${otro.id}')"
-                 data-conversacion-id="${conv.id}">  <!-- AÑADE ESTA LÍNEA -->
+                 data-conversacion-id="${conv.id}">
+                <div class="conversacion-avatar">
+                    <i class="fas fa-flag-checkered"></i>
+                </div>
                 <div class="conversacion-info">
                     <div class="conversacion-nombre">${otro.nombre}</div>
+                    <div class="conversacion-ultimo">${conv.ultimo_mensaje || 'Sin mensajes'}</div>
                 </div>
                 ${noLeidos > 0 ? `<span class="conversacion-no-leidos">${noLeidos}</span>` : ''}
             </div>
@@ -2919,6 +2760,17 @@ async function renderizarConversaciones(conversaciones) {
     }
     
     contenedor.innerHTML = html;
+}
+// Contar mensajes no leídos
+async function contarNoLeidos(conversacionId, miId) {
+    const { count } = await supabase
+        .from('mensajes')
+        .select('*', { count: 'exact', head: true })
+        .eq('conversacion_id', conversacionId)
+        .eq('leido', false)
+        .neq('sender_id', miId);
+    
+    return count;
 }
 
 // Actualizar contador global de mensajes
@@ -2930,6 +2782,7 @@ async function actualizarContadorMensajes() {
     }
     
     try {
+        // Obtener todas las conversaciones del usuario
         const { data: conversaciones, error: convError } = await supabase
             .from('conversaciones')
             .select('id')
@@ -2940,12 +2793,14 @@ async function actualizarContadorMensajes() {
             return;
         }
         
+        // Si no hay conversaciones, ocultar contador
         if (conversaciones.length === 0) {
             const contador = document.getElementById('mensajes-contador');
             if (contador) contador.style.display = 'none';
             return;
         }
         
+        // Contar mensajes NO leídos que NO sean del usuario actual
         let totalNoLeidos = 0;
         
         for (const conv of conversaciones) {
@@ -2954,7 +2809,7 @@ async function actualizarContadorMensajes() {
                 .select('*', { count: 'exact', head: true })
                 .eq('conversacion_id', conv.id)
                 .eq('leido', false)
-                .neq('sender_id', miId);
+                .neq('sender_id', miId);  // Solo mensajes de OTROS usuarios
             
             if (msgError) {
                 console.error('Error contando mensajes:', msgError);
@@ -2964,6 +2819,7 @@ async function actualizarContadorMensajes() {
             totalNoLeidos += count || 0;
         }
         
+        // Actualizar el contador en el icono
         const contador = document.getElementById('mensajes-contador');
         if (contador) {
             if (totalNoLeidos > 0) {
@@ -2972,6 +2828,7 @@ async function actualizarContadorMensajes() {
                 console.log(`📬 ${totalNoLeidos} mensajes no leídos de otros usuarios`);
             } else {
                 contador.style.display = 'none';
+                console.log('📬 No hay mensajes nuevos de otros usuarios');
             }
         }
         
@@ -2983,7 +2840,6 @@ async function actualizarContadorMensajes() {
 // Iniciar polling de mensajes no leídos
 setInterval(actualizarContadorMensajes, 30000);
 setTimeout(actualizarContadorMensajes, 2000);
-
 // Función para iniciar chat con cualquier usuario
 window.iniciarChatConUsuario = async function(otroUsuarioId, otroUsuarioNombre) {
     const miId = window.f1Manager?.escuderia?.id;
@@ -2992,20 +2848,25 @@ window.iniciarChatConUsuario = async function(otroUsuarioId, otroUsuarioNombre) 
         return;
     }
     
+    // No permitir chat contigo mismo
     if (miId === otroUsuarioId) {
         alert('No puedes chatear contigo mismo');
         return;
     }
     
     try {
+        // Buscar si ya existe una conversación
         let conversacion = await window.perfilManager.obtenerConversacion(miId, otroUsuarioId);
         
+        // Si no existe, crear una nueva
         if (!conversacion) {
             conversacion = await window.perfilManager.crearConversacion(miId, otroUsuarioId);
         }
         
+        // Abrir el chat en el panel
         window.perfilManager.abrirChatDesdeLista(conversacion.id, otroUsuarioId);
         
+        // Opcional: cerrar buscador y mostrar conversaciones normales
         document.getElementById('buscador-usuarios').value = '';
         cargarConversaciones();
         
@@ -3014,21 +2875,24 @@ window.iniciarChatConUsuario = async function(otroUsuarioId, otroUsuarioNombre) 
         alert('Error al iniciar chat');
     }
 };
-
+// Buscador de usuarios en tiempo real
 // Buscador de usuarios en tiempo real
 document.addEventListener('input', async function(e) {
     if (e.target.id === 'buscador-usuarios') {
         const busqueda = e.target.value.trim();
-        const contenedor = document.getElementById('lista-conversaciones-chat') || document.getElementById('lista-conversaciones');
+        const contenedor = document.getElementById('lista-conversaciones');
         
         if (busqueda.length < 2) {
+            // Si la búsqueda es muy corta, volver a mostrar conversaciones
             cargarConversaciones();
             return;
         }
         
+        // Mostrar indicador de carga
         contenedor.innerHTML = '<div class="sin-conversaciones"><i class="fas fa-spinner fa-spin"></i> Buscando...</div>';
         
         try {
+            // Buscar usuarios que coincidan con la búsqueda
             const { data: usuarios, error } = await supabase
                 .from('escuderias')
                 .select('id, nombre')
@@ -3042,14 +2906,19 @@ document.addEventListener('input', async function(e) {
                 return;
             }
             
+            // Renderizar resultados de búsqueda
             let html = '<div class="resultados-busqueda">';
             
             usuarios.forEach(usuario => {
                 html += `
                     <div class="conversacion-item resultado-busqueda-item" 
                          onclick="window.iniciarChatConUsuario('${usuario.id}', '${usuario.nombre}')">
+                        <div class="conversacion-avatar">
+                            <i class="fas fa-flag-checkered"></i>
+                        </div>
                         <div class="conversacion-info">
                             <div class="conversacion-nombre">${usuario.nombre}</div>
+                            <div class="conversacion-ultimo">👤 Usuario - Click para chatear</div>
                         </div>
                         <div class="conversacion-no-leidos" style="background: #00d2be;">
                             <i class="fas fa-comment"></i>
@@ -3099,6 +2968,7 @@ console.log('✅ Sistema de perfiles listo');
 // ========================
 // EXPONER PERFIL MANAGER GLOBALMENTE
 // ========================
+// Crear instancia inmediatamente y exponerla
 window.perfilManager = new PerfilManager();
 
 // ========================
@@ -3109,6 +2979,7 @@ window.actualizarContadorMensajes = actualizarContadorMensajes;
 
 console.log('✅ PerfilManager instanciado globalmente');
 
+// También asegurar que se pueda acceder después de carga completa
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         if (!window.perfilManager) {
@@ -3117,6 +2988,7 @@ if (document.readyState === 'loading') {
         console.log('👤 PerfilManager listo (DOMContentLoaded)');
     });
 } else {
+    // Ya está cargado, asegurar instancia
     if (!window.perfilManager) {
         window.perfilManager = new PerfilManager();
     }
