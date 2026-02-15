@@ -1837,7 +1837,30 @@ const perfilStyles = `
         color: white;
         transform: scale(1.1);
     }
+    .resultados-busqueda {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
     
+    .resultado-busqueda-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 5px;
+        background: rgba(0, 210, 190, 0.05);
+        border: 1px solid rgba(0, 210, 190, 0.2);
+    }
+    
+    .resultado-busqueda-item:hover {
+        background: rgba(0, 210, 190, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 210, 190, 0.2);
+    }    
     .btn-pendiente, .btn-amigo {
         padding: 10px 20px;
         background: rgba(255, 152, 0, 0.1);
@@ -2817,22 +2840,100 @@ async function actualizarContadorMensajes() {
 // Iniciar polling de mensajes no leídos
 setInterval(actualizarContadorMensajes, 30000);
 setTimeout(actualizarContadorMensajes, 2000);
-
+// Función para iniciar chat con cualquier usuario
+window.iniciarChatConUsuario = async function(otroUsuarioId, otroUsuarioNombre) {
+    const miId = window.f1Manager?.escuderia?.id;
+    if (!miId) {
+        console.error('No hay sesión activa');
+        return;
+    }
+    
+    // No permitir chat contigo mismo
+    if (miId === otroUsuarioId) {
+        alert('No puedes chatear contigo mismo');
+        return;
+    }
+    
+    try {
+        // Buscar si ya existe una conversación
+        let conversacion = await window.perfilManager.obtenerConversacion(miId, otroUsuarioId);
+        
+        // Si no existe, crear una nueva
+        if (!conversacion) {
+            conversacion = await window.perfilManager.crearConversacion(miId, otroUsuarioId);
+        }
+        
+        // Abrir el chat en el panel
+        window.perfilManager.abrirChatDesdeLista(conversacion.id, otroUsuarioId);
+        
+        // Opcional: cerrar buscador y mostrar conversaciones normales
+        document.getElementById('buscador-usuarios').value = '';
+        cargarConversaciones();
+        
+    } catch (error) {
+        console.error('Error iniciando chat:', error);
+        alert('Error al iniciar chat');
+    }
+};
 // Buscador de usuarios en tiempo real
-document.addEventListener('input', function(e) {
+// Buscador de usuarios en tiempo real
+document.addEventListener('input', async function(e) {
     if (e.target.id === 'buscador-usuarios') {
         const busqueda = e.target.value.trim();
-        if (busqueda.length < 2) return;
+        const contenedor = document.getElementById('lista-conversaciones');
         
-        supabase
-            .from('escuderias')
-            .select('id, nombre')
-            .ilike('nombre', `%${busqueda}%`)
-            .limit(10)
-            .then(({ data }) => {
-                // Mostrar resultados (pendiente de implementar)
-                console.log('Resultados:', data);
+        if (busqueda.length < 2) {
+            // Si la búsqueda es muy corta, volver a mostrar conversaciones
+            cargarConversaciones();
+            return;
+        }
+        
+        // Mostrar indicador de carga
+        contenedor.innerHTML = '<div class="sin-conversaciones"><i class="fas fa-spinner fa-spin"></i> Buscando...</div>';
+        
+        try {
+            // Buscar usuarios que coincidan con la búsqueda
+            const { data: usuarios, error } = await supabase
+                .from('escuderias')
+                .select('id, nombre')
+                .ilike('nombre', `%${busqueda}%`)
+                .limit(20);
+            
+            if (error) throw error;
+            
+            if (!usuarios || usuarios.length === 0) {
+                contenedor.innerHTML = '<div class="sin-conversaciones">No se encontraron usuarios</div>';
+                return;
+            }
+            
+            // Renderizar resultados de búsqueda
+            let html = '<div class="resultados-busqueda">';
+            
+            usuarios.forEach(usuario => {
+                html += `
+                    <div class="conversacion-item resultado-busqueda-item" 
+                         onclick="window.iniciarChatConUsuario('${usuario.id}', '${usuario.nombre}')">
+                        <div class="conversacion-avatar">
+                            <i class="fas fa-flag-checkered"></i>
+                        </div>
+                        <div class="conversacion-info">
+                            <div class="conversacion-nombre">${usuario.nombre}</div>
+                            <div class="conversacion-ultimo">👤 Usuario - Click para chatear</div>
+                        </div>
+                        <div class="conversacion-no-leidos" style="background: #00d2be;">
+                            <i class="fas fa-comment"></i>
+                        </div>
+                    </div>
+                `;
             });
+            
+            html += '</div>';
+            contenedor.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Error en búsqueda:', error);
+            contenedor.innerHTML = '<div class="sin-conversaciones">Error al buscar usuarios</div>';
+        }
     }
 });
 
