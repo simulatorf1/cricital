@@ -367,6 +367,7 @@ class PerfilManager {
             }
 
             // 6. GRUPO DE AMIGOS
+            // 6. GRUPO DE AMIGOS CON MIEMBROS
             let grupo = null;
             if (escuderia.grupo_id) {
                 const { data: grupoData, error: errorGrupo } = await supabase
@@ -374,23 +375,25 @@ class PerfilManager {
                     .select(`
                         id,
                         nombre,
+                        descripcion,
                         codigo_invitacion,
                         creador_id,
-                        created_at
+                        max_miembros,
+                        es_publico,
+                        fecha_creacion
                     `)
                     .eq('id', escuderia.grupo_id)
                     .single();
                 
                 if (!errorGrupo && grupoData) {
-                    // Contar miembros del grupo
-                    const { count } = await supabase
-                        .from('escuderias')
-                        .select('id', { count: 'exact', head: true })
-                        .eq('grupo_id', grupoData.id);
+                    // Obtener miembros del grupo
+                    const miembros = await this.obtenerMiembrosGrupo(grupoData.id);
                     
                     grupo = {
                         ...grupoData,
-                        miembros_count: count || 1
+                        miembros: miembros,
+                        miembros_count: miembros.length,
+                        esCreador: grupoData.creador_id === escuderiaId
                     };
                 }
             }
@@ -541,34 +544,61 @@ class PerfilManager {
                                 <div class="grupo-nombre">
                                     <i class="fas fa-users" style="color: #00d2be;"></i>
                                     <span>${datos.grupo.nombre}</span>
+                                    ${datos.grupo.esCreador ? '<span class="grupo-creador-badge">👑 CREADOR</span>' : ''}
                                 </div>
-                                <div class="grupo-detalles">
-                                    <div class="grupo-miembros">
-                                        <i class="fas fa-user"></i>
-                                        <span>${datos.grupo.miembros_count} miembros</span>
+                                
+                                ${datos.grupo.descripcion ? `
+                                    <div class="grupo-descripcion">
+                                        <p>${datos.grupo.descripcion}</p>
                                     </div>
-                                    ${datos.grupo.codigo_invitacion ? `
-                                        <div class="grupo-codigo" onclick="window.perfilManager.copiarCodigo('${datos.grupo.codigo_invitacion}')">
-                                            <i class="fas fa-link"></i>
-                                            <span>${datos.grupo.codigo_invitacion}</span>
-                                            <small>(click para copiar)</small>
-                                        </div>
-                                    ` : ''}
+                                ` : ''}
+                                
+                                <div class="grupo-miembros-lista">
+                                    <div class="grupo-miembros-header">
+                                        <span><i class="fas fa-users"></i> MIEMBROS (${datos.grupo.miembros_count}/${datos.grupo.max_miembros})</span>
+                                    </div>
+                                    
+                                    <div class="grupo-miembros-grid">
+                                        ${datos.grupo.miembros.map(m => `
+                                            <div class="grupo-miembro-item" onclick="window.perfilManager.abrirPerfilUsuario('${m.escuderia.id}')">
+                                                <div class="miembro-avatar">
+                                                    <i class="fas fa-flag-checkered"></i>
+                                                    ${m.es_admin ? '<span class="miembro-admin" title="Administrador">👑</span>' : ''}
+                                                </div>
+                                                <div class="miembro-info">
+                                                    <div class="miembro-nombre">${m.escuderia.nombre}</div>
+                                                    <div class="miembro-desde">
+                                                        ${new Date(m.fecha_ingreso).toLocaleDateString()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
                                 </div>
+                                
+                                ${datos.grupo.codigo_invitacion && datos.grupo.esCreador ? `
+                                    <div class="grupo-codigo-admin" onclick="window.perfilManager.copiarCodigo('${datos.grupo.codigo_invitacion}')">
+                                        <i class="fas fa-link"></i>
+                                        <span>Código: ${datos.grupo.codigo_invitacion}</span>
+                                        <small>(click para copiar - solo visible para ti)</small>
+                                    </div>
+                                ` : ''}
                             </div>
                         ` : `
                             <div class="grupo-vacio">
                                 <i class="fas fa-user-friends"></i>
                                 <p>${datos.escuderia.nombre} no pertenece a ningún grupo</p>
                                 ${esMiPerfil ? `
-                                    <button class="btn-crear-grupo" onclick="window.perfilManager.mostrarOpcionesGrupo()">
-                                        <i class="fas fa-plus-circle"></i>
-                                        CREAR GRUPO
-                                    </button>
-                                    <button class="btn-unirse-grupo" onclick="window.perfilManager.mostrarUnirseGrupo()">
-                                        <i class="fas fa-sign-in-alt"></i>
-                                        UNIRSE A GRUPO
-                                    </button>
+                                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                                        <button class="btn-crear-grupo" onclick="window.perfilManager.mostrarOpcionesGrupo()">
+                                            <i class="fas fa-plus-circle"></i>
+                                            CREAR GRUPO
+                                        </button>
+                                        <button class="btn-unirse-grupo" onclick="window.perfilManager.mostrarUnirseGrupo()">
+                                            <i class="fas fa-sign-in-alt"></i>
+                                            UNIRSE A GRUPO
+                                        </button>
+                                    </div>
                                 ` : ''}
                             </div>
                         `}
@@ -738,55 +768,158 @@ class PerfilManager {
     }
 
     // ========================
-    // OPCIONES DE GRUPO (CREAR O UNIRSE)
+    // OBTENER MIEMBROS DEL GRUPO
+    // ========================
+    async obtenerMiembrosGrupo(grupoId) {
+        try {
+            const { data, error } = await supabase
+                .from('grupo_miembros')
+                .select(`
+                    id,
+                    es_admin,
+                    fecha_ingreso,
+                    escuderia:escuderias!grupo_miembros_escuderia_id_fkey (
+                        id,
+                        nombre,
+                        puntos,
+                        dinero,
+                        ultimo_login_dia
+                    )
+                `)
+                .eq('grupo_id', grupoId)
+                .order('es_admin', { ascending: false })
+                .order('fecha_ingreso', { ascending: true });
+            
+            if (error) throw error;
+            return data || [];
+            
+        } catch (error) {
+            console.error('Error obteniendo miembros:', error);
+            return [];
+        }
+    }
+    // ========================
+    // MOSTRAR FORMULARIO CREAR GRUPO MEJORADO
     // ========================
     mostrarOpcionesGrupo() {
         const modal = document.createElement('div');
         modal.id = 'modal-crear-grupo';
         modal.innerHTML = `
             <div class="modal-perfil-overlay" onclick="if(event.target === this) this.parentElement.remove()">
-                <div class="modal-perfil-contenedor" style="max-width: 400px;">
+                <div class="modal-perfil-contenedor" style="max-width: 500px;">
                     <button class="modal-perfil-cerrar" onclick="this.closest('#modal-crear-grupo').remove()">
                         <i class="fas fa-times"></i>
                     </button>
                     
-                    <h3 style="color: #00d2be; margin-bottom: 20px;">
+                    <h3 style="color: #00d2be; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                         <i class="fas fa-users"></i>
                         CREAR GRUPO DE AMIGOS
                     </h3>
                     
-                    <input type="text" id="nombre-grupo" 
-                        placeholder="Nombre del grupo (ej: Los Velocistas)"
-                        style="
-                            width: 100%;
-                            padding: 12px;
-                            background: rgba(0,0,0,0.5);
-                            border: 2px solid #00d2be;
-                            border-radius: 6px;
-                            color: white;
-                            margin-bottom: 20px;
-                            font-size: 0.9rem;
-                        ">
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: #aaa; font-size: 0.8rem; display: block; margin-bottom: 5px;">
+                            <i class="fas fa-tag"></i> NOMBRE DEL GRUPO *
+                        </label>
+                        <input type="text" id="nombre-grupo" 
+                            placeholder="Ej: Los Velocistas"
+                            style="
+                                width: 100%;
+                                padding: 12px;
+                                background: rgba(0,0,0,0.5);
+                                border: 2px solid #00d2be;
+                                border-radius: 6px;
+                                color: white;
+                                font-size: 0.9rem;
+                            ">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: #aaa; font-size: 0.8rem; display: block; margin-bottom: 5px;">
+                            <i class="fas fa-align-left"></i> DESCRIPCIÓN
+                        </label>
+                        <textarea id="descripcion-grupo" 
+                            placeholder="Describe el propósito del grupo..."
+                            rows="3"
+                            style="
+                                width: 100%;
+                                padding: 12px;
+                                background: rgba(0,0,0,0.5);
+                                border: 2px solid #00d2be;
+                                border-radius: 6px;
+                                color: white;
+                                font-size: 0.9rem;
+                                resize: vertical;
+                            "></textarea>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="color: #aaa; font-size: 0.8rem; display: block; margin-bottom: 5px;">
+                                <i class="fas fa-users"></i> MÁX. MIEMBROS
+                            </label>
+                            <select id="max-miembros-grupo" style="
+                                width: 100%;
+                                padding: 12px;
+                                background: rgba(0,0,0,0.5);
+                                border: 2px solid #00d2be;
+                                border-radius: 6px;
+                                color: white;
+                            ">
+                                <option value="5">5 miembros</option>
+                                <option value="10" selected>10 miembros</option>
+                                <option value="15">15 miembros</option>
+                                <option value="20">20 miembros</option>
+                                <option value="30">30 miembros</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="color: #aaa; font-size: 0.8rem; display: block; margin-bottom: 5px;">
+                                <i class="fas fa-globe"></i> VISIBILIDAD
+                            </label>
+                            <div style="
+                                padding: 12px;
+                                background: rgba(0,0,0,0.5);
+                                border: 2px solid #00d2be;
+                                border-radius: 6px;
+                                display: flex;
+                                align-items: center;
+                                gap: 10px;
+                            ">
+                                <input type="checkbox" id="grupo-publico">
+                                <label for="grupo-publico" style="color: white;">Grupo público</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(0,210,190,0.1); padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+                        <p style="color: #aaa; font-size: 0.8rem; margin: 0;">
+                            <i class="fas fa-info-circle" style="color: #00d2be;"></i>
+                            Al crear el grupo, recibirás un código de invitación que podrás compartir con tus amigos.
+                            Solo tú verás este código.
+                        </p>
+                    </div>
                     
                     <div style="display: flex; gap: 10px; justify-content: flex-end;">
                         <button onclick="this.closest('#modal-crear-grupo').remove()"
                             style="
-                                padding: 10px 20px;
+                                padding: 12px 25px;
                                 background: transparent;
                                 border: 1px solid #666;
                                 color: #aaa;
-                                border-radius: 4px;
+                                border-radius: 6px;
                                 cursor: pointer;
+                                font-weight: bold;
                             ">
-                            Cancelar
+                            CANCELAR
                         </button>
                         <button onclick="window.perfilManager.crearGrupo()"
                             style="
-                                padding: 10px 20px;
+                                padding: 12px 25px;
                                 background: linear-gradient(135deg, #00d2be, #0066cc);
                                 border: none;
                                 color: white;
-                                border-radius: 4px;
+                                border-radius: 6px;
                                 cursor: pointer;
                                 font-weight: bold;
                             ">
@@ -798,7 +931,7 @@ class PerfilManager {
             </div>
         `;
         
-        document.body.appendChild(modal);      
+        document.body.appendChild(modal);
     }
     
     async cargarEstadoAmistad(otraEscuderiaId) {
@@ -874,13 +1007,24 @@ class PerfilManager {
     // ========================
     // CREAR GRUPO
     // ========================
+    // ========================
+    // CREAR GRUPO MEJORADO
+    // ========================
     async crearGrupo() {
         const nombreInput = document.getElementById('nombre-grupo');
+        const descripcionInput = document.getElementById('descripcion-grupo');
+        const maxMiembrosInput = document.getElementById('max-miembros-grupo');
+        const esPublicoCheck = document.getElementById('grupo-publico');
+        
         if (!nombreInput) return;
         
         const nombre = nombreInput.value.trim();
+        const descripcion = descripcionInput ? descripcionInput.value.trim() : '';
+        const maxMiembros = maxMiembrosInput ? parseInt(maxMiembrosInput.value) || 10 : 10;
+        const esPublico = esPublicoCheck ? esPublicoCheck.checked : false;
+        
         if (!nombre) {
-            alert('Por favor, introduce un nombre para el grupo');
+            this.mostrarNotificacion('Por favor, introduce un nombre para el grupo', 'error');
             return;
         }
         
@@ -893,22 +1037,34 @@ class PerfilManager {
                 .from('grupos_amigos')
                 .insert([{
                     nombre: nombre,
+                    descripcion: descripcion,
                     codigo_invitacion: codigoInvitacion,
                     creador_id: this.perfilActual?.escuderia?.id,
-                    created_at: new Date().toISOString()
+                    max_miembros: maxMiembros,
+                    es_publico: esPublico,
+                    fecha_creacion: new Date().toISOString()
                 }])
                 .select()
                 .single();
             
             if (errorGrupo) throw errorGrupo;
             
-            // Asignar grupo a la escudería
-            const { error: errorUpdate } = await window.supabase
+            // Añadir al creador como admin en grupo_miembros
+            const { error: errorMiembro } = await window.supabase
+                .from('grupo_miembros')
+                .insert([{
+                    grupo_id: grupo.id,
+                    escuderia_id: this.perfilActual?.escuderia?.id,
+                    es_admin: true
+                }]);
+            
+            if (errorMiembro) throw errorMiembro;
+            
+            // Actualizar escudería (opcional, ya no será necesario pero lo mantenemos)
+            await window.supabase
                 .from('escuderias')
                 .update({ grupo_id: grupo.id })
                 .eq('id', this.perfilActual?.escuderia?.id);
-            
-            if (errorUpdate) throw errorUpdate;
             
             // Cerrar modal
             document.getElementById('modal-crear-grupo')?.remove();
@@ -916,13 +1072,70 @@ class PerfilManager {
             // Recargar perfil
             await this.recargarPerfil();
             
-            // Mostrar código de invitación
-            alert(`✅ Grupo "${nombre}" creado con éxito!\n\nCódigo de invitación: ${codigoInvitacion}\n\nComparte este código con tus amigos para que se unan.`);
+            // Mostrar código SOLO al creador
+            this.mostrarModalCodigoGrupo(grupo);
             
         } catch (error) {
             console.error('❌ Error creando grupo:', error);
-            alert('Error al crear el grupo: ' + error.message);
+            this.mostrarNotificacion('Error al crear el grupo: ' + error.message, 'error');
         }
+    }
+    
+    // ========================
+    // MOSTRAR CÓDIGO DEL GRUPO (SOLO PARA EL CREADOR)
+    // ========================
+    mostrarModalCodigoGrupo(grupo) {
+        const modal = document.createElement('div');
+        modal.id = 'modal-codigo-grupo';
+        modal.innerHTML = `
+            <div class="modal-perfil-overlay" onclick="if(event.target === this) this.parentElement.remove()">
+                <div class="modal-perfil-contenedor" style="max-width: 450px; text-align: center;">
+                    <button class="modal-perfil-cerrar" onclick="this.closest('#modal-codigo-grupo').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    
+                    <div style="margin: 20px 0;">
+                        <i class="fas fa-users" style="font-size: 3rem; color: #00d2be; margin-bottom: 15px;"></i>
+                        <h3 style="color: #00d2be; margin-bottom: 10px;">¡GRUPO CREADO!</h3>
+                        <p style="color: #aaa; margin-bottom: 20px;">Comparte este código con tus amigos para que se unan:</p>
+                        
+                        <div style="
+                            background: rgba(0, 210, 190, 0.1);
+                            border: 2px dashed #00d2be;
+                            border-radius: 10px;
+                            padding: 20px;
+                            margin: 20px 0;
+                            font-size: 2rem;
+                            font-weight: bold;
+                            color: #00d2be;
+                            letter-spacing: 5px;
+                            font-family: monospace;
+                        ">${grupo.codigo_invitacion}</div>
+                        
+                        <button onclick="navigator.clipboard.writeText('${grupo.codigo_invitacion}'); this.innerHTML = '✓ COPIADO'; setTimeout(() => this.innerHTML = '📋 COPIAR CÓDIGO', 2000);"
+                            style="
+                                background: linear-gradient(135deg, #00d2be, #0066cc);
+                                border: none;
+                                color: white;
+                                padding: 12px 30px;
+                                border-radius: 25px;
+                                font-weight: bold;
+                                cursor: pointer;
+                                margin-bottom: 10px;
+                            ">
+                            📋 COPIAR CÓDIGO
+                        </button>
+                        
+                        <p style="color: #888; font-size: 0.8rem; margin-top: 15px;">
+                            <i class="fas fa-info-circle"></i>
+                            Este código solo es visible para ti, el creador del grupo
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
     }
 
     // ========================
@@ -1437,13 +1650,16 @@ class PerfilManager {
     // ========================
     // UNIRSE A GRUPO
     // ========================
+    // ========================
+    // UNIRSE A GRUPO (ahora maneja solicitudes si es grupo público/privado)
+    // ========================
     async unirseAGrupo() {
         const codigoInput = document.getElementById('codigo-grupo');
         if (!codigoInput) return;
         
         const codigo = codigoInput.value.trim().toUpperCase();
         if (!codigo) {
-            alert('Por favor, introduce un código de invitación');
+            this.mostrarNotificacion('Por favor, introduce un código de invitación', 'error');
             return;
         }
         
@@ -1456,32 +1672,165 @@ class PerfilManager {
                 .single();
             
             if (errorBusqueda || !grupo) {
-                alert('❌ Código de invitación no válido');
+                this.mostrarNotificacion('❌ Código de invitación no válido', 'error');
                 return;
             }
             
-            // Asignar grupo a la escudería
-            const { error: errorUpdate } = await window.supabase
-                .from('escuderias')
-                .update({ grupo_id: grupo.id })
-                .eq('id', this.perfilActual?.escuderia?.id);
+            // Verificar si ya es miembro
+            const { data: miembro } = await supabase
+                .from('grupo_miembros')
+                .select('*')
+                .eq('grupo_id', grupo.id)
+                .eq('escuderia_id', this.perfilActual?.escuderia?.id)
+                .maybeSingle();
             
-            if (errorUpdate) throw errorUpdate;
+            if (miembro) {
+                this.mostrarNotificacion('Ya eres miembro de este grupo', 'info');
+                return;
+            }
+            
+            // Si el grupo es público, unirse directamente
+            if (grupo.es_publico) {
+                await this.unirseDirectamente(grupo);
+            } else {
+                // Si es privado, enviar solicitud
+                await this.solicitarUnirseAGrupo(grupo.id);
+            }
             
             // Cerrar modal
             document.getElementById('modal-unirse-grupo')?.remove();
             
+        } catch (error) {
+            console.error('❌ Error:', error);
+            this.mostrarNotificacion('Error al procesar la solicitud', 'error');
+        }
+    }
+    
+    // ========================
+    // UNIRSE DIRECTAMENTE A GRUPO PÚBLICO
+    // ========================
+    async unirseDirectamente(grupo) {
+        try {
+            // Añadir como miembro
+            const { error: errorMiembro } = await window.supabase
+                .from('grupo_miembros')
+                .insert([{
+                    grupo_id: grupo.id,
+                    escuderia_id: this.perfilActual?.escuderia?.id,
+                    es_admin: false
+                }]);
+            
+            if (errorMiembro) throw errorMiembro;
+            
+            // Actualizar escudería
+            await window.supabase
+                .from('escuderias')
+                .update({ grupo_id: grupo.id })
+                .eq('id', this.perfilActual?.escuderia?.id);
+            
             // Recargar perfil
             await this.recargarPerfil();
             
-            alert(`✅ Te has unido al grupo "${grupo.nombre}" con éxito!`);
+            this.mostrarNotificacion(`✅ Te has unido al grupo "${grupo.nombre}"`, 'success');
+            
+            // Notificar a los admins
+            const { data: admins } = await supabase
+                .from('grupo_miembros')
+                .select('escuderia_id')
+                .eq('grupo_id', grupo.id)
+                .eq('es_admin', true);
+            
+            for (const admin of admins || []) {
+                const { data: adminUser } = await supabase
+                    .from('escuderias')
+                    .select('user_id')
+                    .eq('id', admin.escuderia_id)
+                    .single();
+                
+                if (adminUser?.user_id && window.notificacionesManager) {
+                    await window.notificacionesManager.crearNotificacion(
+                        adminUser.user_id,
+                        'grupo_nuevo_miembro',
+                        '👋 Nuevo miembro en el grupo',
+                        `${this.perfilActual?.escuderia?.nombre} se ha unido a "${grupo.nombre}"`,
+                        grupo.id,
+                        'grupo_nuevo_miembro'
+                    );
+                }
+            }
             
         } catch (error) {
-            console.error('❌ Error al unirse al grupo:', error);
-            alert('Error al unirse al grupo: ' + error.message);
+            console.error('Error:', error);
+            throw error;
         }
     }
-
+    // ========================
+    // SOLICITAR UNIRSE A GRUPO
+    // ========================
+    async solicitarUnirseAGrupo(grupoId) {
+        try {
+            // Verificar si ya tiene solicitud
+            const { data: existing } = await supabase
+                .from('grupo_solicitudes')
+                .select('*')
+                .eq('grupo_id', grupoId)
+                .eq('escuderia_id', this.perfilActual?.escuderia?.id)
+                .maybeSingle();
+            
+            if (existing) {
+                if (existing.estado === 'pendiente') {
+                    this.mostrarNotificacion('Ya tienes una solicitud pendiente para este grupo', 'info');
+                } else if (existing.estado === 'aceptada') {
+                    this.mostrarNotificacion('Ya eres miembro de este grupo', 'info');
+                }
+                return;
+            }
+            
+            // Crear solicitud
+            const { error } = await supabase
+                .from('grupo_solicitudes')
+                .insert([{
+                    grupo_id: grupoId,
+                    escuderia_id: this.perfilActual?.escuderia?.id,
+                    estado: 'pendiente'
+                }]);
+            
+            if (error) throw error;
+            
+            // Obtener admins del grupo para notificarles
+            const { data: admins } = await supabase
+                .from('grupo_miembros')
+                .select('escuderia_id')
+                .eq('grupo_id', grupoId)
+                .eq('es_admin', true);
+            
+            // Notificar a los admins
+            for (const admin of admins || []) {
+                const { data: adminUser } = await supabase
+                    .from('escuderias')
+                    .select('user_id')
+                    .eq('id', admin.escuderia_id)
+                    .single();
+                
+                if (adminUser?.user_id && window.notificacionesManager) {
+                    await window.notificacionesManager.crearNotificacion(
+                        adminUser.user_id,
+                        'grupo_solicitud',
+                        '👥 Solicitud para unirse al grupo',
+                        `${this.perfilActual?.escuderia?.nombre} quiere unirse a "${datos.grupo.nombre}"`,
+                        grupoId,
+                        'grupo_solicitud'
+                    );
+                }
+            }
+            
+            this.mostrarNotificacion('✅ Solicitud enviada al administrador del grupo', 'success');
+            
+        } catch (error) {
+            console.error('Error:', error);
+            this.mostrarNotificacion('Error al enviar solicitud', 'error');
+        }
+    }
     // ========================
     // COPIAR CÓDIGO DE INVITACIÓN
     // ========================
@@ -2043,7 +2392,133 @@ const perfilStyles = `
         color: #444;
         margin-bottom: 10px;
     }
+    /* Estilos para miembros del grupo */
+    .grupo-miembros-lista {
+        margin-top: 15px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding-top: 15px;
+    }
     
+    .grupo-miembros-header {
+        color: #00d2be;
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+    
+    .grupo-miembros-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 5px;
+    }
+    
+    .grupo-miembro-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    
+    .grupo-miembro-item:hover {
+        background: rgba(0,210,190,0.1);
+        border-color: #00d2be;
+        transform: translateY(-2px);
+    }
+    
+    .miembro-avatar {
+        position: relative;
+        width: 35px;
+        height: 35px;
+        background: linear-gradient(135deg, #00d2be, #0066cc);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+    }
+    
+    .miembro-admin {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: gold;
+        color: black;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .miembro-info {
+        flex: 1;
+        overflow: hidden;
+    }
+    
+    .miembro-nombre {
+        color: white;
+        font-size: 0.8rem;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .miembro-desde {
+        color: #888;
+        font-size: 0.6rem;
+    }
+    
+    .grupo-creador-badge {
+        background: gold;
+        color: black;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+    
+    .grupo-codigo-admin {
+        margin-top: 15px;
+        padding: 10px;
+        background: rgba(0,210,190,0.1);
+        border: 1px dashed #00d2be;
+        border-radius: 6px;
+        color: #00d2be;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+    }
+    
+    .grupo-codigo-admin small {
+        color: #888;
+        font-size: 0.65rem;
+        margin-left: auto;
+    }
+    
+    .grupo-descripcion {
+        background: rgba(0,0,0,0.2);
+        padding: 12px;
+        border-radius: 6px;
+        margin: 10px 0;
+        color: #ddd;
+        font-style: italic;
+        font-size: 0.9rem;
+    }    
     .chat-mensaje {
         display: flex;
         margin-bottom: 10px;
