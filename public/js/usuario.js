@@ -1537,6 +1537,7 @@ class PerfilManager {
     /**
      * Mostrar chat en el panel principal
      */
+
     mostrarChatEnPanel(conversacionId, otroUsuarioId) {
         const panel = document.getElementById('panel-chat');
         if (!panel) return;
@@ -1550,25 +1551,35 @@ class PerfilManager {
         const itemActivo = document.querySelector(`[onclick*="${conversacionId}"]`);
         if (itemActivo) itemActivo.classList.add('activa');
         
+        // Estructura CORREGIDA con flexbox para mantener input fijo
         panel.innerHTML = `
-            <div class="chat-panel-header">
-                <div class="chat-panel-usuario">
-                    <i class="fas fa-flag-checkered"></i>
-                    <span>Cargando...</span>
+            <div class="chat-panel" style="display: flex; flex-direction: column; height: 100%; width: 100%;">
+                <div class="chat-panel-header" style="flex-shrink: 0;">
+                    <div class="chat-panel-usuario">
+                        <i class="fas fa-flag-checkered"></i>
+                        <span>Cargando...</span>
+                    </div>
+                    <button class="chat-panel-cerrar" onclick="document.getElementById('panel-chat').innerHTML = '<div class=\\'chat-placeholder\\'><i class=\\'fas fa-comment-dots\\'></i><p>Selecciona una conversación</p></div>'">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <button class="chat-panel-cerrar" onclick="document.getElementById('panel-chat').innerHTML = '<div class=\\'chat-placeholder\\'><i class=\\'fas fa-comment-dots\\'></i><p>Selecciona una conversación</p></div>'">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="chat-panel-mensajes" id="chat-panel-mensajes-${conversacionId}" style="flex: 1; overflow-y: auto; min-height: 0; max-height: 100%; display: flex; flex-direction: column;"></div>
-            <div class="chat-panel-input" style="flex-shrink: 0;">
-                <textarea id="chat-panel-input-${conversacionId}" 
-                    placeholder="Escribe un mensaje..."
-                    rows="1"
-                    style="flex: 1; resize: none;"></textarea>
-                <button onclick="window.perfilManager.enviarMensajePanel('${conversacionId}')">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                
+                <div class="chat-panel-mensajes" 
+                     id="chat-panel-mensajes-${conversacionId}" 
+                     style="flex: 1 1 auto; overflow-y: auto; min-height: 0; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Los mensajes se insertarán aquí -->
+                </div>
+                
+                <div class="chat-panel-input" style="flex-shrink: 0; padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; background: rgba(0,0,0,0.3);">
+                    <textarea id="chat-panel-input-${conversacionId}" 
+                        placeholder="Escribe un mensaje..."
+                        rows="1"
+                        style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #00d2be; border-radius: 5px; color: white; padding: 8px 12px; resize: none; font-family: inherit; max-height: 60px;"></textarea>
+                    <button onclick="window.perfilManager.enviarMensajePanel('${conversacionId}')"
+                        style="flex-shrink: 0; background: #00d2be; border: none; border-radius: 5px; color: #1a1a2e; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
         `;
         
@@ -1625,14 +1636,15 @@ class PerfilManager {
     /**
      * Renderizar mensajes en el panel
      */
+
     renderizarMensajesPanel(conversacionId, mensajes) {
         const contenedor = document.getElementById(`chat-panel-mensajes-${conversacionId}`);
         if (!contenedor) return;
     
         if (mensajes.length === 0) {
             contenedor.innerHTML = `
-                <div class="chat-vacio">
-                    <i class="fas fa-comment-dots"></i>
+                <div class="chat-vacio" style="text-align: center; padding: 40px 20px; color: #888;">
+                    <i class="fas fa-comment-dots" style="font-size: 2rem; color: #444; margin-bottom: 10px;"></i>
                     <p>No hay mensajes todavía</p>
                     <small>Escribe el primer mensaje</small>
                 </div>
@@ -1646,14 +1658,14 @@ class PerfilManager {
         mensajes.forEach(msg => {
             const esMio = msg.sender_id === miId;
             html += `
-                <div class="chat-mensaje ${esMio ? 'propio' : 'ajeno'}">
-                    <div class="chat-mensaje-contenido">
-                        <div class="chat-mensaje-texto">${this.escapeHTML(msg.contenido)}</div>
-                        <div class="chat-mensaje-info">
+                <div class="chat-mensaje ${esMio ? 'propio' : 'ajeno'}" style="display: flex; margin-bottom: 5px; ${esMio ? 'justify-content: flex-end;' : 'justify-content: flex-start;'}">
+                    <div class="chat-mensaje-contenido" style="max-width: 70%; padding: 8px 12px; border-radius: 12px; ${esMio ? 'background: linear-gradient(135deg, #00d2be, #0066cc); border-bottom-right-radius: 4px;' : 'background: rgba(255,255,255,0.1); border-bottom-left-radius: 4px;'} color: white;">
+                        <div class="chat-mensaje-texto" style="word-wrap: break-word; margin-bottom: 4px;">${this.escapeHTML(msg.contenido)}</div>
+                        <div class="chat-mensaje-info" style="display: flex; justify-content: flex-end; align-items: center; gap: 5px; font-size: 0.65rem; opacity: 0.7;">
                             <span class="chat-mensaje-hora">
                                 ${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
                             </span>
-                            ${esMio && msg.leido ? '<span class="chat-mensaje-leido">✓✓</span>' : ''}
+                            ${esMio && msg.leido ? '<span class="chat-mensaje-leido" style="color: #00d2be;">✓✓</span>' : ''}
                         </div>
                     </div>
                 </div>
@@ -1661,7 +1673,11 @@ class PerfilManager {
         });
     
         contenedor.innerHTML = html;
-        contenedor.scrollTop = contenedor.scrollHeight;
+        
+        // Scroll al último mensaje
+        setTimeout(() => {
+            contenedor.scrollTop = contenedor.scrollHeight;
+        }, 100);
     }
     
     /**
