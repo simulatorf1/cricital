@@ -1626,15 +1626,13 @@ class PerfilManager {
         this.mostrarChatEnPanel(conversacionId, otroUsuarioId);
     }
     
-    /**
-     * Mostrar chat en el panel principal
-     */
+
     // ========================
-    // ACTUALIZAR MÉTODO mostrarChatEnPanel (reemplazar el existente)
+    // ACTUALIZAR MÉTODO mostrarChatEnPanel (SIN buscador duplicado)
     // ========================
     
     /**
-     * Mostrar chat en el panel principal (VERSIÓN CORREGIDA)
+     * Mostrar chat en el panel principal (VERSIÓN CORREGIDA - SIN buscador extra)
      */
     mostrarChatEnPanel(conversacionId, otroUsuarioId) {
         const panel = document.getElementById('panel-chat');
@@ -1653,14 +1651,8 @@ class PerfilManager {
         panel.innerHTML = `
             <div style="display: flex; height: 100%; width: 100%; overflow: hidden;">
                 <!-- Columna izquierda: Lista de conversaciones (más estrecha) -->
-                <div style="width: 25%; min-width: 200px; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; background: rgba(0,0,0,0.3);">
-                    <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <input type="text" 
-                               id="buscador-usuarios" 
-                               placeholder="🔍 Buscar usuario..." 
-                               style="width: 100%; padding: 8px; background: rgba(255,255,255,0.05); border: 2px solid #00d2be; border-radius: 4px; color: white;">
-                    </div>
-                    <div id="lista-conversaciones" style="flex: 1; overflow-y: auto; padding: 10px;">
+                <div style="width: 25%; min-width: 200px; border-right: 1px solid rgba(255,255,255,0.1); overflow-y: auto; background: rgba(0,0,0,0.3);">
+                    <div id="lista-conversaciones" style="padding: 10px;">
                         <!-- Las conversaciones se cargarán aquí -->
                     </div>
                 </div>
