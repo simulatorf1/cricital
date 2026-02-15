@@ -1247,15 +1247,17 @@ class PerfilManager {
                 .neq('sender_id', window.f1Manager.escuderia.id)
                 .eq('leido', false);
             
-            // Actualizar contador global
+            // FORZAR ACTUALIZACIÓN INMEDIATA
             if (typeof window.actualizarContadorMensajes === 'function') {
-                window.actualizarContadorMensajes();
+                await window.actualizarContadorMensajes();
             }
             
-            // Recargar conversaciones para quitar el número
+            // RECARGAR CONVERSACIONES
             if (typeof window.cargarConversaciones === 'function') {
-                window.cargarConversaciones();
+                await window.cargarConversaciones();
             }
+            
+            console.log('✅ Mensajes marcados como leídos');
         } catch (error) {
             console.error('❌ Error marcando mensajes:', error);
         }
