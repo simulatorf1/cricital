@@ -1853,6 +1853,7 @@ const perfilStyles = `
         color: white;
         transform: scale(1.1);
     }
+    
     .resultados-busqueda {
         display: flex;
         flex-direction: column;
@@ -1876,7 +1877,8 @@ const perfilStyles = `
         background: rgba(0, 210, 190, 0.15);
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(0, 210, 190, 0.2);
-    }    
+    }
+    
     .btn-pendiente, .btn-amigo {
         padding: 10px 20px;
         background: rgba(255, 152, 0, 0.1);
@@ -2440,6 +2442,7 @@ const perfilStyles = `
         padding: 15px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         position: relative;
+        flex-shrink: 0;
     }
     
     .buscador-usuarios i {
@@ -2468,6 +2471,7 @@ const perfilStyles = `
         flex: 1;
         overflow-y: auto;
         padding: 10px;
+        min-height: 0;
     }
     
     .conversacion-item {
@@ -2536,6 +2540,7 @@ const perfilStyles = `
         justify-content: center;
         padding: 0 5px;
         margin-left: 5px;
+        flex-shrink: 0;
     }
     
     .sin-conversaciones {
@@ -2550,6 +2555,8 @@ const perfilStyles = `
         display: flex;
         flex-direction: column;
         background: rgba(0, 0, 0, 0.3);
+        height: 100%;
+        min-height: 0;
     }
     
     .chat-placeholder {
@@ -2567,7 +2574,18 @@ const perfilStyles = `
         margin-bottom: 15px;
     }
     
-    /* Estilos para chat en panel */
+    /* ======================== */
+    /* ESTILOS CORREGIDOS PARA CHAT FIJO */
+    /* ======================== */
+    
+    .chat-panel {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+        min-height: 0;
+    }
+    
     .chat-panel-header {
         display: flex;
         justify-content: space-between;
@@ -2575,6 +2593,7 @@ const perfilStyles = `
         padding: 15px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         background: rgba(0, 0, 0, 0.3);
+        flex-shrink: 0;
     }
     
     .chat-panel-usuario {
@@ -2601,6 +2620,7 @@ const perfilStyles = `
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
     }
     
     .chat-panel-cerrar:hover {
@@ -2609,8 +2629,10 @@ const perfilStyles = `
     }
     
     .chat-panel-mensajes {
-        flex: 1;
-        overflow-y: auto;
+        flex: 1 1 auto;
+        overflow-y: auto !important;
+        min-height: 0;
+        max-height: 100%;
         padding: 15px;
         display: flex;
         flex-direction: column;
@@ -2622,6 +2644,8 @@ const perfilStyles = `
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
         gap: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        flex-shrink: 0;
     }
     
     .chat-panel-input textarea {
@@ -2633,6 +2657,7 @@ const perfilStyles = `
         padding: 8px 12px;
         resize: none;
         font-family: inherit;
+        max-height: 60px;
     }
     
     .chat-panel-input button {
@@ -2647,10 +2672,25 @@ const perfilStyles = `
         align-items: center;
         justify-content: center;
         font-size: 1.2rem;
+        flex-shrink: 0;
     }
     
     .chat-panel-input button:hover {
         background: #00fff0;
+    }
+    
+    /* Scrollbar personalizada */
+    .chat-panel-mensajes::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .chat-panel-mensajes::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .chat-panel-mensajes::-webkit-scrollbar-thumb {
+        background: #00d2be;
+        border-radius: 3px;
     }
     
     @media (max-width: 768px) {
