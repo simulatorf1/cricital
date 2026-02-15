@@ -1240,39 +1240,49 @@ class PerfilManager {
      */
     async marcarMensajesLeidos(conversacionId) {
         try {
-            await supabase
+            // SIMPLIFICADO - Marcar TODOS los mensajes no leídos de la conversación
+            const { error } = await supabase
                 .from('mensajes')
                 .update({ leido: true })
                 .eq('conversacion_id', conversacionId)
-                .neq('sender_id', window.f1Manager.escuderia.id)
-                .eq('leido', false);
+                .eq('leido', false);  // ❌ QUITAMOS el .neq('sender_id', miId)
             
-            // 1. ACTUALIZAR CONTADOR GLOBAL
+            if (error) throw error;
+            
+            console.log('✅ Mensajes marcados correctamente');
+            
+            // Actualizar contadores
             await window.actualizarContadorMensajes();
+            await window.cargarConversaciones();
             
-            // 2. RECARGAR CONVERSACIONES PARA QUITAR EL NÚMERO DE LA LISTA
-            if (typeof window.cargarConversaciones === 'function') {
-                await window.cargarConversaciones();
-            }
-            
-            // 3. FORZAR QUE EL CONTADOR DEL ICONO DESAPAREZCA INMEDIATAMENTE
+            // Actualizar icono
             const contadorIcono = document.getElementById('mensajes-contador');
-            const conversacionesRestantes = await this.verificarSiHayMasNoLeidos();
-            
             if (contadorIcono) {
-                if (conversacionesRestantes > 0) {
-                    contadorIcono.textContent = conversacionesRestantes;
+                const totalRestante = await this.verificarNoLeidos();
+                if (totalRestante > 0) {
+                    contadorIcono.textContent = totalRestante;
                     contadorIcono.style.display = 'flex';
                 } else {
                     contadorIcono.style.display = 'none';
                 }
             }
             
-            console.log('✅ Mensajes marcados como leídos');
-            
         } catch (error) {
             console.error('❌ Error marcando mensajes:', error);
         }
+    }
+    
+    // Añade este método auxiliar
+    async verificarNoLeidos() {
+        const miId = window.f1Manager?.escuderia?.id;
+        if (!miId) return 0;
+        
+        const { count } = await supabase
+            .from('mensajes')
+            .select('*', { count: 'exact', head: true })
+            .eq('leido', false);
+        
+        return count || 0;
     }
     
     // AÑADE ESTE MÉTODO NUEVO justo después de marcarMensajesLeidos
