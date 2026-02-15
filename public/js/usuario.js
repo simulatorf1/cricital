@@ -1240,43 +1240,89 @@ class PerfilManager {
      */
     // CÓDIGO CORREGIDO - USA ESTO EN TU MÉTODO
     
+    // REEMPLAZA TODO EL MÉTODO marcarMensajesLeidos CON ESTO:
+    
     async marcarMensajesLeidos(conversacionId) {
         try {
-            console.log(`🔵 Marcando conversación: ${conversacionId}`);
+            console.log(`🔵 Intentando marcar conversación: ${conversacionId}`);
             
-            // FUERZA BRUTA - SIN CONDICIONES COMPLEJAS
+            // MÉTODO 1: UPDATE CON FILTRO (el que no funciona)
             const { data, error } = await supabase
                 .from('mensajes')
                 .update({ leido: true })
-                .match({ 
-                    conversacion_id: conversacionId, 
-                    leido: false 
-                });
+                .eq('conversacion_id', conversacionId)
+                .eq('leido', false);
+            
+            console.log('Resultado update:', { data, error });
             
             if (error) {
-                console.error('❌ Error:', error);
+                console.error('Error en update:', error);
                 return;
             }
             
-            console.log(`✅ Update ejecutado`);
+            // MÉTODO 2: RPC (función en BD) - MÁS FIABLE
+            const { error: rpcError } = await supabase
+                .rpc('marcar_mensajes_leidos', {
+                    p_conversacion_id: conversacionId
+                });
             
-            // Verificar
+            if (rpcError) {
+                console.log('RPC no disponible, continuamos...');
+            }
+            
+            // MÉTODO 3: ACTUALIZAR UNO POR UNO (EL QUE SÍ FUNCIONA SIEMPRE)
+            const { data: mensajes, error: selectError } = await supabase
+                .from('mensajes')
+                .select('id')
+                .eq('conversacion_id', conversacionId)
+                .eq('leido', false);
+            
+            if (selectError) throw selectError;
+            
+            if (!mensajes || mensajes.length === 0) {
+                console.log('✅ No hay mensajes para marcar');
+                return;
+            }
+            
+            console.log(`📊 Intentando marcar ${mensajes.length} mensajes INDIVIDUALMENTE`);
+            
+            // Marcar UNO POR UNO (ESTO SIEMPRE FUNCIONA)
+            let exitosos = 0;
+            for (const msg of mensajes) {
+                const { error: updateError } = await supabase
+                    .from('mensajes')
+                    .update({ leido: true })
+                    .eq('id', msg.id);
+                
+                if (updateError) {
+                    console.error(`❌ Error con mensaje ${msg.id}:`, updateError);
+                } else {
+                    exitosos++;
+                }
+            }
+            
+            console.log(`✅ Marcados ${exitosos} de ${mensajes.length} mensajes`);
+            
+            // Verificar resultado final
             const { count } = await supabase
                 .from('mensajes')
                 .select('*', { count: 'exact', head: true })
                 .eq('conversacion_id', conversacionId)
                 .eq('leido', false);
             
-            console.log(`📌 Quedan: ${count}`);
+            console.log(`📌 Quedan pendientes: ${count}`);
             
             if (count === 0) {
                 // Actualizar UI
-                await window.actualizarContadorMensajes();
+                if (typeof window.actualizarContadorMensajes === 'function') {
+                    await window.actualizarContadorMensajes();
+                }
+                
                 if (typeof window.cargarConversaciones === 'function') {
                     await window.cargarConversaciones();
                 }
                 
-                // Quitar badge
+                // Eliminar badge visualmente
                 const itemConv = document.querySelector(`[onclick*="${conversacionId}"]`);
                 if (itemConv) {
                     const badge = itemConv.querySelector('.conversacion-no-leidos');
@@ -1285,7 +1331,7 @@ class PerfilManager {
             }
             
         } catch (error) {
-            console.error('❌ Error:', error);
+            console.error('❌ Error general:', error);
         }
     }
     
