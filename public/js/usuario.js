@@ -1240,27 +1240,35 @@ class PerfilManager {
      */
     async marcarMensajesLeidos(conversacionId) {
         try {
-            // SIMPLIFICADO - Marcar TODOS los mensajes no leídos de la conversación
+            const miId = window.f1Manager?.escuderia?.id;
+            if (!miId) return;
+    
+            // Marcar mensajes como leídos (solo los que NO son míos)
             const { error } = await supabase
                 .from('mensajes')
                 .update({ leido: true })
                 .eq('conversacion_id', conversacionId)
-                .eq('leido', false);  // ❌ QUITAMOS el .neq('sender_id', miId)
-            
+                .eq('leido', false)
+                .neq('sender_id', miId);  // ❗ IMPORTANTE: solo mensajes de otros
+    
             if (error) throw error;
             
-            console.log('✅ Mensajes marcados correctamente');
-            
-            // Actualizar contadores
+            console.log('✅ Mensajes marcados como leídos');
+    
+            // 1. Actualizar contador global
             await window.actualizarContadorMensajes();
-            await window.cargarConversaciones();
             
-            // Actualizar icono
+            // 2. Recargar lista de conversaciones (para quitar el número)
+            if (typeof window.cargarConversaciones === 'function') {
+                await window.cargarConversaciones();
+            }
+            
+            // 3. ACTUALIZAR EL ICONO DIRECTAMENTE
             const contadorIcono = document.getElementById('mensajes-contador');
             if (contadorIcono) {
-                const totalRestante = await this.verificarNoLeidos();
-                if (totalRestante > 0) {
-                    contadorIcono.textContent = totalRestante;
+                const totalNoLeidos = await this.contarMensajesNoLeidos();
+                if (totalNoLeidos > 0) {
+                    contadorIcono.textContent = totalNoLeidos > 99 ? '99+' : totalNoLeidos;
                     contadorIcono.style.display = 'flex';
                 } else {
                     contadorIcono.style.display = 'none';
@@ -1270,6 +1278,20 @@ class PerfilManager {
         } catch (error) {
             console.error('❌ Error marcando mensajes:', error);
         }
+    }
+    
+    // AÑADE ESTE MÉTODO NUEVO justo después
+    async contarMensajesNoLeidos() {
+        const miId = window.f1Manager?.escuderia?.id;
+        if (!miId) return 0;
+        
+        const { count } = await supabase
+            .from('mensajes')
+            .select('*', { count: 'exact', head: true })
+            .eq('leido', false)
+            .neq('sender_id', miId);  // Solo mensajes de OTROS
+        
+        return count || 0;
     }
     
     // Añade este método auxiliar
@@ -2657,26 +2679,17 @@ async function actualizarContadorMensajes() {
     const miId = window.f1Manager?.escuderia?.id;
     if (!miId) return;
     
-    const { data: conversaciones } = await supabase
-        .from('conversaciones')
-        .select('id')
-        .or(`escuderia1_id.eq.${miId},escuderia2_id.eq.${miId}`);
-    
-    let total = 0;
-    for (const conv of conversaciones || []) {
-        const { count } = await supabase
-            .from('mensajes')
-            .select('*', { count: 'exact', head: true })
-            .eq('conversacion_id', conv.id)
-            .eq('leido', false)
-            .neq('sender_id', miId);
-        total += count;
-    }
+    // Contar mensajes no leídos de OTROS
+    const { count } = await supabase
+        .from('mensajes')
+        .select('*', { count: 'exact', head: true })
+        .eq('leido', false)
+        .neq('sender_id', miId);
     
     const contador = document.getElementById('mensajes-contador');
     if (contador) {
-        if (total > 0) {
-            contador.textContent = total;
+        if (count > 0) {
+            contador.textContent = count > 99 ? '99+' : count;
             contador.style.display = 'flex';
         } else {
             contador.style.display = 'none';
