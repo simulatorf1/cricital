@@ -919,7 +919,10 @@ class TabManager {
             
             // 4. GENERAR TABLA
             this.generarTablaClasificacion(tablaBody, escuderiasOrdenadas, tipo, orden);
-            
+            // 🔴 NUEVO: Configurar eventos de usuarios
+            setTimeout(() => {
+                this.configurarEventosUsuariosClasificacion();
+            }, 100);            
             console.log('✅ Clasificación cargada correctamente');
             
         } catch (error) {
@@ -977,6 +980,7 @@ class TabManager {
             const claseFila = esMiEscuderia ? 'mi-escuderia' : '';
             const clasePosicion = posicion <= 3 ? `top-${posicion}` : '';
             
+
             html += `
                 <tr class="${claseFila}">
                     <td class="celda-posicion ${clasePosicion}">
@@ -984,7 +988,12 @@ class TabManager {
                     </td>
                     <td class="celda-nombre">
                         ${esMiEscuderia ? '<i class="fas fa-user" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
-                        ${escuderia.nombre || 'Sin nombre'}
+                        <span class="usuario-link" 
+                              data-usuario-id="${escuderia.id}"
+                              data-usuario-nombre="${escuderia.nombre || 'Sin nombre'}"
+                              style="cursor: pointer; color: #00d2be; text-decoration: underline; text-decoration-style: dotted; transition: all 0.2s; display: inline-block; padding: 2px 4px; border-radius: 3px;">
+                            ${escuderia.nombre || 'Sin nombre'}
+                        </span>
                     </td>
                     <td class="${tipo === 'dinero' ? 'celda-dinero' : 'celda-vuelta'}">
                         <span class="${tipo === 'dinero' ? 'valor-dinero' : 'valor-vuelta'}">
@@ -1009,9 +1018,9 @@ class TabManager {
     setupClasificacionEvents() {
         console.log('🔧 Configurando eventos de clasificación...');
         
-        // Variables para estado actual - CORREGIDAS
+        // Variables para estado actual
         let tipoActual = 'dinero';
-        let ordenActual = 'desc'; // Cambiado de 'asc' a 'desc'
+        let ordenActual = 'desc';
         
         // Botón actualizar
         document.getElementById('btn-actualizar-clasificacion')?.addEventListener('click', () => {
@@ -1029,9 +1038,8 @@ class TabManager {
                 );
                 e.currentTarget.classList.add('active');
                 
-                // Actualizar y cargar - CON ORDEN CORRECTO
+                // Actualizar y cargar
                 tipoActual = nuevoTipo;
-                // Para dinero: mayor primero (desc), para vuelta: mejor tiempo primero (asc)
                 ordenActual = nuevoTipo === 'dinero' ? 'desc' : 'asc';
                 this.loadClasificacionData(tipoActual, ordenActual);
             });
@@ -1077,13 +1085,44 @@ class TabManager {
             });
         }
         
-        // Cargar datos iniciales - CON ORDEN CORRECTO
+        // Cargar datos iniciales
         setTimeout(() => {
-            // Dinero: mayor primero (desc), Vuelta: mejor tiempo primero (asc)
             this.loadClasificacionData('dinero', 'desc');
+            
+            // 🔴🔴🔴 NUEVO: Configurar eventos de usuarios después de cargar los datos
+            setTimeout(() => {
+                this.configurarEventosUsuariosClasificacion();
+            }, 200);
+            
         }, 100);
     }
-    
+    // ========================
+    // CONFIGURAR EVENTOS DE USUARIOS EN CLASIFICACIÓN
+    // ========================
+    configurarEventosUsuariosClasificacion() {
+        // Eventos para los nombres de usuario cliqueables
+        document.querySelectorAll('.usuario-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const usuarioId = e.target.dataset.usuarioId;
+                const usuarioNombre = e.target.dataset.usuarioNombre;
+                
+                console.log('👤 Clic en usuario de clasificación:', usuarioNombre, 'ID:', usuarioId);
+                
+                // Usar el perfilManager global para abrir el perfil
+                if (window.perfilManager) {
+                    window.perfilManager.abrirPerfilUsuario(usuarioId, usuarioNombre, e);
+                } else {
+                    console.error('❌ perfilManager no disponible');
+                    if (window.f1Manager?.showNotification) {
+                        window.f1Manager.showNotification('❌ Error: Sistema de perfiles no disponible', 'error');
+                    }
+                }
+            });
+        });
+    }    
     // ===== ACTUALIZAR EL MÉTODO setupTabEvents =====
     setupTabEvents(tabId) {
         switch(tabId) {
