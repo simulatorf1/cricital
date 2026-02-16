@@ -970,11 +970,49 @@ class NotificacionesManager {
         document.querySelectorAll('.notificacion-btn-aceptar').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
+                e.preventDefault();
+                
                 const solicitudId = btn.dataset.solicitudId;
                 const notifId = btn.dataset.notifId;
                 
+                // Validar que solicitudId existe y no es 'null' o 'undefined'
+                if (!solicitudId || solicitudId === 'null' || solicitudId === 'undefined') {
+                    console.error('❌ ID de solicitud inválido:', solicitudId);
+                    if (window.f1Manager?.showNotification) {
+                        window.f1Manager.showNotification('❌ Error: ID de solicitud inválido', 'error');
+                    }
+                    return;
+                }
+                
                 if (window.perfilManager) {
                     await window.perfilManager.aceptarSolicitudGrupo(solicitudId);
+                    // Marcar notificación como leída
+                    await this.marcarComoLeida(notifId);
+                    // Recargar notificaciones
+                    this.cargarNotificaciones();
+                }
+            });
+        });
+        
+        document.querySelectorAll('.notificacion-btn-rechazar').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const solicitudId = btn.dataset.solicitudId;
+                const notifId = btn.dataset.notifId;
+                
+                // Validar que solicitudId existe y no es 'null' o 'undefined'
+                if (!solicitudId || solicitudId === 'null' || solicitudId === 'undefined') {
+                    console.error('❌ ID de solicitud inválido:', solicitudId);
+                    if (window.f1Manager?.showNotification) {
+                        window.f1Manager.showNotification('❌ Error: ID de solicitud inválido', 'error');
+                    }
+                    return;
+                }
+                
+                if (window.perfilManager) {
+                    await window.perfilManager.rechazarSolicitudGrupo(solicitudId);
                     // Marcar notificación como leída
                     await this.marcarComoLeida(notifId);
                     // Recargar notificaciones
