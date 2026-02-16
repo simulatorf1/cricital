@@ -251,11 +251,18 @@ class PerfilManager {
     }
     
     // ========================
-    // CAMBIAR TIPO DE CLASIFICACIÓN
+    // CAMBIAR TIPO DE CLASIFICACIÓN (CORREGIDO)
     // ========================
     cambiarTipoClasificacion(grupoId, tipo) {
         const estadoActual = this.estadoClasificacion?.[grupoId] || { tipo: 'dinero', orden: 'desc' };
-        const ordenActual = estadoActual.orden;
+        
+        // Determinar orden por defecto según el tipo
+        let ordenActual;
+        if (tipo === 'vuelta') {
+            ordenActual = 'asc'; // Para vueltas: menor tiempo primero (ascendente)
+        } else {
+            ordenActual = 'desc'; // Para dinero: mayor cantidad primero (descendente)
+        }
         
         if (!this.estadoClasificacion) this.estadoClasificacion = {};
         this.estadoClasificacion[grupoId] = { tipo, orden: ordenActual };
@@ -264,17 +271,17 @@ class PerfilManager {
     }
     
     // ========================
-    // CAMBIAR ORDEN DE CLASIFICACIÓN
+    // CAMBIAR ORDEN DE CLASIFICACIÓN (CORREGIDO)
     // ========================
     cambiarOrdenClasificacion(grupoId, tipo) {
-        const estadoActual = this.estadoClasificacion?.[grupoId] || { tipo, orden: 'desc' };
+        const estadoActual = this.estadoClasificacion?.[grupoId] || { tipo, orden: tipo === 'vuelta' ? 'asc' : 'desc' };
         const nuevoOrden = estadoActual.orden === 'desc' ? 'asc' : 'desc';
         
         if (!this.estadoClasificacion) this.estadoClasificacion = {};
         this.estadoClasificacion[grupoId] = { tipo, orden: nuevoOrden };
         
         this.cargarClasificacionGrupo(grupoId, `clasificacion-grupo-${grupoId}`, tipo, nuevoOrden);
-    }    
+    }  
     // ========================
     // SISTEMA DE GRUPOS
     // ========================
