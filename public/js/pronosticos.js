@@ -1488,7 +1488,7 @@ class PronosticosManager {
     }    
     
 
-    mostrarVistaPronosticoGuardado(pronostico, preguntas, respuestasCorrectas) {
+    mostrarVistaPronosticoGuardado(pronostico, preguntas, respuestasCorrectas = {}) {
         const container = document.getElementById('main-content') || 
                          document.querySelector('.tab-content.active') ||
                          document.querySelector('.pronosticos-container');
@@ -1499,152 +1499,228 @@ class PronosticosManager {
         const estado = pronostico.estado;
         const tieneResultados = estado === 'calificado' && Object.keys(respuestasCorrectas).length > 0;
         
-        // En mostrarVistaPronosticoGuardado, cambia esta parte de la tabla:
+        // VALORES DIRECTOS EN EUROS
+        const VALOR_BASE_PREGUNTA = 5000000; // 5.000.000 € por pregunta acertada
+        const VALOR_PUNTO_COCHE = 10000;     // 10.000 € por punto del coche
         
-        let tablaHTML = '';
+        // Mapeo de áreas
+        const nombresArea = {
+            'meteorologia': '🌦️ Meteorología',
+            'fiabilidad': '🔧 Fiabilidad', 
+            'estrategia': '📋 Estrategia',
+            'rendimiento': '⚡ Rendimiento',
+            'neumaticos': '🛞 Neumáticos',
+            'seguridad': '🛡️ Seguridad',
+            'clasificacion': '⏱️ Clasificación',
+            'carrera': '🏁 Carrera',
+            'overtakes': '👋 Adelantamientos',
+            'incidentes': '🚨 Incidentes'
+        };
+        
+        // Acumuladores
+        let totalDineroPreguntas = 0;
+        let totalBonificaciones = 0;
+        let filasPreguntas = '';
+        let aciertos = 0;
+        let dineroPorAciertos = 0;
+        let dineroPorBonificaciones = 0;
+        
         for (let i = 1; i <= 10; i++) {
             const pregunta = preguntas.find(p => p.numero_pregunta === i);
             const respuestaUsuario = respuestasUsuario[`p${i}`];
             const respuestaCorrecta = respuestasCorrectas[`p${i}`];
+            const esCorrecta = tieneResultados ? respuestaUsuario === respuestaCorrecta : false;
             const area = this.preguntaAreas[i] || 'general';
             
-            let estadoBadge = '';
-            if (tieneResultados) {
-                const esCorrecta = respuestaUsuario === respuestaCorrecta;
-                estadoBadge = esCorrecta ? 
-                    '<span class="badge bg-success badge-sm"><i class="fas fa-check"></i></span>' : 
-                    '<span class="badge bg-danger badge-sm"><i class="fas fa-times"></i></span>';
+            if (esCorrecta) aciertos++;
+            
+            // Calcular bonificación de estrategas para esta área
+            let bonificacionPorcentaje = 0;
+            let estrategasAplicados = [];
+            
+            if (tieneResultados && esCorrecta && pronostico.estrategas_snapshot) {
+                pronostico.estrategas_snapshot.forEach(estratega => {
+                    if (estratega.bonificacion_tipo && 
+                        estratega.bonificacion_tipo.toLowerCase().includes(area.toLowerCase())) {
+                        bonificacionPorcentaje += estratega.bonificacion_valor || 0;
+                        estrategasAplicados.push({
+                            nombre: estratega.nombre,
+                            valor: estratega.bonificacion_valor
+                        });
+                    }
+                });
             }
             
-            // Texto corto de la pregunta
-            // Texto corto de la pregunta
-            let textoPregunta = pregunta?.texto_pregunta || 'Pregunta ' + i;
-            if (textoPregunta.length > 60) textoPregunta = textoPregunta.substring(0, 57) + '...';
+            // Calcular valores en EUROS
+            const dineroBasePregunta = esCorrecta ? VALOR_BASE_PREGUNTA : 0;
+            const dineroBonificacion = esCorrecta ? Math.round(dineroBasePregunta * (bonificacionPorcentaje / 100)) : 0;
+            const dineroTotalPregunta = dineroBasePregunta + dineroBonificacion;
             
-            // Opción seleccionada - MOSTRAR TEXTO COMPLETO, NO SOLO LA LETRA
+            if (esCorrecta) {
+                dineroPorAciertos += dineroBasePregunta;
+                dineroPorBonificaciones += dineroBonificacion;
+                totalDineroPreguntas += dineroTotalPregunta;
+            }
+            
+            // Texto de la opción seleccionada
             let opcionTexto = '';
-            let opcionUsuarioCompleta = '';
+            if (respuestaUsuario === 'A') opcionTexto = pregunta?.opcion_a || 'Opción A';
+            else if (respuestaUsuario === 'B') opcionTexto = pregunta?.opcion_b || 'Opción B';
+            else if (respuestaUsuario === 'C') opcionTexto = pregunta?.opcion_c || 'Opción C';
             
-            if (respuestaUsuario === 'A') {
-                opcionTexto = 'A';
-                opcionUsuarioCompleta = pregunta?.opcion_a || 'Opción A';
-            } else if (respuestaUsuario === 'B') {
-                opcionTexto = 'B';
-                opcionUsuarioCompleta = pregunta?.opcion_b || 'Opción B';
-            } else if (respuestaUsuario === 'C') {
-                opcionTexto = 'C';
-                opcionUsuarioCompleta = pregunta?.opcion_c || 'Opción C';
-            }
+            if (opcionTexto.length > 40) opcionTexto = opcionTexto.substring(0, 37) + '...';
             
-            // Acortar el texto de la opción si es muy largo
-            if (opcionUsuarioCompleta.length > 40) {
-                opcionUsuarioCompleta = opcionUsuarioCompleta.substring(0, 37) + '...';
-            }
-            
-            tablaHTML += `
-                <tr>
-                    <td width="5%"><strong>${i}</strong></td>
-                    <td width="65%">
-                        <div style="font-size: 14px; line-height: 1.3;">${textoPregunta}</div>
-                        <div style="font-size: 13px; color: #00d2be; margin-top: 3px;">
-                            <strong>Tu respuesta (${opcionTexto}):</strong> ${opcionUsuarioCompleta}
-                            ${tieneResultados ? 
-                                ` | <span style="color: ${respuestaUsuario === respuestaCorrecta ? '#00d2be' : '#e10600'}">
-                                    ${respuestaUsuario === respuestaCorrecta ? '✓ Correcta' : '✗ Incorrecta'}
-                                </span>` : ''}
-                        </div>
+            // Construir fila
+            filasPreguntas += `
+                <tr class="${esCorrecta ? 'table-success' : ''}">
+                    <td class="text-center align-middle"><strong>${i}</strong></td>
+                    <td class="align-middle">
+                        <div><strong>${nombresArea[area] || area}</strong></div>
+                        <small class="text-muted">${pregunta?.texto_pregunta?.substring(0, 50) || ''}${pregunta?.texto_pregunta?.length > 50 ? '...' : ''}</small>
                     </td>
-                    <td width="15%" class="text-center">
-                        ${estadoBadge}
-                        ${tieneResultados ? 
-                            `<div style="font-size: 13px; margin-top: 3px;">
-                                <span class="badge bg-secondary">${respuestaCorrecta}</span>
-                            </div>` : ''}
+                    <td class="align-middle">
+                        <span class="badge bg-secondary">${respuestaUsuario}</span>
+                        <small class="d-block text-muted">${opcionTexto}</small>
                     </td>
-                    <td width="15%" class="text-center">
-                        <span class="badge bg-dark">${area.substring(0, 3).toUpperCase()}</span>
+                    <td class="text-center align-middle">
+                        ${tieneResultados ? `
+                            <span class="badge ${esCorrecta ? 'bg-success' : 'bg-danger'}" style="font-size: 1rem;">
+                                ${esCorrecta ? '✓' : '✗'}
+                            </span>
+                        ` : '<span class="badge bg-warning">⏳ Pendiente</span>'}
+                    </td>
+                    <td class="text-end align-middle">
+                        ${tieneResultados && esCorrecta ? `
+                            <div><span class="text-muted">Base:</span> <strong>${dineroBasePregunta.toLocaleString('es-ES')} €</strong></div>
+                            ${bonificacionPorcentaje > 0 ? `
+                                <div class="text-success">
+                                    <small>+${bonificacionPorcentaje}% (${estrategasAplicados.map(e => e.nombre).join(', ')}):</small>
+                                    <strong>+${dineroBonificacion.toLocaleString('es-ES')} €</strong>
+                                </div>
+                            ` : ''}
+                            <div class="mt-1"><strong>Total: ${dineroTotalPregunta.toLocaleString('es-ES')} €</strong></div>
+                        ` : tieneResultados ? '0 €' : '---'}
                     </td>
                 </tr>
             `;
         }
         
+        // Calcular dinero por puntos del coche
+        const puntosCoche = pronostico.puntos_coche_snapshot || 0;
+        const dineroPorPuntosCoche = puntosCoche * VALOR_PUNTO_COCHE;
+        
+        // Total final
+        const dineroTotalFinal = totalDineroPreguntas + dineroPorPuntosCoche;
+        
+        // Verificar si ya cobró
+        const yaCobro = pronostico.cobrado || false;
+        
         container.innerHTML = `
             <div class="pronostico-container compacto">
                 <div class="card">
                     <div class="card-header bg-dark text-white py-2 d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-eye"></i> Mi Pronóstico</h5>
-                        <span class="badge ${estado === 'pendiente' ? 'bg-warning' : 'bg-success'}">
-                            ${estado === 'pendiente' ? '⏳ Pendiente' : '✅ Calificado'}
+                        <h5 class="mb-0"><i class="fas fa-chart-line"></i> Resultados - ${pronostico.calendario_gp?.nombre || 'Carrera'}</h5>
+                        <span class="badge ${estado === 'pendiente' ? 'bg-warning' : 'bg-success'} fs-6 p-2">
+                            ${estado === 'pendiente' ? '⏳ Pendiente de calificación' : '✅ Resultados disponibles'}
                         </span>
                     </div>
+                    
                     <div class="card-body py-3">
                         ${estado === 'pendiente' ? `
-                            <div class="alert alert-info alert-sm mb-3">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-clock me-2"></i>
-                                    <div>
-                                        <strong>Pendiente de calificación</strong>
-                                        <small class="d-block">Los resultados estarán disponibles después de la carrera</small>
-                                    </div>
-                                </div>
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-clock me-2"></i>
+                                <strong>Los resultados estarán disponibles después de la carrera</strong>
                             </div>
                         ` : `
-                            <div class="alert alert-success alert-sm mb-3">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-chart-bar me-2"></i>
+                            <!-- RESULTADOS DETALLADOS -->
+                            <div class="alert alert-success mb-4">
+                                <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <strong>Resultados disponibles</strong>
-                                        <small class="d-block">
-                                            Aciertos: ${pronostico.aciertos || 0}/10 | 
-                                            Puntos: ${pronostico.puntuacion_total || 0} |
-                                            Dinero: €${pronostico.dinero_ganado || 0}
-                                        </small>
+                                        <i class="fas fa-trophy me-2"></i>
+                                        <strong>Has acertado ${aciertos}/10 preguntas</strong>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="d-block text-muted">Total bruto</small>
+                                        <span class="fs-5 fw-bold">${dineroTotalFinal.toLocaleString('es-ES')} €</span>
                                     </div>
                                 </div>
                             </div>
-                        `}
-                        
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover mb-3">
-                                <thead class="bg-secondary">
-                                    <tr>
-                                        <th width="5%">#</th>
-                                        <th width="65%">Pregunta</th>
-                                        <th width="15%">Resultado</th>
-                                        <th width="15%">Área</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${tablaHTML}
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <div class="stat-card-sm text-center p-2">
-                                    <small class="d-block text-muted">Puntos coche</small>
-                                    <span class="stat-value-mini">${pronostico.puntos_coche_snapshot || 0}</span>
+                            
+                            <!-- TABLA DE PREGUNTAS -->
+                            <h6 class="mb-3"><i class="fas fa-list"></i> Desglose por pregunta:</h6>
+                            <div class="table-responsive mb-4">
+                                <table class="table table-sm table-dark table-hover">
+                                    <thead class="bg-secondary">
+                                        <tr>
+                                            <th class="text-center" width="5%">#</th>
+                                            <th width="25%">Área / Pregunta</th>
+                                            <th width="25%">Tu respuesta</th>
+                                            <th class="text-center" width="10%">Resultado</th>
+                                            <th class="text-end" width="35%">Dinero obtenido</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${filasPreguntas}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- RESUMEN ECONÓMICO -->
+                            <div class="card bg-dark border-secondary mb-4">
+                                <div class="card-header bg-secondary py-2">
+                                    <h6 class="mb-0"><i class="fas fa-calculator"></i> Resumen económico</h6>
+                                </div>
+                                <div class="card-body py-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between">
+                                                    <span>💰 Preguntas acertadas (${aciertos} × 5.000.000 €):</span>
+                                                    <span class="fw-bold">${dineroPorAciertos.toLocaleString('es-ES')} €</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between text-success">
+                                                    <span>✨ Bonificaciones de estrategas:</span>
+                                                    <span class="fw-bold">+${dineroPorBonificaciones.toLocaleString('es-ES')} €</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mt-2 pt-2 border-top border-secondary">
+                                                    <span><strong>SUBTOTAL PREGUNTAS:</strong></span>
+                                                    <span class="fw-bold">${totalDineroPreguntas.toLocaleString('es-ES')} €</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between">
+                                                    <span>🏎️ Puntos del coche (${puntosCoche} × 10.000 €):</span>
+                                                    <span class="fw-bold">${dineroPorPuntosCoche.toLocaleString('es-ES')} €</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mt-2 pt-2 border-top border-secondary fs-5">
+                                                    <span><strong>TOTAL FINAL:</strong></span>
+                                                    <span class="fw-bold text-warning">${dineroTotalFinal.toLocaleString('es-ES')} €</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-6">
-                                <div class="stat-card-sm text-center p-2">
-                                    <small class="d-block text-muted">Estrategas</small>
-                                    <span class="stat-value-mini">${Array.isArray(pronostico.estrategas_snapshot) ? pronostico.estrategas_snapshot.length : 0}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid gap-2">
-                            ${estado === 'calificado' ? `
-                                <button class="btn btn-success btn-sm" onclick="window.pronosticosManager.verResultadosCompletos(${this.carreraActual?.id})">
-                                    <i class="fas fa-chart-line"></i> Ver cálculo detallado
+                            
+                            <!-- BOTÓN COBRAR -->
+                            <div class="d-grid gap-2">
+                                ${yaCobro ? `
+                                    <button class="btn btn-secondary btn-lg" disabled>
+                                        <i class="fas fa-check-circle me-2"></i> COBRADO (${new Date(pronostico.fecha_cobro).toLocaleDateString('es-ES')})
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-success btn-lg" onclick="window.pronosticosManager.cobrarDinero(${pronostico.id}, ${dineroTotalFinal})">
+                                        <i class="fas fa-money-bill-wave me-2"></i> COBRAR AHORA ${dineroTotalFinal.toLocaleString('es-ES')} €
+                                    </button>
+                                `}
+                                
+                                <button class="btn btn-outline-secondary" onclick="window.pronosticosManager.cargarPantallaPronostico()">
+                                    <i class="fas fa-arrow-left me-2"></i> Volver a pronósticos
                                 </button>
-                            ` : ''}
-                            <button class="btn btn-outline-secondary btn-sm" onclick="window.pronosticosManager.cargarPantallaPronostico()">
-                                <i class="fas fa-arrow-left"></i> Volver
-                            </button>
-                        </div>
+                            </div>
+                        `}
                     </div>
                 </div>
             </div>
@@ -1811,7 +1887,72 @@ class PronosticosManager {
             this.mostrarError("Error al crear preguntas");
         }
     }
-
+    async cobrarDinero(pronosticoId, cantidad) {
+        try {
+            const { data: { user } } = await this.supabase.auth.getUser();
+            if (!user) {
+                this.mostrarError("Debes iniciar sesión");
+                return;
+            }
+            
+            // Mostrar confirmación
+            if (!confirm(`¿Confirmas que quieres cobrar ${cantidad.toLocaleString('es-ES')} €?`)) {
+                return;
+            }
+            
+            // 1. Obtener dinero actual de la escudería
+            const { data: escuderia, error: errorEscuderia } = await this.supabase
+                .from('escuderias')
+                .select('dinero')
+                .eq('user_id', user.id)
+                .single();
+            
+            if (errorEscuderia) throw errorEscuderia;
+            
+            const dineroActual = escuderia.dinero || 0;
+            const nuevoDinero = dineroActual + cantidad;
+            
+            // 2. Actualizar dinero de la escudería
+            const { error: errorUpdate } = await this.supabase
+                .from('escuderias')
+                .update({ dinero: nuevoDinero })
+                .eq('user_id', user.id);
+            
+            if (errorUpdate) throw errorUpdate;
+            
+            // 3. Marcar pronóstico como cobrado
+            const { error: errorPronostico } = await this.supabase
+                .from('pronosticos_usuario')
+                .update({ 
+                    cobrado: true,
+                    fecha_cobro: new Date().toISOString()
+                })
+                .eq('id', pronosticoId);
+            
+            if (errorPronostico) throw errorPronostico;
+            
+            // 4. Mostrar éxito y recargar
+            this.mostrarNotificacionTemporal(`
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <i class="fas fa-check-circle" style="font-size: 30px; color: #00d2be;"></i>
+                    <div>
+                        <h5 style="margin: 0; color: #00d2be;">¡Dinero cobrado!</h5>
+                        <p style="margin: 5px 0 0 0;">Se han añadido ${cantidad.toLocaleString('es-ES')} € a tu escudería</p>
+                        <p style="margin: 0; font-size: 13px;">Nuevo saldo: ${nuevoDinero.toLocaleString('es-ES')} €</p>
+                    </div>
+                </div>
+            `, 5000);
+            
+            // Recargar la vista para mostrar botón deshabilitado
+            setTimeout(() => {
+                this.cargarPantallaPronostico();
+            }, 2000);
+            
+        } catch (error) {
+            console.error("Error al cobrar:", error);
+            this.mostrarError("Error al procesar el cobro");
+        }
+    }
     async verPronosticoGuardado() {
         try {
             const { data: { user } } = await this.supabase.auth.getUser();
