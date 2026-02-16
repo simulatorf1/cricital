@@ -215,12 +215,7 @@ class PerfilManager {
             
             this.mostrarNotificacion(`✅ Grupo "${nombre}" creado con éxito`, 'success');
             
-            // Preguntar si quiere crear otro
-            setTimeout(() => {
-                if (confirm('¿Quieres crear otro grupo?')) {
-                    this.crearGrupo();
-                }
-            }, 500);
+
             
             // Recargar perfil si está abierto
             if (this.modalAbierto) {
@@ -419,7 +414,158 @@ class PerfilManager {
             this.mostrarNotificacion('❌ Error al procesar la solicitud', 'error');
         }
     }
-
+    /**
+     * Aceptar solicitud de grupo (wrapper para procesarSolicitudGrupo)
+     */
+    async aceptarSolicitudGrupo(solicitudId) {
+        await this.procesarSolicitudGrupo(solicitudId, 'aceptar');
+    }
+    
+    /**
+     * Rechazar solicitud de grupo (wrapper para procesarSolicitudGrupo)
+     */
+    async rechazarSolicitudGrupo(solicitudId) {
+        await this.procesarSolicitudGrupo(solicitudId, 'rechazar');
+    }
+    /**
+     * Editar grupo (solo admin)
+     */
+    async editarGrupo(grupoId) {
+        try {
+            // Obtener datos actuales del grupo
+            const { data: grupo, error } = await supabase
+                .from('grupos_amigos')
+                .select('nombre, descripcion')
+                .eq('id', grupoId)
+                .single();
+            
+            if (error) throw error;
+            
+            const modal = document.createElement('div');
+            modal.id = 'modal-editar-grupo';
+            modal.innerHTML = `
+                <div class="modal-perfil-overlay" onclick="if(event.target === this) this.parentElement.remove()">
+                    <div class="modal-perfil-contenedor" style="max-width: 500px;">
+                        <button class="modal-perfil-cerrar" onclick="this.closest('#modal-editar-grupo').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        
+                        <h3 style="color: #00d2be; margin-bottom: 20px;">
+                            <i class="fas fa-pen"></i>
+                            EDITAR GRUPO
+                        </h3>
+                        
+                        <input type="text" id="editar-nombre-grupo" 
+                            value="${grupo.nombre}"
+                            placeholder="Nombre del grupo"
+                            style="
+                                width: 100%;
+                                padding: 12px;
+                                background: rgba(0,0,0,0.5);
+                                border: 2px solid #00d2be;
+                                border-radius: 6px;
+                                color: white;
+                                margin-bottom: 15px;
+                                font-size: 0.9rem;
+                            ">
+                        
+                        <textarea id="editar-descripcion-grupo" 
+                            placeholder="Descripción del grupo (opcional)"
+                            rows="3"
+                            style="
+                                width: 100%;
+                                padding: 12px;
+                                background: rgba(0,0,0,0.5);
+                                border: 2px solid #00d2be;
+                                border-radius: 6px;
+                                color: white;
+                                margin-bottom: 20px;
+                                font-size: 0.9rem;
+                                resize: vertical;
+                            ">${grupo.descripcion || ''}</textarea>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="this.closest('#modal-editar-grupo').remove()"
+                                style="
+                                    padding: 10px 20px;
+                                    background: transparent;
+                                    border: 1px solid #666;
+                                    color: #aaa;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                ">
+                                Cancelar
+                            </button>
+                            <button onclick="window.perfilManager.guardarEdicionGrupo('${grupoId}')"
+                                style="
+                                    padding: 10px 20px;
+                                    background: linear-gradient(135deg, #00d2be, #0066cc);
+                                    border: none;
+                                    color: white;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-weight: bold;
+                                ">
+                                <i class="fas fa-save"></i>
+                                GUARDAR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+        } catch (error) {
+            console.error('❌ Error cargando grupo:', error);
+            this.mostrarNotificacion('❌ Error al cargar grupo', 'error');
+        }
+    }
+    
+    /**
+     * Guardar edición del grupo
+     */
+    async guardarEdicionGrupo(grupoId) {
+        const nombreInput = document.getElementById('editar-nombre-grupo');
+        const descripcionInput = document.getElementById('editar-descripcion-grupo');
+        
+        if (!nombreInput) return;
+        
+        const nombre = nombreInput.value.trim();
+        if (!nombre) {
+            this.mostrarNotificacion('❌ El nombre del grupo es obligatorio', 'error');
+            return;
+        }
+        
+        const descripcion = descripcionInput?.value.trim() || '';
+        
+        try {
+            const { error } = await supabase
+                .from('grupos_amigos')
+                .update({
+                    nombre: nombre,
+                    descripcion: descripcion,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', grupoId);
+            
+            if (error) throw error;
+            
+            document.getElementById('modal-editar-grupo')?.remove();
+            
+            this.mostrarNotificacion('✅ Grupo actualizado correctamente', 'success');
+            
+            // Recargar perfil
+            if (this.modalAbierto) {
+                await this.recargarPerfil();
+            }
+            
+        } catch (error) {
+            console.error('❌ Error actualizando grupo:', error);
+            this.mostrarNotificacion('❌ Error al actualizar grupo', 'error');
+        }
+    }
+    
     /**
      * Ver miembros de un grupo
      */
@@ -450,7 +596,166 @@ class PerfilManager {
             this.mostrarNotificacion('❌ Error al cargar miembros', 'error');
         }
     }
+    /**
+     * Cargar miembros de un grupo y mostrarlos en el perfil
+     */
+    async cargarMiembrosGrupoEnPerfil(grupoId, contenedorId) {
+        try {
+            const { data: miembros, error } = await supabase
+                .from('grupo_miembros')
+                .select(`
+                    *,
+                    escuderia:escuderias!grupo_miembros_escuderia_id_fkey (
+                        id,
+                        nombre
+                    )
+                `)
+                .eq('grupo_id', grupoId)
+                .limit(3);
+            
+            if (error) throw error;
+            
+            const contenedor = document.getElementById(contenedorId);
+            if (!contenedor) return;
+            
+            if (!miembros || miembros.length === 0) {
+                contenedor.innerHTML = '<div style="color: #888; font-size: 0.8rem;">Sin miembros</div>';
+                return;
+            }
+            
+            let html = '<div style="display: flex; flex-direction: column; gap: 5px;">';
+            
+            miembros.forEach((m, index) => {
+                html += `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="
+                            width: 24px;
+                            height: 24px;
+                            background: rgba(0,210,190,0.2);
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 0.7rem;
+                            color: #00d2be;
+                        ">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span style="color: white; font-size: 0.85rem; flex: 1;">
+                            ${m.escuderia.nombre}
+                        </span>
+                        ${m.es_admin ? '<span style="color: #FFD700; font-size: 0.7rem;">👑</span>' : ''}
+                    </div>
+                `;
+            });
+            
+            if (miembros.length === 3) {
+                html += `
+                    <div style="text-align: right; margin-top: 5px;">
+                        <button onclick="window.perfilManager.verMiembrosGrupo('${grupoId}')" style="
+                            background: none;
+                            border: none;
+                            color: #00d2be;
+                            font-size: 0.7rem;
+                            cursor: pointer;
+                            text-decoration: underline;
+                        ">
+                            Ver todos →
+                        </button>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            contenedor.innerHTML = html;
+            
+        } catch (error) {
+            console.error('❌ Error cargando miembros:', error);
+        }
+    }
+    /**
+     * Abrir selector de grupos para solicitar unirse
+     */
+    async abrirSelectorGrupos(escuderiaId) {
+        const miId = window.f1Manager?.escuderia?.id;
+        if (!miId) {
+            this.mostrarNotificacion('❌ No has iniciado sesión', 'error');
+            return;
+        }
+        
+        try {
+            // Obtener grupos del usuario actual
+            const misGrupos = await this.obtenerGruposEscuderia(miId);
+            
+            if (misGrupos.length === 0) {
+                this.mostrarNotificacion('❌ No perteneces a ningún grupo', 'error');
+                return;
+            }
+            
+            // Crear modal para seleccionar grupo
+            const modal = document.createElement('div');
+            modal.id = 'modal-selector-grupo';
+            modal.innerHTML = `
+                <div class="modal-perfil-overlay" onclick="if(event.target === this) this.parentElement.remove()">
+                    <div class="modal-perfil-contenedor" style="max-width: 400px;">
+                        <button class="modal-perfil-cerrar" onclick="this.closest('#modal-selector-grupo').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        
+                        <h3 style="color: #00d2be; margin-bottom: 20px;">
+                            <i class="fas fa-users"></i>
+                            SELECCIONAR GRUPO
+                        </h3>
+                        
+                        <p style="color: #aaa; margin-bottom: 15px; font-size: 0.9rem;">
+                            ¿A qué grupo quieres invitar a ${this.perfilActual?.escuderia?.nombre}?
+                        </p>
+                        
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            ${misGrupos.map(grupo => `
+                                <div onclick="window.perfilManager.solicitarUnirseAGrupo('${grupo.id}', '${grupo.nombre}')"
+                                    style="
+                                        padding: 12px;
+                                        background: rgba(0,0,0,0.3);
+                                        border: 1px solid #00d2be;
+                                        border-radius: 6px;
+                                        margin-bottom: 8px;
+                                        cursor: pointer;
+                                        transition: all 0.2s;
+                                    "
+                                    onmouseover="this.style.background='rgba(0,210,190,0.1)'"
+                                    onmouseout="this.style.background='rgba(0,0,0,0.3)'">
+                                    <div style="font-weight: bold; color: white;">${grupo.nombre}</div>
+                                    ${grupo.descripcion ? `<div style="color: #aaa; font-size: 0.8rem; margin-top: 3px;">${grupo.descripcion}</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button onclick="this.closest('#modal-selector-grupo').remove()" style="
+                                background: transparent;
+                                border: 1px solid #666;
+                                color: #aaa;
+                                padding: 8px 20px;
+                                border-radius: 4px;
+                                cursor: pointer;
+                            ">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+        } catch (error) {
+            console.error('❌ Error abriendo selector:', error);
+            this.mostrarNotificacion('❌ Error al cargar grupos', 'error');
+        }
+    }
 
+    
     /**
      * Mostrar modal con lista de miembros
      */
@@ -778,7 +1083,15 @@ class PerfilManager {
 
             // 6. GRUPOS DEL USUARIO (ahora puede tener múltiples)
             const grupos = await this.obtenerGruposEscuderia(escuderiaId);
-
+            // Cargar miembros de cada grupo (para mostrarlos después)
+            if (grupos.length > 0) {
+                // Esto se cargará asíncronamente después de renderizar el perfil
+                setTimeout(() => {
+                    grupos.forEach(grupo => {
+                        this.cargarMiembrosGrupoEnPerfil(grupo.id, `miembros-grupo-${grupo.id}`);
+                    });
+                }, 100);
+            }
             // 7. TROFEOS
             const trofeos = [];
 
@@ -911,12 +1224,24 @@ class PerfilManager {
                         </div>
                     </div>
                     
+
                     <div class="perfil-grupos">
                         <h3>
                             <i class="fas fa-users"></i>
-                            GRUPOS (${datos.grupos.length})
+                            GRUPOS
                         </h3>
                         
+                        <!-- SIEMPRE mostrar el botón de crear grupo para el dueño del perfil -->
+                        ${esMiPerfil ? `
+                            <div style="margin-bottom: 20px;">
+                                <button class="btn-crear-grupo" onclick="window.perfilManager.crearGrupo()" style="width: 100%;">
+                                    <i class="fas fa-plus-circle"></i>
+                                    CREAR NUEVO GRUPO
+                                </button>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Lista de grupos (si tiene) -->
                         ${datos.grupos.length > 0 ? `
                             <div class="grupos-lista">
                                 ${datos.grupos.map(grupo => `
@@ -924,14 +1249,14 @@ class PerfilManager {
                                         background: rgba(0,0,0,0.3);
                                         border: 1px solid #00d2be;
                                         border-radius: 8px;
-                                        padding: 12px;
-                                        margin-bottom: 10px;
-                                        cursor: pointer;
-                                    " onclick="window.perfilManager.verMiembrosGrupo('${grupo.id}')">
-                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                        padding: 15px;
+                                        margin-bottom: 15px;
+                                    ">
+                                        <!-- Cabecera del grupo -->
+                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                                             <div style="
-                                                width: 35px;
-                                                height: 35px;
+                                                width: 40px;
+                                                height: 40px;
                                                 background: linear-gradient(135deg, #00d2be, #0066cc);
                                                 border-radius: 8px;
                                                 display: flex;
@@ -942,11 +1267,53 @@ class PerfilManager {
                                                 <i class="fas fa-users"></i>
                                             </div>
                                             <div style="flex: 1;">
-                                                <div style="font-weight: bold; color: white; margin-bottom: 3px;">
+                                                <div style="font-weight: bold; color: #00d2be; font-size: 1.1rem;">
                                                     ${grupo.nombre}
-                                                    ${grupo.es_admin ? '<span style="color: #FFD700; margin-left: 5px;">👑</span>' : ''}
+                                                    ${grupo.es_admin ? '<span style="color: #FFD700; margin-left: 8px; font-size: 0.8rem;">(ADMIN)</span>' : ''}
                                                 </div>
-                                                ${grupo.descripcion ? `<div style="color: #aaa; font-size: 0.8rem;">${grupo.descripcion}</div>` : ''}
+                                                ${grupo.descripcion ? `<div style="color: #aaa; font-size: 0.85rem; margin-top: 3px;">${grupo.descripcion}</div>` : ''}
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Botones de acción para ADMIN -->
+                                        ${grupo.es_admin ? `
+                                            <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                                                <button onclick="window.perfilManager.editarGrupo('${grupo.id}')"
+                                                    style="
+                                                        flex: 1;
+                                                        padding: 6px;
+                                                        background: rgba(0, 210, 190, 0.1);
+                                                        border: 1px solid #00d2be;
+                                                        color: #00d2be;
+                                                        border-radius: 4px;
+                                                        cursor: pointer;
+                                                        font-size: 0.75rem;
+                                                    ">
+                                                    <i class="fas fa-pen"></i> EDITAR
+                                                </button>
+                                                <button onclick="window.perfilManager.verMiembrosGrupo('${grupo.id}')"
+                                                    style="
+                                                        flex: 1;
+                                                        padding: 6px;
+                                                        background: rgba(255, 255, 255, 0.1);
+                                                        border: 1px solid #666;
+                                                        color: white;
+                                                        border-radius: 4px;
+                                                        cursor: pointer;
+                                                        font-size: 0.75rem;
+                                                    ">
+                                                    <i class="fas fa-list"></i> MIEMBROS
+                                                </button>
+                                            </div>
+                                        ` : ''}
+                                        
+                                        <!-- Miembros del grupo (primeros 3) -->
+                                        <div style="margin-top: 10px;">
+                                            <div style="color: #888; font-size: 0.7rem; margin-bottom: 8px; text-transform: uppercase;">
+                                                <i class="fas fa-user-friends"></i> MIEMBROS
+                                            </div>
+                                            <div id="miembros-grupo-${grupo.id}" style="min-height: 30px;">
+                                                <i class="fas fa-spinner fa-spin" style="color: #00d2be;"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -955,24 +1322,30 @@ class PerfilManager {
                         ` : `
                             <div class="grupos-vacio" style="
                                 text-align: center;
-                                padding: 20px;
+                                padding: 30px;
                                 background: rgba(0,0,0,0.3);
                                 border-radius: 8px;
                                 color: #888;
                             ">
                                 <i class="fas fa-users" style="font-size: 2rem; color: #444; margin-bottom: 10px;"></i>
                                 <p>${datos.escuderia.nombre} no pertenece a ningún grupo</p>
-                                ${esMiPerfil ? `
-                                    <button class="btn-crear-grupo" onclick="window.perfilManager.crearGrupo()">
-                                        <i class="fas fa-plus-circle"></i>
-                                        CREAR GRUPO
-                                    </button>
-                                ` : `
-                                    <button class="btn-unirse-grupo" onclick="window.perfilManager.solicitarUnirseAGrupo('${datos.grupos[0]?.id}', '${datos.escuderia.nombre}')">
+                                
+                                <!-- Si NO es mi perfil y el usuario NO tiene grupos, mostrar botón para solicitar -->
+                                ${!esMiPerfil ? `
+                                    <button class="btn-solicitar-grupo" onclick="window.perfilManager.abrirSelectorGrupos('${datos.escuderia.id}')" style="
+                                        margin-top: 15px;
+                                        padding: 10px 20px;
+                                        background: rgba(0, 210, 190, 0.1);
+                                        border: 1px solid #00d2be;
+                                        color: #00d2be;
+                                        border-radius: 4px;
+                                        cursor: pointer;
+                                        font-weight: bold;
+                                    ">
                                         <i class="fas fa-user-plus"></i>
-                                        SOLICITAR UNIRSE
+                                        SOLICITAR UNIRSE A UN GRUPO
                                     </button>
-                                `}
+                                ` : ''}
                             </div>
                         `}
                     </div>
