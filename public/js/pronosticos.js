@@ -512,7 +512,7 @@ class PronosticosManager {
             return;
         }
         
-        // 🔴 **PRIMERO:** Cargar datos del usuario (esto establece this.escuderiaId)
+        // 🔴 **PASO 1: Cargar datos del usuario (esto establece this.escuderiaId)**
         await this.cargarDatosUsuario(user.id);
         
         if (!this.escuderiaId) {
@@ -520,7 +520,57 @@ class PronosticosManager {
             return;
         }
         
-        // 🔴 **SEGUNDO:** Obtener carrera activa
+        // 🔴 **PASO 2: Buscar SI TIENE PRONÓSTICOS ANTERIORES (prioridad #1)**
+        const { data: pronosticosExistentes, error: errorPronosticos } = await this.supabase
+            .from('pronosticos_usuario')
+            .select(`
+                *,
+                calendario_gp!inner(*)
+            `)
+            .eq('escuderia_id', this.escuderiaId)
+            .order('fecha_pronostico', { ascending: false });
+        
+        if (errorPronosticos) {
+            console.error("Error verificando pronósticos:", errorPronosticos);
+        }
+        
+        // ✅ Si TIENE pronósticos, mostrar el más reciente (sin importar la fecha)
+        if (pronosticosExistentes && pronosticosExistentes.length > 0) {
+            console.log("✅ Usuario tiene pronósticos anteriores, mostrando el más reciente");
+            const ultimoPronostico = pronosticosExistentes[0];
+            
+            // Guardar carrera actual para referencia
+            this.carreraActual = ultimoPronostico.calendario_gp;
+            
+            // Cargar preguntas de esa carrera
+            const { data: preguntas } = await this.supabase
+                .from('preguntas_pronostico')
+                .select('*')
+                .eq('carrera_id', ultimoPronostico.carrera_id)
+                .order('numero_pregunta', { ascending: true });
+            
+            // Obtener resultados si existen
+            let respuestasCorrectas = {};
+            if (ultimoPronostico.estado === 'calificado') {
+                const { data: resultados } = await this.supabase
+                    .from('resultados_carrera')
+                    .select('respuestas_correctas')
+                    .eq('carrera_id', ultimoPronostico.carrera_id)
+                    .maybeSingle();
+                
+                if (resultados) {
+                    respuestasCorrectas = resultados.respuestas_correctas;
+                }
+            }
+            
+            // ✅ MOSTRAR VISTA DEL PRONÓSTICO GUARDADO
+            this.mostrarVistaPronosticoGuardado(ultimoPronostico, preguntas || [], respuestasCorrectas);
+            return;
+        }
+        
+        // 🔴 **PASO 3: Si NO tiene pronósticos, buscar carrera activa para pronosticar**
+        console.log("ℹ️ Usuario sin pronósticos, buscando carrera activa");
+        
         const hoy = new Date();
         const fechaHoy = hoy.toISOString().split('T')[0];
         
@@ -538,36 +588,77 @@ class PronosticosManager {
         
         this.carreraActual = carreras[0];
         
-        // 🔴 **TERCERO:** Verificar fecha límite
+        // 🔴 Verificar fecha límite para NUEVOS pronósticos
         const fechaLimite = new Date(this.carreraActual.fecha_limite_pronosticos || this.carreraActual.fecha_inicio);
         fechaLimite.setHours(fechaLimite.getHours() - 48);
         
         if (hoy > fechaLimite) {
-            this.mostrarError("El plazo para pronósticos ha expirado (48 horas antes de la carrera)", container);
+            // Si pasó la fecha pero no tiene pronóstico, mensaje claro
+            container.innerHTML = `
+                <div class="pronostico-container compacto">
+                    <div class="card">
+                        <div class="card-header bg-danger text-white py-2">
+                            <h5 class="mb-0"><i class="fas fa-clock"></i> Plazo expirado</h5>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="alert alert-warning mb-3">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>El plazo para pronosticar ${this.carreraActual.nombre} ha expirado.</strong>
+                                <p class="mt-2 mb-0">No realizaste pronóstico para esta carrera.</p>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary btn-sm" onclick="window.pronosticosManager.buscarProximaCarrera()">
+                                    <i class="fas fa-forward"></i> Ver próxima carrera
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="window.tabManager.switchTab('principal')">
+                                    <i class="fas fa-home"></i> Volver al inicio
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
             return;
         }
         
-        // 🔴 **CUARTO:** Ahora sí verificar pronóstico existente (this.escuderiaId ya está definido)
-        const { data: pronosticos, error: errorPronosticos } = await this.supabase
+        // 🔴 Verificar si ya tiene pronóstico para esta carrera específica
+        const { data: pronosticoActual } = await this.supabase
             .from('pronosticos_usuario')
             .select('id')
             .eq('escuderia_id', this.escuderiaId)
-            .eq('carrera_id', this.carreraActual.id);
+            .eq('carrera_id', this.carreraActual.id)
+            .maybeSingle();
         
-        if (errorPronosticos) {
-            console.error("❌ Error verificando pronóstico:", errorPronosticos);
-            this.pronosticoGuardado = false;
-        } else {
-            this.pronosticoGuardado = pronosticos && pronosticos.length > 0;
-        }
+        this.pronosticoGuardado = !!pronosticoActual;
         
-
-        
-        // 🔴 **QUINTO:** Obtener preguntas de la carrera
+        // 🔴 **PASO 4: Cargar preguntas y mostrar interfaz**
         await this.cargarPreguntasCarrera(this.carreraActual.id);
-        
-        // 🔴 **SEXTO:** Mostrar interfaz
         this.mostrarInterfazPronostico(container);
+    }
+    
+    // AÑADE ESTA NUEVA FUNCIÓN después de cargarPantallaPronostico()
+    async buscarProximaCarrera() {
+        const container = document.getElementById('main-content');
+        if (!container) return;
+        
+        const hoy = new Date();
+        const fechaHoy = hoy.toISOString().split('T')[0];
+        
+        const { data: carreras } = await this.supabase
+            .from('calendario_gp')
+            .select('*')
+            .gte('fecha_inicio', fechaHoy)
+            .order('fecha_inicio', { ascending: true })
+            .limit(1);
+        
+        if (carreras && carreras.length > 0) {
+            this.carreraActual = carreras[0];
+            await this.cargarPreguntasCarrera(this.carreraActual.id);
+            this.mostrarInterfazPronostico(container);
+        } else {
+            this.mostrarError("No hay próximas carreras programadas", container);
+        }
     }
     
     async cargarPreguntasCarrera(carreraId) {
