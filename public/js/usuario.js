@@ -1223,7 +1223,6 @@ class PerfilManager {
                             </div>
                         </div>
                     </div>
-                    
 
                     <div class="perfil-grupos">
                         <h3>
@@ -1275,8 +1274,8 @@ class PerfilManager {
                                             </div>
                                         </div>
                                         
-                                        <!-- Botones de acción para ADMIN -->
-                                        ${grupo.es_admin ? `
+                                        <!-- SOLO EL ADMIN DEL GRUPO ve los botones de editar/miembros -->
+                                        ${esMiPerfil && grupo.es_admin ? `
                                             <div style="display: flex; gap: 8px; margin-bottom: 15px;">
                                                 <button onclick="window.perfilManager.editarGrupo('${grupo.id}')"
                                                     style="
@@ -1307,7 +1306,7 @@ class PerfilManager {
                                             </div>
                                         ` : ''}
                                         
-                                        <!-- Miembros del grupo (primeros 3) -->
+                                        <!-- Miembros del grupo (primeros 3) - visible para todos -->
                                         <div style="margin-top: 10px;">
                                             <div style="color: #888; font-size: 0.7rem; margin-bottom: 8px; text-transform: uppercase;">
                                                 <i class="fas fa-user-friends"></i> MIEMBROS
@@ -1316,6 +1315,29 @@ class PerfilManager {
                                                 <i class="fas fa-spinner fa-spin" style="color: #00d2be;"></i>
                                             </div>
                                         </div>
+                                        
+                                        <!-- BOTÓN DE SOLICITAR UNIRSE - SOLO para visitantes que NO son miembros -->
+                                        ${!esMiPerfil ? `
+                                            <div style="margin-top: 15px;">
+                                                <button onclick="window.perfilManager.solicitarUnirseAGrupo('${grupo.id}', '${grupo.nombre}')"
+                                                    style="
+                                                        width: 100%;
+                                                        padding: 10px;
+                                                        background: rgba(0, 210, 190, 0.1);
+                                                        border: 1px solid #00d2be;
+                                                        color: #00d2be;
+                                                        border-radius: 4px;
+                                                        cursor: pointer;
+                                                        font-weight: bold;
+                                                        transition: all 0.2s;
+                                                    "
+                                                    onmouseover="this.style.background='#00d2be'; this.style.color='#1a1a2e'"
+                                                    onmouseout="this.style.background='rgba(0,210,190,0.1)'; this.style.color='#00d2be'">
+                                                    <i class="fas fa-user-plus"></i>
+                                                    SOLICITAR UNIRSE A ESTE GRUPO
+                                                </button>
+                                            </div>
+                                        ` : ''}
                                     </div>
                                 `).join('')}
                             </div>
@@ -1329,23 +1351,6 @@ class PerfilManager {
                             ">
                                 <i class="fas fa-users" style="font-size: 2rem; color: #444; margin-bottom: 10px;"></i>
                                 <p>${datos.escuderia.nombre} no pertenece a ningún grupo</p>
-                                
-                                <!-- Si NO es mi perfil y el usuario NO tiene grupos, mostrar botón para solicitar -->
-                                ${!esMiPerfil ? `
-                                    <button class="btn-solicitar-grupo" onclick="window.perfilManager.abrirSelectorGrupos('${datos.escuderia.id}')" style="
-                                        margin-top: 15px;
-                                        padding: 10px 20px;
-                                        background: rgba(0, 210, 190, 0.1);
-                                        border: 1px solid #00d2be;
-                                        color: #00d2be;
-                                        border-radius: 4px;
-                                        cursor: pointer;
-                                        font-weight: bold;
-                                    ">
-                                        <i class="fas fa-user-plus"></i>
-                                        SOLICITAR UNIRSE A UN GRUPO
-                                    </button>
-                                ` : ''}
                             </div>
                         `}
                     </div>
