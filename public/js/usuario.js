@@ -295,14 +295,15 @@ class PerfilManager {
                 .single();
             
             // Notificar al creador
+
             if (creador?.user_id && window.notificacionesManager) {
                 await window.notificacionesManager.crearNotificacion(
                     creador.user_id,
-                    'grupo_solicitud', 
+                    'grupo_solicitud',
                     '👥 Solicitud para unirse al grupo',
                     `${window.f1Manager.escuderia.nombre} quiere unirse a "${grupo.nombre}"`,
                     null,
-                    solicitud.id,
+                    solicitud.id,  // <--- IMPORTANTE: aquí va solicitud.id, no un string
                     {
                         solicitud_id: solicitud.id,
                         grupo_id: grupoId,
