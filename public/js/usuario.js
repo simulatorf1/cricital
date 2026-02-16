@@ -302,7 +302,7 @@ class PerfilManager {
                     '👥 Solicitud para unirse al grupo',
                     `${window.f1Manager.escuderia.nombre} quiere unirse a "${grupo.nombre}"`,
                     null,
-                    'grupo_solicitud',
+                    solicitud.id,
                     {
                         solicitud_id: solicitud.id,
                         grupo_id: grupoId,
