@@ -414,6 +414,21 @@ class PerfilManager {
             this.mostrarNotificacion('❌ Error al procesar la solicitud', 'error');
         }
     }
+    // ========================
+    // ACEPTAR SOLICITUD (wrapper para procesarSolicitudGrupo)
+    // ========================
+    async aceptarSolicitudGrupo(solicitudId) {
+        await this.procesarSolicitudGrupo(solicitudId, 'aceptar');
+    }
+    
+    // ========================
+    // RECHAZAR SOLICITUD (wrapper para procesarSolicitudGrupo)
+    // ========================
+    async rechazarSolicitudGrupo(solicitudId) {
+        await this.procesarSolicitudGrupo(solicitudId, 'rechazar');
+    }
+
+    
     /**
      * Aceptar solicitud de grupo (wrapper para procesarSolicitudGrupo)
      */
