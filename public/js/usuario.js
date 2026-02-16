@@ -7,6 +7,7 @@ class PerfilManager {
     constructor() {
         this.modalAbierto = false;
         this.perfilActual = null;
+        this.estadoClasificacion = {}; // ← AÑADE ESTO
     }
 
     // ========================
@@ -71,7 +72,209 @@ class PerfilManager {
         // Llamar al método existente mostrarPerfil con el ID
         this.mostrarPerfil(escuderiaId, escuderiaNombre);
     }
+    // ========================
+    // CARGAR CLASIFICACIÓN DEL GRUPO
+    // ========================
+    async cargarClasificacionGrupo(grupoId, contenedorId, tipo = 'dinero', orden = 'desc') {
+        try {
+            console.log(`📊 Cargando clasificación del grupo ${grupoId} - ${tipo}`);
+            
+            const contenedor = document.getElementById(contenedorId);
+            if (!contenedor) return;
+            
+            // Mostrar carga
+            contenedor.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <i class="fas fa-spinner fa-spin" style="color: #00d2be;"></i>
+                    <p style="color: #888; margin-top: 10px; font-size: 0.8rem;">Cargando clasificación...</p>
+                </div>
+            `;
+            
+            // 1. Obtener miembros del grupo
+            const { data: miembros, error: errorMiembros } = await supabase
+                .from('grupo_miembros')
+                .select('escuderia_id')
+                .eq('grupo_id', grupoId);
+            
+            if (errorMiembros) throw errorMiembros;
+            
+            const idsMiembros = miembros.map(m => m.escuderia_id);
+            
+            if (idsMiembros.length === 0) {
+                contenedor.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #888;">
+                        <i class="fas fa-users" style="font-size: 1.5rem; color: #444;"></i>
+                        <p style="margin-top: 5px;">El grupo no tiene miembros</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 2. Obtener datos de las escuderías
+            const { data: escuderias, error: errorEscuderias } = await supabase
+                .from('escuderias')
+                .select('id, nombre, dinero')
+                .in('id', idsMiembros);
+            
+            if (errorEscuderias) throw errorEscuderias;
+            
+            // 3. Obtener mejores vueltas
+            let escuderiasConDatos = await Promise.all(
+                escuderias.map(async (escuderia) => {
+                    try {
+                        const { data: resultados } = await supabase
+                            .from('pruebas_pista')
+                            .select('tiempo_formateado, tiempo_vuelta')
+                            .eq('escuderia_id', escuderia.id)
+                            .order('tiempo_vuelta', { ascending: true })
+                            .limit(1);
+                        
+                        const mejorVuelta = resultados && resultados.length > 0 ? resultados[0] : null;
+                        
+                        return {
+                            ...escuderia,
+                            vuelta_rapida: mejorVuelta?.tiempo_formateado || 'Sin vuelta',
+                            tiempo_vuelta: mejorVuelta?.tiempo_vuelta || 999999
+                        };
+                    } catch (error) {
+                        return {
+                            ...escuderia,
+                            vuelta_rapida: 'Sin vuelta',
+                            tiempo_vuelta: 999999
+                        };
+                    }
+                })
+            );
+            
+            // 4. Ordenar
+            if (tipo === 'dinero') {
+                escuderiasConDatos.sort((a, b) => 
+                    orden === 'desc' ? b.dinero - a.dinero : a.dinero - b.dinero
+                );
+            } else {
+                escuderiasConDatos.sort((a, b) => 
+                    orden === 'desc' ? b.tiempo_vuelta - a.tiempo_vuelta : a.tiempo_vuelta - b.tiempo_vuelta
+                );
+            }
+            
+            // 5. Renderizar
+            this.renderizarClasificacionGrupo(contenedor, escuderiasConDatos, tipo, orden, grupoId);
+            
+        } catch (error) {
+            console.error('❌ Error cargando clasificación del grupo:', error);
+            document.getElementById(contenedorId).innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #f44336;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p style="margin-top: 5px;">Error al cargar clasificación</p>
+                </div>
+            `;
+        }
+    }
     
+    // ========================
+    // RENDERIZAR CLASIFICACIÓN DEL GRUPO
+    // ========================
+    renderizarClasificacionGrupo(contenedor, miembros, tipo, orden, grupoId) {
+        const miId = window.f1Manager?.escuderia?.id;
+        
+        let html = `
+            <div style="margin-bottom: 10px; display: flex; gap: 8px; justify-content: flex-end;">
+                <button onclick="window.perfilManager.cambiarTipoClasificacion('${grupoId}', 'dinero')" 
+                        style="padding: 4px 8px; background: ${tipo === 'dinero' ? '#00d2be' : 'transparent'}; border: 1px solid #00d2be; color: ${tipo === 'dinero' ? 'black' : '#00d2be'}; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">
+                    <i class="fas fa-coins"></i> Dinero
+                </button>
+                <button onclick="window.perfilManager.cambiarTipoClasificacion('${grupoId}', 'vuelta')" 
+                        style="padding: 4px 8px; background: ${tipo === 'vuelta' ? '#00d2be' : 'transparent'}; border: 1px solid #00d2be; color: ${tipo === 'vuelta' ? 'black' : '#00d2be'}; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">
+                    <i class="fas fa-stopwatch"></i> Vuelta
+                </button>
+                <button onclick="window.perfilManager.cambiarOrdenClasificacion('${grupoId}', '${tipo}')" 
+                        style="padding: 4px 8px; background: transparent; border: 1px solid #00d2be; color: #00d2be; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">
+                    <i class="fas fa-sort-${orden === 'desc' ? 'down' : 'up'}"></i>
+                </button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #00d2be;">
+                            <th style="padding: 8px 5px; text-align: left; color: #00d2be;">#</th>
+                            <th style="padding: 8px 5px; text-align: left; color: #00d2be;">Escudería</th>
+                            <th style="padding: 8px 5px; text-align: right; color: #00d2be;">
+                                ${tipo === 'dinero' ? 'Dinero (€)' : 'Mejor Vuelta'}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        miembros.forEach((miembro, index) => {
+            const esMiEscuderia = miembro.id === miId;
+            const posicion = index + 1;
+            
+            // Formatear valor
+            let valorMostrar;
+            if (tipo === 'dinero') {
+                valorMostrar = `€${miembro.dinero?.toLocaleString() || '0'}`;
+            } else {
+                valorMostrar = miembro.vuelta_rapida;
+            }
+            
+            // Color según posición
+            let colorPosicion = '#888';
+            if (posicion === 1) colorPosicion = '#FFD700';
+            else if (posicion === 2) colorPosicion = '#C0C0C0';
+            else if (posicion === 3) colorPosicion = '#CD7F32';
+            
+            html += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); background: ${esMiEscuderia ? 'rgba(0,210,190,0.1)' : 'transparent'};">
+                    <td style="padding: 8px 5px; color: ${colorPosicion}; font-weight: bold;">${posicion}</td>
+                    <td style="padding: 8px 5px; color: white;">
+                        ${esMiEscuderia ? '<i class="fas fa-user" style="color: #4CAF50; margin-right: 5px;"></i>' : ''}
+                        ${miembro.nombre}
+                    </td>
+                    <td style="padding: 8px 5px; text-align: right; color: #00d2be; font-weight: bold;">
+                        ${valorMostrar}
+                    </td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 8px; text-align: right; color: #888; font-size: 0.65rem;">
+                Total: ${miembros.length} miembros
+            </div>
+        `;
+        
+        contenedor.innerHTML = html;
+    }
+    
+    // ========================
+    // CAMBIAR TIPO DE CLASIFICACIÓN
+    // ========================
+    cambiarTipoClasificacion(grupoId, tipo) {
+        const estadoActual = this.estadoClasificacion?.[grupoId] || { tipo: 'dinero', orden: 'desc' };
+        const ordenActual = estadoActual.orden;
+        
+        if (!this.estadoClasificacion) this.estadoClasificacion = {};
+        this.estadoClasificacion[grupoId] = { tipo, orden: ordenActual };
+        
+        this.cargarClasificacionGrupo(grupoId, `clasificacion-grupo-${grupoId}`, tipo, ordenActual);
+    }
+    
+    // ========================
+    // CAMBIAR ORDEN DE CLASIFICACIÓN
+    // ========================
+    cambiarOrdenClasificacion(grupoId, tipo) {
+        const estadoActual = this.estadoClasificacion?.[grupoId] || { tipo, orden: 'desc' };
+        const nuevoOrden = estadoActual.orden === 'desc' ? 'asc' : 'desc';
+        
+        if (!this.estadoClasificacion) this.estadoClasificacion = {};
+        this.estadoClasificacion[grupoId] = { tipo, orden: nuevoOrden };
+        
+        this.cargarClasificacionGrupo(grupoId, `clasificacion-grupo-${grupoId}`, tipo, nuevoOrden);
+    }    
     // ========================
     // SISTEMA DE GRUPOS
     // ========================
@@ -1137,6 +1340,9 @@ class PerfilManager {
     // ========================
     // CREAR MODAL DEL PERFIL
     // ========================
+    // ========================
+    // CREAR MODAL DEL PERFIL
+    // ========================
     crearModalPerfil(datos, esMiPerfil = false) {
         // Eliminar modal existente
         const modalExistente = document.getElementById('modal-perfil');
@@ -1239,7 +1445,7 @@ class PerfilManager {
                             </div>
                         </div>
                     </div>
-
+    
                     <div class="perfil-grupos">
                         <h3>
                             <i class="fas fa-users"></i>
@@ -1332,6 +1538,18 @@ class PerfilManager {
                                             </div>
                                         </div>
                                         
+                                        <!-- ========================================= -->
+                                        <!-- NUEVA SECCIÓN: CLASIFICACIÓN DEL GRUPO    -->
+                                        <!-- ========================================= -->
+                                        <div style="margin-top: 15px; border-top: 1px solid rgba(0,210,190,0.2); padding-top: 10px;">
+                                            <div style="color: #00d2be; font-size: 0.8rem; margin-bottom: 8px;">
+                                                <i class="fas fa-chart-bar"></i> CLASIFICACIÓN DEL GRUPO
+                                            </div>
+                                            <div id="clasificacion-grupo-${grupo.id}" style="min-height: 50px;">
+                                                <i class="fas fa-spinner fa-spin" style="color: #00d2be;"></i>
+                                            </div>
+                                        </div>
+                                        
                                         <!-- BOTÓN DE SOLICITAR UNIRSE - SOLO para visitantes que NO son miembros -->
                                         ${!esMiPerfil ? `
                                             <div style="margin-top: 15px;">
@@ -1413,6 +1631,17 @@ class PerfilManager {
         `;
     
         document.body.appendChild(modal);
+        
+        // ===================================================
+        // CARGAR CLASIFICACIÓN PARA CADA GRUPO
+        // ===================================================
+        if (datos.grupos.length > 0) {
+            setTimeout(() => {
+                datos.grupos.forEach(grupo => {
+                    this.cargarClasificacionGrupo(grupo.id, `clasificacion-grupo-${grupo.id}`, 'dinero', 'desc');
+                });
+            }, 200);
+        }
         
         // Animar entrada
         setTimeout(() => {
