@@ -158,6 +158,9 @@ class PerfilManager {
     /**
      * Procesar la creación del grupo
      */
+    /**
+     * Procesar la creación del grupo
+     */
     async procesarCrearGrupo() {
         const nombreInput = document.getElementById('nombre-grupo');
         const descripcionInput = document.getElementById('descripcion-grupo');
@@ -179,7 +182,7 @@ class PerfilManager {
         }
         
         try {
-            // 1. Crear el grupo
+            // 1. Crear el grupo - SIN el campo 'configuracion' que no existe
             const { data: grupo, error: errorGrupo } = await supabase
                 .from('grupos_amigos')
                 .insert([{
@@ -187,8 +190,8 @@ class PerfilManager {
                     descripcion: descripcion,
                     creador_id: miId,
                     created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    configuracion: { publico: true }
+                    updated_at: new Date().toISOString()
+                    // 👇 ELIMINADO: configuracion: { publico: true } - esta columna no existe
                 }])
                 .select()
                 .single();
