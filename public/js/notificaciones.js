@@ -824,23 +824,21 @@ class NotificacionesManager {
         panel.style.right = (window.innerWidth - rect.right) + 'px';
     }
     
-    // ============================================
-    // MÉTODO PARA CREAR NOTIFICACIONES NUEVAS
-    // ============================================
+
     // ========================
     // CREAR NOTIFICACIÓN (VERSIÓN CORREGIDA)
     // ========================
-    async crearNotificacion(usuarioId, tipo, titulo, mensaje, solicitudId = null, tipoRelacion = null) {
+    async crearNotificacion(usuarioId, tipo, titulo, mensaje, tipoRelacion = null) {
         try {
             console.log(`🔔 Creando notificación para ${usuarioId}: ${titulo}`);
             
-            // Preparar los datos - NO usamos relacion_id porque es integer
+            // Preparar los datos
             const notificacionData = {
                 usuario_id: usuarioId,
                 tipo: tipo,
                 titulo: titulo,
                 mensaje: mensaje,
-                tipo_relacion: solicitudId, // Guardamos el UUID aquí
+                tipo_relacion: tipoRelacion, // Aquí guardamos el solicitud_id
                 leida: false,
                 fecha_creacion: new Date().toISOString()
             };
