@@ -965,28 +965,82 @@ class NotificacionesManager {
         panel.innerHTML = html;
     
         // Eventos para los botones de aceptar/rechazar
+        // Eventos para los botones de aceptar/rechazar
         document.querySelectorAll('.notificacion-btn-aceptar').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 
-                const solicitudId = btn.dataset.solicitudId;
-                const notifId = btn.dataset.notifId;
+                const notifItem = btn.closest('.notificacion-item');
+                const notifId = notifItem.dataset.id;
                 
-                // Validar que solicitudId existe y no es 'null' o 'undefined'
-                if (!solicitudId || solicitudId === 'null' || solicitudId === 'undefined') {
-                    console.error('❌ ID de solicitud inválido:', solicitudId);
-                    if (window.f1Manager?.showNotification) {
-                        window.f1Manager.showNotification('❌ Error: ID de solicitud inválido', 'error');
-                    }
+                // Extraer el nombre del grupo del mensaje
+                const mensaje = notifItem.querySelector('.notificacion-mensaje')?.textContent || '';
+                const match = mensaje.match(/"([^"]+)"/);
+                const nombreGrupo = match ? match[1] : '';
+                
+                if (!nombreGrupo) {
+                    console.error('No se pudo extraer nombre del grupo');
                     return;
                 }
                 
-                if (window.perfilManager) {
-                    await window.perfilManager.aceptarSolicitudGrupo(solicitudId);
-                    // Marcar notificación como leída
+                // Buscar la solicitud PENDIENTE por el nombre del grupo
+                const { data: grupos } = await supabase
+                    .from('grupos_amigos')
+                    .select('id')
+                    .eq('nombre', nombreGrupo);
+                
+                if (!grupos || grupos.length === 0) return;
+                
+                // Buscar solicitud pendiente para ese grupo
+                const { data: solicitudes } = await supabase
+                    .from('grupo_solicitudes')
+                    .select('id')
+                    .eq('grupo_id', grupos[0].id)
+                    .eq('estado', 'pendiente')
+                    .limit(1);
+                
+                if (solicitudes && solicitudes[0]) {
+                    await window.perfilManager.aceptarSolicitudGrupo(solicitudes[0].id);
                     await this.marcarComoLeida(notifId);
-                    // Recargar notificaciones
+                    this.cargarNotificaciones();
+                }
+            });
+        });
+        
+        document.querySelectorAll('.notificacion-btn-rechazar').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const notifItem = btn.closest('.notificacion-item');
+                const notifId = notifItem.dataset.id;
+                
+                // Extraer el nombre del grupo del mensaje
+                const mensaje = notifItem.querySelector('.notificacion-mensaje')?.textContent || '';
+                const match = mensaje.match(/"([^"]+)"/);
+                const nombreGrupo = match ? match[1] : '';
+                
+                if (!nombreGrupo) return;
+                
+                // Buscar la solicitud PENDIENTE por el nombre del grupo
+                const { data: grupos } = await supabase
+                    .from('grupos_amigos')
+                    .select('id')
+                    .eq('nombre', nombreGrupo);
+                
+                if (!grupos || grupos.length === 0) return;
+                
+                const { data: solicitudes } = await supabase
+                    .from('grupo_solicitudes')
+                    .select('id')
+                    .eq('grupo_id', grupos[0].id)
+                    .eq('estado', 'pendiente')
+                    .limit(1);
+                
+                if (solicitudes && solicitudes[0]) {
+                    await window.perfilManager.rechazarSolicitudGrupo(solicitudes[0].id);
+                    await this.marcarComoLeida(notifId);
                     this.cargarNotificaciones();
                 }
             });
