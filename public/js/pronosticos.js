@@ -1018,28 +1018,40 @@ class PronosticosManager {
             console.log("✅ Puntos de escudería:", this.usuarioPuntos);
             
             // 🔴 CORREGIDO: Obtener estrategas contratados con la estructura correcta
-
-            const { data: estrategas, error: errorEstrategas, count } = await this.supabase
+            // 🔴 VERSIÓN CON JOIN (más eficiente)
+            const { data: estrategas, error: errorEstrategas } = await this.supabase
                 .from('estrategas_contrataciones')
-                .select('id', { count: 'exact', head: true })
+                .select(`
+                    id,
+                    estratega_id,
+                    slot_asignado,
+                    estado,
+                    estrategas!inner (
+                        nombre,
+                        especialidad,
+                        bonificacion_tipo,
+                        bonificacion_valor
+                    )
+                `)
                 .eq('escuderia_id', escuderia.id)
-                .eq('activo', true);
+                .eq('estado', 'activo');
             
             if (errorEstrategas) {
                 console.error("❌ Error obteniendo estrategas:", errorEstrategas);
                 this.estrategasActivos = [];
             } else {
-                // Solo necesitamos un array vacío con la longitud correcta
-                this.estrategasActivos = new Array(count || 0);
-                console.log("✅ Estrategas encontrados:", count || 0);
+                this.estrategasActivos = (estrategas || []).map(c => ({
+                    ingeniero_id: c.estratega_id,
+                    nombre: c.estrategas?.nombre || 'Estratega',
+                    especialidad: c.estrategas?.especialidad || 'general',
+                    bonificacion_tipo: c.estrategas?.bonificacion_tipo,
+                    bonificacion_valor: c.estrategas?.bonificacion_valor || 0,
+                    activo: true,
+                    slot_asignado: c.slot_asignado
+                }));
+                
+                console.log("✅ Estrategas encontrados:", this.estrategasActivos.length);
             }
-            
-            console.log("📊 Datos finales:", {
-                escuderiaId: this.escuderiaId,
-                puntos: this.usuarioPuntos,
-                estrategasCount: this.estrategasActivos.length,
-                estrategas: this.estrategasActivos
-            });
             
         } catch (error) {
             console.error("💥 Error completo en cargarDatosUsuario:", error);
