@@ -1966,9 +1966,39 @@ class PronosticosManager {
                     
                     <div class="card-body py-3">
                         ${estado === 'pendiente' ? `
-                            <div class="alert alert-info mb-4">
-                                <i class="fas fa-clock me-2"></i>
-                                <strong>Los resultados estarán disponibles después de la carrera</strong>
+                            <div class="alert alert-warning mb-4">
+                                <i class="fas fa-hourglass-half me-2"></i>
+                                <strong>⏳ Pronóstico pendiente de evaluación</strong>
+                                <p class="mb-0 mt-1">Los resultados se publicarán después de la carrera. Aquí puedes ver lo que pronosticaste:</p>
+                            </div>
+                            
+                            <!-- MOSTRAR PRONÓSTICO AUNQUE ESTÉ PENDIENTE -->
+                            <h6 class="mb-3"><i class="fas fa-list"></i> Tu pronóstico para esta carrera:</h6>
+                            <div class="table-responsive mb-4">
+                                <table class="table table-sm table-dark table-hover">
+                                    <thead class="bg-secondary">
+                                        <tr>
+                                            <th class="text-center" width="5%">#</th>
+                                            <th width="40%">Área / Pregunta</th>
+                                            <th width="30%">Tu respuesta</th>
+                                            <th class="text-center" width="25%">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${this.generarFilasPronosticoPendiente(preguntas, respuestasUsuario)}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Resumen:</strong> Respondiste 10 preguntas. Cuando se publiquen los resultados, sabrás cuántos aciertos tuviste.
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-secondary" onclick="window.pronosticosManager.cargarPantallaPronostico()">
+                                    <i class="fas fa-arrow-left me-2"></i> Volver a pronósticos
+                                </button>
                             </div>
                         ` : `
                             <!-- RESULTADOS DETALLADOS -->
@@ -2065,7 +2095,59 @@ class PronosticosManager {
             </div>
         `;
     }
-
+    generarFilasPronosticoPendiente(preguntas, respuestasUsuario) {
+        if (!preguntas || !respuestasUsuario) return '<tr><td colspan="4" class="text-center">No hay datos disponibles</td></tr>';
+        
+        const nombresArea = {
+            'meteorologia': '🌦️ Meteorología',
+            'fiabilidad': '🔧 Fiabilidad', 
+            'estrategia': '📋 Estrategia',
+            'rendimiento': '⚡ Rendimiento',
+            'neumaticos': '🛞 Neumáticos',
+            'seguridad': '🛡️ Seguridad',
+            'clasificacion': '⏱️ Clasificación',
+            'carrera': '🏁 Carrera',
+            'overtakes': '👋 Adelantamientos',
+            'incidentes': '🚨 Incidentes'
+        };
+        
+        let filas = '';
+        
+        for (let i = 1; i <= 10; i++) {
+            const pregunta = preguntas.find(p => p.numero_pregunta === i);
+            const respuestaUsuario = respuestasUsuario[`p${i}`];
+            const area = this.preguntaAreas[i] || 'general';
+            
+            // Texto de la opción seleccionada
+            let opcionTexto = '';
+            if (respuestaUsuario === 'A') opcionTexto = pregunta?.opcion_a || 'Opción A';
+            else if (respuestaUsuario === 'B') opcionTexto = pregunta?.opcion_b || 'Opción B';
+            else if (respuestaUsuario === 'C') opcionTexto = pregunta?.opcion_c || 'Opción C';
+            
+            if (opcionTexto.length > 50) opcionTexto = opcionTexto.substring(0, 47) + '...';
+            
+            filas += `
+                <tr>
+                    <td class="text-center align-middle"><strong>${i}</strong></td>
+                    <td class="align-middle">
+                        <div><strong>${nombresArea[area] || area}</strong></div>
+                        <small class="text-muted">${pregunta?.texto_pregunta?.substring(0, 60) || ''}${pregunta?.texto_pregunta?.length > 60 ? '...' : ''}</small>
+                    </td>
+                    <td class="align-middle">
+                        <span class="badge bg-secondary me-2">${respuestaUsuario}</span>
+                        <span>${opcionTexto}</span>
+                    </td>
+                    <td class="text-center align-middle">
+                        <span class="badge bg-warning" style="font-size: 0.9rem;">
+                            <i class="fas fa-hourglass-half me-1"></i> Pendiente
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        return filas;
+    }
     async verResultadosCompletos(carreraId) {
         // Reutiliza tu función existente cargarResultadosCarrera
         await this.cargarResultadosCarrera(carreraId);
