@@ -535,37 +535,12 @@ class PronosticosManager {
         }
         
         // ✅ Si TIENE pronósticos, mostrar el más reciente (sin importar la fecha)
+        // ✅ Guardar pronósticos para selector histórico PERO NO MOSTRARLOS AUTOMÁTICAMENTE
+        let pronosticosAnteriores = [];
         if (pronosticosExistentes && pronosticosExistentes.length > 0) {
-            console.log("✅ Usuario tiene pronósticos anteriores, mostrando el más reciente");
-            const ultimoPronostico = pronosticosExistentes[0];
-            
-            // Guardar carrera actual para referencia
-            this.carreraActual = ultimoPronostico.calendario_gp;
-            
-            // Cargar preguntas de esa carrera
-            const { data: preguntas } = await this.supabase
-                .from('preguntas_pronostico')
-                .select('*')
-                .eq('carrera_id', ultimoPronostico.carrera_id)
-                .order('numero_pregunta', { ascending: true });
-            
-            // Obtener resultados si existen
-            let respuestasCorrectas = {};
-            if (ultimoPronostico.estado === 'calificado') {
-                const { data: resultados } = await this.supabase
-                    .from('resultados_carrera')
-                    .select('respuestas_correctas')
-                    .eq('carrera_id', ultimoPronostico.carrera_id)
-                    .maybeSingle();
-                
-                if (resultados) {
-                    respuestasCorrectas = resultados.respuestas_correctas;
-                }
-            }
-            
-            // ✅ MOSTRAR VISTA DEL PRONÓSTICO GUARDADO
-            this.mostrarVistaPronosticoGuardado(ultimoPronostico, preguntas || [], respuestasCorrectas);
-            return;
+            console.log("✅ Usuario tiene", pronosticosExistentes.length, "pronósticos anteriores");
+            pronosticosAnteriores = pronosticosExistentes;
+            // NO MOSTRAMOS EL ÚLTIMO AUTOMÁTICAMENTE, SEGUIMOS A LA SIGUIENTE CARRERA
         }
         
         // 🔴 **PASO 3: Si NO tiene pronósticos, buscar carrera activa para pronosticar**
@@ -634,7 +609,322 @@ class PronosticosManager {
         
         // 🔴 **PASO 4: Cargar preguntas y mostrar interfaz**
         await this.cargarPreguntasCarrera(this.carreraActual.id);
-        this.mostrarInterfazPronostico(container);
+        this.mostrarPantallaPrincipal(container, pronosticosAnteriores);
+    }
+    mostrarPantallaPrincipal(container, pronosticosAnteriores) {
+        // Si ya tiene pronóstico, mostrar interfaz original pero con selector
+        if (this.pronosticoGuardado) {
+            // Llamar a la función existente pero pasando histórico
+            this.mostrarInterfazPronosticoConHistorico(container, pronosticosAnteriores);
+            return;
+        }
+        
+        if (!this.usuarioAceptoCondiciones) {
+            this.mostrarCondicionesInicialesConHistorico(container, pronosticosAnteriores);
+            return;
+        }
+        
+        this.mostrarPreguntasPronosticoConHistorico(container, pronosticosAnteriores);
+    }
+    mostrarInterfazPronosticoConHistorico(container, historico) {
+        container.innerHTML = `
+            <div class="pronostico-container compacto">
+                <div class="card">
+                    <div class="card-header bg-success text-white py-2">
+                        <h5 class="mb-0"><i class="fas fa-check-circle"></i> Pronóstico enviado</h5>
+                    </div>
+                    <div class="card-body py-3">
+                        <div class="alert alert-success alert-sm mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check me-2"></i>
+                                <div>
+                                    <strong class="d-block">${this.carreraActual.nombre}</strong>
+                                    <small>Ya has enviado tu pronóstico</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${historico.length > 0 ? this.renderizarSelectorHistorico(historico) : ''}
+                        
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="stat-card-sm text-center p-2">
+                                    <small class="d-block text-muted">Estado</small>
+                                    <span class="badge bg-warning">Pendiente</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card-sm text-center p-2">
+                                    <small class="d-block text-muted">Resultados</small>
+                                    <span class="text-info">Próximamente</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="window.pronosticosManager.verPronosticoGuardado()">
+                                <i class="fas fa-eye"></i> Ver mi pronóstico
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="window.tabManager.switchTab('principal')">
+                                <i class="fas fa-home"></i> Volver al inicio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    mostrarCondicionesInicialesConHistorico(container, historico) {
+        const fechaCarrera = new Date(this.carreraActual.fecha_inicio);
+        fechaCarrera.setHours(fechaCarrera.getHours() + 24);
+        const fechaResultados = fechaCarrera.toLocaleDateString('es-ES', {
+            day: 'numeric',
+            month: 'long',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        let estrategasHTML = '<p class="text-muted mb-0">No tienes estrategas contratados</p>';
+        if (this.estrategasActivos.length > 0) {
+            estrategasHTML = `
+                <div class="estrategas-mini-list">
+                    ${this.estrategasActivos.map(e => `
+                        <div class="estratega-mini">
+                            <strong>${e.nombre || 'Estratega'}</strong>
+                            <small class="text-muted d-block">${e.especialidad || 'Sin especialidad'}</small>
+                            ${e.bonificacion_valor > 0 ? 
+                                `<span class="badge bg-info badge-sm">+${e.bonificacion_valor}%</span>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        container.innerHTML = `
+            <div class="pronosticos-container-f1 compacto">
+                <div class="card">
+                    <div class="card-header bg-dark text-white py-2">
+                        <h5 class="mb-0"><i class="fas fa-flag-checkered"></i> Pronóstico - ${this.carreraActual.nombre}</h5>
+                    </div>
+                    <div class="card-body py-3">
+                        ${historico.length > 0 ? this.renderizarSelectorHistorico(historico) : ''}
+                        
+                        <h5 class="text-warning mb-3"><i class="fas fa-info-circle"></i> Datos que se guardarán:</h5>
+                        
+                        <div class="table-responsive mb-3">
+                            <table class="table table-sm table-dark">
+                                <thead class="bg-secondary">
+                                    <tr>
+                                        <th width="25%">Puntos coche</th>
+                                        <th width="25%">Estrategas activos</th>
+                                        <th width="25%">Fecha captura</th>
+                                        <th width="25%">Resultados</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <div class="stat-value-mini">${this.usuarioPuntos}</div>
+                                            <small class="text-muted">puntos actuales</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="stat-value-mini">${this.estrategasActivos.length}</div>
+                                            <small class="text-muted">estrategas</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="fecha-actual">${new Date().toLocaleDateString('es-ES')}</div>
+                                            <small class="text-muted">Hoy</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="text-info">${fechaResultados.split(',')[0]}</div>
+                                            <small class="text-muted">${fechaResultados.split(',')[1] || 'aprox.'}</small>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        ${this.estrategasActivos.length > 0 ? `
+                            <div class="estrategas-detalle mb-3">
+                                <h6 class="text-info mb-2"><i class="fas fa-users"></i> Tus estrategas:</h6>
+                                ${estrategasHTML}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="alert alert-warning alert-sm py-2 mb-3">
+                            <i class="fas fa-clock"></i>
+                            <small>
+                                <strong>Importante:</strong> Cuanto más tarde hagas el pronóstico, más puntos tendrás, ya que se guardarán los puntos de <strong>hoy</strong> (${new Date().toLocaleDateString('es-ES')}), no los del día de la carrera.
+                            </small>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-success flex-grow-1" onclick="window.pronosticosManager.iniciarPronostico()">
+                                <i class="fas fa-play"></i> Empezar pronóstico
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="window.tabManager.switchTab('principal')">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }  
+    renderizarSelectorHistorico(historico) {
+        if (historico.length === 0) return '';
+        
+        const opcionesHistorico = historico.map(p => {
+            const fecha = p.calendario_gp?.fecha_inicio ? new Date(p.calendario_gp.fecha_inicio).toLocaleDateString('es-ES') : '';
+            const estado = p.estado === 'calificado' ? '✅ Resultados' : '⏳ Pendiente';
+            return `
+                <option value="${p.id}" data-carrera-id="${p.carrera_id}">
+                    ${p.calendario_gp?.nombre || 'Carrera'} - ${fecha} (${estado})
+                </option>
+            `;
+        }).join('');
+        
+        return `
+            <div class="historico-pronosticos mb-3 p-3" style="background: #1a1a1a; border-radius: 8px; border: 2px solid #00d2be;">
+                <h6 class="text-info mb-3"><i class="fas fa-history me-2"></i>Consultar pronósticos anteriores:</h6>
+                <div class="d-flex gap-2">
+                    <select id="selectorHistoricoPronosticos" class="form-select form-select-lg bg-dark text-white border-secondary" style="flex: 1; font-size: 16px; padding: 12px;">
+                        <option value="">-- Selecciona una carrera --</option>
+                        ${opcionesHistorico}
+                    </select>
+                    <button class="btn btn-outline-info btn-lg" onclick="window.pronosticosManager.verPronosticoSeleccionado()" style="font-size: 16px; padding: 12px 20px;">
+                        <i class="fas fa-eye me-2"></i> Ver
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    async verPronosticoSeleccionado() {
+        const selector = document.getElementById('selectorHistoricoPronosticos');
+        if (!selector || !selector.value) {
+            this.mostrarError("Selecciona una carrera primero");
+            return;
+        }
+        
+        const pronosticoId = selector.value;
+        const optionSeleccionada = selector.options[selector.selectedIndex];
+        const carreraId = optionSeleccionada.dataset.carreraId;
+        
+        try {
+            const { data: pronostico, error } = await this.supabase
+                .from('pronosticos_usuario')
+                .select(`
+                    *,
+                    calendario_gp!inner(*)
+                `)
+                .eq('id', pronosticoId)
+                .single();
+            
+            if (error || !pronostico) throw error;
+            
+            const { data: preguntas } = await this.supabase
+                .from('preguntas_pronostico')
+                .select('*')
+                .eq('carrera_id', carreraId)
+                .order('numero_pregunta');
+            
+            let respuestasCorrectas = {};
+            if (pronostico.estado === 'calificado') {
+                const { data: resultados } = await this.supabase
+                    .from('resultados_carrera')
+                    .select('respuestas_correctas')
+                    .eq('carrera_id', carreraId)
+                    .maybeSingle();
+                
+                if (resultados) respuestasCorrectas = resultados.respuestas_correctas;
+            }
+            
+            this.mostrarVistaPronosticoGuardado(pronostico, preguntas || [], respuestasCorrectas);
+            
+        } catch (error) {
+            console.error("Error:", error);
+            this.mostrarError("Error al cargar el pronóstico");
+        }
+    }
+
+    
+    mostrarPreguntasPronosticoConHistorico(container, historico) {
+        let preguntasHTML = '';
+        this.preguntasActuales.forEach((pregunta, index) => {
+            const area = this.preguntaAreas[index + 1] || 'general';
+            preguntasHTML += `
+                <div class="pregunta-card compacto" data-area="${area}">
+                    <h6 class="mb-2"><span class="badge bg-dark me-2">${index + 1}</span> ${pregunta.texto_pregunta}</h6>
+                    <div class="opciones compacto">
+                        <div class="opcion compacto">
+                            <input type="radio" 
+                                   id="p${index}_a" 
+                                   name="p${index}" 
+                                   value="A"
+                                   required>
+                            <label for="p${index}_a">
+                                <strong>A)</strong> ${pregunta.opcion_a}
+                            </label>
+                        </div>
+                        <div class="opcion compacto">
+                            <input type="radio" 
+                                   id="p${index}_b" 
+                                   name="p${index}" 
+                                   value="B">
+                            <label for="p${index}_b">
+                                <strong>B)</strong> ${pregunta.opcion_b}
+                            </label>
+                        </div>
+                        <div class="opcion compacto">
+                            <input type="radio" 
+                                   id="p${index}_c" 
+                                   name="p${index}" 
+                                   value="C">
+                            <label for="p${index}_c">
+                                <strong>C)</strong> ${pregunta.opcion_c}
+                            </label>
+                        </div>
+                    </div>
+                    <div class="area-indicator mt-2">
+                        <span class="badge bg-secondary badge-sm">${area.toUpperCase()}</span>
+                        ${this.calcularBonificacionArea(area) > 0 ? 
+                            `<span class="bonificacion-text small">
+                                <i class="fas fa-chart-line"></i> +${this.calcularBonificacionArea(area)}%
+                            </span>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = `
+            <div class="pronosticos-container-f1 compacto">
+                <div class="card">
+                    <div class="card-header bg-dark text-white py-2 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-bullseye"></i> ${this.carreraActual.nombre}</h5>
+                        <button class="btn btn-outline-light btn-sm" onclick="window.pronosticosManager.usuarioAceptoCondiciones = false; window.pronosticosManager.mostrarPantallaPrincipal(document.querySelector('.tab-content.active'), ${JSON.stringify(historico)})">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </button>
+                    </div>
+                    <div class="card-body py-3">
+                        ${historico.length > 0 ? this.renderizarSelectorHistorico(historico) : ''}
+                        
+                        <div class="preguntas-container">
+                            ${preguntasHTML}
+                        </div>
+                        
+                        <div class="mt-3 pt-3 border-top">
+                            <button type="button" class="btn btn-success btn-sm" onclick="window.pronosticosManager.guardarPronostico()">
+                                <i class="fas fa-paper-plane"></i> Enviar pronóstico
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.pronosticosManager.usuarioAceptoCondiciones = false; window.pronosticosManager.mostrarPantallaPrincipal(document.querySelector('.tab-content.active'), ${JSON.stringify(historico)})">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     
     // AÑADE ESTA NUEVA FUNCIÓN después de cargarPantallaPronostico()
