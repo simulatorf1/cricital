@@ -1987,6 +1987,11 @@ class PronosticosManager {
         
         // Verificar si ya cobró
         const yaCobro = pronostico.cobrado || false;
+        // DEBUG: Ver qué hay en bonificaciones_aplicadas
+        console.log("🔍 bonificaciones_aplicadas del pronóstico:", pronostico.bonificaciones_aplicadas);
+        console.log("🔍 Tipo:", typeof pronostico.bonificaciones_aplicadas);
+        console.log("🔍 Es array?", Array.isArray(pronostico.bonificaciones_aplicadas));
+        console.log("🔍 Claves:", Object.keys(pronostico.bonificaciones_aplicadas || {}));
         
         container.innerHTML = `
             <div class="pronostico-container compacto">
@@ -2131,7 +2136,31 @@ class PronosticosManager {
         `;
     }
     generarDetalleEstrategasDesdeGuardado(bonificaciones, dineroPorBonificaciones) {
-        if (!bonificaciones || Object.keys(bonificaciones).length === 0) {
+        console.log("🎯 generando detalle con:", bonificaciones);
+        console.log("🎯 dineroPorBonificaciones:", dineroPorBonificaciones);
+        
+        // Si no hay bonificaciones, no mostrar nada
+        if (!bonificaciones) {
+            console.log("❌ No hay bonificaciones");
+            return '';
+        }
+        
+        // Convertir a array si es necesario
+        let listaEstrategas = [];
+        
+        if (Array.isArray(bonificaciones)) {
+            listaEstrategas = bonificaciones;
+            console.log("📊 Es array con", listaEstrategas.length, "elementos");
+        } else if (typeof bonificaciones === 'object') {
+            listaEstrategas = Object.values(bonificaciones);
+            console.log("📊 Es objeto con", listaEstrategas.length, "elementos");
+        } else {
+            console.log("❌ Formato no reconocido:", typeof bonificaciones);
+            return '';
+        }
+        
+        if (listaEstrategas.length === 0) {
+            console.log("❌ Lista vacía");
             return '';
         }
         
@@ -2142,25 +2171,33 @@ class PronosticosManager {
                 </div>
         `;
         
-        const numEstrategas = Object.keys(bonificaciones).length;
-        const bonusPorEstratega = Math.round(dineroPorBonificaciones / numEstrategas);
+        const numEstrategas = listaEstrategas.length;
+        const bonusPorEstratega = dineroPorBonificaciones > 0 ? Math.round(dineroPorBonificaciones / numEstrategas) : 0;
         
-        Object.values(bonificaciones).forEach(estratega => {
+        listaEstrategas.forEach((estratega, index) => {
+            console.log(`📌 Estratega ${index + 1}:`, estratega);
+            
+            // Extraer datos con fallbacks
+            const nombre = estratega.nombre || `Estratega ${index + 1}`;
+            const area = estratega.area || estratega.especialidad || 'general';
+            const porcentaje = estratega.porcentaje || 0;
+            const preguntas = estratega.preguntas || [];
+            
             html += `
                 <div class="mb-2" style="background: #1e1e1e; border-radius: 5px; padding: 10px; border-left: 4px solid #00d2be;">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="fw-bold fs-6">${estratega.nombre}</span>
-                            <span class="badge bg-info ms-2">${estratega.area}</span>
+                            <span class="fw-bold fs-6">${nombre}</span>
+                            <span class="badge bg-info ms-2">${area}</span>
                             <div class="small text-muted mt-1">
                                 <i class="fas fa-check-circle text-success"></i> 
-                                Preguntas: ${estratega.preguntas.join(', ')}
+                                Preguntas: ${preguntas.length > 0 ? preguntas.join(', ') : 'Todas'}
                                 <br><i class="fas fa-percentage text-success"></i> 
-                                +${estratega.porcentaje}%
+                                +${porcentaje}%
                             </div>
                         </div>
                         <div class="text-end">
-                            <span class="text-success fw-bold">+${estratega.porcentaje}%</span><br>
+                            <span class="text-success fw-bold">+${porcentaje}%</span><br>
                             <small class="text-info">≈ ${bonusPorEstratega.toLocaleString('es-ES')} €</small>
                         </div>
                     </div>
