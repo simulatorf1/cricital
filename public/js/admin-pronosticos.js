@@ -1022,7 +1022,6 @@ class AdminPronosticos {
                             aciertos: aciertos,
                             puntuacion_total: parseFloat(puntuacionFinal.toFixed(2)),
                             dinero_ganado: parseFloat(dineroGanado.toFixed(2)),
-                            bonificaciones_aplicadas: bonificacionesAplicadas,
                             estado: 'calificado',
                             updated_at: new Date().toISOString()
                         })
