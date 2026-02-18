@@ -1898,6 +1898,7 @@ class PronosticosManager {
         let dineroPorAciertos = 0;
         let dineroPorBonificaciones = 0;
         
+        
         for (let i = 1; i <= 10; i++) {
             const pregunta = preguntas.find(p => p.numero_pregunta === i);
             const respuestaUsuario = respuestasUsuario[`p${i}`];
@@ -1907,26 +1908,27 @@ class PronosticosManager {
             
             if (esCorrecta) aciertos++;
             
-            // Calcular bonificación de estrategas para esta área
-            let bonificacionPorcentaje = 0;
-            let estrategasAplicados = [];
+            // 🔥 NUEVO: Buscar qué estrategas bonifican esta pregunta
+            let estrategasBonifican = [];
+            let bonificacionTotalPregunta = 0;
             
-            if (tieneResultados && esCorrecta && pronostico.estrategas_snapshot) {
-                pronostico.estrategas_snapshot.forEach(estratega => {
-                    if (estratega.bonificacion_tipo && 
-                        estratega.bonificacion_tipo.toLowerCase().includes(area.toLowerCase())) {
-                        bonificacionPorcentaje += estratega.bonificacion_valor || 0;
-                        estrategasAplicados.push({
+            if (tieneResultados && esCorrecta && pronostico.bonificaciones_aplicadas) {
+                // Recorrer todas las bonificaciones guardadas
+                Object.values(pronostico.bonificaciones_aplicadas).forEach(estratega => {
+                    // Si este estratega bonifica esta pregunta
+                    if (estratega.preguntas && estratega.preguntas.includes(i)) {
+                        estrategasBonifican.push({
                             nombre: estratega.nombre,
-                            valor: estratega.bonificacion_valor
+                            porcentaje: estratega.porcentaje
                         });
+                        bonificacionTotalPregunta += estratega.porcentaje;
                     }
                 });
             }
             
             // Calcular valores en EUROS
             const dineroBasePregunta = esCorrecta ? VALOR_BASE_PREGUNTA : 0;
-            const dineroBonificacion = esCorrecta ? Math.round(dineroBasePregunta * (bonificacionPorcentaje / 100)) : 0;
+            const dineroBonificacion = esCorrecta ? Math.round(dineroBasePregunta * (bonificacionTotalPregunta / 100)) : 0;
             const dineroTotalPregunta = dineroBasePregunta + dineroBonificacion;
             
             if (esCorrecta) {
@@ -1943,6 +1945,16 @@ class PronosticosManager {
             
             if (opcionTexto.length > 40) opcionTexto = opcionTexto.substring(0, 37) + '...';
             
+            // Generar HTML para mostrar los estrategas que bonifican esta pregunta
+            let estrategasHTML = '';
+            if (estrategasBonifican.length > 0) {
+                estrategasHTML = '<div class="small text-success mt-1">';
+                estrategasBonifican.forEach(e => {
+                    estrategasHTML += `<span class="badge bg-info me-1">${e.nombre} +${e.porcentaje}%</span>`;
+                });
+                estrategasHTML += '</div>';
+            }
+            
             // Construir fila
             filasPreguntas += `
                 <tr class="${esCorrecta ? 'table-success' : ''}">
@@ -1950,6 +1962,7 @@ class PronosticosManager {
                     <td class="align-middle">
                         <div><strong>${nombresArea[area] || area}</strong></div>
                         <small class="text-muted">${pregunta?.texto_pregunta?.substring(0, 50) || ''}${pregunta?.texto_pregunta?.length > 50 ? '...' : ''}</small>
+                        ${estrategasHTML}
                     </td>
                     <td class="align-middle">
                         <span class="badge bg-secondary">${respuestaUsuario}</span>
@@ -1965,9 +1978,9 @@ class PronosticosManager {
                     <td class="text-end align-middle">
                         ${tieneResultados && esCorrecta ? `
                             <div><span class="text-muted">Base:</span> <strong>${dineroBasePregunta.toLocaleString('es-ES')} €</strong></div>
-                            ${bonificacionPorcentaje > 0 ? `
+                            ${bonificacionTotalPregunta > 0 ? `
                                 <div class="text-success">
-                                    <small>+${bonificacionPorcentaje}% (${estrategasAplicados.map(e => e.nombre).join(', ')}):</small>
+                                    <small>+${bonificacionTotalPregunta}% (${estrategasBonifican.map(e => e.nombre).join(', ')}):</small>
                                     <strong>+${dineroBonificacion.toLocaleString('es-ES')} €</strong>
                                 </div>
                             ` : ''}
@@ -1977,6 +1990,7 @@ class PronosticosManager {
                 </tr>
             `;
         }
+
         
         // Calcular dinero por puntos del coche
         const puntosCoche = pronostico.puntos_coche_snapshot || 0;
