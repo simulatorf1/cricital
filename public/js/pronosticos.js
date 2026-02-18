@@ -2543,7 +2543,7 @@ class PronosticosManager {
             // 1. Verificar que el pronóstico existe y pertenece al usuario
             const { data: pronostico, error: errorVerificar } = await this.supabase
                 .from('pronosticos_usuario')
-                .select('id, estado, cobrado')
+                .select('id, estado, cobrado, escuderia_id')
                 .eq('id', pronosticoId)
                 .single();
             
@@ -2588,6 +2588,32 @@ class PronosticosManager {
             
             console.log("✅ Dinero actualizado correctamente");
             
+            // ===========================================
+            // 🆕 CREAR REGISTRO EN TRANSACCIONES
+            // ===========================================
+            try {
+                const { error: errorTransaccion } = await this.supabase
+                    .from('transacciones')
+                    .insert([{
+                        escuderia_id: pronostico.escuderia_id,
+                        tipo: 'ingreso',
+                        cantidad: cantidad,
+                        descripcion: `Cobro de pronóstico - Carrera ${this.carreraActual?.nombre || ''}`,
+                        referencia: `pronostico_${pronosticoId}`,
+                        saldo_resultante: nuevoDinero,
+                        categoria: 'pronosticos',
+                        fecha: new Date().toISOString()
+                    }]);
+                
+                if (errorTransaccion) {
+                    console.error("❌ Error creando registro en transacciones:", errorTransaccion);
+                } else {
+                    console.log("✅ Registro en transacciones creado");
+                }
+            } catch (errorTrans) {
+                console.error("❌ Error en transacciones:", errorTrans);
+            }
+            
             // 4. Intentar marcar pronóstico como cobrado (manejar si la columna no existe)
             try {
                 const { error: errorPronostico } = await this.supabase
@@ -2610,6 +2636,7 @@ class PronosticosManager {
                                     <h5 style="margin: 0; color: #00d2be;">¡Dinero cobrado!</h5>
                                     <p style="margin: 5px 0 0 0;">Se han añadido ${cantidad.toLocaleString('es-ES')} € a tu escudería</p>
                                     <p style="margin: 0; font-size: 13px;">Nuevo saldo: ${nuevoDinero.toLocaleString('es-ES')} €</p>
+                                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #00d2be;">✅ Registrado en transacciones</p>
                                     <p style="margin: 5px 0 0 0; font-size: 12px; color: #ffb400;">
                                         ⚠️ Nota: El sistema no pudo marcar el pronóstico como cobrado por un error técnico, pero el dinero ya está en tu cuenta.
                                     </p>
@@ -2628,7 +2655,7 @@ class PronosticosManager {
                     }
                 }
                 
-                // Si todo salió bien
+                // Si todo salió bien (con cobrado y transacciones)
                 this.mostrarNotificacionTemporal(`
                     <div style="display: flex; align-items: center; gap: 15px;">
                         <i class="fas fa-check-circle" style="font-size: 30px; color: #00d2be;"></i>
@@ -2636,6 +2663,7 @@ class PronosticosManager {
                             <h5 style="margin: 0; color: #00d2be;">¡Dinero cobrado!</h5>
                             <p style="margin: 5px 0 0 0;">Se han añadido ${cantidad.toLocaleString('es-ES')} € a tu escudería</p>
                             <p style="margin: 0; font-size: 13px;">Nuevo saldo: ${nuevoDinero.toLocaleString('es-ES')} €</p>
+                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #00d2be;">✅ Registrado en transacciones</p>
                         </div>
                     </div>
                 `, 5000);
@@ -2655,8 +2683,9 @@ class PronosticosManager {
                         <div>
                             <h5 style="margin: 0; color: #ffb400;">Cobro parcial</h5>
                             <p style="margin: 5px 0 0 0;">Se añadieron ${cantidad.toLocaleString('es-ES')} € a tu escudería</p>
-                            <p style="margin: 0; font-size: 13px;">Pero hubo un error al marcar el pronóstico como cobrado.</p>
-                            <p style="margin: 5px 0 0 0; font-size: 12px;">Contacta con soporte si ves este mensaje repetidamente.</p>
+                            <p style="margin: 0; font-size: 13px;">Nuevo saldo: ${nuevoDinero.toLocaleString('es-ES')} €</p>
+                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #00d2be;">✅ Registrado en transacciones</p>
+                            <p style="margin: 5px 0 0 0; font-size: 12px;">Pero hubo un error al marcar el pronóstico como cobrado.</p>
                         </div>
                     </div>
                 `, 8000);
