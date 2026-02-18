@@ -2480,57 +2480,137 @@ class PronosticosManager {
                 return;
             }
             
-            // 1. Obtener dinero actual de la escudería
+            console.log("💰 Procesando cobro:", { pronosticoId, cantidad });
+            
+            // 1. Verificar que el pronóstico existe y pertenece al usuario
+            const { data: pronostico, error: errorVerificar } = await this.supabase
+                .from('pronosticos_usuario')
+                .select('id, estado, cobrado')
+                .eq('id', pronosticoId)
+                .single();
+            
+            if (errorVerificar) {
+                console.error("❌ Error verificando pronóstico:", errorVerificar);
+                this.mostrarError("No se pudo verificar el pronóstico");
+                return;
+            }
+            
+            if (pronostico.cobrado) {
+                this.mostrarError("Este pronóstico ya ha sido cobrado");
+                return;
+            }
+            
+            // 2. Obtener dinero actual de la escudería
             const { data: escuderia, error: errorEscuderia } = await this.supabase
                 .from('escuderias')
                 .select('dinero')
                 .eq('user_id', user.id)
                 .single();
             
-            if (errorEscuderia) throw errorEscuderia;
+            if (errorEscuderia) {
+                console.error("❌ Error obteniendo escudería:", errorEscuderia);
+                this.mostrarError("Error al obtener datos de tu escudería");
+                return;
+            }
             
             const dineroActual = escuderia.dinero || 0;
             const nuevoDinero = dineroActual + cantidad;
             
-            // 2. Actualizar dinero de la escudería
+            // 3. ACTUALIZAR PRIMERO el dinero de la escudería
             const { error: errorUpdate } = await this.supabase
                 .from('escuderias')
                 .update({ dinero: nuevoDinero })
                 .eq('user_id', user.id);
             
-            if (errorUpdate) throw errorUpdate;
+            if (errorUpdate) {
+                console.error("❌ Error actualizando dinero:", errorUpdate);
+                this.mostrarError("Error al actualizar el dinero");
+                return;
+            }
             
-            // 3. Marcar pronóstico como cobrado
-            const { error: errorPronostico } = await this.supabase
-                .from('pronosticos_usuario')
-                .update({ 
-                    cobrado: true,
-                    fecha_cobro: new Date().toISOString()
-                })
-                .eq('id', pronosticoId);
+            console.log("✅ Dinero actualizado correctamente");
             
-            if (errorPronostico) throw errorPronostico;
-            
-            // 4. Mostrar éxito y recargar
-            this.mostrarNotificacionTemporal(`
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <i class="fas fa-check-circle" style="font-size: 30px; color: #00d2be;"></i>
-                    <div>
-                        <h5 style="margin: 0; color: #00d2be;">¡Dinero cobrado!</h5>
-                        <p style="margin: 5px 0 0 0;">Se han añadido ${cantidad.toLocaleString('es-ES')} € a tu escudería</p>
-                        <p style="margin: 0; font-size: 13px;">Nuevo saldo: ${nuevoDinero.toLocaleString('es-ES')} €</p>
+            // 4. Intentar marcar pronóstico como cobrado (manejar si la columna no existe)
+            try {
+                const { error: errorPronostico } = await this.supabase
+                    .from('pronosticos_usuario')
+                    .update({ 
+                        cobrado: true,
+                        fecha_cobro: new Date().toISOString()
+                    })
+                    .eq('id', pronosticoId);
+                
+                if (errorPronostico) {
+                    // Si el error es por columna no existente, solo lo registramos
+                    if (errorPronostico.message && errorPronostico.message.includes('cobrado')) {
+                        console.warn("⚠️ La columna 'cobrado' no existe en la tabla. El dinero se añadió igualmente.");
+                        
+                        this.mostrarNotificacionTemporal(`
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <i class="fas fa-check-circle" style="font-size: 30px; color: #00d2be;"></i>
+                                <div>
+                                    <h5 style="margin: 0; color: #00d2be;">¡Dinero cobrado!</h5>
+                                    <p style="margin: 5px 0 0 0;">Se han añadido ${cantidad.toLocaleString('es-ES')} € a tu escudería</p>
+                                    <p style="margin: 0; font-size: 13px;">Nuevo saldo: ${nuevoDinero.toLocaleString('es-ES')} €</p>
+                                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #ffb400;">
+                                        ⚠️ Nota: El sistema no pudo marcar el pronóstico como cobrado por un error técnico, pero el dinero ya está en tu cuenta.
+                                    </p>
+                                </div>
+                            </div>
+                        `, 6000);
+                        
+                        // Recargar después
+                        setTimeout(() => {
+                            this.cargarPantallaPronostico();
+                        }, 2000);
+                        
+                        return;
+                    } else {
+                        throw errorPronostico; // Otro tipo de error
+                    }
+                }
+                
+                // Si todo salió bien
+                this.mostrarNotificacionTemporal(`
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <i class="fas fa-check-circle" style="font-size: 30px; color: #00d2be;"></i>
+                        <div>
+                            <h5 style="margin: 0; color: #00d2be;">¡Dinero cobrado!</h5>
+                            <p style="margin: 5px 0 0 0;">Se han añadido ${cantidad.toLocaleString('es-ES')} € a tu escudería</p>
+                            <p style="margin: 0; font-size: 13px;">Nuevo saldo: ${nuevoDinero.toLocaleString('es-ES')} €</p>
+                        </div>
                     </div>
-                </div>
-            `, 5000);
-            
-            // Recargar la vista para mostrar botón deshabilitado
-            setTimeout(() => {
-                this.cargarPantallaPronostico();
-            }, 2000);
+                `, 5000);
+                
+                // Recargar la vista para mostrar botón deshabilitado
+                setTimeout(() => {
+                    this.cargarPantallaPronostico();
+                }, 2000);
+                
+            } catch (errorPronostico) {
+                console.error("❌ Error al marcar pronóstico como cobrado:", errorPronostico);
+                
+                // Aunque falle marcar el pronóstico, el dinero ya se añadió
+                this.mostrarNotificacionTemporal(`
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 30px; color: #ffb400;"></i>
+                        <div>
+                            <h5 style="margin: 0; color: #ffb400;">Cobro parcial</h5>
+                            <p style="margin: 5px 0 0 0;">Se añadieron ${cantidad.toLocaleString('es-ES')} € a tu escudería</p>
+                            <p style="margin: 0; font-size: 13px;">Pero hubo un error al marcar el pronóstico como cobrado.</p>
+                            <p style="margin: 5px 0 0 0; font-size: 12px;">Contacta con soporte si ves este mensaje repetidamente.</p>
+                        </div>
+                    </div>
+                `, 8000);
+                
+                setTimeout(() => {
+                    this.cargarPantallaPronostico();
+                }, 2000);
+            }
             
         } catch (error) {
-            console.error("Error al cobrar:", error);
-            this.mostrarError("Error al procesar el cobro");
+            console.error("💥 Error general en cobrarDinero:", error);
+            this.mostrarError("Error al procesar el cobro. Inténtalo de nuevo.");
         }
     }
     async verPronosticoGuardado() {
