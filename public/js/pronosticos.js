@@ -2772,17 +2772,37 @@ class PronosticosManager {
             // 2. Obtener TODOS los pronósticos de esta carrera
             const { data: pronosticos, error: errorPronosticos } = await this.supabase
                 .from('pronosticos_usuario')
-                .select('id, respuestas, bonificaciones_aplicadas, puntos_coche_snapshot, estrategas_snapshot')
+                .select(`
+                    id, 
+                    respuestas, 
+                    bonificaciones_aplicadas, 
+                    puntos_coche_snapshot, 
+                    estrategas_snapshot,
+                    escuderia_id,
+                    escuderias!inner(usuario_id)
+                `)
                 .eq('carrera_id', carreraId);
             
             if (errorPronosticos) throw errorPronosticos;
             
-            // 3. Calcular para cada pronóstico
+            // 3. Obtener nombre del GP para las notificaciones
+            const { data: carrera, error: errorCarrera } = await this.supabase
+                .from('calendario_gp')
+                .select('nombre')
+                .eq('id', carreraId)
+                .single();
+            
+            if (errorCarrera) throw errorCarrera;
+            
+            const nombreGP = carrera.nombre;
+            
+            // 4. Calcular para cada pronóstico y preparar notificaciones
+            const notificaciones = [];
+            
             for (const pronostico of pronosticos) {
                 let aciertos = 0;
                 let puntosBase = 0;
                 let bonificacionTotal = 0;
-                let dineroGanado = 0;
                 
                 // Contar aciertos base
                 for (let i = 1; i <= 10; i++) {
@@ -2794,22 +2814,17 @@ class PronosticosManager {
                 // Calcular puntos base (100 por acierto)
                 puntosBase = aciertos * 100;
                 
-                // 🔥 CALCULAR BONIFICACIONES USANDO LOS DATOS GUARDADOS
+                // Calcular bonificaciones
                 if (pronostico.bonificaciones_aplicadas && aciertos > 0) {
-                    // Recorrer cada estratega
                     Object.values(pronostico.bonificaciones_aplicadas).forEach(estratega => {
-                        // Verificar qué preguntas de este estratega acertó
                         const preguntasAcertadasBonificadas = estratega.preguntas.filter(preguntaNum => {
                             return pronostico.respuestas[`p${preguntaNum}`] === respuestasCorrectas[`p${preguntaNum}`];
                         });
                         
                         if (preguntasAcertadasBonificadas.length > 0) {
-                            // Aplicar bonificación sobre los aciertos base
                             const puntosDeEstasPreguntas = preguntasAcertadasBonificadas.length * 100;
                             const bonificacionEstratega = Math.round(puntosDeEstasPreguntas * (estratega.porcentaje / 100));
                             bonificacionTotal += bonificacionEstratega;
-                            
-                            console.log(`📊 Estratega ${estratega.nombre}: +${bonificacionEstratega} puntos (${preguntasAcertadasBonificadas.length} preguntas × ${estratega.porcentaje}%)`);
                         }
                     });
                 }
@@ -2817,10 +2832,10 @@ class PronosticosManager {
                 // Puntos finales
                 const puntosFinales = puntosBase + bonificacionTotal;
                 
-                // Dinero (ejemplo: 10€ por punto)
-                dineroGanado = puntosFinales * 10000;
+                // Dinero (10.000€ por punto)
+                const dineroGanado = puntosFinales * 10000;
                 
-                // 4. Actualizar el pronóstico con todos los datos calculados
+                // Actualizar el pronóstico
                 const { error: errorUpdate } = await this.supabase
                     .from('pronosticos_usuario')
                     .update({
@@ -2828,22 +2843,60 @@ class PronosticosManager {
                         aciertos: aciertos,
                         puntuacion_total: puntosFinales,
                         dinero_ganado: dineroGanado
-                        // ⚠️ NO TOCAR bonificaciones_aplicadas - ya está guardada
                     })
                     .eq('id', pronostico.id);
                 
                 if (errorUpdate) {
                     console.error(`❌ Error actualizando pronóstico ${pronostico.id}:`, errorUpdate);
                 }
+                
+                // 🔥 NUEVO: Preparar notificación para este usuario
+                const usuarioId = pronostico.escuderias?.usuario_id;
+                if (usuarioId) {
+                    if (aciertos > 0) {
+                        notificaciones.push({
+                            usuario_id: usuarioId,
+                            tipo: 'pronostico',
+                            titulo: '🎯 ¡Resultados disponibles!',
+                            mensaje: `Has acertado ${aciertos}/10 en ${nombreGP} y ganaste ${dineroGanado.toLocaleString('es-ES')} €`,
+                            relacion_id: carreraId,
+                            tipo_relacion: 'gp',
+                            fecha_creacion: new Date().toISOString(),
+                            leida: false
+                        });
+                    } else {
+                        notificaciones.push({
+                            usuario_id: usuarioId,
+                            tipo: 'pronostico',
+                            titulo: '📊 Resultados disponibles',
+                            mensaje: `Ya puedes ver los resultados del GP ${nombreGP}. Esta vez no hubo aciertos, ¡suerte en la próxima!`,
+                            relacion_id: carreraId,
+                            tipo_relacion: 'gp',
+                            fecha_creacion: new Date().toISOString(),
+                            leida: false
+                        });
+                    }
+                }
             }
             
-            // 5. Crear notificaciones
-            await this.crearNotificacionesResultados(carreraId);
+            // 5. Insertar todas las notificaciones
+            if (notificaciones.length > 0) {
+                const { error: insertError } = await this.supabase
+                    .from('notificaciones_usuarios')
+                    .insert(notificaciones);
+                
+                if (insertError) {
+                    console.error("❌ Error insertando notificaciones:", insertError);
+                } else {
+                    console.log(`✅ ${notificaciones.length} notificaciones creadas`);
+                }
+            }
             
+            // 6. Mostrar confirmación
             this.mostrarConfirmacion(`
                 <h4><i class="fas fa-check-circle"></i> Resultados guardados</h4>
                 <p>Los resultados han sido publicados y los usuarios han sido notificados.</p>
-                <p>Los pronósticos se han calificado correctamente incluyendo bonificaciones.</p>
+                <p>Se han calificado ${pronosticos.length} pronósticos correctamente.</p>
             `);
             
         } catch (error) {
