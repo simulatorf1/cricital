@@ -2035,6 +2035,7 @@ class PronosticosManager {
                             </div>
                             
                             <!-- RESUMEN ECONÓMICO -->
+                            <!-- RESUMEN ECONÓMICO CON DETALLE DE ESTRATEGAS -->
                             <div class="card bg-dark border-secondary mb-4">
                                 <div class="card-header bg-secondary py-2">
                                     <h6 class="mb-0"><i class="fas fa-calculator"></i> Resumen económico</h6>
@@ -2047,10 +2048,10 @@ class PronosticosManager {
                                                     <span>💰 Preguntas acertadas (${aciertos} × 5.000.000 €):</span>
                                                     <span class="fw-bold">${dineroPorAciertos.toLocaleString('es-ES')} €</span>
                                                 </div>
-                                                <div class="d-flex justify-content-between text-success">
-                                                    <span>✨ Bonificaciones de estrategas:</span>
-                                                    <span class="fw-bold">+${dineroPorBonificaciones.toLocaleString('es-ES')} €</span>
-                                                </div>
+                                                
+                                                <!-- DETALLE DE ESTRATEGAS QUE APLICARON -->
+                                                ${this.generarDetalleEstrategas(pronostico, preguntas, respuestasCorrectas)}
+                                                
                                                 <div class="d-flex justify-content-between mt-2 pt-2 border-top border-secondary">
                                                     <span><strong>SUBTOTAL PREGUNTAS:</strong></span>
                                                     <span class="fw-bold">${totalDineroPreguntas.toLocaleString('es-ES')} €</span>
@@ -2148,6 +2149,99 @@ class PronosticosManager {
         
         return filas;
     }
+    generarDetalleEstrategas(pronostico, preguntas, respuestasCorrectas) {
+        if (!pronostico.estrategas_snapshot || pronostico.estrategas_snapshot.length === 0) {
+            return `
+                <div class="text-muted small mt-2">
+                    <i class="fas fa-info-circle"></i> No tenías estrategas activos en este pronóstico.
+                </div>
+            `;
+        }
+        
+        const respuestasUsuario = pronostico.respuestas;
+        let estrategasAplicados = [];
+        
+        // Recorrer cada estratega y ver en qué preguntas aplicó
+        pronostico.estrategas_snapshot.forEach(estratega => {
+            const areaEstratega = estratega.bonificacion_tipo?.toLowerCase() || estratega.especialidad?.toLowerCase() || '';
+            if (!areaEstratega) return;
+            
+            let preguntasAfectadas = [];
+            let aciertosEnArea = 0;
+            
+            for (let i = 1; i <= 10; i++) {
+                const areaPregunta = this.preguntaAreas[i]?.toLowerCase() || '';
+                if (areaPregunta.includes(areaEstratega) || areaEstratega.includes(areaPregunta)) {
+                    const respuestaUsuario = respuestasUsuario[`p${i}`];
+                    const respuestaCorrecta = respuestasCorrectas[`p${i}`];
+                    const esCorrecta = respuestaUsuario === respuestaCorrecta;
+                    
+                    if (esCorrecta) {
+                        aciertosEnArea++;
+                        preguntasAfectadas.push(i);
+                    }
+                }
+            }
+            
+            if (aciertosEnArea > 0) {
+                estrategasAplicados.push({
+                    nombre: estratega.nombre || 'Estratega',
+                    especialidad: estratega.especialidad || estratega.bonificacion_tipo || 'general',
+                    porcentaje: estratega.bonificacion_valor || 0,
+                    preguntas: preguntasAfectadas,
+                    aciertos: aciertosEnArea,
+                    bonusGenerado: Math.round(aciertosEnArea * 5000000 * (estratega.bonificacion_valor / 100))
+                });
+            }
+        });
+        
+        if (estrategasAplicados.length === 0) {
+            return `
+                <div class="text-muted small mt-2">
+                    <i class="fas fa-info-circle"></i> Tus estrategas no aplicaron bonificación en esta ocasión.
+                </div>
+            `;
+        }
+        
+        let html = `
+            <div class="mt-3 pt-2 border-top border-secondary">
+                <div class="text-success fw-bold mb-2">
+                    <i class="fas fa-star"></i> EXTRAS POR ESTRATEGAS:
+                </div>
+        `;
+        
+        estrategasAplicados.forEach(e => {
+            html += `
+                <div class="ms-3 mb-2" style="border-left: 2px solid #00d2be; padding-left: 10px;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold">${e.nombre}</span>
+                            <span class="badge bg-info ms-2">${e.especialidad}</span>
+                            <small class="text-muted d-block">
+                                Aplicó en preguntas: ${e.preguntas.join(', ')} (${e.aciertos} aciertos)
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-success fw-bold">+${e.porcentaje}%</span><br>
+                            <small class="text-muted">+${e.bonusGenerado.toLocaleString('es-ES')} €</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+            <div class="d-flex justify-content-between mt-2 text-success">
+                <span><strong>TOTAL BONIFICACIONES:</strong></span>
+                <span class="fw-bold">+${dineroPorBonificaciones.toLocaleString('es-ES')} €</span>
+            </div>
+        </div>
+        `;
+        
+        return html;
+    }
+
+    
     async verResultadosCompletos(carreraId) {
         // Reutiliza tu función existente cargarResultadosCarrera
         await this.cargarResultadosCarrera(carreraId);
