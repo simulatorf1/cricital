@@ -2718,7 +2718,7 @@ class PronosticosManager {
         try {
             console.log("🔔 Creando notificaciones de resultados para carrera:", carreraId);
             
-            // 1. Obtener TODOS los pronósticos de esta carrera con usuario_id
+            // Obtener TODOS los pronósticos de esta carrera con usuario_id
             const { data: pronosticos, error: errorPronosticos } = await this.supabase
                 .from('pronosticos_usuario')
                 .select(`
@@ -2732,19 +2732,7 @@ class PronosticosManager {
                 return;
             }
             
-            // 2. Obtener los resultados correctos de la carrera
-            const { data: resultados, error: errorResultados } = await this.supabase
-                .from('resultados_carrera')
-                .select('respuestas_correctas')
-                .eq('carrera_id', carreraId)
-                .single();
-            
-            if (errorResultados || !resultados) {
-                console.error("❌ Error obteniendo resultados:", errorResultados);
-                return;
-            }
-            
-            // 3. Obtener nombre del GP
+            // Obtener nombre del GP
             const { data: carrera, error: errorCarrera } = await this.supabase
                 .from('calendario_gp')
                 .select('nombre')
@@ -2756,45 +2744,18 @@ class PronosticosManager {
                 return;
             }
             
-            const respuestasCorrectas = resultados.respuestas_correctas;
+            // Crear notificaciones
             const notificaciones = [];
             
-            // 4. Procesar cada pronóstico y calcular sus aciertos
             for (const pronostico of pronosticos) {
                 const usuarioId = pronostico.escuderias?.usuario_id;
                 if (!usuarioId) continue;
                 
-                // Calcular cuántos aciertos tuvo
-                let aciertos = 0;
-                const respuestasUsuario = pronostico.respuestas;
+                // Usar los valores YA CALCULADOS en el pronóstico
+                const aciertos = pronostico.aciertos || 0;
+                const puntosFinales = pronostico.puntuacion_total || 0;
                 
-                for (let i = 1; i <= 10; i++) {
-                    if (respuestasUsuario[`p${i}`] === respuestasCorrectas[`p${i}`]) {
-                        aciertos++;
-                    }
-                }
-                
-                // Calcular puntos si tuvo aciertos
-                let puntosFinales = 0;
                 if (aciertos > 0) {
-                    const puntosBase = aciertos * 100;
-                    
-                    // Aplicar bonificaciones de estrategas
-                    let bonificacionTotal = 0;
-                    const estrategas = pronostico.estrategas_snapshot || [];
-                    
-                    estrategas.forEach(estratega => {
-                        if (estratega.bonificacion_valor) {
-                            bonificacionTotal += estratega.bonificacion_valor;
-                        }
-                    });
-                    
-                    puntosFinales = Math.round(puntosBase * (1 + bonificacionTotal / 100));
-                }
-                
-                // Crear notificación personalizada según resultados
-                if (aciertos > 0) {
-                    // ✅ Tuvo aciertos - notificación de éxito
                     notificaciones.push({
                         usuario_id: usuarioId,
                         tipo: 'pronostico',
@@ -2806,7 +2767,6 @@ class PronosticosManager {
                         vista: false
                     });
                 } else {
-                    // ❌ No acertó nada - notificación informativa
                     notificaciones.push({
                         usuario_id: usuarioId,
                         tipo: 'pronostico',
@@ -2820,7 +2780,7 @@ class PronosticosManager {
                 }
             }
             
-            // 5. Insertar todas las notificaciones de una vez (MÁS EFICIENTE)
+            // Insertar notificaciones
             if (notificaciones.length > 0) {
                 const { error: insertError } = await this.supabase
                     .from('notificaciones_usuarios')
@@ -2829,7 +2789,7 @@ class PronosticosManager {
                 if (insertError) {
                     console.error("❌ Error insertando notificaciones:", insertError);
                 } else {
-                    console.log(`✅ ${notificaciones.length} notificaciones creadas correctamente`);
+                    console.log(`✅ ${notificaciones.length} notificaciones creadas`);
                 }
             }
             
