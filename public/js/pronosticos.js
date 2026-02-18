@@ -3,7 +3,7 @@ console.log("📊 Sistema de pronósticos cargado");
 
 class PronosticosManager {
     constructor() {
-        this.supabase = window.supabase;
+        this.supabase = window.supabaseCliente || window.adminPronosticos?.supabase || window.supabase;
         this.preguntaAreas = {
             1: 'meteorologia', 2: 'fiabilidad', 3: 'estrategia', 4: 'rendimiento',
             5: 'neumaticos', 6: 'seguridad', 7: 'clasificacion', 8: 'carrera',
@@ -2745,8 +2745,13 @@ class PronosticosManager {
 
     
     async guardarResultadosCarrera() {
-        const carreraId = document.getElementById('carreraResultados').value;
         
+        const selectCarrera = document.getElementById('select-carrera-corregir');
+        if (!selectCarrera || !selectCarrera.value) {
+            this.mostrarError("No hay carrera seleccionada");
+            return;
+        }
+        const carreraId = selectCarrera.value;        
         const respuestasCorrectas = {};
         for (let i = 1; i <= 10; i++) {
             const respuesta = document.querySelector(`input[name="p${i}"]:checked`);
@@ -2770,6 +2775,7 @@ class PronosticosManager {
             if (error) throw error;
             
             // 2. Obtener TODOS los pronósticos de esta carrera
+
             const { data: pronosticos, error: errorPronosticos } = await this.supabase
                 .from('pronosticos_usuario')
                 .select(`
@@ -2779,7 +2785,9 @@ class PronosticosManager {
                     puntos_coche_snapshot, 
                     estrategas_snapshot,
                     escuderia_id,
-                    escuderias!inner(usuario_id)
+                    escuderias (
+                        user_id    // ← CORREGIDO: user_id en lugar de usuario_id
+                    )
                 `)
                 .eq('carrera_id', carreraId);
             
@@ -2852,7 +2860,7 @@ class PronosticosManager {
                 }
                 
                 // 🔥 CORREGIDO: Preparar notificación para este usuario
-                const usuarioId = pronostico.escuderias?.usuario_id;
+                const usuarioId = pronostico.escuderias?.user_id; 
                 if (usuarioId) {
                     // IMPORTANTE: relacion_id es UUID, así que lo dejamos NULL
                     // y guardamos el ID de la carrera en tipo_relacion como string
@@ -2983,15 +2991,25 @@ class PronosticosManager {
             }
             
             // Insertar notificaciones
+
             if (notificaciones.length > 0) {
-                const { error: insertError } = await this.supabase
+                console.log(`📝 Insertando ${notificaciones.length} notificaciones`);
+                
+                // Verificar que todos tienen usuario_id
+                const validas = notificaciones.filter(n => n.usuario_id);
+                if (validas.length !== notificaciones.length) {
+                    console.warn(`⚠️ ${notificaciones.length - validas.length} notificaciones sin usuario_id`);
+                }
+                
+                const { data, error: insertError } = await this.supabase
                     .from('notificaciones_usuarios')
-                    .insert(notificaciones);
+                    .insert(validas)
+                    .select();
                 
                 if (insertError) {
                     console.error("❌ Error insertando notificaciones:", insertError);
                 } else {
-                    console.log(`✅ ${notificaciones.length} notificaciones creadas`);
+                    console.log(`✅ ${validas.length} notificaciones insertadas:`, data);
                 }
             }
             
