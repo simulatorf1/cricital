@@ -2006,57 +2006,15 @@ class PronosticosManager {
                     
                     <div class="card-body py-3">
                         ${estado === 'pendiente' ? `
+
                             <div class="alert alert-warning mb-4">
                                 <i class="fas fa-hourglass-half me-2"></i>
                                 <strong>⏳ Pronóstico pendiente de evaluación</strong>
-                                <p class="mb-0 mt-1">Los resultados se publicarán después de la carrera. Aquí puedes ver lo que pronosticaste y qué estrategas te ayudarán si aciertas:</p>
+                                <p class="mb-0 mt-1">Los resultados se publicarán después de la carrera.</p>
                             </div>
                             
-                            <!-- SECCIÓN DE ESTRATEGAS EN PENDIENTE -->
-                            ${pronostico.bonificaciones_aplicadas && Object.keys(pronostico.bonificaciones_aplicadas).length > 0 ? `
-                                <div class="card bg-dark border-info mb-4">
-                                    <div class="card-header bg-info py-2 text-white">
-                                        <h6 class="mb-0"><i class="fas fa-users me-2"></i> Tus estrategas y sus bonificaciones</h6>
-                                    </div>
-                                    <div class="card-body py-3">
-                                        <div class="row">
-                                            ${Object.values(pronostico.bonificaciones_aplicadas).map(estratega => `
-                                                <div class="col-md-6 mb-2">
-                                                    <div class="p-2" style="background: #1e1e1e; border-radius: 5px; border-left: 4px solid #00d2be;">
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <div>
-                                                                <span class="fw-bold fs-6">${estratega.nombre}</span>
-                                                                <span class="badge bg-info ms-2">${estratega.area}</span>
-                                                            </div>
-                                                            <span class="text-success fw-bold fs-5">+${estratega.porcentaje}%</span>
-                                                        </div>
-                                                        <div class="small text-muted mt-2">
-                                                            <i class="fas fa-check-circle text-success me-1"></i> 
-                                                            <strong>Bonifica las preguntas:</strong> ${estratega.preguntas.join(', ')}
-                                                        </div>
-                                                        <div class="small text-info mt-1">
-                                                            <i class="fas fa-info-circle me-1"></i>
-                                                            Si aciertas estas preguntas, recibirás un +${estratega.porcentaje}% extra
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            `).join('')}
-                                        </div>
-                                        <div class="alert alert-info mt-3 mb-0 py-2">
-                                            <i class="fas fa-lightbulb me-2"></i>
-                                            <strong>Recuerda:</strong> Las bonificaciones solo se aplican en las preguntas que aciertes.
-                                        </div>
-                                    </div>
-                                </div>
-                            ` : `
-                                <div class="alert alert-secondary mb-4">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    <strong>No tenías estrategas contratados</strong> cuando hiciste este pronóstico.
-                                </div>
-                            `}
-
-                            <!-- MOSTRAR PRONÓSTICO (TABLA DE PREGUNTAS CON BONIFICACIONES) -->
-                            <h6 class="mb-3"><i class="fas fa-list me-2"></i> Tu pronóstico para esta carrera:</h6>
+                            <!-- SOLO PREGUNTAS CON BONIFICACIONES INCLUIDAS -->
+                            <h6 class="mb-3"><i class="fas fa-list me-2"></i> Tu pronóstico:</h6>
                             <div class="table-responsive mb-4">
                                 <table class="table table-sm table-dark table-hover">
                                     <thead class="bg-secondary">
@@ -2064,26 +2022,27 @@ class PronosticosManager {
                                             <th class="text-center" width="5%">#</th>
                                             <th width="45%">Pregunta</th>
                                             <th width="25%">Tu respuesta</th>
-                                            <th width="25%">Bonificaciones</th>
+                                            <th width="25%">Bonificación</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        ${this.generarFilasPronosticoPendienteConBonificaciones(preguntas, respuestasUsuario, pronostico.bonificaciones_aplicadas)}
+                                        ${this.generarFilasPronosticoConBonificaciones(preguntas, respuestasUsuario, pronostico.bonificaciones_aplicadas)}
                                     </tbody>
                                 </table>
                             </div>
                             
                             <div class="alert alert-info">
                                 <i class="fas fa-hourglass-half me-2"></i>
-                                <strong>Resumen:</strong> Respondiste 10 preguntas. Cuando se publiquen los resultados, sabrás cuántos aciertos tuviste y qué bonificaciones aplicaron.
+                                <strong>Resumen:</strong> Cuando se publiquen los resultados, sabrás cuántos aciertos tuviste.
                             </div>
                             
                             <div class="d-grid gap-2">
                                 <button class="btn btn-outline-secondary" onclick="window.pronosticosManager.cargarPantallaPronostico()">
-                                    <i class="fas fa-arrow-left me-2"></i> Volver a pronósticos
+                                    <i class="fas fa-arrow-left me-2"></i> Volver
                                 </button>
                             </div>
                         ` : `
+
                             <!-- RESULTADOS DETALLADOS -->
                             <div class="alert alert-success mb-4">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -2248,7 +2207,76 @@ class PronosticosManager {
         
         return html;
     }
-    
+    generarFilasPronosticoConBonificaciones(preguntas, respuestasUsuario, bonificacionesAplicadas) {
+        if (!preguntas || !respuestasUsuario) return '<tr><td colspan="4" class="text-center">No hay datos disponibles</td></tr>';
+        
+        const nombresArea = {
+            'meteorologia': '🌦️ Meteorología',
+            'fiabilidad': '🔧 Fiabilidad', 
+            'estrategia': '📋 Estrategia',
+            'rendimiento': '⚡ Rendimiento',
+            'neumaticos': '🛞 Neumáticos',
+            'seguridad': '🛡️ Seguridad',
+            'clasificacion': '⏱️ Clasificación',
+            'carrera': '🏁 Carrera',
+            'overtakes': '👋 Adelantamientos',
+            'incidentes': '🚨 Incidentes'
+        };
+        
+        let filas = '';
+        
+        for (let i = 1; i <= 10; i++) {
+            const pregunta = preguntas.find(p => p.numero_pregunta === i);
+            const respuestaUsuario = respuestasUsuario[`p${i}`];
+            const area = this.preguntaAreas[i] || 'general';
+            
+            // Buscar qué estrategas bonifican esta pregunta
+            let estrategasQueBonifican = [];
+            if (bonificacionesAplicadas) {
+                Object.values(bonificacionesAplicadas).forEach(estratega => {
+                    if (estratega.preguntas && estratega.preguntas.includes(i)) {
+                        estrategasQueBonifican.push(estratega);
+                    }
+                });
+            }
+            
+            let opcionTexto = '';
+            if (respuestaUsuario === 'A') opcionTexto = pregunta?.opcion_a || 'Opción A';
+            else if (respuestaUsuario === 'B') opcionTexto = pregunta?.opcion_b || 'Opción B';
+            else if (respuestaUsuario === 'C') opcionTexto = pregunta?.opcion_c || 'Opción C';
+            
+            if (opcionTexto.length > 40) opcionTexto = opcionTexto.substring(0, 37) + '...';
+            
+            // Generar HTML de bonificaciones para esta pregunta
+            let bonificacionesHTML = '<span class="text-muted">-</span>';
+            if (estrategasQueBonifican.length > 0) {
+                bonificacionesHTML = '<div class="small">';
+                estrategasQueBonifican.forEach(e => {
+                    bonificacionesHTML += `<div class="text-success"><i class="fas fa-star me-1"></i> <strong>${e.nombre}</strong> <span class="badge bg-info">+${e.porcentaje}%</span></div>`;
+                });
+                bonificacionesHTML += '</div>';
+            }
+            
+            filas += `
+                <tr>
+                    <td class="text-center align-middle"><strong>${i}</strong></td>
+                    <td class="align-middle">
+                        <div><strong>${nombresArea[area] || area}</strong></div>
+                        <small class="text-muted">${pregunta?.texto_pregunta?.substring(0, 80) || ''}${pregunta?.texto_pregunta?.length > 80 ? '...' : ''}</small>
+                    </td>
+                    <td class="align-middle">
+                        <span class="badge bg-secondary me-2 fs-6 p-2">${respuestaUsuario}</span>
+                        <span class="d-block small text-muted">${opcionTexto}</span>
+                    </td>
+                    <td class="align-middle">
+                        ${bonificacionesHTML}
+                    </td>
+                </tr>
+            `;
+        }
+        
+        return filas;
+    }    
     generarFilasPronosticoPendiente(preguntas, respuestasUsuario) {
         if (!preguntas || !respuestasUsuario) return '<tr><td colspan="4" class="text-center">No hay datos disponibles</td></tr>';
         
