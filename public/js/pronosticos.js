@@ -1019,6 +1019,7 @@ class PronosticosManager {
             
             // 🔴 CORREGIDO: Obtener estrategas contratados con la estructura correcta
             // 🔴 VERSIÓN CON JOIN (más eficiente)
+            // 🔴 CORREGIDO: Obtener estrategas contratados con JOIN a estrategas_catalogo
             const { data: estrategas, error: errorEstrategas } = await this.supabase
                 .from('estrategas_contrataciones')
                 .select(`
@@ -1026,7 +1027,7 @@ class PronosticosManager {
                     estratega_id,
                     slot_asignado,
                     estado,
-                    estrategas!inner (
+                    estrategas_catalogo!inner (
                         nombre,
                         especialidad,
                         bonificacion_tipo,
@@ -1042,10 +1043,10 @@ class PronosticosManager {
             } else {
                 this.estrategasActivos = (estrategas || []).map(c => ({
                     ingeniero_id: c.estratega_id,
-                    nombre: c.estrategas?.nombre || 'Estratega',
-                    especialidad: c.estrategas?.especialidad || 'general',
-                    bonificacion_tipo: c.estrategas?.bonificacion_tipo,
-                    bonificacion_valor: c.estrategas?.bonificacion_valor || 0,
+                    nombre: c.estrategas_catalogo?.nombre || 'Estratega',
+                    especialidad: c.estrategas_catalogo?.especialidad || 'general',
+                    bonificacion_tipo: c.estrategas_catalogo?.bonificacion_tipo,
+                    bonificacion_valor: c.estrategas_catalogo?.bonificacion_valor || 0,
                     activo: true,
                     slot_asignado: c.slot_asignado
                 }));
