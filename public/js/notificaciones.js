@@ -1090,16 +1090,39 @@ class NotificacionesManager {
         });
     
         // Evento para abrir perfil (solo si no es grupo_solicitud o ya está leída)
+        // Evento para abrir según el tipo de notificación
         document.querySelectorAll('.notificacion-item').forEach(item => {
-            if (item.dataset.tipo !== 'grupo_solicitud' || item.classList.contains('no-leida') === false) {
-                item.onclick = async (e) => {
-                    // No hacer nada si el click fue en un botón
-                    if (e.target.closest('.notificacion-btn')) return;
+            item.onclick = async (e) => {
+                // No hacer nada si el click fue en un botón
+                if (e.target.closest('.notificacion-btn')) return;
+                
+                const id = item.dataset.id;
+                const tipo = item.dataset.tipo;
+                const relacionId = item.dataset.relacion;
+                const tipoRelacion = item.dataset.tipoRelacion;
+                
+                await this.marcarComoLeida(id);
+                
+                // 🔥 NUEVO: Si es una notificación de pronóstico, ir a la pestaña de pronósticos
+                if (tipo === 'pronostico') {
+                    // Cerrar panel de notificaciones
+                    this.cerrarPanel();
                     
-                    const id = item.dataset.id;
-                    await this.marcarComoLeida(id);
-                };
-            }
+                    // Cambiar a la pestaña de pronósticos
+                    if (window.tabManager) {
+                        window.tabManager.switchTab('pronosticos');
+                    } else if (window.cargarPantallaPronostico) {
+                        window.cargarPantallaPronostico();
+                    }
+                }
+                
+                // Para solicitudes de grupo (mantener la funcionalidad existente)
+                if (tipo === 'grupo_solicitud') {
+                    // Aquí iría la lógica para grupos si la necesitas
+                    // Por ahora no hacemos nada porque ya tienen botones específicos
+                    console.log('Notificación de grupo, usar botones');
+                }
+            };
         });
     }
 
