@@ -2054,21 +2054,21 @@ class PronosticosManager {
                                     <strong>No tenías estrategas contratados</strong> cuando hiciste este pronóstico.
                                 </div>
                             `}
-                            
-                            <!-- MOSTRAR PRONÓSTICO (TABLA DE PREGUNTAS) -->
+
+                            <!-- MOSTRAR PRONÓSTICO (TABLA DE PREGUNTAS CON BONIFICACIONES) -->
                             <h6 class="mb-3"><i class="fas fa-list me-2"></i> Tu pronóstico para esta carrera:</h6>
                             <div class="table-responsive mb-4">
                                 <table class="table table-sm table-dark table-hover">
                                     <thead class="bg-secondary">
                                         <tr>
                                             <th class="text-center" width="5%">#</th>
-                                            <th width="40%">Área / Pregunta</th>
-                                            <th width="30%">Tu respuesta</th>
-                                            <th class="text-center" width="25%">Estado</th>
+                                            <th width="45%">Pregunta</th>
+                                            <th width="25%">Tu respuesta</th>
+                                            <th width="25%">Bonificaciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        ${this.generarFilasPronosticoPendiente(preguntas, respuestasUsuario)}
+                                        ${this.generarFilasPronosticoPendienteConBonificaciones(preguntas, respuestasUsuario, pronostico.bonificaciones_aplicadas)}
                                     </tbody>
                                 </table>
                             </div>
@@ -2302,6 +2302,78 @@ class PronosticosManager {
         
         return filas;
     }
+    generarFilasPronosticoPendienteConBonificaciones(preguntas, respuestasUsuario, bonificacionesAplicadas) {
+        if (!preguntas || !respuestasUsuario) return '<tr><td colspan="4" class="text-center">No hay datos disponibles</td></tr>';
+        
+        const nombresArea = {
+            'meteorologia': '🌦️ Meteorología',
+            'fiabilidad': '🔧 Fiabilidad', 
+            'estrategia': '📋 Estrategia',
+            'rendimiento': '⚡ Rendimiento',
+            'neumaticos': '🛞 Neumáticos',
+            'seguridad': '🛡️ Seguridad',
+            'clasificacion': '⏱️ Clasificación',
+            'carrera': '🏁 Carrera',
+            'overtakes': '👋 Adelantamientos',
+            'incidentes': '🚨 Incidentes'
+        };
+        
+        let filas = '';
+        
+        for (let i = 1; i <= 10; i++) {
+            const pregunta = preguntas.find(p => p.numero_pregunta === i);
+            const respuestaUsuario = respuestasUsuario[`p${i}`];
+            const area = this.preguntaAreas[i] || 'general';
+            
+            // Buscar qué estrategas bonifican esta pregunta
+            let estrategasQueBonifican = [];
+            if (bonificacionesAplicadas) {
+                Object.values(bonificacionesAplicadas).forEach(estratega => {
+                    if (estratega.preguntas && estratega.preguntas.includes(i)) {
+                        estrategasQueBonifican.push(estratega);
+                    }
+                });
+            }
+            
+            let opcionTexto = '';
+            if (respuestaUsuario === 'A') opcionTexto = pregunta?.opcion_a || 'Opción A';
+            else if (respuestaUsuario === 'B') opcionTexto = pregunta?.opcion_b || 'Opción B';
+            else if (respuestaUsuario === 'C') opcionTexto = pregunta?.opcion_c || 'Opción C';
+            
+            if (opcionTexto.length > 40) opcionTexto = opcionTexto.substring(0, 37) + '...';
+            
+            // Generar texto de bonificaciones
+            let bonificacionesTexto = '<span class="text-muted">-</span>';
+            if (estrategasQueBonifican.length > 0) {
+                bonificacionesTexto = '<div class="small">';
+                estrategasQueBonifican.forEach(e => {
+                    bonificacionesTexto += `<div class="text-success"><i class="fas fa-star me-1"></i> <strong>${e.nombre}</strong> <span class="badge bg-info">+${e.porcentaje}%</span></div>`;
+                });
+                bonificacionesTexto += '</div>';
+            }
+            
+            filas += `
+                <tr>
+                    <td class="text-center align-middle"><strong>${i}</strong></td>
+                    <td class="align-middle">
+                        <div><strong>${nombresArea[area] || area}</strong></div>
+                        <small class="text-muted">${pregunta?.texto_pregunta?.substring(0, 80) || ''}${pregunta?.texto_pregunta?.length > 80 ? '...' : ''}</small>
+                    </td>
+                    <td class="align-middle">
+                        <span class="badge bg-secondary me-2 fs-6 p-2">${respuestaUsuario}</span>
+                        <span class="d-block small text-muted">${opcionTexto}</span>
+                    </td>
+                    <td class="align-middle">
+                        ${bonificacionesTexto}
+                    </td>
+                </tr>
+            `;
+        }
+        
+        return filas;
+    }
+
+    
     generarDetalleEstrategas(pronostico, dineroPorBonificaciones) {
         // Si no hay estrategas, no mostrar nada
         if (!pronostico.estrategas_snapshot || pronostico.estrategas_snapshot.length === 0) {
