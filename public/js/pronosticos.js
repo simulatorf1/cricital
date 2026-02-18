@@ -413,12 +413,22 @@ class PronosticosManager {
         
         this.carreraActual = carreras[0];
         
-        // 🔴 Verificar fecha límite para NUEVOS pronósticos
+        // 🔴 NUEVO: Verificar SI YA TIENE PRONÓSTICO para esta carrera (INDEPENDIENTEMENTE de la fecha)
+        const { data: pronosticoExistente } = await this.supabase
+            .from('pronosticos_usuario')
+            .select('id, estado')
+            .eq('escuderia_id', this.escuderiaId)
+            .eq('carrera_id', this.carreraActual.id)
+            .maybeSingle();
+        
+        this.pronosticoGuardado = !!pronosticoExistente;
+        
+        // 🔴 MODIFICADO: Solo mostrar mensaje de plazo expirado si NO tiene pronóstico
         const fechaLimite = new Date(this.carreraActual.fecha_limite_pronosticos || this.carreraActual.fecha_inicio);
         fechaLimite.setHours(fechaLimite.getHours() - 48);
         
-        if (hoy > fechaLimite) {
-            // Si pasó la fecha pero no tiene pronóstico, mensaje claro
+        if (hoy > fechaLimite && !this.pronosticoGuardado) {
+            // Si pasó la fecha y NO tiene pronóstico, mensaje claro
             container.innerHTML = `
                 <div class="pronostico-container compacto">
                     <div class="card">
@@ -431,6 +441,9 @@ class PronosticosManager {
                                 <strong>El plazo para pronosticar ${this.carreraActual.nombre} ha expirado.</strong>
                                 <p class="mt-2 mb-0">No realizaste pronóstico para esta carrera.</p>
                             </div>
+                            
+                            <!-- 🔴 NUEVO: Mostrar selector de histórico aunque no tenga pronóstico para esta -->
+                            ${pronosticosAnteriores.length > 0 ? this.renderizarSelectorHistorico(pronosticosAnteriores) : ''}
                             
                             <div class="d-grid gap-2">
                                 <button class="btn btn-primary btn-sm" onclick="window.pronosticosManager.buscarProximaCarrera()">
@@ -447,19 +460,21 @@ class PronosticosManager {
             return;
         }
         
-        // 🔴 Verificar si ya tiene pronóstico para esta carrera específica
-        const { data: pronosticoActual } = await this.supabase
-            .from('pronosticos_usuario')
-            .select('id')
-            .eq('escuderia_id', this.escuderiaId)
-            .eq('carrera_id', this.carreraActual.id)
-            .maybeSingle();
+        // 🔴 NUEVO: Si pasó la fecha PERO SÍ TIENE PRONÓSTICO, mostrar interfaz de "pronóstico enviado"
+        if (hoy > fechaLimite && this.pronosticoGuardado) {
+            // Mostrar interfaz de pronóstico enviado con selector histórico
+            this.mostrarInterfazPronosticoConHistorico(container, pronosticosAnteriores);
+            return;
+        }
         
-        this.pronosticoGuardado = !!pronosticoActual;
+        // 🔴 Verificar si ya tiene pronóstico para esta carrera específica (ya lo hicimos arriba)
+        // this.pronosticoGuardado = !!pronosticoActual;  // ← Ya no necesitas esto porque lo hicimos antes
         
         // 🔴 **PASO 4: Cargar preguntas y mostrar interfaz**
         await this.cargarPreguntasCarrera(this.carreraActual.id);
         this.mostrarPantallaPrincipal(container, pronosticosAnteriores);
+        
+
     }
     mostrarPantallaPrincipal(container, pronosticosAnteriores) {
         // Si ya tiene pronóstico, mostrar interfaz original pero con selector
@@ -809,6 +824,19 @@ class PronosticosManager {
         const container = document.getElementById('main-content');
         if (!container) return;
         
+        // 🔴 NUEVO: Obtener pronósticos anteriores primero
+        const { data: { user } } = await this.supabase.auth.getUser();
+        await this.cargarDatosUsuario(user.id);
+        
+        const { data: pronosticosExistentes } = await this.supabase
+            .from('pronosticos_usuario')
+            .select(`
+                *,
+                calendario_gp!inner(*)
+            `)
+            .eq('escuderia_id', this.escuderiaId)
+            .order('fecha_pronostico', { ascending: false });
+        
         const hoy = new Date();
         const fechaHoy = hoy.toISOString().split('T')[0];
         
@@ -821,10 +849,39 @@ class PronosticosManager {
         
         if (carreras && carreras.length > 0) {
             this.carreraActual = carreras[0];
+            
+            // Verificar si ya tiene pronóstico para esta nueva carrera
+            const { data: pronosticoActual } = await this.supabase
+                .from('pronosticos_usuario')
+                .select('id')
+                .eq('escuderia_id', this.escuderiaId)
+                .eq('carrera_id', this.carreraActual.id)
+                .maybeSingle();
+            
+            this.pronosticoGuardado = !!pronosticoActual;
+            
             await this.cargarPreguntasCarrera(this.carreraActual.id);
-            this.mostrarInterfazPronostico(container);
+            this.mostrarPantallaPrincipal(container, pronosticosExistentes || []);
         } else {
-            this.mostrarError("No hay próximas carreras programadas", container);
+            // Si no hay próximas carreras, mostrar solo el histórico
+            container.innerHTML = `
+                <div class="pronostico-container compacto">
+                    <div class="card">
+                        <div class="card-header bg-info text-white py-2">
+                            <h5 class="mb-0"><i class="fas fa-calendar"></i> No hay próximas carreras</h5>
+                        </div>
+                        <div class="card-body py-3">
+                            ${pronosticosExistentes && pronosticosExistentes.length > 0 ? 
+                                this.renderizarSelectorHistorico(pronosticosExistentes) : 
+                                '<p class="text-muted">No hay pronósticos anteriores</p>'
+                            }
+                            <button class="btn btn-outline-secondary btn-sm mt-3" onclick="window.tabManager.switchTab('principal')">
+                                <i class="fas fa-home"></i> Volver al inicio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
     }
     
