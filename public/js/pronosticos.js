@@ -701,10 +701,11 @@ class PronosticosManager {
         }
         
         // 🔴 CONSULTAR VUELTA RÁPIDA DE LA CARRERA ACTUAL
+        // 🔴 CONSULTAR VUELTA RÁPIDA DE LA CARRERA ACTUAL
         let vueltaRapidaHTML = '<div class="spinner-border spinner-border-sm text-info"></div> Cargando...';
         
         // Hacer la consulta a pruebas_pista
-
+        this.supabase
             .from('pruebas_pista')
             .select('tiempo_formateado')
             .eq('escuderia_id', this.escuderiaId)
