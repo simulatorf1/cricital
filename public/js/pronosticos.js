@@ -1364,6 +1364,37 @@ class PronosticosManager {
             bonificacion_valor: e.bonificacion_valor
         }));
         
+        // 🔴 NUEVO: Calcular qué preguntas afecta cada estratega
+        const bonificacionesAplicadas = {};
+        
+        this.estrategasActivos.forEach(estratega => {
+            const areaEstratega = (estratega.bonificacion_tipo || estratega.especialidad || '').toLowerCase();
+            if (!areaEstratega) return;
+            
+            const preguntasAfectadas = [];
+            
+            // Recorrer las 10 preguntas
+            for (let i = 1; i <= 10; i++) {
+                const areaPregunta = this.preguntaAreas[i]?.toLowerCase() || '';
+                
+                // Si el área del estratega coincide con el área de la pregunta
+                if (areaPregunta.includes(areaEstratega) || areaEstratega.includes(areaPregunta)) {
+                    preguntasAfectadas.push(i);
+                }
+            }
+            
+            if (preguntasAfectadas.length > 0) {
+                bonificacionesAplicadas[estratega.ingeniero_id] = {
+                    nombre: estratega.nombre,
+                    area: areaEstratega,
+                    porcentaje: estratega.bonificacion_valor || 0,
+                    preguntas: preguntasAfectadas
+                };
+            }
+        });
+        
+        console.log("📊 Bonificaciones calculadas:", bonificacionesAplicadas);
+        
         try {
             const { data, error } = await this.supabase
                 .from('pronosticos_usuario')
@@ -1374,6 +1405,7 @@ class PronosticosManager {
                     respuestas: respuestas,
                     puntos_coche_snapshot: this.usuarioPuntos,
                     estrategas_snapshot: snapshotEstrategas,
+                    bonificaciones_aplicadas: bonificacionesAplicadas, // ← NUEVO
                     fecha_pronostico: new Date().toISOString(),
                     estado: 'pendiente'
                 }]);
@@ -2052,7 +2084,7 @@ class PronosticosManager {
                                                 </div>
                                                 
                                                 <!-- DETALLE DE ESTRATEGAS QUE APLICARON -->
-                                                ${this.generarDetalleEstrategas(pronostico.estrategas_snapshot, dineroPorBonificaciones)}
+                                                ${this.generarDetalleEstrategasDesdeGuardado(pronostico.bonificaciones_aplicadas, dineroPorBonificaciones)}
                                                 
                                                 <div class="d-flex justify-content-between mt-2 pt-2 border-top border-secondary">
                                                     <span><strong>SUBTOTAL PREGUNTAS:</strong></span>
@@ -2098,6 +2130,54 @@ class PronosticosManager {
             </div>
         `;
     }
+    generarDetalleEstrategasDesdeGuardado(bonificaciones, dineroPorBonificaciones) {
+        if (!bonificaciones || Object.keys(bonificaciones).length === 0) {
+            return '';
+        }
+        
+        let html = `
+            <div class="mt-3 pt-2" style="border-top: 1px solid #00d2be;">
+                <div class="text-success fw-bold mb-2">
+                    <i class="fas fa-star"></i> ✨ EXTRAS POR ESTRATEGAS:
+                </div>
+        `;
+        
+        const numEstrategas = Object.keys(bonificaciones).length;
+        const bonusPorEstratega = Math.round(dineroPorBonificaciones / numEstrategas);
+        
+        Object.values(bonificaciones).forEach(estratega => {
+            html += `
+                <div class="mb-2" style="background: #1e1e1e; border-radius: 5px; padding: 10px; border-left: 4px solid #00d2be;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold fs-6">${estratega.nombre}</span>
+                            <span class="badge bg-info ms-2">${estratega.area}</span>
+                            <div class="small text-muted mt-1">
+                                <i class="fas fa-check-circle text-success"></i> 
+                                Preguntas: ${estratega.preguntas.join(', ')}
+                                <br><i class="fas fa-percentage text-success"></i> 
+                                +${estratega.porcentaje}%
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-success fw-bold">+${estratega.porcentaje}%</span><br>
+                            <small class="text-info">≈ ${bonusPorEstratega.toLocaleString('es-ES')} €</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+            <div class="d-flex justify-content-between mt-3 pt-2 fw-bold" style="border-top: 2px dashed #00d2be;">
+                <span class="text-success fs-6">💰 TOTAL BONIFICACIONES:</span>
+                <span class="text-success fs-6 fw-bold">+${dineroPorBonificaciones.toLocaleString('es-ES')} €</span>
+            </div>
+        `;
+        
+        return html;
+    }
+    
     generarFilasPronosticoPendiente(preguntas, respuestasUsuario) {
         if (!preguntas || !respuestasUsuario) return '<tr><td colspan="4" class="text-center">No hay datos disponibles</td></tr>';
         
