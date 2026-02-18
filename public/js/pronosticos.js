@@ -685,7 +685,7 @@ class PronosticosManager {
         });
         
         let estrategasHTML = '<p class="text-muted mb-0">No tienes estrategas contratados</p>';
-        if (this.estrategasActivos.length > 0) {
+        if (this.estrategasActivos && this.estrategasActivos.length > 0) {
             estrategasHTML = `
                 <div class="estrategas-mini-list">
                     ${this.estrategasActivos.map(e => `
@@ -699,6 +699,30 @@ class PronosticosManager {
                 </div>
             `;
         }
+        
+        // 🔴 CONSULTAR VUELTA RÁPIDA DE LA CARRERA ACTUAL
+        let vueltaRapidaHTML = '<div class="spinner-border spinner-border-sm text-info"></div> Cargando...';
+        
+        // Hacer la consulta a pruebas_pista
+        this.supabase
+            .from('pruebas_pista')
+            .select('tiempo_formateado')
+            .eq('carrera_id', this.carreraActual.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .then(({ data, error }) => {
+                if (!error && data && data.length > 0 && data[0].tiempo_formateado) {
+                    const vueltaElement = document.getElementById('vuelta-rapida-valor');
+                    if (vueltaElement) {
+                        vueltaElement.innerHTML = data[0].tiempo_formateado;
+                    }
+                } else {
+                    const vueltaElement = document.getElementById('vuelta-rapida-valor');
+                    if (vueltaElement) {
+                        vueltaElement.innerHTML = '--:--:---';
+                    }
+                }
+            });
         
         container.innerHTML = `
             <div class="pronosticos-container-f1 compacto">
@@ -715,7 +739,7 @@ class PronosticosManager {
                             <table class="table table-sm table-dark">
                                 <thead class="bg-secondary">
                                     <tr>
-                                        <th width="25%">Puntos coche</th>
+                                        <th width="25%">Vuelta rápida</th>
                                         <th width="25%">Estrategas activos</th>
                                         <th width="25%">Fecha captura</th>
                                         <th width="25%">Resultados</th>
@@ -724,11 +748,13 @@ class PronosticosManager {
                                 <tbody>
                                     <tr>
                                         <td class="text-center">
-                                            <div class="stat-value-mini">${this.usuarioPuntos}</div>
-                                            <small class="text-muted">puntos actuales</small>
+                                            <div class="stat-value-mini" id="vuelta-rapida-valor">
+                                                <span class="spinner-border spinner-border-sm text-info"></span>
+                                            </div>
+                                            <small class="text-muted">mejor tiempo</small>
                                         </td>
                                         <td class="text-center">
-                                            <div class="stat-value-mini">${this.estrategasActivos.length}</div>
+                                            <div class="stat-value-mini">${this.estrategasActivos ? this.estrategasActivos.length : 0}</div>
                                             <small class="text-muted">estrategas</small>
                                         </td>
                                         <td class="text-center">
@@ -744,7 +770,10 @@ class PronosticosManager {
                             </table>
                         </div>
                         
-                        ${this.estrategasActivos.length > 0 ? `
+                        <!-- Los puntos del coche se guardan ocultos para el cálculo -->
+                        <input type="hidden" id="puntos-coche-ocultos" value="${this.usuarioPuntos}">
+                        
+                        ${this.estrategasActivos && this.estrategasActivos.length > 0 ? `
                             <div class="estrategas-detalle mb-3">
                                 <h6 class="text-info mb-2"><i class="fas fa-users"></i> Tus estrategas:</h6>
                                 ${estrategasHTML}
@@ -987,17 +1016,16 @@ class PronosticosManager {
             
             console.log("✅ Escudería encontrada:", escuderia);
             this.escuderiaId = escuderia.id;
-            
-            // 2. Usar los PUNTOS DIRECTAMENTE de la escudería (ya están bien calculados)
             this.usuarioPuntos = escuderia.puntos || 0;
             console.log("✅ Puntos de escudería:", this.usuarioPuntos);
             
-            // 3. Obtener estrategas contratados
+            // 🔴 CORREGIDO: Obtener estrategas contratados con la estructura correcta
+
             const { data: estrategas, error: errorEstrategas } = await this.supabase
-                .from('ingenieros_contratados')
+                .from('estrategas_contrataciones')
                 .select(`
                     id,
-                    ingeniero_id,
+                    estratega_id,
                     nombre,
                     especialidad,
                     bonificacion_tipo,
@@ -1011,21 +1039,21 @@ class PronosticosManager {
                 console.error("❌ Error obteniendo estrategas:", errorEstrategas);
                 this.estrategasActivos = [];
             } else {
-                this.estrategasActivos = estrategas.map(e => ({
-                    ingeniero_id: e.ingeniero_id,
-                    nombre: e.nombre,
-                    especialidad: e.especialidad,
-                    bonificacion_tipo: e.bonificacion_tipo,
-                    bonificacion_valor: e.bonificacion_valor,
-                    activo: e.activo
-                }));
+                // Asegurarse de que siempre sea un array
+                this.estrategasActivos = estrategas || [];
                 console.log("✅ Estrategas encontrados:", this.estrategasActivos.length);
+                
+                // Si hay estrategas, mostrar sus detalles
+                if (this.estrategasActivos.length > 0) {
+                    console.log("Detalle de estrategas:", this.estrategasActivos);
+                }
             }
             
             console.log("📊 Datos finales:", {
                 escuderiaId: this.escuderiaId,
                 puntos: this.usuarioPuntos,
-                estrategasCount: this.estrategasActivos.length
+                estrategasCount: this.estrategasActivos.length,
+                estrategas: this.estrategasActivos
             });
             
         } catch (error) {
@@ -1105,7 +1133,7 @@ class PronosticosManager {
         });
         
         let estrategasHTML = '<p class="text-muted mb-0">No tienes estrategas contratados</p>';
-        if (this.estrategasActivos.length > 0) {
+        if (this.estrategasActivos && this.estrategasActivos.length > 0) {
             estrategasHTML = `
                 <div class="estrategas-mini-list">
                     ${this.estrategasActivos.map(e => `
@@ -1120,6 +1148,27 @@ class PronosticosManager {
             `;
         }
         
+        // 🔴 CONSULTAR VUELTA RÁPIDA
+        this.supabase
+            .from('pruebas_pista')
+            .select('tiempo_formateado')
+            .eq('carrera_id', this.carreraActual.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .then(({ data, error }) => {
+                if (!error && data && data.length > 0 && data[0].tiempo_formateado) {
+                    const vueltaElement = document.getElementById('vuelta-rapida-valor-original');
+                    if (vueltaElement) {
+                        vueltaElement.innerHTML = data[0].tiempo_formateado;
+                    }
+                } else {
+                    const vueltaElement = document.getElementById('vuelta-rapida-valor-original');
+                    if (vueltaElement) {
+                        vueltaElement.innerHTML = '--:--:---';
+                    }
+                }
+            });
+        
         container.innerHTML = `
             <div class="pronosticos-container-f1 compacto">
                 <div class="card">
@@ -1133,7 +1182,7 @@ class PronosticosManager {
                             <table class="table table-sm table-dark">
                                 <thead class="bg-secondary">
                                     <tr>
-                                        <th width="25%">Puntos coche</th>
+                                        <th width="25%">Vuelta rápida</th>
                                         <th width="25%">Estrategas activos</th>
                                         <th width="25%">Fecha captura</th>
                                         <th width="25%">Resultados</th>
@@ -1142,13 +1191,14 @@ class PronosticosManager {
                                 <tbody>
                                     <tr>
                                         <td class="text-center">
-                                            <div class="stat-value-mini">${this.usuarioPuntos}</div>
-                                            <small class="text-muted">puntos actuales</small>
+                                            <div class="stat-value-mini" id="vuelta-rapida-valor-original">
+                                                <span class="spinner-border spinner-border-sm text-info"></span>
+                                            </div>
+                                            <small class="text-muted">mejor tiempo</small>
                                         </td>
                                         <td class="text-center">
-                                            <div class="stat-value-mini">${this.estrategasActivos.length}</div>
+                                            <div class="stat-value-mini">${this.estrategasActivos ? this.estrategasActivos.length : 0}</div>
                                             <small class="text-muted">estrategas</small>
-                                            ${this.estrategasActivos.length > 0 ? '<div class="mt-1"><small>Ver abajo</small></div>' : ''}
                                         </td>
                                         <td class="text-center">
                                             <div class="fecha-actual">${new Date().toLocaleDateString('es-ES')}</div>
@@ -1163,7 +1213,10 @@ class PronosticosManager {
                             </table>
                         </div>
                         
-                        ${this.estrategasActivos.length > 0 ? `
+                        <!-- Los puntos del coche se guardan ocultos para el cálculo -->
+                        <input type="hidden" id="puntos-coche-ocultos-original" value="${this.usuarioPuntos}">
+                        
+                        ${this.estrategasActivos && this.estrategasActivos.length > 0 ? `
                             <div class="estrategas-detalle mb-3">
                                 <h6 class="text-info mb-2"><i class="fas fa-users"></i> Tus estrategas:</h6>
                                 ${estrategasHTML}
