@@ -1017,9 +1017,7 @@ class PronosticosManager {
             this.usuarioPuntos = escuderia.puntos || 0;
             console.log("✅ Puntos de escudería:", this.usuarioPuntos);
             
-            // 🔴 CORREGIDO: Obtener estrategas contratados con la estructura correcta
-            // 🔴 VERSIÓN CON JOIN (más eficiente)
-            // 🔴 CORREGIDO: Obtener estrategas contratados con JOIN a estrategas_catalogo
+
             const { data: estrategas, error: errorEstrategas } = await this.supabase
                 .from('estrategas_contrataciones')
                 .select(`
@@ -1030,8 +1028,7 @@ class PronosticosManager {
                     estrategas_catalogo!inner (
                         nombre,
                         especialidad,
-                        bonificacion_tipo,
-                        bonificacion_valor
+                        porcentaje_bono
                     )
                 `)
                 .eq('escuderia_id', escuderia.id)
@@ -1045,13 +1042,16 @@ class PronosticosManager {
                     ingeniero_id: c.estratega_id,
                     nombre: c.estrategas_catalogo?.nombre || 'Estratega',
                     especialidad: c.estrategas_catalogo?.especialidad || 'general',
-                    bonificacion_tipo: c.estrategas_catalogo?.bonificacion_tipo,
-                    bonificacion_valor: c.estrategas_catalogo?.bonificacion_valor || 0,
+                    // Usamos porcentaje_bono como bonificacion_valor
+                    bonificacion_valor: c.estrategas_catalogo?.porcentaje_bono || 0,
+                    // El tipo de bonificación lo determinamos por la especialidad
+                    bonificacion_tipo: c.estrategas_catalogo?.especialidad || 'general',
                     activo: true,
                     slot_asignado: c.slot_asignado
                 }));
                 
                 console.log("✅ Estrategas encontrados:", this.estrategasActivos.length);
+                console.log("Detalle:", this.estrategasActivos);
             }
             
         } catch (error) {
