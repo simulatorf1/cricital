@@ -2052,7 +2052,7 @@ class PronosticosManager {
                                                 </div>
                                                 
                                                 <!-- DETALLE DE ESTRATEGAS QUE APLICARON -->
-                                                ${this.generarDetalleEstrategas(pronostico, dineroPorBonificaciones)}
+                                                ${this.generarDetalleEstrategas(pronostico.estrategas_snapshot, dineroPorBonificaciones)}
                                                 
                                                 <div class="d-flex justify-content-between mt-2 pt-2 border-top border-secondary">
                                                     <span><strong>SUBTOTAL PREGUNTAS:</strong></span>
