@@ -664,7 +664,7 @@ class AdminPronosticos {
     }
     async calcularPuntajesCarrera(carreraId) {
         try {
-            console.log('🧮 Calculando puntajes para carrera:', carreraId);
+            console.log('🧮 Iniciando cálculo de puntajes para carrera:', carreraId);
             
             // 1. Obtener respuestas correctas
             const { data: resultados, error: errorResultados } = await this.supabase
@@ -674,62 +674,140 @@ class AdminPronosticos {
                 .single();
             
             if (errorResultados || !resultados) {
-                throw new Error('No se encontraron resultados para esta carrera');
+                throw new Error('No se encontraron respuestas correctas para esta carrera');
             }
+            
+            const respuestasCorrectas = resultados.respuestas_correctas;
+            console.log('📊 Respuestas correctas:', respuestasCorrectas);
             
             // 2. Obtener todos los pronósticos de esta carrera
             const { data: pronosticos, error: errorPronosticos } = await this.supabase
-                .from('pronosticos_usuario') // Asegúrate que esta tabla existe
+                .from('pronosticos_usuario')
                 .select('*')
                 .eq('carrera_id', carreraId)
-                .eq('estado', 'pendiente'); // O el estado que uses
+                .eq('estado', 'pendiente');
             
             if (errorPronosticos) throw errorPronosticos;
             
             if (!pronosticos || pronosticos.length === 0) {
-                console.log('⚠️ No hay pronósticos para calcular');
+                console.log('📭 No hay pronósticos pendientes para calificar');
                 return;
             }
             
-            // 3. Calcular puntajes para cada usuario
+            console.log(`👥 ${pronosticos.length} pronósticos a calificar`);
+            
+            // 3. Obtener las preguntas para mapear áreas
+            const { data: preguntas, error: errorPreguntas } = await this.supabase
+                .from('preguntas_pronostico')
+                .select('numero_pregunta, area')
+                .eq('carrera_id', carreraId)
+                .order('numero_pregunta');
+            
+            if (errorPreguntas) throw errorPreguntas;
+            
+            // Crear mapa: pregunta -> área
+            const mapaAreas = {};
+            preguntas.forEach(p => {
+                mapaAreas[`p${p.numero_pregunta}`] = p.area;
+            });
+            
+            // 4. Calcular para cada pronóstico
+            let procesados = 0;
+            let errores = 0;
+            
             for (const pronostico of pronosticos) {
-                let aciertos = 0;
-                
-                // Comparar respuestas
-                const respuestasUsuario = pronostico.respuestas_usuario; // JSON con respuestas
-                const respuestasCorrectas = resultados.respuestas_correctas;
-                
-                for (let i = 1; i <= 10; i++) {
-                    if (respuestasUsuario[`p${i}`] === respuestasCorrectas[`p${i}`]) {
-                        aciertos++;
+                try {
+                    console.log(`📝 Procesando pronóstico ID: ${pronostico.id}`);
+                    
+                    // 🔥 USAR LAS BONIFICACIONES GUARDADAS
+                    const bonificacionesGuardadas = pronostico.bonificaciones_aplicadas || {};
+                    console.log('🎯 Bonificaciones guardadas:', bonificacionesGuardadas);
+                    
+                    // A. Calcular aciertos básicos
+                    let aciertos = 0;
+                    const respuestasUsuario = pronostico.respuestas;
+                    
+                    for (let i = 1; i <= 10; i++) {
+                        const clave = `p${i}`;
+                        if (respuestasUsuario[clave] === respuestasCorrectas[clave]) {
+                            aciertos++;
+                        }
                     }
-                }
-                
-                // Calcular puntos totales (ejemplo: 10 puntos por acierto)
-                const puntosTotales = aciertos * 10;
-                
-                // 4. Actualizar el pronóstico con el resultado
-                const { error: errorUpdate } = await this.supabase
-                    .from('pronosticos_usuario')
-                    .update({
-                        estado: 'calificado',
-                        aciertos: aciertos,
-                        puntos_totales: puntosTotales,
-                        fecha_calificacion: new Date().toISOString()
-                    })
-                    .eq('id', pronostico.id);
-                
-                if (errorUpdate) {
-                    console.error(`Error actualizando pronóstico ${pronostico.id}:`, errorUpdate);
+                    
+                    console.log(`✅ Aciertos básicos: ${aciertos}/10`);
+                    
+                    // B. Calcular puntos base
+                    const PUNTOS_POR_ACIERTO = 100;
+                    let puntosBase = aciertos * PUNTOS_POR_ACIERTO;
+                    let puntosBonificacion = 0;
+                    
+                    // C. Aplicar bonificaciones usando los datos GUARDADOS
+                    if (Object.keys(bonificacionesGuardadas).length > 0) {
+                        console.log('🎯 Aplicando bonificaciones guardadas...');
+                        
+                        // Recorrer cada estratega guardado
+                        Object.values(bonificacionesGuardadas).forEach(estratega => {
+                            const preguntasEstratega = estratega.preguntas || [];
+                            const porcentaje = estratega.porcentaje || 0;
+                            
+                            // Verificar qué preguntas de este estratega acertó
+                            preguntasEstratega.forEach(numPregunta => {
+                                const clave = `p${numPregunta}`;
+                                if (respuestasUsuario[clave] === respuestasCorrectas[clave]) {
+                                    const puntosExtra = PUNTOS_POR_ACIERTO * (porcentaje / 100);
+                                    puntosBonificacion += puntosExtra;
+                                    console.log(`✨ Estratega ${estratega.nombre}: +${porcentaje}% en pregunta ${numPregunta} = +${puntosExtra} puntos`);
+                                }
+                            });
+                        });
+                    }
+                    
+                    // D. Puntos totales
+                    const puntuacionFinal = puntosBase + puntosBonificacion;
+                    
+                    // E. Calcular dinero (ejemplo: 1000€ por punto)
+                    const factorDinero = 1000;
+                    const dineroGanado = puntuacionFinal * factorDinero;
+                    
+                    console.log(`💰 Cálculo final:
+                    - Puntos base (${aciertos} × 100): ${puntosBase}
+                    - Bonificaciones: +${puntosBonificacion}
+                    - TOTAL: ${puntuacionFinal} puntos
+                    - Dinero: €${dineroGanado}`);
+                    
+                    // F. Actualizar el pronóstico - SIN TOCAR bonificaciones_aplicadas
+                    const { error: updateError } = await this.supabase
+                        .from('pronosticos_usuario')
+                        .update({
+                            aciertos: aciertos,
+                            puntuacion_total: parseFloat(puntuacionFinal.toFixed(2)),
+                            dinero_ganado: parseFloat(dineroGanado.toFixed(2)),
+                            // ⚠️ NO INCLUIR bonificaciones_aplicadas AQUÍ
+                            estado: 'calificado',
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', pronostico.id);
+                    
+                    if (updateError) {
+                        console.error(`❌ Error actualizando pronóstico ${pronostico.id}:`, updateError);
+                        errores++;
+                    } else {
+                        procesados++;
+                        console.log(`✅ Pronóstico ${pronostico.id} actualizado (bonificaciones intactas)`);
+                    }
+                    
+                } catch (errorPronostico) {
+                    console.error(`❌ Error procesando pronóstico ${pronostico?.id}:`, errorPronostico);
+                    errores++;
                 }
             }
             
-            console.log(`✅ Puntajes calculados para ${pronosticos.length} usuarios`);
-            this.mostrarMensaje(`✅ Puntajes calculados para ${pronosticos.length} usuarios`, 'success');
+            console.log(`🎉 Cálculo completado: ${procesados} procesados, ${errores} errores`);
+            this.mostrarMensaje(`✅ Puntajes calculados para ${procesados} usuario(s)`, 'success');
             
         } catch (error) {
-            console.error('❌ Error calculando puntajes:', error);
-            this.mostrarMensaje(`Error calculando puntajes: ${error.message}`, 'error');
+            console.error('❌ Error en calcularPuntajesCarrera:', error);
+            this.mostrarMensaje(`Error: ${error.message}`, 'error');
         }
     }
 
