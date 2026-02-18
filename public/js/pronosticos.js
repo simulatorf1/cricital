@@ -2145,19 +2145,9 @@ class PronosticosManager {
             return '';
         }
         
-        // Convertir a array si es necesario
-        let listaEstrategas = [];
-        
-        if (Array.isArray(bonificaciones)) {
-            listaEstrategas = bonificaciones;
-            console.log("📊 Es array con", listaEstrategas.length, "elementos");
-        } else if (typeof bonificaciones === 'object') {
-            listaEstrategas = Object.values(bonificaciones);
-            console.log("📊 Es objeto con", listaEstrategas.length, "elementos");
-        } else {
-            console.log("❌ Formato no reconocido:", typeof bonificaciones);
-            return '';
-        }
+        // Obtener los valores del objeto (ignorando las claves numéricas)
+        const listaEstrategas = Object.values(bonificaciones);
+        console.log("📊 Lista de estrategas:", listaEstrategas);
         
         if (listaEstrategas.length === 0) {
             console.log("❌ Lista vacía");
@@ -2177,9 +2167,9 @@ class PronosticosManager {
         listaEstrategas.forEach((estratega, index) => {
             console.log(`📌 Estratega ${index + 1}:`, estratega);
             
-            // Extraer datos con fallbacks
+            // Extraer datos directamente del objeto
             const nombre = estratega.nombre || `Estratega ${index + 1}`;
-            const area = estratega.area || estratega.especialidad || 'general';
+            const area = estratega.area || 'general';
             const porcentaje = estratega.porcentaje || 0;
             const preguntas = estratega.preguntas || [];
             
@@ -2191,7 +2181,7 @@ class PronosticosManager {
                             <span class="badge bg-info ms-2">${area}</span>
                             <div class="small text-muted mt-1">
                                 <i class="fas fa-check-circle text-success"></i> 
-                                Preguntas: ${preguntas.length > 0 ? preguntas.join(', ') : 'Todas'}
+                                Preguntas: ${preguntas.length > 0 ? preguntas.join(', ') : 'Ninguna'}
                                 <br><i class="fas fa-percentage text-success"></i> 
                                 +${porcentaje}%
                             </div>
