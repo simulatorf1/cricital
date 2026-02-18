@@ -1091,6 +1091,7 @@ class NotificacionesManager {
     
         // Evento para abrir perfil (solo si no es grupo_solicitud o ya está leída)
         // Evento para abrir según el tipo de notificación
+        // En la función renderizarNotificaciones, busca el evento onclick
         document.querySelectorAll('.notificacion-item').forEach(item => {
             item.onclick = async (e) => {
                 // No hacer nada si el click fue en un botón
@@ -1098,29 +1099,31 @@ class NotificacionesManager {
                 
                 const id = item.dataset.id;
                 const tipo = item.dataset.tipo;
-                const relacionId = item.dataset.relacion;
-                const tipoRelacion = item.dataset.tipoRelacion;
+                const tipoRelacion = item.dataset.tipoRelacion; // Esto será "gp_37"
                 
                 await this.marcarComoLeida(id);
                 
-                // 🔥 NUEVO: Si es una notificación de pronóstico, ir a la pestaña de pronósticos
-                if (tipo === 'pronostico') {
-                    // Cerrar panel de notificaciones
+                // 🔥 MODIFICADO: Si es notificación de pronóstico
+                if (tipo === 'pronostico' && tipoRelacion && tipoRelacion.startsWith('gp_')) {
+                    // Extraer el ID de la carrera (ej: "gp_37" -> 37)
+                    const carreraId = tipoRelacion.replace('gp_', '');
+                    
+                    // Cerrar panel
                     this.cerrarPanel();
                     
-                    // Cambiar a la pestaña de pronósticos
+                    // Ir a pronósticos
                     if (window.tabManager) {
                         window.tabManager.switchTab('pronosticos');
+                        
+                        // Opcional: Si quieres cargar automáticamente esa carrera específica
+                        setTimeout(() => {
+                            if (window.pronosticosManager && window.pronosticosManager.verResultadosCarrera) {
+                                window.pronosticosManager.verResultadosCarrera(carreraId);
+                            }
+                        }, 500);
                     } else if (window.cargarPantallaPronostico) {
                         window.cargarPantallaPronostico();
                     }
-                }
-                
-                // Para solicitudes de grupo (mantener la funcionalidad existente)
-                if (tipo === 'grupo_solicitud') {
-                    // Aquí iría la lógica para grupos si la necesitas
-                    // Por ahora no hacemos nada porque ya tienen botones específicos
-                    console.log('Notificación de grupo, usar botones');
                 }
             };
         });
