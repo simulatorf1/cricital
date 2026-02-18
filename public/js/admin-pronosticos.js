@@ -765,7 +765,7 @@ class AdminPronosticos {
                     // D. Puntos totales
                     const puntuacionFinal = puntosBase + puntosBonificacion;
                     
-                    // E. Calcular dinero (ejemplo: 1000€ por punto)
+                    // E. Calcular dinero (1000€ por punto)
                     const factorDinero = 1000;
                     const dineroGanado = puntuacionFinal * factorDinero;
                     
@@ -782,7 +782,6 @@ class AdminPronosticos {
                             aciertos: aciertos,
                             puntuacion_total: parseFloat(puntuacionFinal.toFixed(2)),
                             dinero_ganado: parseFloat(dineroGanado.toFixed(2)),
-                            // ⚠️ NO INCLUIR bonificaciones_aplicadas AQUÍ
                             estado: 'calificado',
                             updated_at: new Date().toISOString()
                         })
@@ -793,7 +792,7 @@ class AdminPronosticos {
                         errores++;
                     } else {
                         procesados++;
-                        console.log(`✅ Pronóstico ${pronostico.id} actualizado (bonificaciones intactas)`);
+                        console.log(`✅ Pronóstico ${pronostico.id} actualizado`);
                     }
                     
                 } catch (errorPronostico) {
@@ -804,6 +803,72 @@ class AdminPronosticos {
             
             console.log(`🎉 Cálculo completado: ${procesados} procesados, ${errores} errores`);
             this.mostrarMensaje(`✅ Puntajes calculados para ${procesados} usuario(s)`, 'success');
+            
+            // ===========================================
+            // 🆕 CREAR NOTIFICACIONES PARA LOS USUARIOS
+            // ===========================================
+            try {
+                console.log('📨 Creando notificaciones para los usuarios...');
+                
+                // Obtener nombre del GP
+                const { data: carrera } = await this.supabase
+                    .from('calendario_gp')
+                    .select('nombre')
+                    .eq('id', carreraId)
+                    .single();
+                
+                if (!carrera) {
+                    console.log('⚠️ No se pudo obtener nombre del GP');
+                    return;
+                }
+                
+                // Preparar notificaciones
+                const notificaciones = [];
+                
+                for (const pronostico of pronosticos) {
+                    // Obtener user_id de la escudería
+                    const { data: escuderia } = await this.supabase
+                        .from('escuderias')
+                        .select('user_id')
+                        .eq('id', pronostico.escuderia_id)
+                        .single();
+                    
+                    if (!escuderia?.user_id) {
+                        console.log(`⚠️ Pronóstico ${pronostico.id} sin user_id`);
+                        continue;
+                    }
+                    
+                    const aciertos = pronostico.aciertos || 0;
+                    const dinero = pronostico.dinero_ganado || 0;
+                    
+                    notificaciones.push({
+                        usuario_id: escuderia.user_id,
+                        tipo: 'pronostico',
+                        titulo: aciertos > 0 ? '🎯 ¡Resultados disponibles!' : '📊 Resultados disponibles',
+                        mensaje: aciertos > 0 
+                            ? `Acertaste ${aciertos}/10 en ${carrera.nombre} y ganaste ${dinero.toLocaleString('es-ES')} €`
+                            : `Ya puedes ver los resultados del GP ${carrera.nombre}`,
+                        relacion_id: null,
+                        tipo_relacion: `gp_${carreraId}`,
+                        leida: false,
+                        fecha_creacion: new Date().toISOString()
+                    });
+                }
+                
+                if (notificaciones.length > 0) {
+                    const { error: notifError } = await this.supabase
+                        .from('notificaciones_usuarios')
+                        .insert(notificaciones);
+                    
+                    if (notifError) {
+                        console.error('❌ Error creando notificaciones:', notifError);
+                    } else {
+                        console.log(`✅ ${notificaciones.length} notificaciones creadas`);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error en creación de notificaciones:', error);
+            }
             
         } catch (error) {
             console.error('❌ Error en calcularPuntajesCarrera:', error);
