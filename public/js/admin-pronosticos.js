@@ -984,13 +984,12 @@ class AdminPronosticos {
                 .from('pronosticos_usuario')
                 .select('*')
                 .eq('carrera_id', carreraId)
-                .eq('estado', 'pendiente'); // Solo pronósticos no calificados
+                .eq('estado', 'pendiente');
             
             if (errorPronosticos) throw errorPronosticos;
             
             if (!pronosticos || pronosticos.length === 0) {
                 console.log('📭 No hay pronósticos pendientes para calificar');
-                this.mostrarMensaje('✅ No hay pronósticos pendientes para calificar', 'info');
                 return;
             }
             
@@ -1017,7 +1016,11 @@ class AdminPronosticos {
             
             for (const pronostico of pronosticos) {
                 try {
-                    console.log(`📝 Procesando pronóstico ID: ${pronostico.id} - Usuario: ${pronostico.usuario_id}`);
+                    console.log(`📝 Procesando pronóstico ID: ${pronostico.id}`);
+                    
+                    // 🔥 USAR LAS BONIFICACIONES GUARDADAS
+                    const bonificacionesGuardadas = pronostico.bonificaciones_aplicadas || {};
+                    console.log('🎯 Bonificaciones guardadas:', bonificacionesGuardadas);
                     
                     // A. Calcular aciertos básicos
                     let aciertos = 0;
@@ -1032,74 +1035,53 @@ class AdminPronosticos {
                     
                     console.log(`✅ Aciertos básicos: ${aciertos}/10`);
                     
-                    // B. Aplicar bonificaciones de estrategas (si existen)
-                    let puntosConBonificacion = aciertos;
-                    let bonificacionesAplicadas = {};
+                    // B. Calcular puntos base
+                    const PUNTOS_POR_ACIERTO = 100;
+                    let puntosBase = aciertos * PUNTOS_POR_ACIERTO;
+                    let puntosBonificacion = 0;
                     
-                    if (pronostico.estrategas_snapshot && Array.isArray(pronostico.estrategas_snapshot)) {
-                        console.log('🎯 Aplicando bonificaciones de estrategas...');
+                    // C. Aplicar bonificaciones usando los datos GUARDADOS
+                    if (Object.keys(bonificacionesGuardadas).length > 0) {
+                        console.log('🎯 Aplicando bonificaciones guardadas...');
                         
-                        // Mapeo de áreas a bonificaciones
-                        const bonificacionesPorArea = {};
-                        
-                        pronostico.estrategas_snapshot.forEach(estratega => {
-                            if (estratega.bonificaciones) {
-                                Object.entries(estratega.bonificaciones).forEach(([area, porcentaje]) => {
-                                    if (!bonificacionesPorArea[area]) {
-                                        bonificacionesPorArea[area] = 0;
-                                    }
-                                    bonificacionesPorArea[area] += porcentaje;
-                                });
-                            }
-                        });
-                        
-                        console.log('📊 Bonificaciones por área:', bonificacionesPorArea);
-                        
-                        // Aplicar bonificaciones a cada acierto
-                        for (let i = 1; i <= 10; i++) {
-                            const clave = `p${i}`;
-                            if (respuestasUsuario[clave] === respuestasCorrectas[clave]) {
-                                const areaPregunta = mapaAreas[clave];
-                                const bonificacionArea = bonificacionesPorArea[areaPregunta] || 0;
-                                
-                                if (bonificacionArea > 0) {
-                                    const puntosExtra = 1 * (bonificacionArea / 100); // 1 punto base por acierto
-                                    puntosConBonificacion += puntosExtra;
-                                    
-                                    bonificacionesAplicadas[clave] = {
-                                        area: areaPregunta,
-                                        bonificacion: bonificacionArea,
-                                        puntos_extra: puntosExtra
-                                    };
-                                    
-                                    console.log(`✨ Pregunta ${i} (${areaPregunta}): +${bonificacionArea}% = +${puntosExtra.toFixed(2)} puntos`);
+                        // Recorrer cada estratega guardado
+                        Object.values(bonificacionesGuardadas).forEach(estratega => {
+                            const preguntasEstratega = estratega.preguntas || [];
+                            const porcentaje = estratega.porcentaje || 0;
+                            
+                            // Verificar qué preguntas de este estratega acertó
+                            preguntasEstratega.forEach(numPregunta => {
+                                const clave = `p${numPregunta}`;
+                                if (respuestasUsuario[clave] === respuestasCorrectas[clave]) {
+                                    const puntosExtra = PUNTOS_POR_ACIERTO * (porcentaje / 100);
+                                    puntosBonificacion += puntosExtra;
+                                    console.log(`✨ Estratega ${estratega.nombre}: +${porcentaje}% en pregunta ${numPregunta} = +${puntosExtra} puntos`);
                                 }
-                            }
-                        }
+                            });
+                        });
                     }
                     
-                    // C. Sumar puntos del coche (conversión: cada 10 puntos de coche = 1 punto extra)
-                    const puntosCocheBonus = Math.floor(pronostico.puntos_coche_snapshot / 10);
-                    const puntuacionFinal = puntosConBonificacion + puntosCocheBonus;
+                    // D. Puntos totales
+                    const puntuacionFinal = puntosBase + puntosBonificacion;
                     
-                    // D. Calcular dinero ganado (ejemplo: 1000€ por punto)
+                    // E. Calcular dinero (ejemplo: 1000€ por punto)
                     const factorDinero = 1000;
                     const dineroGanado = puntuacionFinal * factorDinero;
                     
                     console.log(`💰 Cálculo final:
-                    - Aciertos base: ${aciertos}
-                    - Con bonificaciones: ${puntosConBonificacion.toFixed(2)}
-                    - Bonus coche (${pronostico.puntos_coche_snapshot} pts): +${puntosCocheBonus}
-                    - TOTAL: ${puntuacionFinal.toFixed(2)} puntos
-                    - Dinero: €${dineroGanado.toFixed(2)}`);
+                    - Puntos base (${aciertos} × 100): ${puntosBase}
+                    - Bonificaciones: +${puntosBonificacion}
+                    - TOTAL: ${puntuacionFinal} puntos
+                    - Dinero: €${dineroGanado}`);
                     
-                    // E. Actualizar el pronóstico
+                    // F. Actualizar el pronóstico - SIN TOCAR bonificaciones_aplicadas
                     const { error: updateError } = await this.supabase
                         .from('pronosticos_usuario')
                         .update({
                             aciertos: aciertos,
                             puntuacion_total: parseFloat(puntuacionFinal.toFixed(2)),
                             dinero_ganado: parseFloat(dineroGanado.toFixed(2)),
+                            // ⚠️ NO INCLUIR bonificaciones_aplicadas AQUÍ
                             estado: 'calificado',
                             updated_at: new Date().toISOString()
                         })
@@ -1110,7 +1092,7 @@ class AdminPronosticos {
                         errores++;
                     } else {
                         procesados++;
-                        console.log(`✅ Pronóstico ${pronostico.id} actualizado`);
+                        console.log(`✅ Pronóstico ${pronostico.id} actualizado (bonificaciones intactas)`);
                     }
                     
                 } catch (errorPronostico) {
@@ -1119,27 +1101,78 @@ class AdminPronosticos {
                 }
             }
             
-            // 5. Resultado final
             console.log(`🎉 Cálculo completado: ${procesados} procesados, ${errores} errores`);
+            this.mostrarMensaje(`✅ Puntajes calculados para ${procesados} usuario(s)`, 'success');
             
-            if (errores > 0) {
-                this.mostrarMensaje(
-                    `⚠️ Cálculo completado con ${errores} error(es). Revisa la consola.`, 
-                    'error'
-                );
-            } else {
-                this.mostrarMensaje(
-                    `✅ Puntajes calculados para ${procesados} usuario(s)`, 
-                    'success'
-                );
+            // ===========================================
+            // 🆕 CREAR NOTIFICACIONES PARA LOS USUARIOS
+            // ===========================================
+            try {
+                console.log('📨 Creando notificaciones para los usuarios...');
+                
+                // Obtener nombre del GP
+                const { data: carrera } = await this.supabase
+                    .from('calendario_gp')
+                    .select('nombre')
+                    .eq('id', carreraId)
+                    .single();
+                
+                if (!carrera) {
+                    console.log('⚠️ No se pudo obtener nombre del GP');
+                    return;
+                }
+                
+                // Preparar notificaciones
+                const notificaciones = [];
+                
+                for (const pronostico of pronosticos) {
+                    // Obtener user_id de la escudería
+                    const { data: escuderia } = await this.supabase
+                        .from('escuderias')
+                        .select('user_id')
+                        .eq('id', pronostico.escuderia_id)
+                        .single();
+                    
+                    if (!escuderia?.user_id) {
+                        console.log(`⚠️ Pronóstico ${pronostico.id} sin user_id`);
+                        continue;
+                    }
+                    
+                    const aciertos = pronostico.aciertos || 0;
+                    const dinero = pronostico.dinero_ganado || 0;
+                    
+                    notificaciones.push({
+                        usuario_id: escuderia.user_id,
+                        tipo: 'pronostico',
+                        titulo: aciertos > 0 ? '🎯 ¡Resultados disponibles!' : '📊 Resultados disponibles',
+                        mensaje: aciertos > 0 
+                            ? `Acertaste ${aciertos}/10 en ${carrera.nombre} y ganaste ${dinero.toLocaleString('es-ES')} €`
+                            : `Ya puedes ver los resultados del GP ${carrera.nombre}`,
+                        relacion_id: null,
+                        tipo_relacion: `gp_${carreraId}`,
+                        leida: false,
+                        fecha_creacion: new Date().toISOString()
+                    });
+                }
+                
+                if (notificaciones.length > 0) {
+                    const { error: notifError } = await this.supabase
+                        .from('notificaciones_usuarios')
+                        .insert(notificaciones);
+                    
+                    if (notifError) {
+                        console.error('❌ Error creando notificaciones:', notifError);
+                    } else {
+                        console.log(`✅ ${notificaciones.length} notificaciones creadas`);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error en creación de notificaciones:', error);
             }
-            
-            return { procesados, errores };
             
         } catch (error) {
             console.error('❌ Error en calcularPuntajesCarrera:', error);
-            this.mostrarMensaje(`Error calculando puntajes: ${error.message}`, 'error');
-            throw error;
+            this.mostrarMensaje(`Error: ${error.message}`, 'error');
         }
     }
     
