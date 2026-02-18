@@ -704,21 +704,18 @@ class PronosticosManager {
         let vueltaRapidaHTML = '<div class="spinner-border spinner-border-sm text-info"></div> Cargando...';
         
         // Hacer la consulta a pruebas_pista
-        this.supabase
+
             .from('pruebas_pista')
             .select('tiempo_formateado')
-            .eq('carrera_id', this.carreraActual.id)
+            .eq('escuderia_id', this.escuderiaId)
             .order('created_at', { ascending: false })
             .limit(1)
             .then(({ data, error }) => {
-                if (!error && data && data.length > 0 && data[0].tiempo_formateado) {
-                    const vueltaElement = document.getElementById('vuelta-rapida-valor');
-                    if (vueltaElement) {
+                const vueltaElement = document.getElementById('vuelta-rapida-valor');
+                if (vueltaElement) {
+                    if (!error && data && data.length > 0 && data[0].tiempo_formateado) {
                         vueltaElement.innerHTML = data[0].tiempo_formateado;
-                    }
-                } else {
-                    const vueltaElement = document.getElementById('vuelta-rapida-valor');
-                    if (vueltaElement) {
+                    } else {
                         vueltaElement.innerHTML = '--:--:---';
                     }
                 }
@@ -1021,17 +1018,9 @@ class PronosticosManager {
             
             // 🔴 CORREGIDO: Obtener estrategas contratados con la estructura correcta
 
-            const { data: estrategas, error: errorEstrategas } = await this.supabase
+            const { data: estrategas, error: errorEstrategas, count } = await this.supabase
                 .from('estrategas_contrataciones')
-                .select(`
-                    id,
-                    estratega_id,
-                    nombre,
-                    especialidad,
-                    bonificacion_tipo,
-                    bonificacion_valor,
-                    activo
-                `)
+                .select('id', { count: 'exact', head: true })
                 .eq('escuderia_id', escuderia.id)
                 .eq('activo', true);
             
@@ -1039,14 +1028,9 @@ class PronosticosManager {
                 console.error("❌ Error obteniendo estrategas:", errorEstrategas);
                 this.estrategasActivos = [];
             } else {
-                // Asegurarse de que siempre sea un array
-                this.estrategasActivos = estrategas || [];
-                console.log("✅ Estrategas encontrados:", this.estrategasActivos.length);
-                
-                // Si hay estrategas, mostrar sus detalles
-                if (this.estrategasActivos.length > 0) {
-                    console.log("Detalle de estrategas:", this.estrategasActivos);
-                }
+                // Solo necesitamos un array vacío con la longitud correcta
+                this.estrategasActivos = new Array(count || 0);
+                console.log("✅ Estrategas encontrados:", count || 0);
             }
             
             console.log("📊 Datos finales:", {
@@ -1149,21 +1133,19 @@ class PronosticosManager {
         }
         
         // 🔴 CONSULTAR VUELTA RÁPIDA
+
         this.supabase
             .from('pruebas_pista')
             .select('tiempo_formateado')
-            .eq('carrera_id', this.carreraActual.id)
+            .eq('escuderia_id', this.escuderiaId)
             .order('created_at', { ascending: false })
             .limit(1)
             .then(({ data, error }) => {
-                if (!error && data && data.length > 0 && data[0].tiempo_formateado) {
-                    const vueltaElement = document.getElementById('vuelta-rapida-valor-original');
-                    if (vueltaElement) {
+                const vueltaElement = document.getElementById('vuelta-rapida-valor-original');
+                if (vueltaElement) {
+                    if (!error && data && data.length > 0 && data[0].tiempo_formateado) {
                         vueltaElement.innerHTML = data[0].tiempo_formateado;
-                    }
-                } else {
-                    const vueltaElement = document.getElementById('vuelta-rapida-valor-original');
-                    if (vueltaElement) {
+                    } else {
                         vueltaElement.innerHTML = '--:--:---';
                     }
                 }
