@@ -2797,6 +2797,7 @@ class PronosticosManager {
             const nombreGP = carrera.nombre;
             
             // 4. Calcular para cada pronóstico y preparar notificaciones
+            // 4. Calcular para cada pronóstico y preparar notificaciones
             const notificaciones = [];
             
             for (const pronostico of pronosticos) {
@@ -2850,19 +2851,21 @@ class PronosticosManager {
                     console.error(`❌ Error actualizando pronóstico ${pronostico.id}:`, errorUpdate);
                 }
                 
-                // 🔥 NUEVO: Preparar notificación para este usuario
+                // 🔥 CORREGIDO: Preparar notificación para este usuario
                 const usuarioId = pronostico.escuderias?.usuario_id;
                 if (usuarioId) {
+                    // IMPORTANTE: relacion_id es UUID, así que lo dejamos NULL
+                    // y guardamos el ID de la carrera en tipo_relacion como string
                     if (aciertos > 0) {
                         notificaciones.push({
                             usuario_id: usuarioId,
                             tipo: 'pronostico',
                             titulo: '🎯 ¡Resultados disponibles!',
                             mensaje: `Has acertado ${aciertos}/10 en ${nombreGP} y ganaste ${dineroGanado.toLocaleString('es-ES')} €`,
-                            relacion_id: carreraId,
-                            tipo_relacion: 'gp',
-                            fecha_creacion: new Date().toISOString(),
-                            leida: false
+                            relacion_id: null,  // ← NULL porque es UUID y no tenemos UUID
+                            tipo_relacion: `gp_${carreraId}`, // ← Guardamos el ID aquí como string
+                            leida: false,
+                            fecha_creacion: new Date().toISOString()
                         });
                     } else {
                         notificaciones.push({
@@ -2870,10 +2873,10 @@ class PronosticosManager {
                             tipo: 'pronostico',
                             titulo: '📊 Resultados disponibles',
                             mensaje: `Ya puedes ver los resultados del GP ${nombreGP}. Esta vez no hubo aciertos, ¡suerte en la próxima!`,
-                            relacion_id: carreraId,
-                            tipo_relacion: 'gp',
-                            fecha_creacion: new Date().toISOString(),
-                            leida: false
+                            relacion_id: null,  // ← NULL porque es UUID
+                            tipo_relacion: `gp_${carreraId}`, // ← Guardamos el ID aquí
+                            leida: false,
+                            fecha_creacion: new Date().toISOString()
                         });
                     }
                 }
@@ -2881,14 +2884,22 @@ class PronosticosManager {
             
             // 5. Insertar todas las notificaciones
             if (notificaciones.length > 0) {
-                const { error: insertError } = await this.supabase
+                console.log("📝 Insertando notificaciones:", notificaciones);
+                
+                const { data, error: insertError } = await this.supabase
                     .from('notificaciones_usuarios')
-                    .insert(notificaciones);
+                    .insert(notificaciones)
+                    .select();
                 
                 if (insertError) {
                     console.error("❌ Error insertando notificaciones:", insertError);
+                    console.error("Detalles:", insertError.details);
+                    console.error("Mensaje:", insertError.message);
+                    
+                    // Mostrar error al admin
+                    this.mostrarError(`Error al crear notificaciones: ${insertError.message}`);
                 } else {
-                    console.log(`✅ ${notificaciones.length} notificaciones creadas`);
+                    console.log(`✅ ${notificaciones.length} notificaciones creadas:`, data);
                 }
             }
             
