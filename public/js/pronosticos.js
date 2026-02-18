@@ -679,8 +679,9 @@ class PronosticosManager {
         return `
             <div class="historico-pronosticos mb-3 p-3" style="background: #1a1a1a; border-radius: 8px; border: 2px solid #00d2be;">
                 <h6 class="text-info mb-3"><i class="fas fa-history me-2"></i>Consultar pronósticos anteriores:</h6>
-                <div class="d-flex gap-2">
-                    <select id="selectorHistoricoPronosticos" class="form-select form-select-lg bg-dark text-white border-secondary" style="flex: 1; font-size: 16px; padding: 12px;">
+
+                <div class="d-flex gap-2 align-items-center">
+                    <select id="selectorHistoricoPronosticos" class="form-select form-select-lg bg-dark text-white border-secondary" style="width: 50%; font-size: 16px; padding: 12px;">
                         <option value="">-- Selecciona una carrera --</option>
                         ${opcionesHistorico}
                     </select>
