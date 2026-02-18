@@ -2052,7 +2052,7 @@ class PronosticosManager {
                                                 </div>
                                                 
                                                 <!-- DETALLE DE ESTRATEGAS QUE APLICARON -->
-                                                ${this.generarDetalleEstrategas(pronostico, preguntas, respuestasCorrectas, dineroPorBonificaciones)}
+                                                ${this.generarDetalleEstrategas(pronostico, dineroPorBonificaciones)}
                                                 
                                                 <div class="d-flex justify-content-between mt-2 pt-2 border-top border-secondary">
                                                     <span><strong>SUBTOTAL PREGUNTAS:</strong></span>
@@ -2151,84 +2151,14 @@ class PronosticosManager {
         
         return filas;
     }
-    generarDetalleEstrategas(pronostico, preguntas, respuestasCorrectas, dineroPorBonificaciones) {
-        console.log("🔍 generando detalle de estrategas con:", {
-            pronostico: pronostico,
-            estrategas: pronostico?.estrategas_snapshot,
-            dineroBonif: dineroPorBonificaciones
-        });
-        
-        // Si no hay estrategas, mostrar mensaje
+    generarDetalleEstrategas(pronostico, dineroPorBonificaciones) {
+        // Si no hay estrategas, no mostrar nada
         if (!pronostico.estrategas_snapshot || pronostico.estrategas_snapshot.length === 0) {
-            return `
-                <div class="mt-2 text-muted small">
-                    <i class="fas fa-info-circle"></i> No tenías estrategas activos en este pronóstico.
-                </div>
-            `;
+            return '';
         }
         
-        const respuestasUsuario = pronostico.respuestas;
-        let estrategasConAportes = [];
-        let totalBonificacion = 0;
+        console.log("🎯 Generando detalle para estrategas:", pronostico.estrategas_snapshot);
         
-        // Recorrer cada estratega
-        pronostico.estrategas_snapshot.forEach((estratega, index) => {
-            console.log(`📊 Estratega ${index + 1}:`, estratega);
-            
-            // Determinar el área del estratega
-            const areaEstratega = (estratega.bonificacion_tipo || estratega.especialidad || '').toLowerCase();
-            const porcentaje = estratega.bonificacion_valor || 0;
-            
-            if (!areaEstratega) {
-                console.log("⚠️ Estratega sin área definida:", estratega);
-                return;
-            }
-            
-            // Buscar en qué preguntas aplica
-            let preguntasAplicadas = [];
-            
-            for (let i = 1; i <= 10; i++) {
-                const areaPregunta = this.preguntaAreas[i]?.toLowerCase() || '';
-                
-                // Verificar si el área del estratega coincide con el área de la pregunta
-                if (areaPregunta.includes(areaEstratega) || areaEstratega.includes(areaPregunta)) {
-                    // Verificar si el usuario acertó esta pregunta
-                    const respuestaUsuario = respuestasUsuario?.[`p${i}`];
-                    const respuestaCorrecta = respuestasCorrectas?.[`p${i}`];
-                    
-                    if (respuestaUsuario && respuestaCorrecta && respuestaUsuario === respuestaCorrecta) {
-                        preguntasAplicadas.push(i);
-                    }
-                }
-            }
-            
-            console.log(`✅ Estratega ${estratega.nombre} aplica en preguntas:`, preguntasAplicadas);
-            
-            if (preguntasAplicadas.length > 0) {
-                const bonusGenerado = Math.round(preguntasAplicadas.length * 5000000 * (porcentaje / 100));
-                totalBonificacion += bonusGenerado;
-                
-                estrategasConAportes.push({
-                    nombre: estratega.nombre || 'Estratega',
-                    area: areaEstratega,
-                    porcentaje: porcentaje,
-                    preguntas: preguntasAplicadas,
-                    cantidad: preguntasAplicadas.length,
-                    bonus: bonusGenerado
-                });
-            }
-        });
-        
-        // Si ningún estratega aportó
-        if (estrategasConAportes.length === 0) {
-            return `
-                <div class="mt-2 text-muted small">
-                    <i class="fas fa-info-circle"></i> Tus estrategas no aplicaron bonificación en esta ocasión.
-                </div>
-            `;
-        }
-        
-        // Generar HTML
         let html = `
             <div class="mt-3 pt-2" style="border-top: 1px solid #00d2be;">
                 <div class="text-success fw-bold mb-2">
@@ -2236,22 +2166,29 @@ class PronosticosManager {
                 </div>
         `;
         
-        estrategasConAportes.forEach(e => {
+        // Recorrer cada estratega y mostrar su aporte
+        pronostico.estrategas_snapshot.forEach((estratega, index) => {
+            const nombre = estratega.nombre || 'Estratega';
+            const especialidad = estratega.especialidad || estratega.bonificacion_tipo || 'general';
+            const porcentaje = estratega.bonificacion_valor || 0;
+            
+            // Calcular cuánto generó este estratega (aproximado)
+            const aporteAproximado = Math.round(dineroPorBonificaciones / pronostico.estrategas_snapshot.length);
+            
             html += `
                 <div class="mb-2" style="background: #1e1e1e; border-radius: 5px; padding: 8px; border-left: 3px solid #00d2be;">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="fw-bold">${e.nombre}</span>
-                            <span class="badge bg-info ms-2">${e.area}</span>
+                            <span class="fw-bold">${nombre}</span>
+                            <span class="badge bg-info ms-2">${especialidad}</span>
                             <div class="small text-muted">
-                                <i class="fas fa-check-circle text-success"></i> 
-                                Pregunta${e.preguntas.length > 1 ? 's' : ''}: ${e.preguntas.join(', ')}
-                                (${e.cantidad} acierto${e.cantidad > 1 ? 's' : ''})
+                                <i class="fas fa-percentage text-success"></i> 
+                                Bonificación: +${porcentaje}%
                             </div>
                         </div>
                         <div class="text-end">
-                            <span class="text-success fw-bold">+${e.porcentaje}%</span><br>
-                            <small class="text-info">${e.bonus.toLocaleString('es-ES')} €</small>
+                            <span class="text-success fw-bold">+${porcentaje}%</span><br>
+                            <small class="text-info">≈ ${aporteAproximado.toLocaleString('es-ES')} €</small>
                         </div>
                     </div>
                 </div>
@@ -2261,7 +2198,7 @@ class PronosticosManager {
         html += `
             <div class="d-flex justify-content-between mt-2 pt-2 fw-bold" style="border-top: 1px dashed #00d2be;">
                 <span class="text-success">TOTAL BONIFICACIONES ESTRATEGAS:</span>
-                <span class="text-success">+${totalBonificacion.toLocaleString('es-ES')} €</span>
+                <span class="text-success">+${dineroPorBonificaciones.toLocaleString('es-ES')} €</span>
             </div>
         `;
         
