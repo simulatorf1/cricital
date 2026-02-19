@@ -1690,63 +1690,76 @@ class PronosticosManager {
     }
     
     async iniciarPronostico() {
-        console.log("🔍 Verificando si hay preguntas para:", this.carreraActual?.nombre);
+        console.log("🔍 VERIFICANDO INICIO DE PRONÓSTICO");
+        console.log("Carrera actual:", this.carreraActual);
         
-        // Verificar si hay preguntas en la base de datos para esta carrera
-        const { data: preguntas, error } = await this.supabase
-            .from('preguntas_pronostico')
-            .select('id', { count: 'exact', head: true }) // Más eficiente que count
-            .eq('carrera_id', this.carreraActual.id);
-        
-        // Si no hay preguntas (0 resultados)
-        if (error || !preguntas || preguntas.length === 0) {
-            console.log("❌ No hay preguntas disponibles");
+        try {
+            // 1. Verificar si hay preguntas
+            console.log("📡 Consultando preguntas para carrera ID:", this.carreraActual?.id);
             
-            this.mostrarNotificacionTemporal(`
-                <div style="background: #330000; border-left: 4px solid #e10600; padding: 15px; min-width: 300px;">
-                    <div class="d-flex align-items-center gap-3">
-                        <i class="fas fa-hourglass-half" style="font-size: 30px; color: #e10600;"></i>
-                        <div>
-                            <h5 style="margin: 0 0 5px 0; color: #ff8a8a;">⏳ APUESTAS NO DISPONIBLES</h5>
-                            <p style="margin: 0; color: #ffb3b3;">
-                                Las apuestas para <strong>${this.carreraActual?.nombre || 'esta carrera'}</strong> aún no están abiertas.
-                            </p>
-                            <p style="margin: 5px 0 0 0; color: #ffb3b3; font-size: 13px;">
-                                Espera a que finalice el Gran Premio actual para que se habiliten.
-                            </p>
-                        </div>
+            const { data: preguntas, error, status } = await this.supabase
+                .from('preguntas_pronostico')
+                .select('*')
+                .eq('carrera_id', this.carreraActual.id);
+            
+            console.log("📊 RESULTADO CONSULTA:", { 
+                status,
+                hayError: !!error,
+                errorMsg: error?.message,
+                preguntasEncontradas: preguntas?.length || 0,
+                esArray: Array.isArray(preguntas),
+                primerElemento: preguntas?.[0]
+            });
+            
+            // 2. Verificar si NO hay preguntas
+            if (error) {
+                console.error("❌ Error en consulta:", error);
+                this.mostrarNotificacionTemporal(`Error al verificar preguntas: ${error.message}`, 4000);
+                return;
+            }
+            
+            if (!preguntas || preguntas.length === 0) {
+                console.log("❌ No se encontraron preguntas");
+                this.mostrarNotificacionTemporal(`
+                    <div style="background: #330000; border-left: 4px solid #e10600; padding: 15px;">
+                        <h5 style="color: #ff8a8a;">⏳ Apuestas no disponibles</h5>
+                        <p style="color: #ffb3b3;">No hay preguntas para ${this.carreraActual?.nombre}</p>
                     </div>
-                </div>
-            `, 5000);
+                `, 4000);
+                return;
+            }
             
-            return;
-        }
-        
-        // Si hay preguntas, continuar normalmente
-        console.log("✅ Hay preguntas disponibles, iniciando pronóstico");
-        this.usuarioAceptoCondiciones = true;
-        
-        const container = document.querySelector('.pronosticos-container-f1')?.parentElement || 
-                         document.getElementById('main-content') || 
-                         document.querySelector('.tab-content.active');
-        
-        if (container) {
-            // Obtener histórico para pasarlo
-            const { data: pronosticosAnteriores } = await this.supabase
-                .from('pronosticos_usuario')
-                .select(`
-                    *,
-                    calendario_gp!inner(*)
-                `)
-                .eq('escuderia_id', this.escuderiaId)
-                .order('fecha_pronostico', { ascending: false });
+            // 3. Si llegamos aquí, HAY preguntas
+            console.log("✅ HAY PREGUNTAS:", preguntas.length);
             
-
-            if (this.usuarioAceptoCondiciones) {
+            // 4. Guardar las preguntas en this.preguntasActuales
+            this.preguntasActuales = preguntas;
+            
+            // 5. Continuar con el flujo normal
+            this.usuarioAceptoCondiciones = true;
+            
+            const container = document.querySelector('.pronosticos-container-f1')?.parentElement || 
+                             document.getElementById('main-content') || 
+                             document.querySelector('.tab-content.active');
+            
+            if (container) {
+                // Obtener histórico
+                const { data: pronosticosAnteriores } = await this.supabase
+                    .from('pronosticos_usuario')
+                    .select(`
+                        *,
+                        calendario_gp!inner(*)
+                    `)
+                    .eq('escuderia_id', this.escuderiaId)
+                    .order('fecha_pronostico', { ascending: false });
+                
+                // Mostrar preguntas con histórico
                 this.mostrarPreguntasPronosticoConHistorico(container, pronosticosAnteriores || []);
-            } else {
-                this.mostrarCondicionesInicialesConHistorico(container, pronosticosAnteriores || []);
-            }            
+            }
+            
+        } catch (error) {
+            console.error("💥 Error en iniciarPronostico:", error);
+            this.mostrarNotificacionTemporal(`Error inesperado: ${error.message}`, 4000);
         }
     }
     
