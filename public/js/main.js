@@ -448,15 +448,94 @@ class F1Manager {
         }
     }
 
+    // ========================
+    // MÉTODO PARA RESTAR PUNTOS DEL COCHE (NECESARIO PARA DESTRUCCIÓN)
+    // ========================
+    async restarPuntosDelCoche(areaNombre, puntos) {
+        try {
+            // 1. CONVERTIR nombre del área al ID correcto
+            let areaId = null;
+            const areaConfig = window.CAR_AREAS?.find(a => 
+                a.name === areaNombre || a.id === areaNombre
+            );
+            
+            if (areaConfig) {
+                areaId = areaConfig.id;
+            } else {
+                const mapeoManual = {
+                    'caja de cambios': 'caja_cambios',
+                    'alerón delantero': 'aleron_delantero',
+                    'alerón trasero': 'aleron_trasero',
+                    'suelo y difusor': 'suelo'
+                };
+                areaId = mapeoManual[areaNombre?.toLowerCase()] || areaNombre?.toLowerCase().replace(/ /g, '_');
+            }
+            
+            if (!areaId) {
+                console.warn('⚠️ No se pudo determinar areaId para:', areaNombre);
+                return;
+            }
+            
+            console.log(`📊 Restando ${puntos} pts del área ${areaId} (original: ${areaNombre})`);
+            
+            // 2. Obtener stats actuales del coche
+            const { data: stats, error: fetchError } = await this.supabase
+                .from('coches_stats')
+                .select('*')
+                .eq('escuderia_id', this.escuderia.id)
+                .single();
+            
+            if (fetchError || !stats) {
+                console.log('⚠️ No hay stats del coche para restar puntos');
+                return;
+            }
+            
+            // 3. Calcular nuevo progreso
+            const columnaProgreso = `${areaId}_progreso`;
+            const columnaNivel = `${areaId}_nivel`;
+            
+            const progresoActual = stats[columnaProgreso] || 0;
+            const nivelActual = stats[columnaNivel] || 0;
+            
+            let nuevoProgreso = Math.max(0, progresoActual - 1);
+            let nuevoNivel = nivelActual;
+            
+            // Si estaba en progreso 0 y nivel > 0, bajar de nivel
+            if (progresoActual === 0 && nivelActual > 0) {
+                nuevoNivel = nivelActual - 1;
+                nuevoProgreso = 19;
+                if (nuevoNivel < 0) nuevoNivel = 0;
+            }
+            
+            // 4. Actualizar en BD
+            const { error: updateError } = await this.supabase
+                .from('coches_stats')
+                .update({
+                    [columnaProgreso]: nuevoProgreso,
+                    [columnaNivel]: nuevoNivel,
+                    actualizado_en: new Date().toISOString()
+                })
+                .eq('id', stats.id);
+            
+            if (updateError) throw updateError;
+            
+            console.log(`✅ Progreso actualizado: ${areaId} - Progreso: ${nuevoProgreso}/20, Nivel: ${nuevoNivel}`);
+            
+        } catch (error) {
+            console.error('❌ Error restando puntos del coche:', error);
+        }
+    }
 
-
+    // MÉTODO SIMPLIFICADO: Calcular desgaste desde fabricación
+    // ========================
+    // ========================
     // MÉTODO SIMPLIFICADO: Calcular desgaste desde fabricación
     // ========================
     async calcularDesgastePieza(piezaId) {
         try {
             const { data: pieza, error } = await this.supabase
                 .from('almacen_piezas')
-                .select('id, equipada, montada_en, desgaste_actual')
+                .select('id, equipada, montada_en, desgaste_actual, area, puntos_base')
                 .eq('id', piezaId)
                 .single();
             
@@ -481,13 +560,43 @@ class F1Manager {
             
             console.log(`⏱️ Pieza ${piezaId}: montada hace ${minutosMontada.toFixed(0)}min → ${desgasteActual.toFixed(1)}%`);
             
-            // Si llegó a 0% Y está equipada → DESTRUIR
+            // 🟢🟢🟢 MODIFICACIÓN AQUÍ 🟢🟢🟢
+            // Si llegó a 0% Y está equipada → DESTRUIR Y RESTAR PUNTOS
             if (desgasteActual <= 0 && pieza.equipada) {
                 console.log(`💥 DESTRUCCIÓN: Pieza ${piezaId} completó 24h montada`);
+                
+                // 1. RESTAR PUNTOS DE LA ESCUDERÍA
+                if (this.escuderia) {
+                    const puntosARestar = pieza.puntos_base || 10;
+                    const nuevosPuntos = Math.max(0, (this.escuderia.puntos || 0) - puntosARestar);
+                    
+                    // Actualizar en BD
+                    await this.supabase
+                        .from('escuderias')
+                        .update({ puntos: nuevosPuntos })
+                        .eq('id', this.escuderia.id);
+                    
+                    // Actualizar en memoria
+                    this.escuderia.puntos = nuevosPuntos;
+                    
+                    // Actualizar UI
+                    const puntosElement = document.getElementById('points-value');
+                    if (puntosElement) {
+                        puntosElement.textContent = nuevosPuntos;
+                    }
+                    
+                    console.log(`📉 Puntos restados por destrucción: -${puntosARestar}, ahora: ${nuevosPuntos}`);
+                }
+                
+                // 2. RESTAR PUNTOS DEL PROGRESO DEL COCHE
+                await this.restarPuntosDelCoche(pieza.area, pieza.puntos_base || 10);
+                
+                // 3. ELIMINAR LA PIEZA
                 await this.supabase
                     .from('almacen_piezas')
                     .delete()
                     .eq('id', piezaId);
+                
                 return 0;
             }
             
