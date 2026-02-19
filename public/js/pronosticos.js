@@ -2592,26 +2592,63 @@ class PronosticosManager {
             // 🆕 CREAR REGISTRO EN TRANSACCIONES
             // ===========================================
             try {
-                const { error: errorTransaccion } = await this.supabase
+                // 📦 MOSTRAR DATOS ANTES DE INSERTAR
+                const datosAEnviar = {
+                    escuderia_id: pronostico.escuderia_id,
+                    tipo: 'ingreso',
+                    cantidad: cantidad,
+                    descripcion: `Cobro de pronóstico - Carrera ${this.carreraActual?.nombre || ''}`,
+                    referencia: `pronostico_${pronosticoId}`,
+                    saldo_resultante: nuevoDinero,
+                    categoria: 'pronosticos',
+                    fecha: new Date().toISOString()
+                };
+                
+                console.log("📤 ENVIANDO A TRANSACCIONES:", JSON.stringify(datosAEnviar, null, 2));
+                
+                // 💥 INTENTAR INSERTAR CON .select() PARA VER RESULTADO
+                const { data, error: errorTransaccion } = await this.supabase
                     .from('transacciones')
-                    .insert([{
-                        escuderia_id: pronostico.escuderia_id,
-                        tipo: 'ingreso',
-                        cantidad: cantidad,
-                        descripcion: `Cobro de pronóstico - Carrera ${this.carreraActual?.nombre || ''}`,
-                        referencia: `pronostico_${pronosticoId}`,
-                        saldo_resultante: nuevoDinero,
-                        categoria: 'pronosticos',
-                        fecha: new Date().toISOString()
-                    }]);
+                    .insert([datosAEnviar])
+                    .select();  // ← IMPORTANTE: esto devuelve lo insertado
                 
                 if (errorTransaccion) {
-                    console.error("❌ Error creando registro en transacciones:", errorTransaccion);
+                    console.error("❌ ERROR DETALLADO:", {
+                        mensaje: errorTransaccion.message,
+                        codigo: errorTransaccion.code,
+                        detalles: errorTransaccion.details,
+                        hint: errorTransaccion.hint
+                    });
+                    
+                    // 🚨 MOSTRAR EN PANTALLA TAMBIÉN
+                    this.mostrarNotificacionTemporal(`
+                        <div style="background: #330000; border-left: 4px solid #ff0000; padding: 12px; color: white;">
+                            <strong style="color: #ff6666;">❌ ERROR EN TRANSACCIONES</strong><br>
+                            <span>${errorTransaccion.message}</span><br>
+                            <small style="color: #aaa;">Código: ${errorTransaccion.code || 'N/A'}</small>
+                        </div>
+                    `);
                 } else {
-                    console.log("✅ Registro en transacciones creado");
+                    console.log("✅ INSERT EXITOSO:", data);
+                    console.log("✅ Registro en transacciones creado con ID:", data?.[0]?.id);
+                    
+                    this.mostrarNotificacionTemporal(`
+                        <div style="background: #003300; border-left: 4px solid #00d2be; padding: 12px; color: white;">
+                            <strong style="color: #00d2be;">✅ TRANSACCIÓN REGISTRADA</strong><br>
+                            <span>Se ha creado el registro correctamente</span>
+                        </div>
+                    `);
                 }
             } catch (errorTrans) {
-                console.error("❌ Error en transacciones:", errorTrans);
+                console.error("💥 EXCEPCIÓN EN BLOQUE TRANSACCIONES:", errorTrans);
+                console.error("Stack:", errorTrans.stack);
+                
+                this.mostrarNotificacionTemporal(`
+                    <div style="background: #330000; border-left: 4px solid #ff0000; padding: 12px; color: white;">
+                        <strong style="color: #ff6666;">💥 EXCEPCIÓN</strong><br>
+                        <span>${errorTrans.message}</span>
+                    </div>
+                `);
             }
             
             // 4. Intentar marcar pronóstico como cobrado (manejar si la columna no existe)
