@@ -416,8 +416,19 @@ class PronosticosManager {
             .eq('escuderia_id', this.escuderiaId)
             .order('fecha_pronostico', { ascending: false });
         
+        // 🔥 NUEVO: Obtener carreras que ya ha cobrado el usuario
+        const { data: pronosticosCobrados } = await this.supabase
+            .from('pronosticos_usuario')
+            .select('carrera_id')
+            .eq('escuderia_id', this.escuderiaId)
+            .eq('cobrado', true);
+        
+        const carrerasCobradas = new Set(pronosticosCobrados?.map(p => p.carrera_id) || []);
+        console.log("💰 Carreras ya cobradas:", Array.from(carrerasCobradas));
+        
         const hoy = new Date();
         const fechaHoy = hoy.toISOString().split('T')[0];
+
         
         // Obtener TODAS las carreras desde hoy en adelante
         const { data: carreras } = await this.supabase
@@ -444,12 +455,19 @@ class PronosticosManager {
         }
         
         // Buscar la PRIMERA carrera que cumpla las condiciones
+        // Buscar la PRIMERA carrera que cumpla las condiciones (SALTANDO las cobradas)
         let carreraSeleccionada = null;
         let tipoPantalla = 'pronosticar';
         let pronosticoExistente = null;
         let resultadosExistentes = null;
         
         for (const carrera of carreras) {
+            // 🔥 SALTAR carreras ya cobradas
+            if (carrerasCobradas.has(carrera.id)) {
+                console.log(`⏩ Carrera ${carrera.id} (${carrera.nombre}) ya cobrada, saltando`);
+                continue;
+            }
+            
             const fechaInicio = new Date(carrera.fecha_inicio);
             const fechaLimite = new Date(carrera.fecha_limite_pronosticos || carrera.fecha_inicio);
             fechaLimite.setHours(fechaLimite.getHours() - 48);
@@ -523,9 +541,37 @@ class PronosticosManager {
             }
         }
         
-        // Si no encontramos ninguna, usar la primera
+
+        // Si no encontramos ninguna, buscar la primera carrera NO cobrada
         if (!carreraSeleccionada && carreras.length > 0) {
-            carreraSeleccionada = carreras[0];
+            for (const carrera of carreras) {
+                if (!carrerasCobradas.has(carrera.id)) {
+                    carreraSeleccionada = carrera;
+                    break;
+                }
+            }
+            
+            // Si todas las carreras están cobradas
+            if (!carreraSeleccionada) {
+                container.innerHTML = `
+                    <div class="pronostico-container compacto">
+                        <div class="card">
+                            <div class="card-header bg-success text-white py-2">
+                                <h5 class="mb-0"><i class="fas fa-check-circle"></i> ¡Has cobrado todos los pronósticos!</h5>
+                            </div>
+                            <div class="card-body py-3">
+                                <p class="mb-3">Has cobrado todas las carreras disponibles. Vuelve más tarde para nuevas carreras.</p>
+                                ${historicoHTML}
+                                <button class="btn btn-outline-secondary btn-sm mt-3" onclick="window.tabManager.switchTab('principal')">
+                                    <i class="fas fa-home"></i> Volver al inicio
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
             const fechaLimite = new Date(carreraSeleccionada.fecha_limite_pronosticos || carreraSeleccionada.fecha_inicio);
             fechaLimite.setHours(fechaLimite.getHours() - 48);
             
@@ -543,23 +589,6 @@ class PronosticosManager {
             } else {
                 tipoPantalla = 'pronosticar';
             }
-        }
-        
-        if (!carreraSeleccionada) {
-            container.innerHTML = `
-                <div class="pronostico-container compacto">
-                    <div class="card">
-                        <div class="card-header bg-warning text-dark py-2">
-                            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> No hay carreras disponibles</h5>
-                        </div>
-                        <div class="card-body py-3">
-                            ${pronosticosAnteriores?.length > 0 ? this.renderizarSelectorHistorico(pronosticosAnteriores) : ''}
-                            <button class="btn btn-outline-secondary btn-sm mt-3" onclick="window.tabManager.switchTab('principal')">Volver al inicio</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            return;
         }
         
         // Establecer carrera actual
