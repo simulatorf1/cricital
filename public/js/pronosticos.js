@@ -1520,7 +1520,6 @@ class PronosticosManager {
             bonificacion_valor: e.bonificacion_valor
         }));
         
-        // 🔴 NUEVO: Calcular qué preguntas afecta cada estratega
         const bonificacionesAplicadas = {};
         
         this.estrategasActivos.forEach(estratega => {
@@ -1529,11 +1528,9 @@ class PronosticosManager {
             
             const preguntasAfectadas = [];
             
-            // Recorrer las 10 preguntas
             for (let i = 1; i <= 10; i++) {
                 const areaPregunta = this.preguntaAreas[i]?.toLowerCase() || '';
                 
-                // Si el área del estratega coincide con el área de la pregunta
                 if (areaPregunta.includes(areaEstratega) || areaEstratega.includes(areaPregunta)) {
                     preguntasAfectadas.push(i);
                 }
@@ -1561,28 +1558,27 @@ class PronosticosManager {
                     respuestas: respuestas,
                     puntos_coche_snapshot: this.usuarioPuntos,
                     estrategas_snapshot: snapshotEstrategas,
-                    bonificaciones_aplicadas: bonificacionesAplicadas, // ← NUEVO
+                    bonificaciones_aplicadas: bonificacionesAplicadas,
                     fecha_pronostico: new Date().toISOString(),
                     estado: 'pendiente'
                 }]);
             
             if (error) throw error;
             
-            // Mostrar notificación temporal
             this.mostrarNotificacionTemporal(`
                 <div class="notificacion-exito">
                     <i class="fas fa-check-circle text-success" style="font-size: 24px;"></i>
                     <div>
                         <h5 style="margin: 0 0 5px 0; color: #00d2be;">¡Pronóstico enviado!</h5>
                         <p style="margin: 0; font-size: 14px;">Tu pronóstico para <strong>${this.carreraActual.nombre}</strong> ha sido registrado correctamente.</p>
-                        <p style="margin: 5px 0 0 0; font-size: 13px;">Recibirás una notificación cuando los resultados estén disponibles.</p>
                     </div>
                 </div>
             `);
             
+            // 🔥 FORZAR que se marque como guardado
             this.pronosticoGuardado = true;
             
-            // Esperar 2 segundos y recargar la pantalla para mostrar "ya enviado"
+            // 🔥 Recargar la pantalla para que muestre "Pronóstico enviado"
             setTimeout(() => {
                 this.cargarPantallaPronostico();
             }, 2000);
