@@ -772,8 +772,14 @@ class PronosticosManager {
             `;
         }
         
-        // 🔥 HISTÓRICO SIEMPRE ARRIBA
-        const historicoHTML = historico.length > 0 ? this.renderizarSelectorHistorico(historico) : '';
+        // 🔥 HISTÓRICO SIEMPRE ARRIBA (AUNQUE ESTÉ VACÍO)
+        const historicoHTML = historico && historico.length > 0 ? this.renderizarSelectorHistorico(historico) : 
+            `<div class="historico-pronosticos mb-3 p-3" style="background: #1a1a1a; border-radius: 8px; border: 2px solid #00d2be;">
+                <h6 class="text-info mb-3"><i class="fas fa-history me-2"></i>Consultar pronósticos anteriores:</h6>
+                <div class="alert alert-info py-2 mb-0">
+                    <i class="fas fa-info-circle me-2"></i> No hay pronósticos anteriores
+                </div>
+            </div>`;
         
         this.supabase
             .from('pruebas_pista')
@@ -866,7 +872,7 @@ class PronosticosManager {
                 </div>
             </div>
         `;
-    }  
+    }
     renderizarSelectorHistorico(historico) {
         if (historico.length === 0) return '';
         
@@ -883,7 +889,7 @@ class PronosticosManager {
         return `
             <div class="historico-pronosticos mb-3 p-3" style="background: #1a1a1a; border-radius: 8px; border: 2px solid #00d2be;">
                 <h6 class="text-info mb-3"><i class="fas fa-history me-2"></i>Consultar pronósticos anteriores:</h6>
-
+    
                 <div class="d-flex gap-2 align-items-center">
                     <select id="selectorHistoricoPronosticos" class="form-select form-select-lg bg-dark text-white border-secondary" style="width: 50%; font-size: 16px; padding: 12px;">
                         <option value="">-- Selecciona una carrera --</option>
@@ -1544,7 +1550,7 @@ class PronosticosManager {
                          document.querySelector('.tab-content.active');
         
         if (container) {
-            this.mostrarInterfazPronostico(container);
+            this.mostrarPreguntasPronostico(container);
         }
     }
     
