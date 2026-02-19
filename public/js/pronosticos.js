@@ -3474,7 +3474,7 @@ class PronosticosManager {
     
     async guardarResultadosCarrera() {
         
-        const selectCarrera = document.getElementById('select-carrera-corregir');
+        const selectCarrera = document.getElementById('carreraResultados');
         if (!selectCarrera || !selectCarrera.value) {
             this.mostrarError("No hay carrera seleccionada");
             return;
