@@ -652,10 +652,10 @@ class PronosticosManager {
         
 
         if (tipoPantalla === 'enviado') {
-            // Guardar la carrera que acaba de enviar para el mensaje
+            // Guardar la carrera que acaba de enviar
             const carreraEnviada = carreraSeleccionada;
             
-            // Buscar la SIGUIENTE carrera después de esta
+            // Buscar la SIGUIENTE carrera
             const { data: siguienteCarrera } = await this.supabase
                 .from('calendario_gp')
                 .select('*')
@@ -664,76 +664,99 @@ class PronosticosManager {
                 .limit(1)
                 .maybeSingle();
             
-            // Si hay siguiente carrera, actualizar this.carreraActual a esa
+            // Si hay siguiente carrera, actualizar
             if (siguienteCarrera) {
                 this.carreraActual = siguienteCarrera;
                 await this.cargarPreguntasCarrera(siguienteCarrera.id);
                 await this.cargarDatosUsuario(user.id);
             }
             
+            // 🔴 NUEVO: Verificar si ya hizo pronóstico para la siguiente carrera
+            const { data: yaTienePronostico } = await this.supabase
+                .from('pronosticos_usuario')
+                .select('id')
+                .eq('escuderia_id', this.escuderiaId)
+                .eq('carrera_id', this.carreraActual.id)
+                .maybeSingle();
+            
+            const yaHizoPronosticoSiguiente = !!yaTienePronostico;
+            
             container.innerHTML = `
                 <div class="pronostico-container compacto">
                     ${historicoHTML}
                     
-                    <!-- MENSAJE CLARO DE LA CARRERA QUE YA ENVIÓ -->
+                    <!-- Mensaje carrera enviada -->
                     <div class="card mb-3" style="background: #0a2a1a; border: 2px solid #00d2be;">
                         <div class="card-body py-3">
                             <div class="d-flex align-items-start gap-3">
                                 <div style="font-size: 40px; color: #00d2be;">✅</div>
                                 <div>
-                                    <h5 class="text-success mb-2" style="color: #00d2be !important;">¡PRONÓSTICO ENVIADO CORRECTAMENTE!</h5>
+                                    <h5 class="text-success mb-2">¡PRONÓSTICO ENVIADO CORRECTAMENTE!</h5>
                                     <p class="mb-1"><strong>${carreraEnviada.nombre}</strong></p>
-                                    <p class="mb-2">Tu pronóstico ha sido registrado. Ahora solo queda esperar los resultados.</p>
-                                    <div class="alert alert-info py-2 mb-0" style="background: #003333; border-color: #00d2be;">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        <small>Puedes consultar este pronóstico en el desplegable de arriba <strong>"Consultar pronósticos anteriores"</strong></small>
+                                    <p class="mb-2">Tu pronóstico ha sido registrado.</p>
+                                    <div class="alert alert-info py-2 mb-0">
+                                        <small>Puedes consultarlo en el desplegable de arriba</small>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- SIGUIENTE CARRERA CON TÍTULO CLARO -->
+                    <!-- SIGUIENTE CARRERA -->
                     <div class="card">
                         <div class="card-header bg-dark text-white py-2" style="background: #0066cc !important;">
                             <h5 class="mb-0"><i class="fas fa-flag-checkered me-2"></i> 🏁 SIGUIENTE CARRERA: ${this.carreraActual.nombre}</h5>
                         </div>
                         <div class="card-body py-3">
                             
-                            <!-- 🔴🔥 AVISO EN ROJO QUE LLAME LA ATENCIÓN (AQUÍ LO PONEMOS) -->
-                            <div class="alert alert-danger mb-3" style="background: #330000; border-color: #e10600; border-width: 2px;">
+                            <!-- Aviso en rojo -->
+                            <div class="alert alert-danger mb-3" style="background: #330000; border-color: #e10600;">
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-exclamation-triangle me-3" style="font-size: 24px; color: #e10600;"></i>
                                     <div>
-                                        <strong style="color: #ff8a8a; font-size: 16px;">⚠️ RECOMENDACIÓN IMPORTANTE</strong>
+                                        <strong style="color: #ff8a8a;">⚠️ RECOMENDACIÓN IMPORTANTE</strong>
                                         <p class="mb-0 mt-1" style="color: #ffb3b3;">
                                             Espera lo más cerca posible de la carrera para hacer tu pronóstico. 
-                                            La vuelta rápida y el rendimiento del coche pueden variar tras cada Gran Premio. 
-                                            ¡Las piezas se desgastan y los resultados cambian!
+                                            La vuelta rápida y el rendimiento pueden variar.
                                         </p>
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Vuelta rápida actualizada para la siguiente carrera -->
+                            <!-- Datos de la carrera -->
                             <div id="vuelta-rapida-container-siguiente">
                                 ${this.generarDatosGuardado()}
                             </div>
                             
-                            <div class="d-grid gap-2 mt-3">
-                                <button class="btn btn-success btn-lg" 
-                                        onclick="window.pronosticosManager.verificarYEmpezarPronostico()">
-                                    <i class="fas fa-play me-2"></i> EMPEZAR PRONÓSTICO PARA ${this.carreraActual.nombre}
-                                </button>
-                            </div>
+                            <!-- 🔴 BOTÓN CONDICIONAL -->
+                            ${yaHizoPronosticoSiguiente ? `
+                                <div class="alert alert-success alert-sm mt-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <div>
+                                            <strong class="d-block">${this.carreraActual.nombre}</strong>
+                                            <small>Ya has enviado tu pronóstico</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary btn-lg" onclick="window.pronosticosManager.verPronosticoGuardado()">
+                                        <i class="fas fa-eye me-2"></i> VER MI PRONÓSTICO
+                                    </button>
+                                </div>
+                            ` : `
+                                <div class="d-grid gap-2 mt-3">
+                                    <button class="btn btn-success btn-lg" onclick="window.pronosticosManager.verificarYEmpezarPronostico()">
+                                        <i class="fas fa-play me-2"></i> EMPEZAR PRONÓSTICO PARA ${this.carreraActual.nombre}
+                                    </button>
+                                </div>
+                            `}
                         </div>
                     </div>
                 </div>
             `;
             
-            // Cargar vuelta rápida para la siguiente carrera
             this.cargarVueltaRapidaParaSiguiente();
-            
             return;
         }
         
