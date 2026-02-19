@@ -668,7 +668,7 @@ class PronosticosManager {
             if (siguienteCarrera) {
                 this.carreraActual = siguienteCarrera;
                 await this.cargarPreguntasCarrera(siguienteCarrera.id);
-                await this.cargarDatosUsuario(user.id); // Recargar estrategas y puntos
+                await this.cargarDatosUsuario(user.id);
             }
             
             container.innerHTML = `
@@ -699,6 +699,22 @@ class PronosticosManager {
                             <h5 class="mb-0"><i class="fas fa-flag-checkered me-2"></i> 🏁 SIGUIENTE CARRERA: ${this.carreraActual.nombre}</h5>
                         </div>
                         <div class="card-body py-3">
+                            
+                            <!-- 🔴🔥 AVISO EN ROJO QUE LLAME LA ATENCIÓN (AQUÍ LO PONEMOS) -->
+                            <div class="alert alert-danger mb-3" style="background: #330000; border-color: #e10600; border-width: 2px;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-exclamation-triangle me-3" style="font-size: 24px; color: #e10600;"></i>
+                                    <div>
+                                        <strong style="color: #ff8a8a; font-size: 16px;">⚠️ RECOMENDACIÓN IMPORTANTE</strong>
+                                        <p class="mb-0 mt-1" style="color: #ffb3b3;">
+                                            Espera lo más cerca posible de la carrera para hacer tu pronóstico. 
+                                            La vuelta rápida y el rendimiento del coche pueden variar tras cada Gran Premio. 
+                                            ¡Las piezas se desgastan y los resultados cambian!
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <!-- Vuelta rápida actualizada para la siguiente carrera -->
                             <div id="vuelta-rapida-container-siguiente">
                                 ${this.generarDatosGuardado()}
