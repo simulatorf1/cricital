@@ -800,7 +800,7 @@ class PronosticosManager {
         }
         
         // 🔥 HISTÓRICO SIEMPRE ARRIBA
-        const historicoHTML = historico.length > 0 ? this.renderizarSelectorHistorico(historico) : '';
+        const historicoHTML = this.renderizarSelectorHistorico(historico); // SIEMPRE llama a la función;
         
         this.supabase
             .from('pruebas_pista')
@@ -895,25 +895,28 @@ class PronosticosManager {
         `;
     }  
     renderizarSelectorHistorico(historico) {
-        if (historico.length === 0) return '';
+        // SIEMPRE devuelve el contenedor, aunque esté vacío
+        let opcionesHistorico = '';
         
-        const opcionesHistorico = historico.map(p => {
-            const fecha = p.calendario_gp?.fecha_inicio ? new Date(p.calendario_gp.fecha_inicio).toLocaleDateString('es-ES') : '';
-            const estado = p.estado === 'calificado' ? '✅ Resultados' : '⏳ Pendiente';
-            return `
-                <option value="${p.id}" data-carrera-id="${p.carrera_id}">
-                    ${p.calendario_gp?.nombre || 'Carrera'} - ${fecha} (${estado})
-                </option>
-            `;
-        }).join('');
+        if (historico && historico.length > 0) {
+            opcionesHistorico = historico.map(p => {
+                const fecha = p.calendario_gp?.fecha_inicio ? new Date(p.calendario_gp.fecha_inicio).toLocaleDateString('es-ES') : '';
+                const estado = p.estado === 'calificado' ? '✅ Resultados' : '⏳ Pendiente';
+                return `
+                    <option value="${p.id}" data-carrera-id="${p.carrera_id}">
+                        ${p.calendario_gp?.nombre || 'Carrera'} - ${fecha} (${estado})
+                    </option>
+                `;
+            }).join('');
+        } else {
+            opcionesHistorico = '<option value="">-- No hay pronósticos anteriores --</option>';
+        }
         
         return `
             <div class="historico-pronosticos mb-3 p-3" style="background: #1a1a1a; border-radius: 8px; border: 2px solid #00d2be;">
                 <h6 class="text-info mb-3"><i class="fas fa-history me-2"></i>Consultar pronósticos anteriores:</h6>
-
                 <div class="d-flex gap-2 align-items-center">
                     <select id="selectorHistoricoPronosticos" class="form-select form-select-lg bg-dark text-white border-secondary" style="width: 50%; font-size: 16px; padding: 12px;">
-                        <option value="">-- Selecciona una carrera --</option>
                         ${opcionesHistorico}
                     </select>
                     <button class="btn btn-outline-info btn-lg" onclick="window.pronosticosManager.verPronosticoSeleccionado()" style="font-size: 16px; padding: 12px 20px;">
