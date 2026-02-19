@@ -359,7 +359,19 @@ class PronosticosManager {
         document.head.appendChild(style);
     }
 
-
+    async obtenerVueltaRapida() {
+        if (!this.escuderiaId) return '--:--:---';
+        
+        const { data, error } = await this.supabase
+            .from('pruebas_pista')
+            .select('tiempo_formateado')
+            .eq('escuderia_id', this.escuderiaId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+        
+        return data?.tiempo_formateado || '--:--:---';
+    }
     
     async inicializar(usuarioId) {
         console.log("📊 Inicializando PronosticosManager");
@@ -556,8 +568,10 @@ class PronosticosManager {
         await this.cargarPreguntasCarrera(carreraSeleccionada.id);
         
         // Histórico siempre arriba
+
         const historicoHTML = pronosticosAnteriores?.length > 0 ? 
-            this.renderizarSelectorHistorico(pronosticosAnteriores) : '';
+            this.renderizarSelectorHistorico(pronosticosAnteriores) : 
+            this.renderizarSelectorHistoricoVacio(); // <-- NUEVA FUNCIÓN    
         
         // RENDERIZAR SEGÚN TIPO
         if (tipoPantalla === 'resultados') {
@@ -637,31 +651,49 @@ class PronosticosManager {
         }
         
         if (tipoPantalla === 'enviado') {
+            // Buscar la SIGUIENTE carrera después de esta
+            const { data: siguienteCarrera } = await this.supabase
+                .from('calendario_gp')
+                .select('*')
+                .gt('fecha_inicio', carreraSeleccionada.fecha_inicio) // mayor que la actual
+                .order('fecha_inicio', { ascending: true })
+                .limit(1)
+                .maybeSingle();
+            
+            // Si hay siguiente carrera, actualizar this.carreraActual a esa
+            if (siguienteCarrera) {
+                this.carreraActual = siguienteCarrera;
+                await this.cargarPreguntasCarrera(siguienteCarrera.id);
+            }
+            
             container.innerHTML = `
                 <div class="pronostico-container compacto">
+                    ${historicoHTML}
+                    
+                    <!-- PRÓXIMA CARRERA (SIEMPRE VISIBLE) -->
                     <div class="card">
-                        <div class="card-header bg-success text-white py-2">
-                            <h5 class="mb-0"><i class="fas fa-check-circle"></i> Pronóstico enviado</h5>
+                        <div class="card-header bg-dark text-white py-2">
+                            <h5 class="mb-0"><i class="fas fa-flag-checkered"></i> PRÓXIMO GP: ${this.carreraActual.nombre}</h5>
                         </div>
                         <div class="card-body py-3">
-                            ${historicoHTML}
+                            <!-- Datos de vuelta rápida, estrategas, etc -->
+                            ${this.generarDatosGuardado()}
                             
-                            <div class="alert alert-success alert-sm mb-3">
+                            <!-- Mensaje de que ya envió la anterior -->
+                            <div class="alert alert-info alert-sm mb-3">
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-check me-2"></i>
+                                    <i class="fas fa-check-circle text-success me-2"></i>
                                     <div>
-                                        <strong class="d-block">${carreraSeleccionada.nombre}</strong>
-                                        <small>Ya has enviado tu pronóstico</small>
+                                        <strong>${carreraSeleccionada.nombre}</strong>
+                                        <small class="d-block">✅ Pronóstico enviado - Esperando resultados</small>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="d-grid gap-2 mt-3">
-                                <button class="btn btn-outline-primary btn-sm" onclick="window.pronosticosManager.verPronosticoGuardado()">
-                                    <i class="fas fa-eye"></i> Ver mi pronóstico
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm" onclick="window.tabManager.switchTab('principal')">
-                                    <i class="fas fa-home"></i> Volver al inicio
+                            <!-- Botón para empezar el próximo pronóstico -->
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success" onclick="window.pronosticosManager.iniciarPronostico()">
+                                    <i class="fas fa-play"></i> Empezar pronóstico para ${this.carreraActual.nombre}
                                 </button>
                             </div>
                         </div>
@@ -889,6 +921,69 @@ class PronosticosManager {
                     </button>
                 </div>
             </div>
+        `;
+    }
+    renderizarSelectorHistoricoVacio() {
+        return `
+            <div class="historico-pronosticos mb-3 p-3" style="background: #1a1a1a; border-radius: 8px; border: 2px solid #00d2be;">
+                <h6 class="text-info mb-3"><i class="fas fa-history me-2"></i>Consultar pronósticos anteriores:</h6>
+                <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select form-select-lg bg-dark text-white border-secondary" style="width: 50%; font-size: 16px; padding: 12px;">
+                        <option value="">-- No hay pronósticos anteriores --</option>
+                    </select>
+                    <button class="btn btn-outline-secondary btn-lg" disabled style="font-size: 16px; padding: 12px 20px;">
+                        <i class="fas fa-eye me-2"></i> Ver
+                    </button>
+                </div>
+            </div>
+        `;
+    }   
+    generarDatosGuardado() {
+        const fechaCarrera = new Date(this.carreraActual.fecha_inicio);
+        fechaCarrera.setHours(fechaCarrera.getHours() + 24);
+        const fechaResultados = fechaCarrera.toLocaleDateString('es-ES', {
+            day: 'numeric',
+            month: 'long',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        return `
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-dark">
+                    <thead class="bg-secondary">
+                        <tr>
+                            <th width="25%">Vuelta rápida</th>
+                            <th width="25%">Estrategas activos</th>
+                            <th width="25%">Fecha captura</th>
+                            <th width="25%">Resultados</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="text-center">
+                                <div class="stat-value-mini" id="vuelta-rapida-datos">
+                                    ${this.obtenerVueltaRapida() || '<span class="spinner-border spinner-border-sm text-info"></span>'}
+                                </div>
+                                <small class="text-muted">mejor tiempo</small>
+                            </td>
+                            <td class="text-center">
+                                <div class="stat-value-mini">${this.estrategasActivos?.length || 0}</div>
+                                <small class="text-muted">estrategas</small>
+                            </td>
+                            <td class="text-center">
+                                <div class="fecha-actual">${new Date().toLocaleDateString('es-ES')}</div>
+                                <small class="text-muted">Hoy</small>
+                            </td>
+                            <td class="text-center">
+                                <div class="text-info">${fechaResultados.split(',')[0]}</div>
+                                <small class="text-muted">${fechaResultados.split(',')[1] || 'aprox.'}</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <input type="hidden" id="puntos-coche-ocultos" value="${this.usuarioPuntos || 0}">
         `;
     }
     
