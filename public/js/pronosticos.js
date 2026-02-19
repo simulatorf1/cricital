@@ -358,7 +358,28 @@ class PronosticosManager {
         style.textContent = estilos;
         document.head.appendChild(style);
     }
-
+    async obtenerEstadisticasEscuderia() {
+        if (!this.escuderiaId) return null;
+        
+        const { data, error } = await this.supabase
+            .from('escuderias')
+            .select('gp_participados, aciertos_totales, preguntas_totales')
+            .eq('id', this.escuderiaId)
+            .single();
+        
+        if (error || !data) return null;
+        
+        // Calcular porcentaje
+        const porcentaje = data.preguntas_totales > 0 
+            ? Math.round((data.aciertos_totales * 100 / data.preguntas_totales) * 100) / 100
+            : 0;
+        
+        return {
+            ...data,
+            porcentaje: porcentaje,
+            gp_faltantes: data.preguntas_totales / 10 // Número de GP participados
+        };
+    }
     async obtenerVueltaRapida() {
         if (!this.escuderiaId) return '--:--:---';
         
@@ -886,7 +907,7 @@ class PronosticosManager {
         }
         
         // 🔥 HISTÓRICO SIEMPRE ARRIBA
-        const historicoHTML = this.renderizarSelectorHistorico(historico); // SIEMPRE llama a la función;
+        const historicoHTML = this.renderizarSelectorHistorico(historico);
         
         this.supabase
             .from('pruebas_pista')
@@ -904,6 +925,9 @@ class PronosticosManager {
                     }
                 }
             });
+    
+        // 🔥 NUEVO: Obtener estadísticas (justo antes del container.innerHTML)
+        const statsPromise = this.obtenerEstadisticasEscuderia();
         
         container.innerHTML = `
             <div class="pronosticos-container-f1 compacto">
@@ -967,6 +991,9 @@ class PronosticosManager {
                             </small>
                         </div>
                         
+                        <!-- 🔥 AQUÍ VAN LAS ESTADÍSTICAS (después del alert) -->
+                        <div id="estadisticas-container"></div>
+                        
                         <div class="d-flex gap-2">
                             <button class="btn btn-success flex-grow-1" onclick="window.pronosticosManager.iniciarPronostico()">
                                 <i class="fas fa-play"></i> Empezar pronóstico
@@ -979,7 +1006,35 @@ class PronosticosManager {
                 </div>
             </div>
         `;
-    }  
+    
+        // 🔥 Cargar estadísticas después de renderizar
+        statsPromise.then(stats => {
+            const statsContainer = document.getElementById('estadisticas-container');
+            if (statsContainer && stats) {
+                statsContainer.innerHTML = `
+                    <div class="card mb-3" style="background: #0a2a1a; border: 1px solid #00d2be;">
+                        <div class="card-body py-2">
+                            <h6 class="text-info mb-2"><i class="fas fa-chart-line me-2"></i>TU HISTORIAL DE ACIERTOS</h6>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="stat-value-mini">${stats.gp_participados || 0}</div>
+                                    <small class="text-muted">GP disputados</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-value-mini">${stats.aciertos_totales || 0}/${stats.preguntas_totales || 0}</div>
+                                    <small class="text-muted">Aciertos</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-value-mini text-warning">${stats.porcentaje || 0}%</div>
+                                    <small class="text-muted">Precisión</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    }
     renderizarSelectorHistorico(historico) {
         // SIEMPRE devuelve el contenedor, aunque esté vacío
         let opcionesHistorico = '';
@@ -3517,6 +3572,7 @@ class PronosticosManager {
                 const dineroGanado = puntosFinales * 10000;
                 
                 // Actualizar el pronóstico
+
                 const { error: errorUpdate } = await this.supabase
                     .from('pronosticos_usuario')
                     .update({
@@ -3529,6 +3585,24 @@ class PronosticosManager {
                 
                 if (errorUpdate) {
                     console.error(`❌ Error actualizando pronóstico ${pronostico.id}:`, errorUpdate);
+                } else {
+                    // 🔥 NUEVO: Actualizar estadísticas de la escudería
+                    const { data: escuderiaStats } = await this.supabase
+                        .from('escuderias')
+                        .select('gp_participados, aciertos_totales, preguntas_totales')
+                        .eq('id', pronostico.escuderia_id)
+                        .single();
+                    
+                    await this.supabase
+                        .from('escuderias')
+                        .update({
+                            gp_participados: (escuderiaStats?.gp_participados || 0) + 1,
+                            aciertos_totales: (escuderiaStats?.aciertos_totales || 0) + aciertos,
+                            preguntas_totales: (escuderiaStats?.preguntas_totales || 0) + 10
+                        })
+                        .eq('id', pronostico.escuderia_id);
+                    
+                    console.log(`📊 Estadísticas actualizadas para escudería ${pronostico.escuderia_id}`);
                 }
                 
                 // 🔥 CORREGIDO: Preparar notificación para este usuario
