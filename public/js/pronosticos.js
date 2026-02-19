@@ -650,12 +650,16 @@ class PronosticosManager {
             return;
         }
         
+
         if (tipoPantalla === 'enviado') {
+            // Guardar la carrera que acaba de enviar para el mensaje
+            const carreraEnviada = carreraSeleccionada;
+            
             // Buscar la SIGUIENTE carrera después de esta
             const { data: siguienteCarrera } = await this.supabase
                 .from('calendario_gp')
                 .select('*')
-                .gt('fecha_inicio', carreraSeleccionada.fecha_inicio) // mayor que la actual
+                .gt('fecha_inicio', carreraSeleccionada.fecha_inicio)
                 .order('fecha_inicio', { ascending: true })
                 .limit(1)
                 .maybeSingle();
@@ -664,42 +668,55 @@ class PronosticosManager {
             if (siguienteCarrera) {
                 this.carreraActual = siguienteCarrera;
                 await this.cargarPreguntasCarrera(siguienteCarrera.id);
+                await this.cargarDatosUsuario(user.id); // Recargar estrategas y puntos
             }
             
             container.innerHTML = `
                 <div class="pronostico-container compacto">
                     ${historicoHTML}
                     
-                    <!-- PRÓXIMA CARRERA (SIEMPRE VISIBLE) -->
-                    <div class="card">
-                        <div class="card-header bg-dark text-white py-2">
-                            <h5 class="mb-0"><i class="fas fa-flag-checkered"></i> PRÓXIMO GP: ${this.carreraActual.nombre}</h5>
-                        </div>
+                    <!-- MENSAJE CLARO DE LA CARRERA QUE YA ENVIÓ -->
+                    <div class="card mb-3" style="background: #0a2a1a; border: 2px solid #00d2be;">
                         <div class="card-body py-3">
-                            <!-- Datos de vuelta rápida, estrategas, etc -->
-                            ${this.generarDatosGuardado()}
-                            
-                            <!-- Mensaje de que ya envió la anterior -->
-                            <div class="alert alert-info alert-sm mb-3">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    <div>
-                                        <strong>${carreraSeleccionada.nombre}</strong>
-                                        <small class="d-block">✅ Pronóstico enviado - Esperando resultados</small>
+                            <div class="d-flex align-items-start gap-3">
+                                <div style="font-size: 40px; color: #00d2be;">✅</div>
+                                <div>
+                                    <h5 class="text-success mb-2" style="color: #00d2be !important;">¡PRONÓSTICO ENVIADO CORRECTAMENTE!</h5>
+                                    <p class="mb-1"><strong>${carreraEnviada.nombre}</strong></p>
+                                    <p class="mb-2">Tu pronóstico ha sido registrado. Ahora solo queda esperar los resultados.</p>
+                                    <div class="alert alert-info py-2 mb-0" style="background: #003333; border-color: #00d2be;">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <small>Puedes consultar este pronóstico en el desplegable de arriba <strong>"Consultar pronósticos anteriores"</strong></small>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- SIGUIENTE CARRERA CON TÍTULO CLARO -->
+                    <div class="card">
+                        <div class="card-header bg-dark text-white py-2" style="background: #0066cc !important;">
+                            <h5 class="mb-0"><i class="fas fa-flag-checkered me-2"></i> 🏁 SIGUIENTE CARRERA: ${this.carreraActual.nombre}</h5>
+                        </div>
+                        <div class="card-body py-3">
+                            <!-- Vuelta rápida actualizada para la siguiente carrera -->
+                            <div id="vuelta-rapida-container-siguiente">
+                                ${this.generarDatosGuardado()}
+                            </div>
                             
-                            <!-- Botón para empezar el próximo pronóstico -->
-                            <div class="d-grid gap-2">
-                                <button class="btn btn-success" onclick="window.pronosticosManager.iniciarPronostico()">
-                                    <i class="fas fa-play"></i> Empezar pronóstico para ${this.carreraActual.nombre}
+                            <div class="d-grid gap-2 mt-3">
+                                <button class="btn btn-success btn-lg" onclick="window.pronosticosManager.iniciarPronostico()">
+                                    <i class="fas fa-play me-2"></i> EMPEZAR PRONÓSTICO PARA ${this.carreraActual.nombre}
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
+            
+            // Cargar vuelta rápida para la siguiente carrera
+            this.cargarVueltaRapidaParaSiguiente();
+            
             return;
         }
         
@@ -951,6 +968,10 @@ class PronosticosManager {
             minute: '2-digit'
         });
         
+        // Obtener vuelta rápida del DOM si ya existe, si no mostrar carga
+        const vueltaElement = document.getElementById('vuelta-rapida-valor');
+        const vueltaTexto = vueltaElement ? vueltaElement.textContent : '--:--:---';
+        
         return `
             <div class="table-responsive mb-3">
                 <table class="table table-sm table-dark">
@@ -966,7 +987,7 @@ class PronosticosManager {
                         <tr>
                             <td class="text-center">
                                 <div class="stat-value-mini" id="vuelta-rapida-datos">
-                                    ${this.obtenerVueltaRapida() || '<span class="spinner-border spinner-border-sm text-info"></span>'}
+                                    ${vueltaTexto}
                                 </div>
                                 <small class="text-muted">mejor tiempo</small>
                             </td>
@@ -989,7 +1010,22 @@ class PronosticosManager {
             <input type="hidden" id="puntos-coche-ocultos" value="${this.usuarioPuntos || 0}">
         `;
     }
-    
+    async cargarVueltaRapidaParaSiguiente() {
+        if (!this.escuderiaId) return;
+        
+        const { data, error } = await this.supabase
+            .from('pruebas_pista')
+            .select('tiempo_formateado')
+            .eq('escuderia_id', this.escuderiaId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+        
+        const vueltaElement = document.getElementById('vuelta-rapida-datos');
+        if (vueltaElement) {
+            vueltaElement.textContent = data?.tiempo_formateado || '--:--:---';
+        }
+    }    
     async verPronosticoSeleccionado() {
         const selector = document.getElementById('selectorHistoricoPronosticos');
         if (!selector || !selector.value) {
