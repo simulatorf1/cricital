@@ -995,7 +995,8 @@ class PronosticosManager {
                         <div id="estadisticas-container"></div>
                         
                         <div class="d-flex gap-2">
-                            <button class="btn btn-success flex-grow-1" onclick="window.pronosticosManager.iniciarPronostico()">
+
+                            <button class="btn btn-success flex-grow-1" onclick="window.pronosticosManager.verificarYEmpezarPronostico()">
                                 <i class="fas fa-play"></i> Empezar pronóstico
                             </button>
                             <button type="button" class="btn btn-outline-secondary" onclick="window.tabManager.switchTab('principal')">
