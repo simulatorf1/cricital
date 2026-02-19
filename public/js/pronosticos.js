@@ -910,7 +910,7 @@ class PronosticosManager {
                         <div class="alert alert-warning alert-sm py-2 mb-3">
                             <i class="fas fa-clock"></i>
                             <small>
-                                <strong>Importante:</strong> Cuanto más tarde hagas el pronóstico, más puntos tendrás, ya que se guardarán los puntos de <strong>hoy</strong> (${new Date().toLocaleDateString('es-ES')}), no los del día de la carrera.
+                                <strong>Importante:</strong> Cuanto más tarde hagas el pronóstico, aumentará tu probabilidad de acertar y además podrás mejorar tu vuelta rapida ya que se guardarán los datos de <strong>hoy</strong> (${new Date().toLocaleDateString('es-ES')}), no los del día de la carrera.
                             </small>
                         </div>
                         
@@ -1530,7 +1530,7 @@ class PronosticosManager {
                         <div class="alert alert-warning alert-sm py-2 mb-3">
                             <i class="fas fa-clock"></i>
                             <small>
-                                <strong>Importante:</strong> Cuanto más tarde hagas el pronóstico, más puntos tendrás, ya que se guardarán los puntos de <strong>hoy</strong> (${new Date().toLocaleDateString('es-ES')}), no los del día de la carrera.
+                                <strong>Importante:</strong> Cuanto más tarde hagas el pronóstico, más puntos tendrás, ya que se guardarán los puntos de <strong>hoy</strong> (${new Date().toLocaleDateString('es-ES')}), no los del día de la carrera. Recuerda que las piezas que ten venían bien en una carrera no tienen porque venirte bien para las siguietnes.
                             </small>
                         </div>
                         
