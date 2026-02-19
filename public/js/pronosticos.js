@@ -362,7 +362,7 @@ class PronosticosManager {
             return;
         }
         
-        // 🔴 **PASO 1: Cargar datos del usuario (esto establece this.escuderiaId)**
+        // 1. Cargar datos del usuario
         await this.cargarDatosUsuario(user.id);
         
         if (!this.escuderiaId) {
@@ -370,8 +370,8 @@ class PronosticosManager {
             return;
         }
         
-        // 🔴 **PASO 2: Buscar SI TIENE PRONÓSTICOS ANTERIORES (prioridad #1)**
-        const { data: pronosticosExistentes, error: errorPronosticos } = await this.supabase
+        // 2. Obtener TODOS los pronósticos anteriores (para el histórico)
+        const { data: pronosticosAnteriores, error: errorPronosticos } = await this.supabase
             .from('pronosticos_usuario')
             .select(`
                 *,
@@ -384,18 +384,7 @@ class PronosticosManager {
             console.error("Error verificando pronósticos:", errorPronosticos);
         }
         
-        // ✅ Si TIENE pronósticos, mostrar el más reciente (sin importar la fecha)
-        // ✅ Guardar pronósticos para selector histórico PERO NO MOSTRARLOS AUTOMÁTICAMENTE
-        let pronosticosAnteriores = [];
-        if (pronosticosExistentes && pronosticosExistentes.length > 0) {
-            console.log("✅ Usuario tiene", pronosticosExistentes.length, "pronósticos anteriores");
-            pronosticosAnteriores = pronosticosExistentes;
-            // NO MOSTRAMOS EL ÚLTIMO AUTOMÁTICAMENTE, SEGUIMOS A LA SIGUIENTE CARRERA
-        }
-        
-        // 🔴 **PASO 3: Si NO tiene pronósticos, buscar carrera activa para pronosticar**
-        console.log("ℹ️ Usuario sin pronósticos, buscando carrera activa");
-        
+        // 3. Buscar la próxima carrera DISPONIBLE para pronosticar (fecha_inicio >= hoy)
         const hoy = new Date();
         const fechaHoy = hoy.toISOString().split('T')[0];
         
@@ -403,56 +392,24 @@ class PronosticosManager {
             .from('calendario_gp')
             .select('*')
             .gte('fecha_inicio', fechaHoy)
-            .order('fecha_inicio', { ascending: true })
-            .limit(1);
+            .order('fecha_inicio', { ascending: true });
         
         if (error || !carreras || carreras.length === 0) {
-            this.mostrarError("No hay carreras próximas disponibles", container);
-            return;
-        }
-        
-        this.carreraActual = carreras[0];
-        
-        // 🔴 NUEVO: Verificar SI YA TIENE PRONÓSTICO para esta carrera (INDEPENDIENTEMENTE de la fecha)
-        const { data: pronosticoExistente } = await this.supabase
-            .from('pronosticos_usuario')
-            .select('id, estado')
-            .eq('escuderia_id', this.escuderiaId)
-            .eq('carrera_id', this.carreraActual.id)
-            .maybeSingle();
-        
-        this.pronosticoGuardado = !!pronosticoExistente;
-        
-        // 🔴 MODIFICADO: Solo mostrar mensaje de plazo expirado si NO tiene pronóstico
-        const fechaLimite = new Date(this.carreraActual.fecha_limite_pronosticos || this.carreraActual.fecha_inicio);
-        fechaLimite.setHours(fechaLimite.getHours() - 48);
-        
-        if (hoy > fechaLimite && !this.pronosticoGuardado) {
-            // Si pasó la fecha y NO tiene pronóstico, mensaje claro
+            // No hay carreras futuras → mostrar solo histórico
             container.innerHTML = `
                 <div class="pronostico-container compacto">
                     <div class="card">
-                        <div class="card-header bg-danger text-white py-2">
-                            <h5 class="mb-0"><i class="fas fa-clock"></i> Plazo expirado</h5>
+                        <div class="card-header bg-info text-white py-2">
+                            <h5 class="mb-0"><i class="fas fa-calendar"></i> Temporada finalizada</h5>
                         </div>
                         <div class="card-body py-3">
-                            <div class="alert alert-warning mb-3">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <strong>El plazo para pronosticar ${this.carreraActual.nombre} ha expirado.</strong>
-                                <p class="mt-2 mb-0">No realizaste pronóstico para esta carrera.</p>
-                            </div>
-                            
-                            <!-- 🔴 NUEVO: Mostrar selector de histórico aunque no tenga pronóstico para esta -->
-                            ${pronosticosAnteriores.length > 0 ? this.renderizarSelectorHistorico(pronosticosAnteriores) : ''}
-                            
-                            <div class="d-grid gap-2">
-                                <button class="btn btn-primary btn-sm" onclick="window.pronosticosManager.buscarProximaCarrera()">
-                                    <i class="fas fa-forward"></i> Ver próxima carrera
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm" onclick="window.tabManager.switchTab('principal')">
-                                    <i class="fas fa-home"></i> Volver al inicio
-                                </button>
-                            </div>
+                            ${pronosticosAnteriores?.length > 0 ? 
+                                this.renderizarSelectorHistorico(pronosticosAnteriores) : 
+                                '<p class="text-muted">No hay pronósticos anteriores</p>'
+                            }
+                            <button class="btn btn-outline-secondary btn-sm mt-3" onclick="window.tabManager.switchTab('principal')">
+                                <i class="fas fa-home"></i> Volver al inicio
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -460,21 +417,230 @@ class PronosticosManager {
             return;
         }
         
-        // 🔴 NUEVO: Si pasó la fecha PERO SÍ TIENE PRONÓSTICO, mostrar interfaz de "pronóstico enviado"
-        if (hoy > fechaLimite && this.pronosticoGuardado) {
-            // Mostrar interfaz de pronóstico enviado con selector histórico
-            this.mostrarInterfazPronosticoConHistorico(container, pronosticosAnteriores);
-            return;
+        // 4. Determinar la carrera ACTUAL (la primera que cumpla condiciones)
+        this.carreraActual = null;
+        
+        for (const carrera of carreras) {
+            const fechaInicio = new Date(carrera.fecha_inicio);
+            const fechaLimite = new Date(carrera.fecha_limite_pronosticos || carrera.fecha_inicio);
+            fechaLimite.setHours(fechaLimite.getHours() - 48); // 2 días antes
+            
+            // Verificar si ya tiene pronóstico para esta carrera
+            const { data: pronosticoExistente } = await this.supabase
+                .from('pronosticos_usuario')
+                .select('id, estado')
+                .eq('escuderia_id', this.escuderiaId)
+                .eq('carrera_id', carrera.id)
+                .maybeSingle();
+            
+            const tienePronostico = !!pronosticoExistente;
+            
+            // Verificar si existen resultados publicados
+            const { data: resultados } = await this.supabase
+                .from('resultados_carrera')
+                .select('id, respuestas_correctas')
+                .eq('carrera_id', carrera.id)
+                .maybeSingle();
+            
+            const tieneResultados = !!resultados;
+            
+            // CASO 1: La carrera ya pasó (hoy > fechaInicio)
+            if (hoy > fechaInicio) {
+                if (tieneResultados && tienePronostico) {
+                    // ✅ Tiene resultados y pronóstico → mostrar resultados con botón COBRAR
+                    this.carreraActual = carrera;
+                    await this.cargarPreguntasCarrera(carrera.id);
+                    
+                    // Obtener el pronóstico completo
+                    const { data: pronostico } = await this.supabase
+                        .from('pronosticos_usuario')
+                        .select('*')
+                        .eq('escuderia_id', this.escuderiaId)
+                        .eq('carrera_id', carrera.id)
+                        .single();
+                    
+                    const { data: preguntas } = await this.supabase
+                        .from('preguntas_pronostico')
+                        .select('*')
+                        .eq('carrera_id', carrera.id)
+                        .order('numero_pregunta');
+                    
+                    this.mostrarVistaPronosticoGuardado(pronostico, preguntas || [], resultados.respuestas_correctas || {});
+                    return;
+                    
+                } else if (tienePronostico && !tieneResultados) {
+                    // ⏳ Tiene pronóstico pero sin resultados → mostrar "Esperando resultados"
+                    this.carreraActual = carrera;
+                    await this.cargarPreguntasCarrera(carrera.id);
+                    
+                    const { data: pronostico } = await this.supabase
+                        .from('pronosticos_usuario')
+                        .select('*')
+                        .eq('escuderia_id', this.escuderiaId)
+                        .eq('carrera_id', carrera.id)
+                        .single();
+                    
+                    const { data: preguntas } = await this.supabase
+                        .from('preguntas_pronostico')
+                        .select('*')
+                        .eq('carrera_id', carrera.id)
+                        .order('numero_pregunta');
+                    
+                    container.innerHTML = `
+                        <div class="pronostico-container compacto">
+                            <div class="card">
+                                <div class="card-header bg-warning text-dark py-2">
+                                    <h5 class="mb-0"><i class="fas fa-hourglass-half"></i> ${carrera.nombre} - Finalizada</h5>
+                                </div>
+                                <div class="card-body py-3">
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-clock me-2"></i>
+                                        <strong>La carrera ya finalizó</strong>
+                                        <p class="mb-0 mt-1">Los resultados se publicarán pronto. Vuelve más tarde.</p>
+                                    </div>
+                                    
+                                    <!-- Vista previa del pronóstico (sin resultados) -->
+                                    ${this.generarVistaPreviaPronostico(pronostico, preguntas)}
+                                    
+                                    ${pronosticosAnteriores?.length > 0 ? 
+                                        this.renderizarSelectorHistorico(pronosticosAnteriores) : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                    
+                } else {
+                    // ❌ No tiene pronóstico y ya pasó → continuar a la siguiente carrera
+                    continue;
+                }
+            }
+            
+            // CASO 2: Carrera futura pero dentro del plazo de 2 días (hoy <= fechaInicio)
+            if (hoy <= fechaInicio) {
+                if (hoy > fechaLimite && !tienePronostico) {
+                    // ⏳ Plazo expirado (2 días antes) y NO tiene pronóstico
+                    this.carreraActual = carrera;
+                    await this.cargarPreguntasCarrera(carrera.id);
+                    
+                    container.innerHTML = `
+                        <div class="pronostico-container compacto">
+                            <div class="card">
+                                <div class="card-header bg-danger text-white py-2">
+                                    <h5 class="mb-0"><i class="fas fa-clock"></i> Plazo expirado</h5>
+                                </div>
+                                <div class="card-body py-3">
+                                    <div class="alert alert-warning mb-3">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <strong>El plazo para pronosticar ${carrera.nombre} ha expirado.</strong>
+                                        <p class="mt-2 mb-0">No realizaste pronóstico para esta carrera.</p>
+                                    </div>
+                                    
+                                    ${pronosticosAnteriores?.length > 0 ? 
+                                        this.renderizarSelectorHistorico(pronosticosAnteriores) : ''}
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-primary btn-sm" onclick="window.pronosticosManager.buscarProximaCarrera()">
+                                            <i class="fas fa-forward"></i> Ver próxima carrera
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="window.tabManager.switchTab('principal')">
+                                            <i class="fas fa-home"></i> Volver al inicio
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                    
+                } else if (hoy > fechaLimite && tienePronostico) {
+                    // ✅ Plazo expirado pero SÍ tiene pronóstico
+                    this.carreraActual = carrera;
+                    await this.cargarPreguntasCarrera(carrera.id);
+                    
+                    const { data: pronostico } = await this.supabase
+                        .from('pronosticos_usuario')
+                        .select('*')
+                        .eq('escuderia_id', this.escuderiaId)
+                        .eq('carrera_id', carrera.id)
+                        .single();
+                    
+                    const { data: preguntas } = await this.supabase
+                        .from('preguntas_pronostico')
+                        .select('*')
+                        .eq('carrera_id', carrera.id)
+                        .order('numero_pregunta');
+                    
+                    container.innerHTML = `
+                        <div class="pronostico-container compacto">
+                            <div class="card">
+                                <div class="card-header bg-success text-white py-2">
+                                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Pronóstico enviado</h5>
+                                </div>
+                                <div class="card-body py-3">
+                                    <div class="alert alert-success alert-sm mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-check me-2"></i>
+                                            <div>
+                                                <strong class="d-block">${carrera.nombre}</strong>
+                                                <small>Ya has enviado tu pronóstico</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    ${this.generarVistaPreviaPronostico(pronostico, preguntas)}
+                                    
+                                    ${pronosticosAnteriores?.length > 0 ? 
+                                        this.renderizarSelectorHistorico(pronosticosAnteriores) : ''}
+                                    
+                                    <div class="d-grid gap-2 mt-3">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="window.pronosticosManager.verPronosticoGuardado()">
+                                            <i class="fas fa-eye"></i> Ver mi pronóstico
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="window.tabManager.switchTab('principal')">
+                                            <i class="fas fa-home"></i> Volver al inicio
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                    
+                } else {
+                    // ✅ Dentro del plazo y puede pronosticar
+                    this.carreraActual = carrera;
+                    await this.cargarPreguntasCarrera(carrera.id);
+                    
+                    if (!this.usuarioAceptoCondiciones) {
+                        this.mostrarCondicionesInicialesConHistorico(container, pronosticosAnteriores || []);
+                    } else {
+                        this.mostrarPreguntasPronosticoConHistorico(container, pronosticosAnteriores || []);
+                    }
+                    return;
+                }
+            }
         }
         
-        // 🔴 Verificar si ya tiene pronóstico para esta carrera específica (ya lo hicimos arriba)
-        // this.pronosticoGuardado = !!pronosticoActual;  // ← Ya no necesitas esto porque lo hicimos antes
-        
-        // 🔴 **PASO 4: Cargar preguntas y mostrar interfaz**
-        await this.cargarPreguntasCarrera(this.carreraActual.id);
-        this.mostrarPantallaPrincipal(container, pronosticosAnteriores);
-        
-
+        // Si llegamos aquí, no se encontró ninguna carrera aplicable
+        container.innerHTML = `
+            <div class="pronostico-container compacto">
+                <div class="card">
+                    <div class="card-header bg-info text-white py-2">
+                        <h5 class="mb-0"><i class="fas fa-calendar"></i> No hay carreras disponibles</h5>
+                    </div>
+                    <div class="card-body py-3">
+                        ${pronosticosAnteriores?.length > 0 ? 
+                            this.renderizarSelectorHistorico(pronosticosAnteriores) : 
+                            '<p class="text-muted">No hay pronósticos anteriores</p>'
+                        }
+                        <button class="btn btn-outline-secondary btn-sm mt-3" onclick="window.tabManager.switchTab('principal')">
+                            <i class="fas fa-home"></i> Volver al inicio
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     mostrarPantallaPrincipal(container, pronosticosAnteriores) {
         // Si ya tiene pronóstico, mostrar interfaz original pero con selector
@@ -2184,7 +2350,30 @@ class PronosticosManager {
         }
         
         return filas;
-    }    
+    } 
+    generarVistaPreviaPronostico(pronostico, preguntas) {
+        if (!pronostico || !preguntas) return '';
+        
+        let html = '<div class="mt-3"><h6>Tu pronóstico:</h6><div class="table-responsive">';
+        html += '<table class="table table-sm table-dark"><thead><tr><th>#</th><th>Pregunta</th><th>Respuesta</th></tr></thead><tbody>';
+        
+        for (let i = 1; i <= 10; i++) {
+            const pregunta = preguntas.find(p => p.numero_pregunta === i);
+            const respuesta = pronostico.respuestas[`p${i}`];
+            let respuestaTexto = '';
+            
+            if (respuesta === 'A') respuestaTexto = pregunta?.opcion_a?.substring(0, 30) + '...';
+            else if (respuesta === 'B') respuestaTexto = pregunta?.opcion_b?.substring(0, 30) + '...';
+            else if (respuesta === 'C') respuestaTexto = pregunta?.opcion_c?.substring(0, 30) + '...';
+            
+            html += `<tr><td>${i}</td><td><small>${pregunta?.texto_pregunta?.substring(0, 50)}...</small></td><td><span class="badge bg-secondary">${respuesta}</span> ${respuestaTexto}</td></tr>`;
+        }
+        
+        html += '</tbody></table></div></div>';
+        return html;
+    }
+
+    
     generarFilasPronosticoPendiente(preguntas, respuestasUsuario) {
         if (!preguntas || !respuestasUsuario) return '<tr><td colspan="4" class="text-center">No hay datos disponibles</td></tr>';
         
