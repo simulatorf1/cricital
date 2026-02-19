@@ -75,6 +75,9 @@ class PerfilManager {
     // ========================
     // CARGAR CLASIFICACIÓN DEL GRUPO
     // ========================
+    // ========================
+    // CARGAR CLASIFICACIÓN DEL GRUPO (CON NUEVAS MÉTRICAS)
+    // ========================
     async cargarClasificacionGrupo(grupoId, contenedorId, tipo = 'dinero', orden = 'desc') {
         try {
             console.log(`📊 Cargando clasificación del grupo ${grupoId} - ${tipo}`);
@@ -110,15 +113,15 @@ class PerfilManager {
                 return;
             }
             
-            // 2. Obtener datos de las escuderías
+            // 2. Obtener datos de las escuderías (incluyendo nuevas columnas)
             const { data: escuderias, error: errorEscuderias } = await supabase
                 .from('escuderias')
-                .select('id, nombre, dinero')
+                .select('id, nombre, dinero, gp_participados, aciertos_totales, preguntas_totales')
                 .in('id', idsMiembros);
             
             if (errorEscuderias) throw errorEscuderias;
             
-            // 3. Obtener mejores vueltas
+            // 3. Obtener mejores vueltas para cada escudería
             let escuderiasConDatos = await Promise.all(
                 escuderias.map(async (escuderia) => {
                     try {
@@ -131,34 +134,66 @@ class PerfilManager {
                         
                         const mejorVuelta = resultados && resultados.length > 0 ? resultados[0] : null;
                         
+                        // Calcular porcentaje de aciertos
+                        const aciertos = escuderia.aciertos_totales || 0;
+                        const totales = escuderia.preguntas_totales || 0;
+                        const porcentaje = totales > 0 ? Math.round((aciertos / totales) * 100) : 0;
+                        
                         return {
                             ...escuderia,
                             vuelta_rapida: mejorVuelta?.tiempo_formateado || 'Sin vuelta',
-                            tiempo_vuelta: mejorVuelta?.tiempo_vuelta || 999999
+                            tiempo_vuelta: mejorVuelta?.tiempo_vuelta || 999999,
+                            porcentaje_aciertos: porcentaje,
+                            aciertos_mostrar: totales > 0 ? `${aciertos}/${totales} (${porcentaje}%)` : 'Sin datos',
+                            carreras_disputadas: escuderia.gp_participados || 0
                         };
                     } catch (error) {
                         return {
                             ...escuderia,
                             vuelta_rapida: 'Sin vuelta',
-                            tiempo_vuelta: 999999
+                            tiempo_vuelta: 999999,
+                            porcentaje_aciertos: 0,
+                            aciertos_mostrar: 'Sin datos',
+                            carreras_disputadas: escuderia.gp_participados || 0
                         };
                     }
                 })
             );
             
-            // 4. Ordenar
-            if (tipo === 'dinero') {
-                escuderiasConDatos.sort((a, b) => 
-                    orden === 'desc' ? b.dinero - a.dinero : a.dinero - b.dinero
-                );
-            } else {
-                escuderiasConDatos.sort((a, b) => 
-                    orden === 'desc' ? b.tiempo_vuelta - a.tiempo_vuelta : a.tiempo_vuelta - b.tiempo_vuelta
-                );
+            // 4. Ordenar según tipo y orden
+            let escuderiasOrdenadas;
+            
+            switch(tipo) {
+                case 'dinero':
+                    escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
+                        orden === 'desc' ? b.dinero - a.dinero : a.dinero - b.dinero
+                    );
+                    break;
+                    
+                case 'vuelta':
+                    escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
+                        orden === 'desc' ? b.tiempo_vuelta - a.tiempo_vuelta : a.tiempo_vuelta - b.tiempo_vuelta
+                    );
+                    break;
+                    
+                case 'aciertos':
+                    escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
+                        orden === 'desc' ? b.porcentaje_aciertos - a.porcentaje_aciertos : a.porcentaje_aciertos - b.porcentaje_aciertos
+                    );
+                    break;
+                    
+                case 'carreras':
+                    escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
+                        orden === 'desc' ? b.carreras_disputadas - a.carreras_disputadas : a.carreras_disputadas - b.carreras_disputadas
+                    );
+                    break;
+                    
+                default:
+                    escuderiasOrdenadas = escuderiasConDatos;
             }
             
             // 5. Renderizar
-            this.renderizarClasificacionGrupo(contenedor, escuderiasConDatos, tipo, orden, grupoId);
+            this.renderizarClasificacionGrupo(contenedor, escuderiasOrdenadas, tipo, orden, grupoId);
             
         } catch (error) {
             console.error('❌ Error cargando clasificación del grupo:', error);
@@ -174,11 +209,32 @@ class PerfilManager {
     // ========================
     // RENDERIZAR CLASIFICACIÓN DEL GRUPO
     // ========================
+    // ========================
+    // RENDERIZAR CLASIFICACIÓN DEL GRUPO (ACTUALIZADO)
+    // ========================
     renderizarClasificacionGrupo(contenedor, miembros, tipo, orden, grupoId) {
         const miId = window.f1Manager?.escuderia?.id;
         
+        let tituloColumna = '';
+        switch(tipo) {
+            case 'dinero':
+                tituloColumna = 'Dinero (€)';
+                break;
+            case 'vuelta':
+                tituloColumna = 'Mejor Vuelta';
+                break;
+            case 'aciertos':
+                tituloColumna = '% Aciertos';
+                break;
+            case 'carreras':
+                tituloColumna = 'Carreras';
+                break;
+            default:
+                tituloColumna = 'Dinero (€)';
+        }
+        
         let html = `
-            <div style="margin-bottom: 10px; display: flex; gap: 8px; justify-content: flex-end;">
+            <div style="margin-bottom: 10px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
                 <button onclick="window.perfilManager.cambiarTipoClasificacion('${grupoId}', 'dinero')" 
                         style="padding: 4px 8px; background: ${tipo === 'dinero' ? '#00d2be' : 'transparent'}; border: 1px solid #00d2be; color: ${tipo === 'dinero' ? 'black' : '#00d2be'}; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">
                     <i class="fas fa-coins"></i> Dinero
@@ -186,6 +242,14 @@ class PerfilManager {
                 <button onclick="window.perfilManager.cambiarTipoClasificacion('${grupoId}', 'vuelta')" 
                         style="padding: 4px 8px; background: ${tipo === 'vuelta' ? '#00d2be' : 'transparent'}; border: 1px solid #00d2be; color: ${tipo === 'vuelta' ? 'black' : '#00d2be'}; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">
                     <i class="fas fa-stopwatch"></i> Vuelta
+                </button>
+                <button onclick="window.perfilManager.cambiarTipoClasificacion('${grupoId}', 'aciertos')" 
+                        style="padding: 4px 8px; background: ${tipo === 'aciertos' ? '#00d2be' : 'transparent'}; border: 1px solid #00d2be; color: ${tipo === 'aciertos' ? 'black' : '#00d2be'}; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">
+                    <i class="fas fa-chart-line"></i> Aciertos
+                </button>
+                <button onclick="window.perfilManager.cambiarTipoClasificacion('${grupoId}', 'carreras')" 
+                        style="padding: 4px 8px; background: ${tipo === 'carreras' ? '#00d2be' : 'transparent'}; border: 1px solid #00d2be; color: ${tipo === 'carreras' ? 'black' : '#00d2be'}; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">
+                    <i class="fas fa-flag-checkered"></i> Carreras
                 </button>
                 <button onclick="window.perfilManager.cambiarOrdenClasificacion('${grupoId}', '${tipo}')" 
                         style="padding: 4px 8px; background: transparent; border: 1px solid #00d2be; color: #00d2be; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">
@@ -198,9 +262,7 @@ class PerfilManager {
                         <tr style="border-bottom: 1px solid #00d2be;">
                             <th style="padding: 8px 5px; text-align: left; color: #00d2be;">#</th>
                             <th style="padding: 8px 5px; text-align: left; color: #00d2be;">Escudería</th>
-                            <th style="padding: 8px 5px; text-align: right; color: #00d2be;">
-                                ${tipo === 'dinero' ? 'Dinero (€)' : 'Mejor Vuelta'}
-                            </th>
+                            <th style="padding: 8px 5px; text-align: right; color: #00d2be;">${tituloColumna}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -210,12 +272,23 @@ class PerfilManager {
             const esMiEscuderia = miembro.id === miId;
             const posicion = index + 1;
             
-            // Formatear valor
+            // Formatear valor según tipo
             let valorMostrar;
-            if (tipo === 'dinero') {
-                valorMostrar = `€${miembro.dinero?.toLocaleString() || '0'}`;
-            } else {
-                valorMostrar = miembro.vuelta_rapida;
+            switch(tipo) {
+                case 'dinero':
+                    valorMostrar = `€${miembro.dinero?.toLocaleString() || '0'}`;
+                    break;
+                case 'vuelta':
+                    valorMostrar = miembro.vuelta_rapida;
+                    break;
+                case 'aciertos':
+                    valorMostrar = miembro.porcentaje_aciertos ? `${miembro.porcentaje_aciertos}%` : '0%';
+                    break;
+                case 'carreras':
+                    valorMostrar = miembro.carreras_disputadas || 0;
+                    break;
+                default:
+                    valorMostrar = miembro.dinero || 0;
             }
             
             // Color según posición
@@ -253,6 +326,9 @@ class PerfilManager {
     // ========================
     // CAMBIAR TIPO DE CLASIFICACIÓN (CORREGIDO)
     // ========================
+    // ========================
+    // CAMBIAR TIPO DE CLASIFICACIÓN (CORREGIDO)
+    // ========================
     cambiarTipoClasificacion(grupoId, tipo) {
         const estadoActual = this.estadoClasificacion?.[grupoId] || { tipo: 'dinero', orden: 'desc' };
         
@@ -260,8 +336,10 @@ class PerfilManager {
         let ordenActual;
         if (tipo === 'vuelta') {
             ordenActual = 'asc'; // Para vueltas: menor tiempo primero (ascendente)
+        } else if (tipo === 'aciertos' || tipo === 'carreras' || tipo === 'dinero') {
+            ordenActual = 'desc'; // Para estos: mayor cantidad primero (descendente)
         } else {
-            ordenActual = 'desc'; // Para dinero: mayor cantidad primero (descendente)
+            ordenActual = 'desc';
         }
         
         if (!this.estadoClasificacion) this.estadoClasificacion = {};
@@ -1216,12 +1294,15 @@ class PerfilManager {
     // ========================
     // CARGAR TODOS LOS DATOS DEL PERFIL
     // ========================
+    // ========================
+    // CARGAR TODOS LOS DATOS DEL PERFIL
+    // ========================
     async cargarDatosPerfil(escuderiaId) {
         try {
             const supabase = window.supabase;
             if (!supabase) throw new Error('Supabase no disponible');
-
-            // 1. DATOS BÁSICOS DE LA ESCUDERÍA
+    
+            // 1. DATOS BÁSICOS DE LA ESCUDERÍA - AÑADIR gp_participados, aciertos_totales, preguntas_totales
             const { data: escuderia, error: errorEscuderia } = await supabase
                 .from('escuderias')
                 .select(`
@@ -1233,13 +1314,16 @@ class PerfilManager {
                     creada_en,
                     ultimo_login_dia,
                     descripcion,
-                    grupo_id
+                    grupo_id,
+                    gp_participados,
+                    aciertos_totales,
+                    preguntas_totales
                 `)
                 .eq('id', escuderiaId)
                 .single();
-
+    
             if (errorEscuderia) throw errorEscuderia;
-
+    
             // 2. ESTRATEGAS CONTRATADOS
             let estrategas = [];
             try {
@@ -1260,7 +1344,7 @@ class PerfilManager {
                     `)
                     .eq('escuderia_id', escuderiaId)
                     .eq('estado', 'activo');
-            
+                
                 if (!error && data) {
                     estrategas = data.map(c => ({
                         id: c.id,
@@ -1275,17 +1359,11 @@ class PerfilManager {
             } catch (e) {
                 console.log('ℹ️ No se pudieron cargar los estrategas');
             }
-
-            // 3. PRONÓSTICOS ACERTADOS
-            const { data: pronosticos, error: errorPronosticos } = await supabase
-                .from('pronosticos')
-                .select('id, acierto, gp_id')
-                .eq('escuderia_id', escuderiaId);
-
-            const pronosticosAcertados = pronosticos?.filter(p => p.acierto === true).length || 0;
-            const totalPronosticos = pronosticos?.length || 0;
-
-            // 4. MEJOR VUELTA
+    
+            // 🔴 ELIMINADA la sección de pronósticos que consultaba la tabla 'pronosticos'
+            // Ahora usamos los datos directamente de la tabla escuderias
+    
+            // 3. MEJOR VUELTA
             const { data: mejorVuelta, error: errorVuelta } = await supabase
                 .from('pruebas_pista')
                 .select('tiempo_formateado, fecha_prueba')
@@ -1293,51 +1371,62 @@ class PerfilManager {
                 .order('fecha_prueba', { ascending: false })
                 .limit(1)
                 .maybeSingle();
-
-            // 5. POSICIÓN GLOBAL
+    
+            // 4. POSICIÓN GLOBAL
             const { data: ranking, error: errorRanking } = await supabase
                 .from('escuderias')
                 .select('id, puntos, dinero')
                 .order('puntos', { ascending: false });
-
+    
             let posicionGlobal = 0;
             let totalEscuderias = 0;
             if (ranking) {
                 totalEscuderias = ranking.length;
                 posicionGlobal = ranking.findIndex(e => e.id === escuderiaId) + 1;
             }
-
-            // 6. GRUPOS DEL USUARIO (ahora puede tener múltiples)
+    
+            // 5. GRUPOS DEL USUARIO
             const grupos = await this.obtenerGruposEscuderia(escuderiaId);
+            
             // Cargar miembros de cada grupo (para mostrarlos después)
             if (grupos.length > 0) {
-                // Esto se cargará asíncronamente después de renderizar el perfil
                 setTimeout(() => {
                     grupos.forEach(grupo => {
                         this.cargarMiembrosGrupoEnPerfil(grupo.id, `miembros-grupo-${grupo.id}`);
                     });
                 }, 100);
             }
-            // 7. TROFEOS
+    
+            // 6. TROFEOS
             const trofeos = [];
-
+    
+            // 🔴 NUEVO: Calcular porcentaje de aciertos
+            const aciertosTotales = escuderia.aciertos_totales || 0;
+            const preguntasTotales = escuderia.preguntas_totales || 0;
+            const porcentajeAciertos = preguntasTotales > 0 
+                ? Math.round((aciertosTotales / preguntasTotales) * 100) 
+                : 0;
+    
             return {
                 escuderia,
                 estrategas: estrategas || [],
+                // 🔴 REEMPLAZADO: pronósticos ahora usa datos de escuderias
                 pronosticos: {
-                    acertados: pronosticosAcertados,
-                    total: totalPronosticos,
-                    porcentaje: totalPronosticos > 0 ? Math.round((pronosticosAcertados / totalPronosticos) * 100) : 0
+                    acertados: aciertosTotales,
+                    total: preguntasTotales,
+                    porcentaje: porcentajeAciertos
                 },
+                // 🔴 NUEVO: carreras disputadas
+                carreras: escuderia.gp_participados || 0,
                 mejorVuelta: mejorVuelta?.tiempo_formateado || 'Sin tiempo',
                 fechaVuelta: mejorVuelta?.fecha_prueba,
                 posicionGlobal,
                 totalEscuderias,
-                grupos, // Ahora es un array
+                grupos,
                 trofeos,
                 fechaCreacion: escuderia.creada_en
             };
-
+    
         } catch (error) {
             console.error('❌ Error cargando datos del perfil:', error);
             return null;
@@ -1417,6 +1506,7 @@ class PerfilManager {
                         }
                     </div>
                     
+                    <!-- 🔴 SECCIÓN DE ESTADÍSTICAS ACTUALIZADA (5 tarjetas) -->
                     <div class="perfil-estadisticas">
                         <div class="perfil-stat-card" style="border-left-color: #4CAF50;">
                             <div class="stat-icon"><i class="fas fa-trophy"></i></div>
@@ -1435,20 +1525,30 @@ class PerfilManager {
                                 <span class="stat-valor">€${datos.escuderia.dinero?.toLocaleString() || '0'}</span>
                             </div>
                         </div>
-                                             
+                        
+                        <!-- 🔴 NUEVO: Carreras Disputadas -->
+                        <div class="perfil-stat-card" style="border-left-color: #2196F3;">
+                            <div class="stat-icon"><i class="fas fa-flag-checkered"></i></div>
+                            <div class="stat-content">
+                                <span class="stat-label">Carreras Disputadas</span>
+                                <span class="stat-valor">${datos.carreras} GP</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 🔴 NUEVO: % Aciertos (reemplaza a pronósticos) -->
+                        <div class="perfil-stat-card" style="border-left-color: #9C27B0;">
+                            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                            <div class="stat-content">
+                                <span class="stat-label">Aciertos Pronósticos</span>
+                                <span class="stat-valor">${datos.pronosticos.acertados}/${datos.pronosticos.total} (${datos.pronosticos.porcentaje}%)</span>
+                            </div>
+                        </div>
+                        
                         <div class="perfil-stat-card" style="border-left-color: #FF9800;">
                             <div class="stat-icon"><i class="fas fa-stopwatch"></i></div>
                             <div class="stat-content">
                                 <span class="stat-label">Mejor Vuelta</span>
                                 <span class="stat-valor">${datos.mejorVuelta}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="perfil-stat-card" style="border-left-color: #9C27B0;">
-                            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
-                            <div class="stat-content">
-                                <span class="stat-label">Pronósticos</span>
-                                <span class="stat-valor">${datos.pronosticos.acertados}/${datos.pronosticos.total} (${datos.pronosticos.porcentaje}%)</span>
                             </div>
                         </div>
                     </div>
@@ -1546,7 +1646,7 @@ class PerfilManager {
                                         </div>
                                         
                                         <!-- ========================================= -->
-                                        <!-- NUEVA SECCIÓN: CLASIFICACIÓN DEL GRUPO    -->
+                                        <!-- CLASIFICACIÓN DEL GRUPO                   -->
                                         <!-- ========================================= -->
                                         <div style="margin-top: 15px; border-top: 1px solid rgba(0,210,190,0.2); padding-top: 10px;">
                                             <div style="color: #00d2be; font-size: 0.8rem; margin-bottom: 8px;">
@@ -1645,6 +1745,7 @@ class PerfilManager {
         if (datos.grupos.length > 0) {
             setTimeout(() => {
                 datos.grupos.forEach(grupo => {
+                    // 🔴 PASAMOS 'dinero' como tipo por defecto
                     this.cargarClasificacionGrupo(grupo.id, `clasificacion-grupo-${grupo.id}`, 'dinero', 'desc');
                 });
             }, 200);
