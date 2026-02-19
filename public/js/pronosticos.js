@@ -721,7 +721,8 @@ class PronosticosManager {
                             </div>
                             
                             <div class="d-grid gap-2 mt-3">
-                                <button class="btn btn-success btn-lg" onclick="window.pronosticosManager.iniciarPronostico()">
+                                <button class="btn btn-success btn-lg" 
+                                        onclick="window.pronosticosManager.verificarYEmpezarPronostico()">
                                     <i class="fas fa-play me-2"></i> EMPEZAR PRONÓSTICO PARA ${this.carreraActual.nombre}
                                 </button>
                             </div>
@@ -1041,7 +1042,64 @@ class PronosticosManager {
         if (vueltaElement) {
             vueltaElement.textContent = data?.tiempo_formateado || '--:--:---';
         }
-    }    
+    }   
+    async verificarYEmpezarPronostico() {
+        console.log("🔍 Verificando si hay preguntas para:", this.carreraActual?.nombre);
+        
+        // Verificar si hay preguntas en la base de datos para esta carrera
+        const { data: preguntas, error } = await this.supabase
+            .from('preguntas_pronostico')
+            .select('count')
+            .eq('carrera_id', this.carreraActual.id)
+            .single();
+        
+        // Si no hay preguntas o hay error
+        if (error || !preguntas || preguntas.count === 0) {
+            console.log("❌ No hay preguntas disponibles");
+            
+            this.mostrarNotificacionTemporal(`
+                <div style="background: #330000; border-left: 4px solid #e10600; padding: 15px; min-width: 300px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="fas fa-hourglass-half" style="font-size: 30px; color: #e10600;"></i>
+                        <div>
+                            <h5 style="margin: 0 0 5px 0; color: #ff8a8a;">⏳ APUESTAS NO DISPONIBLES</h5>
+                            <p style="margin: 0; color: #ffb3b3;">
+                                Las apuestas para <strong>${this.carreraActual.nombre}</strong> aún no están abiertas.
+                            </p>
+                            <p style="margin: 5px 0 0 0; color: #ffb3b3; font-size: 13px;">
+                                Espera a que finalice el Gran Premio actual para que se habiliten.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `, 5000);
+            
+            return;
+        }
+        
+        // Si hay preguntas, continuar normalmente
+        console.log("✅ Hay preguntas disponibles, iniciando pronóstico");
+        this.usuarioAceptoCondiciones = true;
+        
+        const container = document.querySelector('.pronosticos-container-f1')?.parentElement || 
+                         document.getElementById('main-content') || 
+                         document.querySelector('.tab-content.active');
+        
+        if (container) {
+            // Obtener historico para pasarlo
+            const { data: pronosticosAnteriores } = await this.supabase
+                .from('pronosticos_usuario')
+                .select(`
+                    *,
+                    calendario_gp!inner(*)
+                `)
+                .eq('escuderia_id', this.escuderiaId)
+                .order('fecha_pronostico', { ascending: false });
+            
+            this.mostrarPreguntasPronosticoConHistorico(container, pronosticosAnteriores || []);
+        }
+    }
+    
     async verPronosticoSeleccionado() {
         const selector = document.getElementById('selectorHistoricoPronosticos');
         if (!selector || !selector.value) {
@@ -1542,7 +1600,7 @@ class PronosticosManager {
                         </div>
                         
                         <div class="d-flex gap-2">
-                            <button class="btn btn-success flex-grow-1" onclick="window.pronosticosManager.iniciarPronostico()">
+                            <button class="btn btn-success flex-grow-1" onclick="window.pronosticosManager.verificarYEmpezarPronostico()">
                                 <i class="fas fa-play"></i> Empezar pronóstico
                             </button>
                             <button type="button" class="btn btn-outline-secondary" onclick="window.tabManager.switchTab('principal')">
@@ -1631,7 +1689,41 @@ class PronosticosManager {
         `;
     }
     
-    iniciarPronostico() {
+    async iniciarPronostico() {
+        console.log("🔍 Verificando si hay preguntas para:", this.carreraActual?.nombre);
+        
+        // Verificar si hay preguntas en la base de datos para esta carrera
+        const { data: preguntas, error } = await this.supabase
+            .from('preguntas_pronostico')
+            .select('id', { count: 'exact', head: true }) // Más eficiente que count
+            .eq('carrera_id', this.carreraActual.id);
+        
+        // Si no hay preguntas (0 resultados)
+        if (error || !preguntas || preguntas.length === 0) {
+            console.log("❌ No hay preguntas disponibles");
+            
+            this.mostrarNotificacionTemporal(`
+                <div style="background: #330000; border-left: 4px solid #e10600; padding: 15px; min-width: 300px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="fas fa-hourglass-half" style="font-size: 30px; color: #e10600;"></i>
+                        <div>
+                            <h5 style="margin: 0 0 5px 0; color: #ff8a8a;">⏳ APUESTAS NO DISPONIBLES</h5>
+                            <p style="margin: 0; color: #ffb3b3;">
+                                Las apuestas para <strong>${this.carreraActual?.nombre || 'esta carrera'}</strong> aún no están abiertas.
+                            </p>
+                            <p style="margin: 5px 0 0 0; color: #ffb3b3; font-size: 13px;">
+                                Espera a que finalice el Gran Premio actual para que se habiliten.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `, 5000);
+            
+            return;
+        }
+        
+        // Si hay preguntas, continuar normalmente
+        console.log("✅ Hay preguntas disponibles, iniciando pronóstico");
         this.usuarioAceptoCondiciones = true;
         
         const container = document.querySelector('.pronosticos-container-f1')?.parentElement || 
@@ -1639,7 +1731,22 @@ class PronosticosManager {
                          document.querySelector('.tab-content.active');
         
         if (container) {
-            this.mostrarInterfazPronostico(container);
+            // Obtener histórico para pasarlo
+            const { data: pronosticosAnteriores } = await this.supabase
+                .from('pronosticos_usuario')
+                .select(`
+                    *,
+                    calendario_gp!inner(*)
+                `)
+                .eq('escuderia_id', this.escuderiaId)
+                .order('fecha_pronostico', { ascending: false });
+            
+
+            if (this.usuarioAceptoCondiciones) {
+                this.mostrarPreguntasPronosticoConHistorico(container, pronosticosAnteriores || []);
+            } else {
+                this.mostrarCondicionesInicialesConHistorico(container, pronosticosAnteriores || []);
+            }            
         }
     }
     
