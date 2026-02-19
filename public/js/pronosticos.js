@@ -394,7 +394,7 @@ class PronosticosManager {
             return;
         }
         
-        // 🔥 Obtener TODOS los pronósticos anteriores (SIEMPRE se muestra)
+        // Obtener TODOS los pronósticos anteriores (SIEMPRE se muestra)
         const { data: pronosticosAnteriores } = await this.supabase
             .from('pronosticos_usuario')
             .select(`
@@ -415,7 +415,6 @@ class PronosticosManager {
             .order('fecha_inicio', { ascending: true });
         
         if (!carreras || carreras.length === 0) {
-            // No hay carreras futuras, mostrar solo histórico
             container.innerHTML = `
                 <div class="pronostico-container compacto">
                     <div class="card">
@@ -432,9 +431,9 @@ class PronosticosManager {
             return;
         }
         
-        // 🔥 Buscar la PRIMERA carrera que cumpla las condiciones
+        // Buscar la PRIMERA carrera que cumpla las condiciones
         let carreraSeleccionada = null;
-        let tipoPantalla = 'pronosticar'; // 'pronosticar', 'expirado', 'resultados', 'esperando'
+        let tipoPantalla = 'pronosticar';
         let pronosticoExistente = null;
         let resultadosExistentes = null;
         
@@ -462,7 +461,7 @@ class PronosticosManager {
             
             const tieneResultados = !!resultados;
             
-            // CASO 1: Carrera con resultados (ya pasó y admin publicó)
+            // CASO 1: Carrera con resultados
             if (tieneResultados) {
                 if (tienePronostico) {
                     carreraSeleccionada = carrera;
@@ -471,12 +470,11 @@ class PronosticosManager {
                     tipoPantalla = 'resultados';
                     break;
                 } else {
-                    // No tiene pronóstico, pero hay resultados -> saltar esta carrera
                     continue;
                 }
             }
             
-            // CASO 2: Carrera pasada sin resultados (esperando)
+            // CASO 2: Carrera pasada sin resultados
             if (hoy > fechaInicio && !tieneResultados) {
                 if (tienePronostico) {
                     carreraSeleccionada = carrera;
@@ -484,40 +482,51 @@ class PronosticosManager {
                     tipoPantalla = 'esperando';
                     break;
                 } else {
-                    // No tiene pronóstico y ya pasó -> saltar
                     continue;
                 }
             }
             
-            // CASO 3: Plazo expirado (2 días antes)
+            // CASO 3: Plazo expirado
             if (hoy > fechaLimite && hoy <= fechaInicio) {
+                carreraSeleccionada = carrera;
                 if (tienePronostico) {
-                    carreraSeleccionada = carrera;
                     pronosticoExistente = pronostico;
                     tipoPantalla = 'enviado';
-                    break;
                 } else {
-                    carreraSeleccionada = carrera;
                     tipoPantalla = 'expirado';
-                    break;
                 }
+                break;
             }
             
-            // CASO 4: Dentro del plazo (puede pronosticar)
+            // CASO 4: Dentro del plazo
             if (hoy <= fechaLimite) {
                 carreraSeleccionada = carrera;
-                tipoPantalla = 'pronosticar';
+                if (tienePronostico) {
+                    pronosticoExistente = pronostico;
+                    tipoPantalla = 'enviado';
+                } else {
+                    tipoPantalla = 'pronosticar';
+                }
                 break;
             }
         }
         
-        // Si no encontramos ninguna carrera, mostrar la primera aunque sea para expirado
+        // Si no encontramos ninguna, usar la primera
         if (!carreraSeleccionada && carreras.length > 0) {
             carreraSeleccionada = carreras[0];
             const fechaLimite = new Date(carreraSeleccionada.fecha_limite_pronosticos || carreraSeleccionada.fecha_inicio);
             fechaLimite.setHours(fechaLimite.getHours() - 48);
             
-            if (hoy > fechaLimite) {
+            const { data: pronostico } = await this.supabase
+                .from('pronosticos_usuario')
+                .select('id')
+                .eq('escuderia_id', this.escuderiaId)
+                .eq('carrera_id', carreraSeleccionada.id)
+                .maybeSingle();
+            
+            if (pronostico) {
+                tipoPantalla = 'enviado';
+            } else if (hoy > fechaLimite) {
                 tipoPantalla = 'expirado';
             } else {
                 tipoPantalla = 'pronosticar';
@@ -546,15 +555,11 @@ class PronosticosManager {
         this.pronosticoGuardado = !!pronosticoExistente;
         await this.cargarPreguntasCarrera(carreraSeleccionada.id);
         
-        // ===========================================
-        // RENDERIZAR SEGÚN EL TIPO DE PANTALLA
-        // ===========================================
-        
-        // 📋 SIEMPRE mostrar el histórico arriba
+        // Histórico siempre arriba
         const historicoHTML = pronosticosAnteriores?.length > 0 ? 
             this.renderizarSelectorHistorico(pronosticosAnteriores) : '';
         
-        // CASO: RESULTADOS
+        // RENDERIZAR SEGÚN TIPO
         if (tipoPantalla === 'resultados') {
             const { data: preguntas } = await this.supabase
                 .from('preguntas_pronostico')
@@ -566,7 +571,6 @@ class PronosticosManager {
             return;
         }
         
-        // CASO: ESPERANDO RESULTADOS
         if (tipoPantalla === 'esperando') {
             const { data: preguntas } = await this.supabase
                 .from('preguntas_pronostico')
@@ -601,7 +605,6 @@ class PronosticosManager {
             return;
         }
         
-        // CASO: EXPIRADO (plazo pasado, sin pronóstico)
         if (tipoPantalla === 'expirado') {
             container.innerHTML = `
                 <div class="pronostico-container compacto">
@@ -633,7 +636,6 @@ class PronosticosManager {
             return;
         }
         
-        // CASO: ENVIADO (plazo pasado pero tiene pronóstico)
         if (tipoPantalla === 'enviado') {
             container.innerHTML = `
                 <div class="pronostico-container compacto">
@@ -669,7 +671,7 @@ class PronosticosManager {
             return;
         }
         
-        // CASO: PRONOSTICAR (dentro del plazo)
+        // CASO: PRONOSTICAR
         if (!this.usuarioAceptoCondiciones) {
             this.mostrarCondicionesInicialesConHistorico(container, pronosticosAnteriores || []);
         } else {
@@ -1494,6 +1496,21 @@ class PronosticosManager {
     async guardarPronostico() {
         const { data: { user } } = await this.supabase.auth.getUser();
         if (!user) return;
+        
+        // Verificar que no haya ya un pronóstico (doble seguro)
+        const { data: yaExiste } = await this.supabase
+            .from('pronosticos_usuario')
+            .select('id')
+            .eq('escuderia_id', this.escuderiaId)
+            .eq('carrera_id', this.carreraActual.id)
+            .maybeSingle();
+        
+        if (yaExiste) {
+            this.mostrarError("Ya tienes un pronóstico para esta carrera");
+            this.pronosticoGuardado = true;
+            setTimeout(() => this.cargarPantallaPronostico(), 2000);
+            return;
+        }
         
         const respuestas = {};
         let completado = true;
