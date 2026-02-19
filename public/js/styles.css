@@ -246,7 +246,63 @@ html, body {
     color: white;
     box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
 }
+/* Estilos para los nuevos tipos de clasificación */
+.celda-aciertos,
+.celda-carreras {
+    font-weight: 600;
+    text-align: right;
+    padding: 12px 20px;
+    color: #00d2be;
+    font-size: 1.1rem;
+}
 
+.celda-aciertos .valor-aciertos,
+.celda-carreras .valor-carreras {
+    background: rgba(0, 210, 190, 0.1);
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+/* Ajustes para los botones del selector */
+.selector-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.btn-selector-tipo {
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    color: #aaa;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-selector-tipo i {
+    font-size: 0.9rem;
+}
+
+.btn-selector-tipo:hover {
+    background: rgba(0, 210, 190, 0.1);
+    border-color: #00d2be;
+    color: #00d2be;
+}
+
+.btn-selector-tipo.active {
+    background: #00d2be;
+    border-color: #00d2be;
+    color: #0a0a14;
+    font-weight: 600;
+}
 /* Columna de vuelta */
 .celda-vuelta {
     font-family: 'Courier New', monospace;
