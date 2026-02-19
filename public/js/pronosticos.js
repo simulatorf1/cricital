@@ -1154,8 +1154,6 @@ class PronosticosManager {
                             </div>
                         </div>
                         
-                        ${this.generarVistaPreviaPronostico(pronostico, preguntas)}
-                        
                         ${historico?.length > 0 ? this.renderizarSelectorHistorico(historico) : ''}
                         
                         <div class="d-grid gap-2 mt-3">
@@ -1170,7 +1168,7 @@ class PronosticosManager {
                 </div>
             </div>
         `;
-    }    
+    }
     mostrarInterfazPronostico(container) {
         // Reemplaza esta parte en mostrarInterfazPronostico:
         if (this.pronosticoGuardado) {
