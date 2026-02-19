@@ -914,7 +914,7 @@ class AdminPronosticos {
         try {
             console.log('💾 Guardando corrección para carrera:', carreraId);
             
-            // 1. Recoger respuestas correctas (tu código funciona)
+            // 1. Recoger respuestas correctas
             const respuestasCorrectas = {};
             let todasCompletas = true;
             
@@ -939,7 +939,7 @@ class AdminPronosticos {
                 return;
             }
             
-            // 2. Obtener usuario actual (para publicado_por)
+            // 2. Obtener usuario actual
             let usuarioId = null;
             try {
                 const { data: { user } } = await this.supabase.auth.getUser();
@@ -948,19 +948,17 @@ class AdminPronosticos {
                 console.warn('⚠️ Sin usuario autenticado');
             }
             
-            // 3. PREPARAR DATOS CON LAS COLUMNAS EXACTAS DE TU TABLA
+            // 3. Preparar datos
             const datosParaGuardar = {
                 carrera_id: parseInt(carreraId),
                 respuestas_correctas: respuestasCorrectas,
                 publicado_por: usuarioId,
                 fecha_publicacion: new Date().toISOString()
-                // NO INCLUIR: estado (no existe en tu tabla)
-                // NO INCLUIR: created_at (se genera automático)
             };
             
             console.log('📤 Datos a guardar:', datosParaGuardar);
             
-            // 4. Guardar usando upsert (insert or update)
+            // 4. Guardar usando upsert
             const { data, error } = await this.supabase
                 .from('resultados_carrera')
                 .upsert(datosParaGuardar, {
@@ -971,17 +969,14 @@ class AdminPronosticos {
             if (error) {
                 console.error('❌ Error Supabase:', error);
                 
-                // Intentar con insert normal si upsert falla
                 if (error.code === 'PGRST204') {
                     console.log('🔄 Intentando insert directo...');
                     
-                    // Primero intentar eliminar si existe
                     await this.supabase
                         .from('resultados_carrera')
                         .delete()
                         .eq('carrera_id', carreraId);
                     
-                    // Luego insertar nuevo
                     const { data: newData, error: newError } = await this.supabase
                         .from('resultados_carrera')
                         .insert(datosParaGuardar);
@@ -989,40 +984,40 @@ class AdminPronosticos {
                     if (newError) throw newError;
                     
                     this.mostrarMensaje('✅ Respuestas guardadas (modo alternativo)', 'success');
-                    console.log('✅ Corrección guardada con insert directo');
-                    return;
+                } else {
+                    throw error;
                 }
-                
-                throw error;
             }
             
             // 5. Éxito
             this.mostrarMensaje('✅ Respuestas correctas guardadas exitosamente', 'success');
             console.log('✅ Corrección guardada:', respuestasCorrectas);
             
-            // 🎯 NUEVO: Calcular puntajes automáticamente
+            // 6. Calcular puntajes
             this.mostrarMensaje('🧮 Calculando puntajes para todos los usuarios...', 'info');
             
-            // Esperar 1 segundo y calcular
             setTimeout(async () => {
                 try {
                     await this.calcularPuntajesCarrera(parseInt(carreraId));
                     this.mostrarMensaje('🎉 ¡Todo completado! Los usuarios pueden ver sus resultados.', 'success');
+                    
+                    // 🔥 NUEVO: Emitir evento para que el frontend recargue
+                    if (typeof window.dispatchEvent === 'function') {
+                        window.dispatchEvent(new CustomEvent('resultados-guardados', { 
+                            detail: { carreraId: parseInt(carreraId) }
+                        }));
+                        console.log("📢 Evento 'resultados-guardados' emitido");
+                    }
+                    
                 } catch (calcError) {
                     console.error('Error en cálculo automático:', calcError);
-                    this.mostrarMensaje('✅ Respuestas guardadas, pero error en cálculo de puntos. Reintentar más tarde.', 'warning');
+                    this.mostrarMensaje('✅ Respuestas guardadas, pero error en cálculo de puntos', 'warning');
                 }
             }, 1000);
             
         } catch (error) {
             console.error('❌ Error guardando corrección:', error);
-            
-            let mensajeError = `Error: ${error.message}`;
-            if (error.message.includes("column") && error.message.includes("does not exist")) {
-                mensajeError = "Error: La tabla tiene columnas diferentes. Revisa la estructura.";
-            }
-            
-            this.mostrarMensaje(mensajeError, 'error');
+            this.mostrarMensaje(`Error: ${error.message}`, 'error');
         }
     }
 
