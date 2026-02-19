@@ -738,10 +738,18 @@ class TabManager {
                         <button class="btn-selector-tipo" data-tipo="vuelta">
                             <i class="fas fa-stopwatch"></i> Por Vuelta Rápida
                         </button>
+                        <!-- NUEVO: Botón Por Aciertos -->
+                        <button class="btn-selector-tipo" data-tipo="aciertos">
+                            <i class="fas fa-chart-line"></i> % Aciertos
+                        </button>
+                        <!-- NUEVO: Botón Por Carreras -->
+                        <button class="btn-selector-tipo" data-tipo="carreras">
+                            <i class="fas fa-flag-checkered"></i> Carreras
+                        </button>
                     </div>
                 </div>
                 
-                <!-- Eliminada la sección clasificacion-info-bar -->
+                <!-- Eliminada la seccion clasificacion-info-bar -->
                 
                 <div class="tabla-controls">
                     <div class="ordenamiento-buttons">
@@ -808,7 +816,7 @@ class TabManager {
     
     
     // ===== NUEVO MÉTODO PARA CARGAR CLASIFICACIÓN =====
-    async loadClasificacionData(tipo = 'dinero', orden = 'asc') {
+    async loadClasificacionData(tipo = 'dinero', orden = 'desc') {
         console.log(`📊 Cargando clasificación: ${tipo} - ${orden}`);
         
         const tablaBody = document.getElementById('tabla-clasificacion-body');
@@ -827,10 +835,10 @@ class TabManager {
                 </tr>
             `;
             
-            // 1. OBTENER TODAS LAS ESCUDERÍAS
+            // 1. OBTENER TODAS LAS ESCUDERÍAS (incluyendo nuevas columnas)
             const { data: todasEscuderias, error: errorEscuderias } = await supabase
                 .from('escuderias')
-                .select('id, nombre, dinero, puntos');
+                .select('id, nombre, dinero, puntos, gp_participados, aciertos_totales, preguntas_totales');
             
             if (errorEscuderias) throw errorEscuderias;
             
@@ -848,7 +856,7 @@ class TabManager {
             
             console.log(`🏁 Encontradas ${todasEscuderias.length} escuderías`);
             
-            // 2. SI ES POR VUELTA, OBTENER VUELTAS
+            // 2. PROCESAR DATOS SEGÚN EL TIPO
             let escuderiasConDatos = todasEscuderias;
             
             if (tipo === 'vuelta') {
@@ -880,49 +888,101 @@ class TabManager {
                         }
                     })
                 );
+            } else if (tipo === 'aciertos') {
+                // Calcular porcentaje de aciertos
+                escuderiasConDatos = todasEscuderias.map(escuderia => {
+                    const aciertos = escuderia.aciertos_totales || 0;
+                    const totales = escuderia.preguntas_totales || 0;
+                    const porcentaje = totales > 0 ? Math.round((aciertos / totales) * 100) : 0;
+                    
+                    return {
+                        ...escuderia,
+                        porcentaje_aciertos: porcentaje,
+                        aciertos_mostrar: totales > 0 ? `${aciertos}/${totales} (${porcentaje}%)` : 'Sin datos'
+                    };
+                });
+            } else if (tipo === 'carreras') {
+                // Usar gp_participados directamente
+                escuderiasConDatos = todasEscuderias.map(escuderia => ({
+                    ...escuderia,
+                    carreras_disputadas: escuderia.gp_participados || 0
+                }));
             }
             
             // 3. ORDENAR SEGÚN TIPO Y ORDEN
             let escuderiasOrdenadas;
             
-            // En la parte de ordenamiento del método loadClasificacionData:
-            if (tipo === 'dinero') {
-                if (orden === 'nombre') {
-                    escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
-                        (a.nombre || '').localeCompare(b.nombre || '')
-                    );
-                } else {
-                    // CORREGIDO: 'desc' = mayor dinero primero, 'asc' = menor dinero primero
-                    escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
-                        orden === 'desc' ? b.dinero - a.dinero : a.dinero - b.dinero
-                    );
-                }
-            } else if (tipo === 'vuelta') {
-                if (orden === 'nombre') {
-                    escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
-                        (a.nombre || '').localeCompare(b.nombre || '')
-                    );
-                } else {
-                    escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => {
-                        if (orden === 'desc') {
-                            // 'desc' para vueltas = peores tiempos primero (mayor número)
-                            return b.tiempo_vuelta - a.tiempo_vuelta;
-                        } else {
-                            // 'asc' para vueltas = mejores tiempos primero (menor número)
-                            return a.tiempo_vuelta - b.tiempo_vuelta;
-                        }
-                    });
-                }
+            switch(tipo) {
+                case 'dinero':
+                    if (orden === 'nombre') {
+                        escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
+                            (a.nombre || '').localeCompare(b.nombre || '')
+                        );
+                    } else {
+                        escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
+                            orden === 'desc' ? b.dinero - a.dinero : a.dinero - b.dinero
+                        );
+                    }
+                    break;
+                    
+                case 'vuelta':
+                    if (orden === 'nombre') {
+                        escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
+                            (a.nombre || '').localeCompare(b.nombre || '')
+                        );
+                    } else {
+                        escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => {
+                            if (orden === 'desc') {
+                                // 'desc' para vueltas = peores tiempos primero (mayor número)
+                                return b.tiempo_vuelta - a.tiempo_vuelta;
+                            } else {
+                                // 'asc' para vueltas = mejores tiempos primero (menor número)
+                                return a.tiempo_vuelta - b.tiempo_vuelta;
+                            }
+                        });
+                    }
+                    break;
+                    
+                case 'aciertos':
+                    if (orden === 'nombre') {
+                        escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
+                            (a.nombre || '').localeCompare(b.nombre || '')
+                        );
+                    } else {
+                        escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => {
+                            const aValor = a.porcentaje_aciertos || 0;
+                            const bValor = b.porcentaje_aciertos || 0;
+                            return orden === 'desc' ? bValor - aValor : aValor - bValor;
+                        });
+                    }
+                    break;
+                    
+                case 'carreras':
+                    if (orden === 'nombre') {
+                        escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => 
+                            (a.nombre || '').localeCompare(b.nombre || '')
+                        );
+                    } else {
+                        escuderiasOrdenadas = escuderiasConDatos.sort((a, b) => {
+                            const aValor = a.carreras_disputadas || 0;
+                            const bValor = b.carreras_disputadas || 0;
+                            return orden === 'desc' ? bValor - aValor : aValor - bValor;
+                        });
+                    }
+                    break;
+                    
+                default:
+                    escuderiasOrdenadas = escuderiasConDatos;
             }
-            
-
             
             // 4. GENERAR TABLA
             this.generarTablaClasificacion(tablaBody, escuderiasOrdenadas, tipo, orden);
-            // 🔴 NUEVO: Configurar eventos de usuarios
+            
+            // 5. Configurar eventos de usuarios
             setTimeout(() => {
                 this.configurarEventosUsuariosClasificacion();
-            }, 100);            
+            }, 100);
+            
             console.log('✅ Clasificación cargada correctamente');
             
         } catch (error) {
@@ -950,9 +1010,11 @@ class TabManager {
         // Actualizar título de columna según tipo
         const tituloMetrica = document.getElementById('columna-metrica-titulo');
         if (tituloMetrica) {
-            tituloMetrica.innerHTML = tipo === 'dinero' 
-                ? '<span>Dinero (€)</span>' 
-                : '<span>Mejor Vuelta</span>';
+            let titulo = '<span>Dinero (€)</span>';
+            if (tipo === 'vuelta') titulo = '<span>Mejor Vuelta</span>';
+            if (tipo === 'aciertos') titulo = '<span>% Aciertos</span>';
+            if (tipo === 'carreras') titulo = '<span>Carreras Disputadas</span>';
+            tituloMetrica.innerHTML = titulo;
         }
         
         // Encontrar mi escudería si existe
@@ -965,22 +1027,45 @@ class TabManager {
             const esMiEscuderia = escuderia.id === miEscuderiaId;
             const posicion = index + 1;
             
-            // Formatear valor a mostrar
+            // Formatear valor a mostrar según tipo
             let valorMostrar;
-            if (tipo === 'dinero') {
-                valorMostrar = `€${new Intl.NumberFormat('es-ES', {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                }).format(escuderia.dinero || 0)}`;
-            } else {
-                valorMostrar = escuderia.vuelta_rapida;
+            let claseColumna = '';
+            
+            switch(tipo) {
+                case 'dinero':
+                    valorMostrar = `€${new Intl.NumberFormat('es-ES', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    }).format(escuderia.dinero || 0)}`;
+                    claseColumna = 'celda-dinero';
+                    break;
+                    
+                case 'vuelta':
+                    valorMostrar = escuderia.vuelta_rapida;
+                    claseColumna = 'celda-vuelta';
+                    break;
+                    
+                case 'aciertos':
+                    valorMostrar = escuderia.porcentaje_aciertos ? `${escuderia.porcentaje_aciertos}%` : '0%';
+                    if (escuderia.aciertos_mostrar && escuderia.aciertos_mostrar !== 'Sin datos') {
+                        valorMostrar = escuderia.aciertos_mostrar;
+                    }
+                    claseColumna = 'celda-aciertos';
+                    break;
+                    
+                case 'carreras':
+                    valorMostrar = escuderia.carreras_disputadas || 0;
+                    claseColumna = 'celda-carreras';
+                    break;
+                    
+                default:
+                    valorMostrar = '';
             }
             
             // Clases CSS
             const claseFila = esMiEscuderia ? 'mi-escuderia' : '';
             const clasePosicion = posicion <= 3 ? `top-${posicion}` : '';
             
-
             html += `
                 <tr class="${claseFila}">
                     <td class="celda-posicion ${clasePosicion}">
@@ -995,7 +1080,7 @@ class TabManager {
                             ${escuderia.nombre || 'Sin nombre'}
                         </span>
                     </td>
-                    <td class="${tipo === 'dinero' ? 'celda-dinero' : 'celda-vuelta'}">
+                    <td class="${claseColumna}">
                         <span class="${tipo === 'dinero' ? 'valor-dinero' : 'valor-vuelta'}">
                             ${valorMostrar}
                         </span>
@@ -1020,14 +1105,14 @@ class TabManager {
         
         // Variables para estado actual
         let tipoActual = 'dinero';
-        let ordenActual = 'desc';
+        let ordenActual = 'desc'; // Cambiado de 'desc' a 'desc' (ya está bien)
         
         // Botón actualizar
         document.getElementById('btn-actualizar-clasificacion')?.addEventListener('click', () => {
             this.loadClasificacionData(tipoActual, ordenActual);
         });
         
-        // Selector de tipo (Dinero / Vuelta)
+        // Selector de tipo (Dinero / Vuelta / Aciertos / Carreras)
         document.querySelectorAll('.btn-selector-tipo').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const nuevoTipo = e.currentTarget.dataset.tipo;
@@ -1040,25 +1125,16 @@ class TabManager {
                 
                 // Actualizar y cargar
                 tipoActual = nuevoTipo;
-                ordenActual = nuevoTipo === 'dinero' ? 'desc' : 'asc';
-                this.loadClasificacionData(tipoActual, ordenActual);
-            });
-        });
-        
-        // Botones de ordenamiento
-        document.querySelectorAll('.btn-ordenar').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const nuevoOrden = e.currentTarget.dataset.order;
                 
-                // Actualizar botones activos
-                document.querySelectorAll('.btn-ordenar').forEach(b => 
-                    b.classList.remove('active')
-                );
-                e.currentTarget.classList.add('active');
+                // Establecer orden por defecto según el tipo
+                if (nuevoTipo === 'vuelta') {
+                    ordenActual = 'asc'; // Para vueltas: mejores primero (menor tiempo)
+                } else if (nuevoTipo === 'aciertos' || nuevoTipo === 'carreras' || nuevoTipo === 'dinero') {
+                    ordenActual = 'desc'; // Para estos: mayores primero
+                }
                 
-                // Actualizar y cargar
-                ordenActual = nuevoOrden;
                 this.loadClasificacionData(tipoActual, ordenActual);
+
             });
         });
         
