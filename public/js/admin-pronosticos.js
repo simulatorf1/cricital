@@ -775,7 +775,8 @@ class AdminPronosticos {
                     - TOTAL: ${puntuacionFinal} puntos
                     - Dinero: €${dineroGanado}`);
                     
-                    // F. Actualizar el pronóstico - SIN TOCAR bonificaciones_aplicadas
+
+                    // F. Actualizar el pronóstico
                     const { error: updateError } = await this.supabase
                         .from('pronosticos_usuario')
                         .update({
@@ -787,6 +788,34 @@ class AdminPronosticos {
                         })
                         .eq('id', pronostico.id);
                     
+                    // 🔥 NUEVO: Actualizar estadísticas de la escudería
+                    try {
+                        const { data: escuderiaStats } = await this.supabase
+                            .from('escuderias')
+                            .select('gp_participados, aciertos_totales, preguntas_totales')
+                            .eq('id', pronostico.escuderia_id)
+                            .single();
+                        
+                        if (escuderiaStats) {
+                            const nuevosGP = (escuderiaStats.gp_participados || 0) + 1;
+                            const nuevosAciertos = (escuderiaStats.aciertos_totales || 0) + aciertos;
+                            const nuevasPreguntas = (escuderiaStats.preguntas_totales || 0) + 10;
+                            
+                            await this.supabase
+                                .from('escuderias')
+                                .update({
+                                    gp_participados: nuevosGP,
+                                    aciertos_totales: nuevosAciertos,
+                                    preguntas_totales: nuevasPreguntas
+                                })
+                                .eq('id', pronostico.escuderia_id);
+                            
+                            console.log(`📊 Estadísticas actualizadas: GP:${nuevosGP} Aciertos:${nuevosAciertos}/${nuevasPreguntas}`);
+                        }
+                    } catch (statsError) {
+                        console.error('❌ Error actualizando estadísticas:', statsError);
+                    }
+                    
                     if (updateError) {
                         console.error(`❌ Error actualizando pronóstico ${pronostico.id}:`, updateError);
                         errores++;
@@ -794,6 +823,8 @@ class AdminPronosticos {
                         procesados++;
                         console.log(`✅ Pronóstico ${pronostico.id} actualizado`);
                     }
+                    
+
                     
                 } catch (errorPronostico) {
                     console.error(`❌ Error procesando pronóstico ${pronostico?.id}:`, errorPronostico);
