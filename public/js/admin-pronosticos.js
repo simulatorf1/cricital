@@ -711,13 +711,83 @@ class AdminPronosticos {
                 mapaAreas[`p${p.numero_pregunta}`] = p.area;
             });
             
+            // ===========================================
+            // OBTENER FECHAS DEL PERÍODO DE VUELTA RÁPIDA
+            // ===========================================
+            // Obtener la carrera actual para saber su fecha
+            const { data: carreraActual, error: errorCarrera } = await this.supabase
+                .from('calendario_gp')
+                .select('fecha_inicio, nombre')
+                .eq('id', carreraId)
+                .single();
+            
+            if (errorCarrera) throw errorCarrera;
+            
+            // Calcular el período: desde 6 días antes hasta 2 días antes de la carrera
+            const fechaCarrera = new Date(carreraActual.fecha_inicio);
+            
+            const fechaFinPeriodo = new Date(fechaCarrera);
+            fechaFinPeriodo.setDate(fechaCarrera.getDate() - 2); // 2 días antes
+            fechaFinPeriodo.setHours(23, 59, 59, 999); // Final del día
+            
+            const fechaInicioPeriodo = new Date(fechaCarrera);
+            fechaInicioPeriodo.setDate(fechaCarrera.getDate() - 6); // 6 días antes
+            fechaInicioPeriodo.setHours(0, 0, 0, 0); // Inicio del día
+            
+            console.log(`📅 Carrera: ${carreraActual.nombre} (${fechaCarrera.toISOString().split('T')[0]})`);
+            console.log(`📅 Período válido para vueltas rápidas: ${fechaInicioPeriodo.toISOString().split('T')[0]} al ${fechaFinPeriodo.toISOString().split('T')[0]}`);
+            // ===========================================
+            
             // 4. Calcular para cada pronóstico
             let procesados = 0;
             let errores = 0;
             
             for (const pronostico of pronosticos) {
                 try {
-                    console.log(`📝 Procesando pronóstico ID: ${pronostico.id}`);
+                    console.log(`📝 Procesando pronóstico ID: ${pronostico.id} (escudería: ${pronostico.escuderia_id})`);
+                    
+                    // ===========================================
+                    // NUEVO: Buscar la vuelta rápida en el período correcto
+                    // ===========================================
+                    let vueltaRapida = "0"; // Por defecto 0 si no hay vuelta
+                    try {
+                        // Buscar la vuelta más rápida de esta escudería en el período específico
+                        const { data: vueltaData, error: vueltaError } = await this.supabase
+                            .from('pruebas_pista')
+                            .select('tiempo_formateado, fecha_prueba')
+                            .eq('escuderia_id', pronostico.escuderia_id)
+                            .gte('fecha_prueba', fechaInicioPeriodo.toISOString())
+                            .lte('fecha_prueba', fechaFinPeriodo.toISOString())
+                            .order('tiempo_formateado', { ascending: true }) // Ordenar por tiempo (más rápido primero)
+                            .limit(1);
+                        
+                        if (!vueltaError && vueltaData && vueltaData.length > 0) {
+                            vueltaRapida = vueltaData[0].tiempo_formateado;
+                            const fechaVuelta = new Date(vueltaData[0].fecha_prueba).toISOString().split('T')[0];
+                            console.log(`🏎️ Vuelta rápida encontrada para escudería ${pronostico.escuderia_id}: ${vueltaRapida} (fecha: ${fechaVuelta})`);
+                        } else {
+                            console.log(`⚠️ No se encontró vuelta rápida para escudería ${pronostico.escuderia_id} en el período - valor por defecto: 0`);
+                            // vueltaRapida ya es "0" por defecto
+                        }
+                    } catch (vueltaError) {
+                        console.warn(`⚠️ Error buscando vuelta rápida:`, vueltaError);
+                        // vueltaRapida ya es "0" por defecto
+                    }
+                    
+                    // Actualizar el pronóstico con la vuelta rápida
+                    const { error: updateVueltaError } = await this.supabase
+                        .from('pronosticos_usuario')
+                        .update({ 
+                            vuelta_rapida_snapshot: vueltaRapida
+                        })
+                        .eq('id', pronostico.id);
+                    
+                    if (updateVueltaError) {
+                        console.warn(`⚠️ No se pudo guardar la vuelta rápida:`, updateVueltaError);
+                    } else {
+                        console.log(`✅ Vuelta rápida guardada: ${vueltaRapida === "0" ? "0 (sin vuelta en período)" : vueltaRapida}`);
+                    }
+                    // ===========================================
                     
                     // 🔥 USAR LAS BONIFICACIONES GUARDADAS
                     const bonificacionesGuardadas = pronostico.bonificaciones_aplicadas || {};
@@ -775,7 +845,6 @@ class AdminPronosticos {
                     - TOTAL: ${puntuacionFinal} puntos
                     - Dinero: €${dineroGanado}`);
                     
-
                     // F. Actualizar el pronóstico
                     const { error: updateError } = await this.supabase
                         .from('pronosticos_usuario')
@@ -824,8 +893,6 @@ class AdminPronosticos {
                         console.log(`✅ Pronóstico ${pronostico.id} actualizado`);
                     }
                     
-
-                    
                 } catch (errorPronostico) {
                     console.error(`❌ Error procesando pronóstico ${pronostico?.id}:`, errorPronostico);
                     errores++;
@@ -836,7 +903,7 @@ class AdminPronosticos {
             this.mostrarMensaje(`✅ Puntajes calculados para ${procesados} usuario(s)`, 'success');
             
             // ===========================================
-            // 🆕 CREAR NOTIFICACIONES PARA LOS USUARIOS
+            // CREAR NOTIFICACIONES PARA LOS USUARIOS
             // ===========================================
             try {
                 console.log('📨 Creando notificaciones para los usuarios...');
