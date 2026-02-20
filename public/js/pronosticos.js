@@ -3576,7 +3576,10 @@ class PronosticosManager {
                         aciertos++;
                     }
                 }
-                
+                // 🔥 LOGS PARA DEPURAR
+                console.log("🔥 VALOR CRÍTICO - aciertos:", aciertos, "para pronóstico", pronostico.id);
+                console.log("🔥 respuestas usuario:", pronostico.respuestas);
+                console.log("🔥 respuestas correctas:", respuestasCorrectas);                
                 // Calcular puntos base (100 por acierto)
                 const puntosBase = aciertos * 100;
                 
@@ -3646,7 +3649,7 @@ class PronosticosManager {
                     }
                     
                     // Guardar user_id para notificación
-                    usuarioId = escuderia.user_id;
+                    const usuarioId = escuderia.user_id;
                     
                     // 7. Preparar notificación para este usuario
                     if (escuderia.user_id) {
