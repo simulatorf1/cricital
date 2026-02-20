@@ -227,7 +227,7 @@ if (!document.getElementById('estilos-notificaciones')) {
         
         .mensajes-container {
             display: grid;
-            grid-template-columns: 180px 1fr;
+            grid-template-columns: 120px 1fr;
             gap: 15px;
             width: 100%;
             max-width: 1100px;
@@ -247,7 +247,7 @@ if (!document.getElementById('estilos-notificaciones')) {
             border-right: 1px solid rgba(0, 210, 190, 0.2);
             display: flex;
             flex-direction: column;
-            width: 180px;
+            width: 120px;
         }
         
         .lista-conversaciones {
