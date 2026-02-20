@@ -821,7 +821,7 @@ class PronosticosManager {
             }
         } // <-- 🔥 ESTA ES LA LLAVE QUE FALTA
 
-    mostrarPantallaPrincipal(container, pronosticosAnteriores) {
+
     mostrarPantallaPrincipal(container, pronosticosAnteriores) {
         // Si ya tiene pronóstico, mostrar interfaz original pero con selector
         if (this.pronosticoGuardado) {
