@@ -2564,7 +2564,10 @@ class F1Manager {
                                         white-space: nowrap;
                                     ">${this.escuderia?.estrellas_semana || 0}</span>
                                 </div>
-                                
+                                <!-- Espacio para notificaciones (se llenará después) -->
+                                <div id="notificaciones-placeholder" style="display: inline-block;"></div>
+                                <!-- Espacio para mensajes (se llenará después) -->
+                                <div id="mensajes-placeholder" style="display: inline-block;"></div>                                
 
                             </div>
                         </header>
