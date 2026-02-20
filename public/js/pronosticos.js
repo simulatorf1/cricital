@@ -700,10 +700,12 @@ class PronosticosManager {
             return;
         }
         
+
         if (tipoPantalla === 'enviado') {
+            // 📌 CASO 1: PRONÓSTICO ENVIADO (pendiente de resultados)
             const carreraEnviada = carreraSeleccionada;
             
-            // Buscar la SIGUIENTE carrera
+            // Buscar la SIGUIENTE carrera (para mostrarla como información, no para pronosticar)
             const { data: siguienteCarrera } = await this.supabase
                 .from('calendario_gp')
                 .select('*')
@@ -712,150 +714,120 @@ class PronosticosManager {
                 .limit(1)
                 .maybeSingle();
             
-            if (siguienteCarrera) {
-                // Verificar si la siguiente carrera tiene preguntas
-                const { data: preguntasSiguiente } = await this.supabase
-                    .from('preguntas_pronostico')
-                    .select('count')
-                    .eq('carrera_id', siguienteCarrera.id)
-                    .single();
-                
-                const tienePreguntas = preguntasSiguiente && preguntasSiguiente.count > 0;
-                
-                if (!tienePreguntas) {
-                    // NO HAY PREGUNTAS - Mostrar pantalla de no disponible
-                    this.carreraActual = siguienteCarrera;
-                    await this.cargarDatosUsuario(user.id);
+            // Calcular fecha estimada de resultados (24h después de la carrera)
+            const fechaCarrera = new Date(carreraEnviada.fecha_inicio);
+            fechaCarrera.setHours(fechaCarrera.getHours() + 24);
+            const fechaResultados = fechaCarrera.toLocaleDateString('es-ES', {
+                day: 'numeric',
+                month: 'long',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            container.innerHTML = `
+                <div class="pronostico-container compacto">
+                    <!-- Histórico siempre arriba -->
+                    ${historicoHTML}
                     
-                    container.innerHTML = `
-                        <div class="pronostico-container compacto">
-                            ${historicoHTML}
-                            
-                            <!-- Mensaje de éxito por cobro -->
-                            <div class="card mb-3" style="background: #0a2a1a; border: 2px solid #00d2be;">
-                                <div class="card-body py-3">
-                                    <div class="d-flex align-items-start gap-3">
-                                        <div style="font-size: 40px; color: #00d2be;">💰</div>
-                                        <div>
-                                            <h5 class="text-success mb-2">¡DINERO COBRADO CORRECTAMENTE!</h5>
-                                            <p class="mb-1"><strong>${carreraEnviada.nombre}</strong></p>
-                                            <p class="mb-2">El dinero se ha añadido a tu escudería.</p>
-                                        </div>
-                                    </div>
+                    <!-- Mensaje principal - PRONÓSTICO ENVIADO CORRECTAMENTE -->
+                    <div class="card mb-3" style="background: linear-gradient(145deg, #0a2a1a 0%, #1a3a1a 100%); border: 2px solid #00d2be; box-shadow: 0 0 15px rgba(0,210,190,0.3);">
+                        <div class="card-body py-4">
+                            <div class="d-flex align-items-center gap-4">
+                                <div style="font-size: 60px; color: #00d2be; filter: drop-shadow(0 0 10px rgba(0,210,190,0.5));">
+                                    <i class="fas fa-check-circle"></i>
                                 </div>
-                            </div>
-                            
-                            <!-- Pantalla de no disponible para siguiente carrera -->
-                            <div class="card">
-                                <div class="card-header bg-dark text-white py-2">
-                                    <h5 class="mb-0"><i class="fas fa-flag-checkered"></i> SIGUIENTE: ${siguienteCarrera.nombre}</h5>
+                                <div>
+                                    <h4 class="text-success mb-2" style="color: #00d2be !important; font-weight: 700;">✅ ¡PRONÓSTICO ENVIADO CORRECTAMENTE!</h4>
+                                    <p class="mb-1 fs-5"><strong style="color: #fff;">${carreraEnviada.nombre}</strong></p>
+                                    <p class="mb-0" style="color: #ccc;">Tu pronóstico ha sido registrado en el sistema.</p>
                                 </div>
-                                <div class="card-body py-3">
-                                    <div class="alert alert-warning mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-hourglass-half me-3" style="font-size: 24px;"></i>
-                                            <div>
-                                                <strong>⏳ APUESTAS NO DISPONIBLES</strong>
-                                                <p class="mb-0 mt-2">Las apuestas para ${siguienteCarrera.nombre} aún no están abiertas.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Datos de la carrera -->
-                                    <div class="table-responsive mb-3">
-                                        <table class="table table-sm table-dark">
-                                            <thead class="bg-secondary">
-                                                <tr>
-                                                    <th>Vuelta rápida</th>
-                                                    <th>Estrategas</th>
-                                                    <th>Fecha</th>
-                                                    <th>Resultados</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td class="text-center" id="vuelta-rapida-siguiente">--:--:---</td>
-                                                    <td class="text-center">${this.estrategasActivos?.length || 0}</td>
-                                                    <td class="text-center">${new Date().toLocaleDateString('es-ES')}</td>
-                                                    <td class="text-center text-info">Próximamente</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    
-                                    <button class="btn btn-outline-secondary" onclick="window.tabManager.switchTab('principal')">
-                                        Volver al inicio
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Cargar vuelta rápida
-                    this.cargarVueltaRapidaParaElemento('vuelta-rapida-siguiente');
-                    return;
-                }
-                
-                // TIENE PREGUNTAS - Mostrar botón para pronosticar
-                this.carreraActual = siguienteCarrera;
-                await this.cargarPreguntasCarrera(siguienteCarrera.id);
-                await this.cargarDatosUsuario(user.id);
-                
-                // Verificar si ya hizo pronóstico
-                const { data: yaTienePronostico } = await this.supabase
-                    .from('pronosticos_usuario')
-                    .select('id')
-                    .eq('escuderia_id', this.escuderiaId)
-                    .eq('carrera_id', siguienteCarrera.id)
-                    .maybeSingle();
-                
-                // Renderizar con botón de pronosticar
-                container.innerHTML = `
-                    <div class="pronostico-container compacto">
-                        ${historicoHTML}
-                        
-                        <!-- Mensaje de éxito por cobro -->
-                        <div class="card mb-3" style="background: #0a2a1a; border: 2px solid #00d2be;">
-                            <div class="card-body py-3">
-                                <div class="d-flex align-items-start gap-3">
-                                    <div style="font-size: 40px; color: #00d2be;">💰</div>
-                                    <div>
-                                        <h5 class="text-success mb-2">¡DINERO COBRADO CORRECTAMENTE!</h5>
-                                        <p class="mb-1"><strong>${carreraEnviada.nombre}</strong></p>
-                                        <p class="mb-2">El dinero se ha añadido a tu escudería.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Siguiente carrera con preguntas -->
-                        <div class="card">
-                            <div class="card-header bg-dark text-white py-2">
-                                <h5 class="mb-0"><i class="fas fa-flag-checkered"></i> SIGUIENTE: ${siguienteCarrera.nombre}</h5>
-                            </div>
-                            <div class="card-body py-3">
-                                ${this.generarDatosGuardado()}
-                                
-                                ${yaTienePronostico ? `
-                                    <div class="alert alert-success mt-3">
-                                        Ya has enviado tu pronóstico para esta carrera
-                                    </div>
-                                    <button class="btn btn-outline-primary btn-lg" onclick="window.pronosticosManager.verPronosticoGuardado()">
-                                        Ver mi pronóstico
-                                    </button>
-                                ` : `
-                                    <button class="btn btn-success btn-lg" onclick="window.pronosticosManager.verificarYEmpezarPronostico()">
-                                        Empezar pronóstico
-                                    </button>
-                                `}
                             </div>
                         </div>
                     </div>
-                `;
-                
-                this.cargarVueltaRapidaParaSiguiente();
-            }
-            return; // ← Importante: salir después de manejar 'enviado'
+                    
+                    <!-- Estado del pronóstico -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-info text-white py-2">
+                            <h5 class="mb-0"><i class="fas fa-hourglass-half me-2"></i> ESTADO DE TU PRONÓSTICO</h5>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div style="width: 40px; height: 40px; background: #ffb400; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                            <i class="fas fa-clock" style="color: #000;"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1" style="color: #ffb400;">⏳ PENDIENTE DE RESULTADOS</h6>
+                                            <p class="mb-0 small text-muted">La carrera aún no ha finalizado</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <span class="badge bg-warning text-dark p-3 fs-6">
+                                            <i class="fas fa-calendar me-2"></i> Resultados estimados: ${fechaResultados}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="card bg-dark border-secondary">
+                                        <div class="card-body py-2">
+                                            <h6 class="text-info mb-2"><i class="fas fa-chart-simple me-2"></i>Resumen</h6>
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span class="text-muted">Carrera:</span>
+                                                <span class="fw-bold">${carreraEnviada.nombre}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span class="text-muted">Fecha:</span>
+                                                <span>${new Date(carreraEnviada.fecha_inicio).toLocaleDateString('es-ES')}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted">Tus estrategas:</span>
+                                                <span class="badge bg-info">${this.estrategasActivos?.length || 0} activos</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información de la siguiente carrera (solo informativa) -->
+                    ${siguienteCarrera ? `
+                        <div class="card">
+                            <div class="card-header bg-dark text-white py-2">
+                                <h5 class="mb-0"><i class="fas fa-flag-checkered me-2"></i> PRÓXIMO GRAN PREMIO</h5>
+                            </div>
+                            <div class="card-body py-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 class="mb-1">${siguienteCarrera.nombre}</h6>
+                                        <p class="small text-muted mb-0">${new Date(siguienteCarrera.fecha_inicio).toLocaleDateString('es-ES')}</p>
+                                    </div>
+                                    <span class="badge bg-secondary">Próximamente</span>
+                                </div>
+                                <p class="small text-info mt-2 mb-0">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Podrás pronosticar cuando finalice la carrera actual
+                                </p>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-outline-primary flex-grow-1" onclick="window.pronosticosManager.verPronosticoGuardado()">
+                            <i class="fas fa-eye me-2"></i> VER MI PRONÓSTICO
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="window.tabManager.switchTab('principal')">
+                            <i class="fas fa-home"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return;
         }
         
         // Si llegamos aquí, es porque es tipo 'pronosticar'
@@ -2048,7 +2020,22 @@ class PronosticosManager {
             `);
         }
     }
-    
+    async verificarEstadisticasEscuderia() {
+        if (!this.escuderiaId) return;
+        
+        const { data, error } = await this.supabase
+            .from('escuderias')
+            .select('gp_participados, aciertos_totales, preguntas_totales')
+            .eq('id', this.escuderiaId)
+            .single();
+        
+        console.log("📊 ESTADÍSTICAS ACTUALES:", data);
+        console.log("📊 GP participados:", data?.gp_participados);
+        console.log("📊 Aciertos totales:", data?.aciertos_totales);
+        console.log("📊 Preguntas totales:", data?.preguntas_totales);
+        
+        return data;
+    }    
     async cargarResultadosCarrera(carreraId = null) {
         const { data: { user } } = await this.supabase.auth.getUser();
         if (!user) return;
@@ -3624,22 +3611,42 @@ class PronosticosManager {
                     .eq('id', pronostico.id);
                 
                 // 6. ACTUALIZAR estadísticas de la escudería
-                // Primero obtener la escudería para saber el user_id
-                const { data: escuderia } = await this.supabase
+                const { data: escuderia, error: errorEscuderia } = await this.supabase
                     .from('escuderias')
-                    .select('user_id, gp_participados, aciertos_totales, preguntas_totales')
+                    .select('gp_participados, aciertos_totales, preguntas_totales, user_id')
                     .eq('id', pronostico.escuderia_id)
                     .single();
                 
-                if (escuderia) {
-                    await this.supabase
+                if (errorEscuderia) {
+                    console.error("❌ Error obteniendo escudería:", errorEscuderia);
+                } else if (escuderia) {
+                    console.log("📊 Estadísticas actuales:", escuderia);
+                    
+                    const nuevosGP = (escuderia.gp_participados || 0) + 1;
+                    const nuevosAciertos = (escuderia.aciertos_totales || 0) + aciertos;
+                    const nuevasPreguntas = (escuderia.preguntas_totales || 0) + 10;
+                    
+                    const { error: errorUpdate } = await this.supabase
                         .from('escuderias')
                         .update({
-                            gp_participados: (escuderia.gp_participados || 0) + 1,
-                            aciertos_totales: (escuderia.aciertos_totales || 0) + aciertos,
-                            preguntas_totales: (escuderia.preguntas_totales || 0) + 10
+                            gp_participados: nuevosGP,
+                            aciertos_totales: nuevosAciertos,
+                            preguntas_totales: nuevasPreguntas
                         })
                         .eq('id', pronostico.escuderia_id);
+                    
+                    if (errorUpdate) {
+                        console.error("❌ Error actualizando estadísticas:", errorUpdate);
+                    } else {
+                        console.log("✅ Estadísticas actualizadas:", {
+                            gp_participados: nuevosGP,
+                            aciertos_totales: nuevosAciertos,
+                            preguntas_totales: nuevasPreguntas
+                        });
+                    }
+                    
+                    // Guardar user_id para notificación
+                    usuarioId = escuderia.user_id;
                     
                     // 7. Preparar notificación para este usuario
                     if (escuderia.user_id) {
