@@ -427,7 +427,7 @@ class PronosticosManager {
             return;
         }
         
-        // Obtener TODOS los pronósticos anteriores (SIEMPRE se muestra)
+        // Obtener TODOS los pronósticos anteriores
         const { data: pronosticosAnteriores } = await this.supabase
             .from('pronosticos_usuario')
             .select(`
@@ -437,7 +437,7 @@ class PronosticosManager {
             .eq('escuderia_id', this.escuderiaId)
             .order('fecha_pronostico', { ascending: false });
         
-        // 🔥 NUEVO: Obtener carreras que ya ha cobrado el usuario
+        // Obtener carreras que ya ha cobrado el usuario
         const { data: pronosticosCobrados } = await this.supabase
             .from('pronosticos_usuario')
             .select('carrera_id')
@@ -449,7 +449,6 @@ class PronosticosManager {
         
         const hoy = new Date();
         const fechaHoy = hoy.toISOString().split('T')[0];
-
         
         // Obtener TODAS las carreras desde hoy en adelante
         const { data: carreras } = await this.supabase
@@ -476,14 +475,13 @@ class PronosticosManager {
         }
         
         // Buscar la PRIMERA carrera que cumpla las condiciones
-        // Buscar la PRIMERA carrera que cumpla las condiciones (SALTANDO las cobradas)
         let carreraSeleccionada = null;
         let tipoPantalla = 'pronosticar';
         let pronosticoExistente = null;
         let resultadosExistentes = null;
         
         for (const carrera of carreras) {
-            // 🔥 SALTAR carreras ya cobradas
+            // SALTAR carreras ya cobradas
             if (carrerasCobradas.has(carrera.id)) {
                 console.log(`⏩ Carrera ${carrera.id} (${carrera.nombre}) ya cobrada, saltando`);
                 continue;
@@ -562,7 +560,6 @@ class PronosticosManager {
             }
         }
         
-
         // Si no encontramos ninguna, buscar la primera carrera NO cobrada
         if (!carreraSeleccionada && carreras.length > 0) {
             for (const carrera of carreras) {
@@ -574,6 +571,10 @@ class PronosticosManager {
             
             // Si todas las carreras están cobradas
             if (!carreraSeleccionada) {
+                const historicoHTML = pronosticosAnteriores?.length > 0 ? 
+                    this.renderizarSelectorHistorico(pronosticosAnteriores) : 
+                    this.renderizarSelectorHistoricoVacio();
+                
                 container.innerHTML = `
                     <div class="pronostico-container compacto">
                         <div class="card">
@@ -618,10 +619,9 @@ class PronosticosManager {
         await this.cargarPreguntasCarrera(carreraSeleccionada.id);
         
         // Histórico siempre arriba
-
         const historicoHTML = pronosticosAnteriores?.length > 0 ? 
             this.renderizarSelectorHistorico(pronosticosAnteriores) : 
-            this.renderizarSelectorHistoricoVacio(); // <-- NUEVA FUNCIÓN    
+            this.renderizarSelectorHistoricoVacio();
         
         // RENDERIZAR SEGÚN TIPO
         if (tipoPantalla === 'resultados') {
@@ -713,7 +713,7 @@ class PronosticosManager {
                 .maybeSingle();
             
             if (siguienteCarrera) {
-                // ✅ VERIFICAR SI LA SIGUIENTE CARRERA TIENE PREGUNTAS
+                // Verificar si la siguiente carrera tiene preguntas
                 const { data: preguntasSiguiente } = await this.supabase
                     .from('preguntas_pronostico')
                     .select('count')
@@ -723,7 +723,7 @@ class PronosticosManager {
                 const tienePreguntas = preguntasSiguiente && preguntasSiguiente.count > 0;
                 
                 if (!tienePreguntas) {
-                    // 🟡 NO HAY PREGUNTAS - Mostrar pantalla de no disponible
+                    // NO HAY PREGUNTAS - Mostrar pantalla de no disponible
                     this.carreraActual = siguienteCarrera;
                     await this.cargarDatosUsuario(user.id);
                     
@@ -796,7 +796,7 @@ class PronosticosManager {
                     return;
                 }
                 
-                // 🟢 TIENE PREGUNTAS - Mostrar botón para pronosticar
+                // TIENE PREGUNTAS - Mostrar botón para pronosticar
                 this.carreraActual = siguienteCarrera;
                 await this.cargarPreguntasCarrera(siguienteCarrera.id);
                 await this.cargarDatosUsuario(user.id);
@@ -810,17 +810,62 @@ class PronosticosManager {
                     .maybeSingle();
                 
                 // Renderizar con botón de pronosticar
-                container.innerHTML = this.generarPantallaSiguienteConPreguntas(
-                    carreraEnviada, 
-                    siguienteCarrera, 
-                    !!yaTienePronostico,
-                    historicoHTML
-                );
+                container.innerHTML = `
+                    <div class="pronostico-container compacto">
+                        ${historicoHTML}
+                        
+                        <!-- Mensaje de éxito por cobro -->
+                        <div class="card mb-3" style="background: #0a2a1a; border: 2px solid #00d2be;">
+                            <div class="card-body py-3">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div style="font-size: 40px; color: #00d2be;">💰</div>
+                                    <div>
+                                        <h5 class="text-success mb-2">¡DINERO COBRADO CORRECTAMENTE!</h5>
+                                        <p class="mb-1"><strong>${carreraEnviada.nombre}</strong></p>
+                                        <p class="mb-2">El dinero se ha añadido a tu escudería.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Siguiente carrera con preguntas -->
+                        <div class="card">
+                            <div class="card-header bg-dark text-white py-2">
+                                <h5 class="mb-0"><i class="fas fa-flag-checkered"></i> SIGUIENTE: ${siguienteCarrera.nombre}</h5>
+                            </div>
+                            <div class="card-body py-3">
+                                ${this.generarDatosGuardado()}
+                                
+                                ${yaTienePronostico ? `
+                                    <div class="alert alert-success mt-3">
+                                        Ya has enviado tu pronóstico para esta carrera
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-lg" onclick="window.pronosticosManager.verPronosticoGuardado()">
+                                        Ver mi pronóstico
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-success btn-lg" onclick="window.pronosticosManager.verificarYEmpezarPronostico()">
+                                        Empezar pronóstico
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
                 
                 this.cargarVueltaRapidaParaSiguiente();
             }
-        } // <-- 🔥 ESTA ES LA LLAVE QUE FALTA
-
+            return; // ← Importante: salir después de manejar 'enviado'
+        }
+        
+        // Si llegamos aquí, es porque es tipo 'pronosticar'
+        if (!this.usuarioAceptoCondiciones) {
+            this.mostrarCondicionesInicialesConHistorico(container, pronosticosAnteriores || []);
+        } else {
+            this.mostrarPreguntasPronosticoConHistorico(container, pronosticosAnteriores || []);
+        }
+    } // ← 🔥 ESTA ES LA LLAVE QUE CIERRA LA FUNCIÓN cargarPantallaPronostico()
+    
 
     mostrarPantallaPrincipal(container, pronosticosAnteriores) {
         // Si ya tiene pronóstico, mostrar interfaz original pero con selector
