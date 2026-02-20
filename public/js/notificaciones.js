@@ -297,7 +297,7 @@ if (!document.getElementById('estilos-notificaciones')) {
             overflow: hidden;
             text-overflow: ellipsis;
             display: inline-block;  /* <-- AÑADE ESTO */
-            max-width: calc(100% - 25px);  /* <-- RESERVA ESPACIO PARA EL NÚMERO */
+            max-width: 80px;
         }
         
         /* OCULTAR "Sin mensajes" */
