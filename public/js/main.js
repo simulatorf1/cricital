@@ -515,11 +515,7 @@ class F1Manager {
             }
         }
         
-        // Actualizar el contador de puntos en la UI (opcional, pero ya lo hiciste antes)
-        const puntosElement = document.getElementById('points-value');
-        if (puntosElement) {
-            puntosElement.textContent = this.escuderia.puntos;
-        }
+
         
         // NO llamar a cargarPiezasMontadas()
         console.log('✅ Proceso completado');
