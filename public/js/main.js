@@ -2275,11 +2275,12 @@ class F1Manager {
                     const desgastePorcentaje = Math.max(0, Math.min(100, desgaste));
                     
 
+
                     // Si la pieza fue destruida (desgaste = 0)
                     if (desgastePorcentaje <= 0) {
-                        // Mostrar hueco vacío (porque fue destruida)
-                        return `<div class="boton-area-vacia" onclick="window.f1Manager.procesarPiezaDestruida('${pieza.id}', '${area.id}', ${pieza.puntos_base || 0})"  
-                                title="${area.nombre}: Pieza destruida - Perderás ${pieza.puntos_base} pts"
+                        // Mostrar hueco vacío (ya fue destruida automáticamente)
+                        return `<div class="boton-area-vacia" onclick="window.f1Manager.showNotification('😞 Esta pieza ya fue destruida por desgaste', 'error')" 
+                                title="${area.nombre}: Pieza destruida automáticamente"
                                 style="background: rgba(225, 6, 0, 0.1); border: 2px dashed #e10600; cursor: pointer;">
                                 <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #e10600;">
                                     ${area.nombre}<br>
