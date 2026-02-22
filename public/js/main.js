@@ -467,7 +467,8 @@ class F1Manager {
         this.escuderia.puntos = nuevosPuntos;
         
         // 5. ACTUALIZAR UI (el contador de puntos)
-        const puntosElement = document.getElementById('points-value');
+        // 5. ACTUALIZAR UI (el contador de puntos)
+        const puntosElement = document.getElementById('points-value'); // ← SOLO UNA VEZ
         if (puntosElement) {
             puntosElement.textContent = nuevosPuntos;
         }
