@@ -1733,7 +1733,7 @@ class TabManager {
             await this.sumarPuntosAlCoche(piezaNueva.area, piezaNueva.puntos_base || 10);
             
             // SUMAR PUNTOS A LA ESCUDERÍA
-            const puntosSumar = piezaNueva.puntos_base || 10;
+            const puntosSumar = piezaNueva.puntos_base;
             const nuevosPuntosTotales = (window.f1Manager?.escuderia?.puntos || 0) + puntosSumar;
             
             await supabase
