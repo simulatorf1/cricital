@@ -1732,26 +1732,11 @@ class TabManager {
             // SUMAR PUNTOS DE LA NUEVA PIEZA
             await this.sumarPuntosAlCoche(piezaNueva.area, piezaNueva.puntos_base || 10);
             
-            // SUMAR PUNTOS A LA ESCUDERÍA
-            const puntosSumar = piezaNueva.puntos_base || 10;
-            const nuevosPuntosTotales = (window.f1Manager?.escuderia?.puntos || 0) + puntosSumar;
-            
-            await supabase
-                .from('escuderias')
-                .update({ puntos: nuevosPuntosTotales })
-                .eq('id', window.f1Manager?.escuderia?.id);
-            
-            if (window.f1Manager?.escuderia) {
-                window.f1Manager.escuderia.puntos = nuevosPuntosTotales;
-            }
+
             
             console.log('✅ Nueva pieza equipada y puntos sumados');
             
-            // 5. ACTUALIZAR UI
-            const puntosElement = document.getElementById('points-value');
-            if (puntosElement) {
-                puntosElement.textContent = nuevosPuntosTotales;
-            }
+
             
             // 6. RECARGAR ALMACÉN
             setTimeout(() => {
