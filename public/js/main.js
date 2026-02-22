@@ -628,6 +628,12 @@ class F1Manager {
     // ========================
     async calcularDesgastePieza(piezaId) {
         try {
+            // 🟢 NUEVO: Verificar si ya fue destruida en esta sesión
+            if (this.piezasDestruidas?.has(piezaId)) {
+                console.log(`⏭️ Pieza ${piezaId} ya fue destruida, omitiendo...`);
+                return 0;
+            }
+            
             const { data: pieza, error } = await this.supabase
                 .from('almacen_piezas')
                 .select('id, equipada, montada_en, desgaste_actual, area, puntos_base')
@@ -668,6 +674,12 @@ class F1Manager {
                 
                 const puntosActuales = escuderiaBD?.puntos || 0;
                 const puntosARestar = pieza.puntos_base || 10;
+                
+                // Validar que no se resten más puntos de los que hay
+                if (puntosARestar > puntosActuales) {
+                    console.warn(`⚠️ Intentando restar ${puntosARestar} pero solo hay ${puntosActuales}`);
+                }
+                
                 const nuevosPuntos = Math.max(0, puntosActuales - puntosARestar);
                 
                 // 2. RESTAR PUNTOS DE LA ESCUDERÍA
@@ -695,6 +707,10 @@ class F1Manager {
                     .from('almacen_piezas')
                     .delete()
                     .eq('id', piezaId);
+                
+                // 🟢 NUEVO: Marcar como destruida para evitar procesarla de nuevo
+                if (!this.piezasDestruidas) this.piezasDestruidas = new Set();
+                this.piezasDestruidas.add(piezaId);
                 
                 return 0;
             }
