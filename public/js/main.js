@@ -425,33 +425,72 @@ class F1Manager {
         }
     }
     async procesarPiezaDestruida(piezaId, areaId, puntosBase) {
-        console.log(`💥 Usuario retirando pieza destruida: ${piezaId} (${puntosBase} pts)`);
+        console.log(`💥 Procesando pieza destruida: ${piezaId} (${puntosBase} pts)`);
         
-        // 1. RESTAR PUNTOS DE LA ESCUDERÍA
-        const nuevosPuntos = Math.max(0, (this.escuderia.puntos || 0) - puntosBase);
+        // 1. OBTENER PUNTOS ACTUALES DIRECTAMENTE DE LA BD
+        const { data: escuderiaBD, error: errorConsulta } = await this.supabase
+            .from('escuderias')
+            .select('puntos')
+            .eq('id', this.escuderia.id)
+            .single();
         
-        await this.supabase
+        if (errorConsulta) {
+            console.error('❌ Error obteniendo puntos:', errorConsulta);
+            this.showNotification('Error al procesar la pieza', 'error');
+            return;
+        }
+        
+        const puntosActuales = escuderiaBD.puntos || 0;
+        console.log('💰 Puntos actuales en BD:', puntosActuales);
+        console.log('💰 Puntos de la pieza destruida:', puntosBase);
+        
+        // 2. CALCULAR NUEVOS PUNTOS (RESTAR SOLO LO DE ESTA PIEZA)
+        const nuevosPuntos = Math.max(0, puntosActuales - puntosBase);
+        console.log('💰 Nuevos puntos totales:', nuevosPuntos);
+        console.log('💰 Puntos restados:', puntosActuales - nuevosPuntos);
+        
+        // 3. ACTUALIZAR BD CON LOS NUEVOS PUNTOS
+        const { error: errorUpdate } = await this.supabase
             .from('escuderias')
             .update({ puntos: nuevosPuntos })
             .eq('id', this.escuderia.id);
         
+        if (errorUpdate) {
+            console.error('❌ Error actualizando puntos:', errorUpdate);
+            this.showNotification('Error al actualizar puntos', 'error');
+            return;
+        }
+        
+        // 4. ACTUALIZAR MEMORIA
         this.escuderia.puntos = nuevosPuntos;
         
-        // 2. RESTAR PUNTOS DEL COCHE (progreso)
+        // 5. ACTUALIZAR UI (el contador de puntos)
+        const puntosElement = document.getElementById('points-value');
+        if (puntosElement) {
+            puntosElement.textContent = nuevosPuntos;
+        }
+        
+        // 6. RESTAR PUNTOS DEL COCHE (progreso del área)
         await this.restarPuntosDelCoche(areaId, puntosBase);
         
-        // 3. ELIMINAR LA PIEZA
-        await this.supabase
+        // 7. ELIMINAR LA PIEZA DE ALMACÉN
+        const { error: errorDelete } = await this.supabase
             .from('almacen_piezas')
             .delete()
             .eq('id', piezaId);
         
-        // 4. NOTIFICACIÓN AUTOMÁTICA (se quita sola)
+        if (errorDelete) {
+            console.error('❌ Error eliminando pieza:', errorDelete);
+        }
+        
+        // 8. NOTIFICACIÓN AL USUARIO
         this.showNotification('😞 Hemos perdido piezas por falta de mantenimiento jefe!', 'error');
         
-        // 5. ACTUALIZAR UI
+        // 9. ACTUALIZAR LA VISTA DE PIEZAS MONTADAS
         await this.cargarPiezasMontadas();
-    }  
+        
+        console.log('✅ Proceso completado');
+    }
     async verificarResetDiario() {
         try {
             const hoy = new Date().toISOString().split('T')[0];
@@ -587,38 +626,42 @@ class F1Manager {
             
             console.log(`⏱️ Pieza ${piezaId}: montada hace ${minutosMontada.toFixed(0)}min → ${desgasteActual.toFixed(1)}%`);
             
-            // 🟢🟢🟢 MODIFICACIÓN AQUÍ 🟢🟢🟢
-            // Si llegó a 0% Y está equipada → DESTRUIR Y RESTAR PUNTOS
+            // 🟢🟢🟢 DESTRUCCIÓN: Si llegó a 0% Y está equipada 🟢🟢🟢
             if (desgasteActual <= 0 && pieza.equipada) {
                 console.log(`💥 DESTRUCCIÓN: Pieza ${piezaId} completó 24h montada`);
                 
-                // 1. RESTAR PUNTOS DE LA ESCUDERÍA
-                if (this.escuderia) {
-                    const puntosARestar = pieza.puntos_base || 10;
-                    const nuevosPuntos = Math.max(0, (this.escuderia.puntos || 0) - puntosARestar);
-                    
-                    // Actualizar en BD
-                    await this.supabase
-                        .from('escuderias')
-                        .update({ puntos: nuevosPuntos })
-                        .eq('id', this.escuderia.id);
-                    
-                    // Actualizar en memoria
-                    this.escuderia.puntos = nuevosPuntos;
-                    
-                    // Actualizar UI
-                    const puntosElement = document.getElementById('points-value');
-                    if (puntosElement) {
-                        puntosElement.textContent = nuevosPuntos;
-                    }
-                    
-                    console.log(`📉 Puntos restados por destrucción: -${puntosARestar}, ahora: ${nuevosPuntos}`);
+                // 1. OBTENER PUNTOS ACTUALES DE LA BD
+                const { data: escuderiaBD } = await this.supabase
+                    .from('escuderias')
+                    .select('puntos')
+                    .eq('id', this.escuderia.id)
+                    .single();
+                
+                const puntosActuales = escuderiaBD?.puntos || 0;
+                const puntosARestar = pieza.puntos_base || 10;
+                const nuevosPuntos = Math.max(0, puntosActuales - puntosARestar);
+                
+                // 2. RESTAR PUNTOS DE LA ESCUDERÍA
+                await this.supabase
+                    .from('escuderias')
+                    .update({ puntos: nuevosPuntos })
+                    .eq('id', this.escuderia.id);
+                
+                // Actualizar en memoria
+                this.escuderia.puntos = nuevosPuntos;
+                
+                // Actualizar UI
+                const puntosElement = document.getElementById('points-value');
+                if (puntosElement) {
+                    puntosElement.textContent = nuevosPuntos;
                 }
                 
-                // 2. RESTAR PUNTOS DEL PROGRESO DEL COCHE
-                await this.restarPuntosDelCoche(pieza.area, pieza.puntos_base || 10);
+                console.log(`📉 Puntos restados por destrucción: -${puntosARestar}, ahora: ${nuevosPuntos}`);
                 
-                // 3. ELIMINAR LA PIEZA
+                // 3. RESTAR PUNTOS DEL PROGRESO DEL COCHE
+                await this.restarPuntosDelCoche(pieza.area, puntosARestar);
+                
+                // 4. ELIMINAR LA PIEZA
                 await this.supabase
                     .from('almacen_piezas')
                     .delete()
