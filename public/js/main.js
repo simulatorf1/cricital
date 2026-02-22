@@ -424,7 +424,37 @@ class F1Manager {
             this.showNotification('❌ Error dando estrellas', 'error');
         }
     }
-    
+    async procesarPiezaDestruida(piezaId, areaId, puntosBase) {
+        console.log(`💥 Usuario retirando pieza destruida: ${piezaId} (${puntosBase} pts)`);
+        
+        // 1. CONFIRMAR con el usuario
+        if (!confirm(`⚠️ ¿Retirar pieza destruida?\nPerderás ${puntosBase} puntos de escudería y progreso.`)) {
+            return;
+        }
+        
+        // 2. RESTAR PUNTOS DE LA ESCUDERÍA
+        const nuevosPuntos = Math.max(0, (this.escuderia.puntos || 0) - puntosBase);
+        
+        await this.supabase
+            .from('escuderias')
+            .update({ puntos: nuevosPuntos })
+            .eq('id', this.escuderia.id);
+        
+        this.escuderia.puntos = nuevosPuntos;
+        
+        // 3. RESTAR PUNTOS DEL COCHE (progreso)
+        await this.restarPuntosDelCoche(areaId, puntosBase);
+        
+        // 4. ELIMINAR LA PIEZA
+        await this.supabase
+            .from('almacen_piezas')
+            .delete()
+            .eq('id', piezaId);
+        
+        // 5. ACTUALIZAR UI
+        this.showNotification(`💔 Pieza retirada: -${puntosBase} puntos`, 'error');
+        await this.cargarPiezasMontadas();
+    }    
     async verificarResetDiario() {
         try {
             const hoy = new Date().toISOString().split('T')[0];
@@ -2162,12 +2192,12 @@ class F1Manager {
                     // Si la pieza fue destruida (desgaste = 0)
                     if (desgastePorcentaje <= 0) {
                         // Mostrar hueco vacío (porque fue destruida)
-                        return `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" 
-                                title="${area.nombre}: Pieza destruida - Click para ir al Almacén"
-                                style="background: rgba(225, 6, 0, 0.1); border: 2px dashed #e10600;">
+                        return `<div class="boton-area-vacia" onclick="window.f1Manager.procesarPiezaDestruida('${pieza.id}', '${area.id}', ${pieza.puntos_base})" 
+                                title="${area.nombre}: Pieza destruida - CLIC PARA RETIRAR (perderás ${pieza.puntos_base} pts)"
+                                style="background: rgba(225, 6, 0, 0.1); border: 2px dashed #e10600; cursor: pointer;">
                                 <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #e10600;">
                                     ${area.nombre}<br>
-                                    <small style="font-size: 0.6rem; font-weight: bold;">DESTRUIDA</small>
+                                    <small style="font-size: 0.6rem; font-weight: bold;">DESTRUIDA (clic)</small>
                                 </div>
                             </div>`;
                     }
