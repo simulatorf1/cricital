@@ -2229,15 +2229,16 @@ class F1Manager {
                     const desgaste = await this.calcularDesgastePieza(pieza.id);
                     const desgastePorcentaje = Math.max(0, Math.min(100, desgaste));
                     
+
                     // Si la pieza fue destruida (desgaste = 0)
                     if (desgastePorcentaje <= 0) {
                         // Mostrar hueco vacío (porque fue destruida)
                         return `<div class="boton-area-vacia" onclick="window.f1Manager.procesarPiezaDestruida('${pieza.id}', '${area.id}', ${pieza.puntos_base})" 
-                                title="${area.nombre}: Pieza destruida - Click para retirar"
+                                title="${area.nombre}: Pieza destruida - Perderás ${pieza.puntos_base} pts"
                                 style="background: rgba(225, 6, 0, 0.1); border: 2px dashed #e10600; cursor: pointer;">
                                 <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #e10600;">
                                     ${area.nombre}<br>
-                                    <small style="font-size: 0.6rem; font-weight: bold;">DESTRUIDA</small>
+                                    <small style="font-size: 0.6rem; font-weight: bold;">DESTRUIDA (${pieza.puntos_base} pts)</small>
                                 </div>
                             </div>`;
                     }
