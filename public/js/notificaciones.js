@@ -514,15 +514,56 @@ class NotificacionesManager {
     // Inicializar
     inicializar() {
         console.log('🔔 Inicializando notificaciones...');
-        setTimeout(() => {
-            this.crearIcono();
-            this.cargarContador();
-            this.iniciarPolling();
-            this.crearIconoMensajes();
-            this.crearSeccionMensajes();
-        }, 2000);
         
-        // RESPALDO: Si después de 5 segundos no se ha creado, lo forzamos
+        // Función para verificar si podemos crear los iconos
+        const intentarCrearIconos = () => {
+            const estrellas = document.querySelector('.estrellas-display-compacto');
+            if (estrellas) {
+                console.log('✅ Estrellas encontradas, creando iconos...');
+                this.crearIcono();
+                this.crearIconoMensajes();
+                this.cargarContador();
+                this.iniciarPolling();
+                this.crearSeccionMensajes();
+                return true;
+            }
+            return false;
+        };
+        
+        // Intento inmediato
+        if (!intentarCrearIconos()) {
+            console.log('⏳ Estrellas no encontradas, esperando...');
+            
+            // Observer para cuando aparezcan las estrellas
+            const observer = new MutationObserver((mutations, obs) => {
+                if (document.querySelector('.estrellas-display-compacto')) {
+                    console.log('🎯 Estrellas detectadas por observer');
+                    intentarCrearIconos();
+                    obs.disconnect(); // Dejar de observar
+                }
+            });
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+            
+            // Timeout de seguridad (10 segundos)
+            setTimeout(() => {
+                if (!document.querySelector('.estrellas-display-compacto')) {
+                    console.log('⚠️ Timeout - Creando iconos de todas formas');
+                    // Crear los iconos igual, se reubicarán solos
+                    this.crearIcono();
+                    this.crearIconoMensajes();
+                    this.cargarContador();
+                    this.iniciarPolling();
+                    this.crearSeccionMensajes();
+                }
+                observer.disconnect();
+            }, 10000);
+        }
+        
+        // RESPALDO: Sección de mensajes (igual que antes)
         setTimeout(() => {
             if (!document.getElementById('seccion-mensajes')) {
                 console.log('⚠️ Forzando creación de sección de mensajes');
