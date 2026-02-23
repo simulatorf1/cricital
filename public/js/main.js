@@ -39,6 +39,7 @@ class F1Manager {
         this.user = user;
         this.escuderia = escuderia;
         
+        
         // GARANTIZAR QUE escuderiaId EXISTE Y ES STRING
         if (escuderia && escuderia.id) {
             this.escuderiaId = escuderia.id;
@@ -61,6 +62,7 @@ class F1Manager {
         this.carStats = null;
         this.proximoGP = null;
         this.estrategiaManager = null;
+        this._cargandoPiezas = false;  // ← AÑADE ESTO
         
         // Nombres personalizados para cada pieza de cada área (50 por área)
         this.nombresPiezas = {
@@ -2200,7 +2202,18 @@ class F1Manager {
         console.log('⏱️ Timers automáticos iniciados');
     }
 
+    // ========================
+    // MÉTODO CARGAR PIEZAS MONTADAS CON BLOQUEO ANTI-DOBLE EJECUCIÓN
+    // ========================
     async cargarPiezasMontadas() {
+        // 🚫 BLOQUEO: Si ya está cargando, salir inmediatamente
+        if (this._cargandoPiezas) {
+            console.log('⏭️ Ya hay una carga de piezas en progreso, ignorando esta llamada...');
+            return;
+        }
+        
+        // Marcar que estamos cargando
+        this._cargandoPiezas = true;
         console.log('🎯 Cargando piezas montadas...');
         
         const contenedor = document.getElementById('grid-piezas-montadas');
@@ -2252,7 +2265,6 @@ class F1Manager {
             let puntosTotales = 0;
             let html = '';
             
-            // ====== ¡CORRECCIÓN DEFINITIVA! ======
             // Usamos Promise.all para esperar todos los cálculos de desgaste
             const promesas = areas.map(async (area) => {
                 const pieza = piezasPorArea[area.id];
@@ -2274,17 +2286,15 @@ class F1Manager {
                     const desgaste = await this.calcularDesgastePieza(pieza.id);
                     const desgastePorcentaje = Math.max(0, Math.min(100, desgaste));
                     
-
-
                     // Si la pieza fue destruida (desgaste = 0)
                     if (desgastePorcentaje <= 0) {
                         // Mostrar hueco vacío (ya fue destruida automáticamente)
-                        return `<div class="boton-area-vacia" onclick="window.f1Manager.showNotification('😞 Esta pieza ya fue destruida por desgaste', 'error')" 
-                                title="${area.nombre}: Pieza destruida automáticamente"
+                        return `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" 
+                                title="${area.nombre}: Pieza destruida - Click para ir al Almacén"
                                 style="background: rgba(225, 6, 0, 0.1); border: 2px dashed #e10600; cursor: pointer;">
                                 <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #e10600;">
                                     ${area.nombre}<br>
-                                    <small style="font-size: 0.6rem; font-weight: bold;">DESTRUIDA (${pieza.puntos_base} pts)</small>
+                                    <small style="font-size: 0.6rem; font-weight: bold;">DESTRUIDA</small>
                                 </div>
                             </div>`;
                     }
@@ -2293,14 +2303,11 @@ class F1Manager {
                     const desgasteColor = this.getColorDesgaste(desgastePorcentaje);
                     const tiempoRestante = this.calcularTiempoRestante(desgastePorcentaje);
                     
-
-                    // ★★★★ SOLO UN DIV POR PIEZA ★★★★
                     areaHTML += `<div class="boton-area-montada" onclick="restaurarPiezaEquipada('${pieza.id}')" 
-                        
-                        title="${area.nombre}: ${nombreMostrar}
-                    Desgaste: ${desgastePorcentaje.toFixed(1)}%
-                    Tiempo restante: ${tiempoRestante}
-                    CLICK para restaurar al 100%">
+                                title="${area.nombre}: ${nombreMostrar}
+                        Desgaste: ${desgastePorcentaje.toFixed(1)}%
+                        Tiempo restante: ${tiempoRestante}
+                        CLICK para restaurar al 100%">
                         
                         <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; 
                             overflow: hidden; text-overflow: ellipsis; display: -webkit-box; 
@@ -2316,7 +2323,7 @@ class F1Manager {
                             </div>
                         </div>
                         
-                        <!-- PORCENTAJE DE DESGASTE (NUEVO) -->
+                        <!-- PORCENTAJE DE DESGASTE -->
                         <div style="font-size: 0.45rem; color: ${desgasteColor}; 
                             text-align: center; margin-top: 1px; font-weight: bold; opacity: 0.8;">
                             ${desgastePorcentaje.toFixed(0)}%
@@ -2332,15 +2339,14 @@ class F1Manager {
                     </div>`;
                     
                 } else {
-                    // ★★★★ Para huecos vacíos (SIN PIEZA) ★★★★
+                    // Para huecos vacíos (SIN PIEZA)
                     areaHTML += `<div class="boton-area-vacia" onclick="irAlAlmacenDesdePiezas()" 
-
-                        title="${area.nombre}: Sin pieza - Click para ir al Almacén y equipar">
-                        <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">
-                            ${area.nombre}<br>
-                            <small style="font-size: 0.6rem;">Vacío</small>
-                        </div>
-                    </div>`;
+                                title="${area.nombre}: Sin pieza - Click para ir al Almacén y equipar">
+                            <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">
+                                ${area.nombre}<br>
+                                <small style="font-size: 0.6rem;">Vacío</small>
+                            </div>
+                        </div>`;
                 }
                 
                 return areaHTML;
@@ -2352,8 +2358,6 @@ class F1Manager {
             
             contenedor.innerHTML = html;
             
-
-            
             const puntosElement = document.getElementById('puntos-totales-montadas');
             if (puntosElement) {
                 puntosElement.textContent = puntosTotales;
@@ -2362,6 +2366,13 @@ class F1Manager {
         } catch (error) {
             console.error('❌ Error cargando piezas montadas:', error);
             this.mostrarBotonesVacios(contenedor);
+        } finally {
+            // 🟢 IMPORTANTE: Liberar el bloqueo después de 2 segundos
+            // Esto permite que futuras llamadas (después de 2s) puedan ejecutarse
+            setTimeout(() => {
+                this._cargandoPiezas = false;
+                console.log('🔓 Bloqueo de carga liberado');
+            }, 2000);
         }
     }
     
