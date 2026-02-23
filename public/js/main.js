@@ -750,7 +750,7 @@ class F1Manager {
                         this.user.id,                          // usuario_id
                         'desgaste',                             // tipo
                         '💥 PIEZA DESTRUIDA',                   // titulo
-                        `"${pieza.componente || 'Pieza'}" se ha destruido por falta de mantenimiento. Jefe debes visitar mas amenudo las instalaciones....`, // mensaje
+                        `"${pieza.componente}" se ha destruido por falta de mantenimiento. Jefe debes visitar mas amenudo las instalaciones....`, // mensaje
                         piezaId                                  // tipo_relacion (guardamos el ID de la pieza)
                     );
                 }
