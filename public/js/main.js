@@ -544,7 +544,74 @@ class F1Manager {
             console.error('Error en reset diario:', error);
         }
     }
-
+    // ========================
+    // REEMPLAZAR BOTÓN DE PIEZA DESTRUIDA
+    // ========================
+    reemplazarBotonPiezaDestruida(piezaId, areaNombre) {
+        console.log(`🔄 Reemplazando botón de pieza destruida: ${piezaId}`);
+        
+        // Buscar el botón que contiene esta pieza (por el onclick de restaurar)
+        const botones = document.querySelectorAll(`[onclick*="restaurarPiezaEquipada('${piezaId}')"]`);
+        
+        botones.forEach(btn => {
+            if (btn && btn.closest('.boton-area-montada')) {
+                const contenedor = btn.closest('.boton-area-montada');
+                
+                // Obtener nombre del área para mostrar
+                let nombreArea = areaNombre;
+                const mapaNombres = {
+                    'suelo': 'Suelo',
+                    'motor': 'Motor',
+                    'aleron_delantero': 'Alerón Del.',
+                    'caja_cambios': 'Caja Cambios',
+                    'pontones': 'Pontones',
+                    'suspension': 'Suspensión',
+                    'aleron_trasero': 'Alerón Tras.',
+                    'chasis': 'Chasis',
+                    'frenos': 'Frenos',
+                    'volante': 'Volante',
+                    'electronica': 'Electrónica'
+                };
+                
+                if (mapaNombres[areaNombre]) {
+                    nombreArea = mapaNombres[areaNombre];
+                }
+                
+                // Crear el nuevo botón vacío
+                const nuevoBoton = document.createElement('div');
+                nuevoBoton.className = 'boton-area-vacia';
+                nuevoBoton.setAttribute('onclick', 'irAlAlmacenDesdePiezas()');
+                nuevoBoton.setAttribute('title', `${nombreArea}: Sin pieza - Click para ir al Almacén`);
+                nuevoBoton.innerHTML = `
+                    <div style="font-size: 0.7rem; line-height: 1.1; text-align: center; width: 100%; color: #888;">
+                        ${nombreArea}<br>
+                        <small style="font-size: 0.6rem;">Vacío</small>
+                    </div>
+                `;
+                
+                // Reemplazar el botón antiguo
+                if (contenedor && contenedor.parentNode) {
+                    contenedor.parentNode.replaceChild(nuevoBoton, contenedor);
+                    console.log('✅ Botón reemplazado correctamente');
+                }
+            }
+        });
+        
+        // Si no se encontró por el onclick, intentar buscar por el ID en el HTML
+        if (botones.length === 0) {
+            console.log('⚠️ No se encontró botón por onclick, buscando en el grid...');
+            const grid = document.getElementById('grid-piezas-montadas');
+            if (grid) {
+                const todosLosBotones = grid.querySelectorAll('.boton-area-montada');
+                todosLosBotones.forEach(btn => {
+                    if (btn.innerHTML.includes(piezaId) || btn.innerHTML.includes(areaNombre)) {
+                        // Este podría ser el botón, pero es menos preciso
+                        console.log('🔍 Posible botón encontrado por contenido');
+                    }
+                });
+            }
+        }
+    }
     // ========================
     // MÉTODO PARA RESTAR PUNTOS DEL COCHE (NECESARIO PARA DESTRUCCIÓN)
     // ========================
