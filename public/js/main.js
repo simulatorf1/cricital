@@ -665,7 +665,7 @@ class F1Manager {
             
             // 🟢🟢🟢 DESTRUCCIÓN: Si llegó a 0% Y está equipada 🟢🟢🟢
             if (desgasteActual <= 0 && pieza.equipada) {
-                console.log(`💥 DESTRUCCIÓN: Pieza ${piezaId} completó 24h montada`);
+                console.log(`💥 DESTRUCCIÓN: Pieza ${piezaId} (${pieza.componente}) completó 24h montada`);
                 
                 // 1. OBTENER PUNTOS ACTUALES DE LA BD
                 const { data: escuderiaBD } = await this.supabase
@@ -676,6 +676,17 @@ class F1Manager {
                 
                 const puntosActuales = escuderiaBD?.puntos || 0;
                 const puntosARestar = pieza.puntos_base || 10;
+                
+                // 🟢🟢🟢 CREAR NOTIFICACIÓN EN LA BD 🟢🟢🟢
+                if (window.notificacionesManager) {
+                    await window.notificacionesManager.crearNotificacion(
+                        this.user.id,                          // usuario_id
+                        'desgaste',                             // tipo
+                        '💥 PIEZA DESTRUIDA',                   // titulo
+                        `"${pieza.componente || 'Pieza'}" se ha destruido por falta de mantenimiento. Jefe debes visitar mas amenudo las instalaciones....`, // mensaje
+                        piezaId                                  // tipo_relacion (guardamos el ID de la pieza)
+                    );
+                }
                 
                 // Validar que no se resten más puntos de los que hay
                 if (puntosARestar > puntosActuales) {
@@ -713,6 +724,9 @@ class F1Manager {
                 // 🟢 NUEVO: Marcar como destruida para evitar procesarla de nuevo
                 if (!this.piezasDestruidas) this.piezasDestruidas = new Set();
                 this.piezasDestruidas.add(piezaId);
+                
+                // 5. ACTUALIZAR EL BOTÓN EN LA UI
+                this.reemplazarBotonPiezaDestruida(piezaId, pieza.area);
                 
                 return 0;
             }
