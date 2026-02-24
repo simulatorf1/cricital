@@ -1458,10 +1458,7 @@ class TabManager {
                 .order('fecha_inicio', { ascending: true });
             
             if (error) throw error;
-            
-
-            }
-            
+       
             const selector = document.getElementById('selector-gp-historico');
             if (!selector) return;
             
