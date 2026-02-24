@@ -1459,38 +1459,7 @@ class TabManager {
             
             if (error) throw error;
             
-            // Verificar qué carreras tienen datos
-            const gpConDatos = new Set();
-            
-            // Consultar vueltas por GP
-            for (const carrera of carreras) {
-                const fechaCarrera = new Date(carrera.fecha_inicio);
-                const fechaFinPeriodo = new Date(fechaCarrera);
-                fechaFinPeriodo.setDate(fechaCarrera.getDate() - 2);
-                fechaFinPeriodo.setHours(23, 59, 59, 999);
-                
-                const fechaInicioPeriodo = new Date(fechaCarrera);
-                fechaInicioPeriodo.setDate(fechaCarrera.getDate() - 6);
-                fechaInicioPeriodo.setHours(0, 0, 0, 0);
-                
-                // Verificar si hay vueltas
-                const { count: vueltasCount } = await supabase
-                    .from('pruebas_pista')
-                    .select('*', { count: 'exact', head: true })
-                    .gte('fecha_prueba', fechaInicioPeriodo.toISOString())
-                    .lte('fecha_prueba', fechaFinPeriodo.toISOString());
-                
-                // Verificar si hay pronósticos calificados
-                const { count: aciertosCount } = await supabase
-                    .from('pronosticos_usuario')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('carrera_id', carrera.id)
-                    .eq('estado', 'calificado')
-                    .not('aciertos', 'is', null);
-                
-                if ((vueltasCount && vueltasCount > 0) || (aciertosCount && aciertosCount > 0)) {
-                    gpConDatos.add(carrera.id);
-                }
+
             }
             
             const selector = document.getElementById('selector-gp-historico');
@@ -1505,10 +1474,8 @@ class TabManager {
                     day: 'numeric'
                 });
                 
-                const tieneDatos = gpConDatos.has(carrera.id);
-                const estilo = tieneDatos ? 'style="background: #1a3a1a; color: #00d2be; font-weight: bold;"' : '';
                 
-                html += `<option value="${carrera.id}" ${estilo}>${carrera.nombre} (${fecha})${tieneDatos ? ' 📊' : ''}</option>`;
+                html += `<option value="${carrera.id}">${carrera.nombre} (${fecha})</option>`;
             });
             
             selector.innerHTML = html;
