@@ -911,6 +911,55 @@ class PronosticosManager {
             </div>
         `;
     }
+    async verificarVueltaReciente() {
+        try {
+            console.log("⏱️ Verificando última vuelta rápida...");
+            
+            const { data, error } = await this.supabase
+                .from('pruebas_pista')
+                .select('tiempo_formateado, created_at')
+                .eq('escuderia_id', this.escuderiaId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+            
+            if (error || !data) {
+                console.log("❌ No hay vueltas registradas");
+                return { 
+                    valida: false, 
+                    mensaje: "No tienes ninguna vuelta rápida registrada. Debes ir a Ingeniería a hacer una vuelta antes de pronosticar."
+                };
+            }
+            
+            // Comparar en UTC directamente (getTime())
+            const fechaVuelta = new Date(data.created_at).getTime();
+            const ahora = new Date().getTime();
+            const diffHoras = (ahora - fechaVuelta) / (1000 * 60 * 60);
+            
+            console.log(`🕐 Última vuelta: ${data.tiempo_formateado} - Hace ${diffHoras.toFixed(2)} horas`);
+            
+            if (diffHoras < 1) {
+                return { 
+                    valida: true, 
+                    mensaje: "✅ Vuelta reciente válida" 
+                };
+            } else {
+                return { 
+                    valida: false, 
+                    mensaje: `⚠️ Tu última vuelta (${data.tiempo_formateado}) fue hace más de 1 hora. Debes ir a Ingeniería a hacer una nueva vuelta rápida antes de pronosticar.`
+                };
+            }
+            
+        } catch (error) {
+            console.error("Error verificando vuelta:", error);
+            return { 
+                valida: false, 
+                mensaje: "Error al verificar tu última vuelta. Inténtalo de nuevo."
+            };
+        }
+    }
+
+    
     mostrarCondicionesInicialesConHistorico(container, historico) {
         const fechaCarrera = new Date(this.carreraActual.fecha_inicio);
         fechaCarrera.setHours(fechaCarrera.getHours() + 24);
@@ -1204,8 +1253,75 @@ class PronosticosManager {
 
         
     async verificarYEmpezarPronostico() {
-        console.log("🔍 Verificando si hay preguntas para:", this.carreraActual?.nombre);
+        console.log("🔍 Verificando condiciones para pronosticar...");
         
+        // 🔥 NUEVO: Verificar vuelta rápida reciente
+        const vueltaCheck = await this.verificarVueltaReciente();
+        
+        if (!vueltaCheck.valida) {
+            // Mostrar mensaje de error y NO dejar pronosticar
+            const container = document.getElementById('main-content') || 
+                             document.querySelector('.tab-content.active');
+            
+            // Guardar el histórico para mostrarlo
+            const { data: pronosticosAnteriores } = await this.supabase
+                .from('pronosticos_usuario')
+                .select(`
+                    *,
+                    calendario_gp!inner(*)
+                `)
+                .eq('escuderia_id', this.escuderiaId)
+                .order('fecha_pronostico', { ascending: false });
+            
+            // Mostrar pantalla con advertencia
+            container.innerHTML = `
+                <div class="pronostico-container compacto">
+                    ${this.renderizarSelectorHistorico(pronosticosAnteriores || [])}
+                    
+                    <div class="card" style="border: 2px solid #e10600;">
+                        <div class="card-header bg-danger text-white py-3">
+                            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> ⚠️ VUELTA RÁPIDA NO VÁLIDA</h5>
+                        </div>
+                        <div class="card-body py-4">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-stopwatch" style="font-size: 60px; color: #e10600;"></i>
+                            </div>
+                            
+                            <div class="alert alert-danger fs-5 p-4 mb-4">
+                                ${vueltaCheck.mensaje}
+                            </div>
+                            
+                            <div class="text-center mb-4">
+                                <a href="#ingenieria" class="btn btn-primary btn-lg" onclick="window.tabManager.switchTab('ingenieria')">
+                                    <i class="fas fa-flask me-2"></i> IR A INGENIERÍA AHORA
+                                </a>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Importante:</strong> Necesitas tener una vuelta rápida de menos de 1 hora para poder pronosticar. 
+                                Esto asegura que tus datos sean los más actualizados posibles.
+                            </div>
+                            
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-outline-secondary flex-grow-1" onclick="window.pronosticosManager.cargarPantallaPronostico()">
+                                    <i class="fas fa-sync me-2"></i> Reintentar
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="window.tabManager.switchTab('principal')">
+                                    <i class="fas fa-home"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return; // 🛑 SALIMOS, NO DEJA PRONOSTICAR
+        }
+        
+        // ✅ Si llegamos aquí, la vuelta es válida (menos de 1 hora)
+        console.log("✅ Vuelta válida, continuando con el pronóstico");
+        
+        // El resto del código existente (lo que ya hacía antes)
         // Verificar si hay preguntas en la base de datos para esta carrera
         const { data: preguntas, error } = await this.supabase
             .from('preguntas_pronostico')
@@ -1216,8 +1332,6 @@ class PronosticosManager {
         // Si no hay preguntas o hay error
         if (error || !preguntas || preguntas.count === 0) {
             console.log("❌ No hay preguntas disponibles");
-            
-            // ✅ USAR LA NUEVA FUNCIÓN UNIFICADA
             await this.mostrarPantallaNoDisponible(
                 this.carreraActual, 
                 'Espera a que el administrador publique las preguntas.'
@@ -1837,6 +1951,48 @@ class PronosticosManager {
     
     async iniciarPronostico() {
         console.log("🔍 VERIFICANDO INICIO DE PRONÓSTICO");
+        // 🔥 NUEVO: Misma verificación aquí también
+        const vueltaCheck = await this.verificarVueltaReciente();
+        
+        if (!vueltaCheck.valida) {
+            // Redirigir a la pantalla de error
+            const container = document.getElementById('main-content') || 
+                             document.querySelector('.tab-content.active');
+            
+            const { data: pronosticosAnteriores } = await this.supabase
+                .from('pronosticos_usuario')
+                .select(`
+                    *,
+                    calendario_gp!inner(*)
+                `)
+                .eq('escuderia_id', this.escuderiaId)
+                .order('fecha_pronostico', { ascending: false });
+            
+            container.innerHTML = `
+                <div class="pronostico-container compacto">
+                    ${this.renderizarSelectorHistorico(pronosticosAnteriores || [])}
+                    
+                    <div class="card" style="border: 2px solid #e10600;">
+                        <div class="card-header bg-danger text-white py-3">
+                            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> ⚠️ VUELTA RÁPIDA NO VÁLIDA</h5>
+                        </div>
+                        <div class="card-body py-4">
+                            <div class="alert alert-danger fs-5 p-4 mb-4">
+                                ${vueltaCheck.mensaje}
+                            </div>
+                            <div class="text-center">
+                                <a href="#ingenieria" class="btn btn-primary btn-lg" onclick="window.tabManager.switchTab('ingenieria')">
+                                    <i class="fas fa-flask me-2"></i> IR A INGENIERÍA
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        
         console.log("Carrera actual:", this.carreraActual);
         
         try {
