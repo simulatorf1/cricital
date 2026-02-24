@@ -1410,7 +1410,44 @@ class TabManager {
             contenedor.innerHTML = '<div style="text-align: center; padding: 40px; color: #f44336;">Error cargando datos</div>';
         }
     }
-    
+    async cargarRankingPorGPUnico(gpId, tipo = 'vueltas') {
+        console.log(`🏁 Cargando ranking único para GP: ${gpId}, tipo: ${tipo}`);
+        
+        const contenedor = document.getElementById('contenedor-historico-gp');
+        const titulo = document.getElementById('titulo-gp-seleccionado');
+        
+        if (!contenedor || !titulo) return;
+        
+        // Mostrar contenedor
+        contenedor.style.display = 'block';
+        
+        try {
+            // Obtener nombre de la carrera
+            const { data: carrera, error: errorCarrera } = await supabase
+                .from('calendario_gp')
+                .select('nombre, fecha_inicio')
+                .eq('id', gpId)
+                .single();
+            
+            if (errorCarrera) throw errorCarrera;
+            
+            titulo.textContent = `${carrera.nombre} - ${new Date(carrera.fecha_inicio).toLocaleDateString('es-ES')}`;
+            
+            // Cargar según el tipo
+            if (tipo === 'vueltas') {
+                await this.cargarVueltasGP(gpId);
+            } else {
+                await this.cargarAciertosGP(gpId);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error:', error);
+            const contenido = document.getElementById('contenido-historico-unico');
+            if (contenido) {
+                contenido.innerHTML = '<div style="text-align: center; padding: 40px; color: #f44336;">Error cargando datos</div>';
+            }
+        }
+    }    
     async cargarGrandesPremiosSelector() {
         try {
             console.log('📅 Cargando Grandes Premios para selector...');
