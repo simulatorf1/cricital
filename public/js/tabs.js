@@ -754,11 +754,11 @@ class TabManager {
                         <i class="fas fa-history"></i> Ver rankings históricos por Gran Premio
                     </h3>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <select id="selector-gp-historico" style="width: 250px; padding: 8px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 4px;">
-                            <option value="">-- Selecciona un Gran Premio --</option>
+                        <select id="selector-gp-historico" style="width: 200px; padding: 8px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 4px;">
+                            <option value="">-- Selecciona... --</option>
                         </select>
                         <button id="btn-cargar-gp-historico" class="btn-primary" style="padding: 10px 20px; background: #00d2be; color: black; border: none; border-radius: 4px; cursor: pointer;">
-                            <i class="fas fa-search"></i> Ver ranking
+                            <i class="fas fa-search"></i> Ver
                         </button>
                     </div>
                 </div>
