@@ -488,8 +488,17 @@ class PronosticosManager {
             }
             
             const fechaInicio = new Date(carrera.fecha_inicio);
+            
+            // ✅ CORREGIDO: Calcular fecha límite correctamente (48 horas antes)
             const fechaLimite = new Date(carrera.fecha_limite_pronosticos || carrera.fecha_inicio);
-            fechaLimite.setHours(fechaLimite.getHours() - 48);
+            // Restar 48 horas de forma segura (en milisegundos)
+            fechaLimite.setTime(fechaLimite.getTime() - (48 * 60 * 60 * 1000));
+            
+            // 📌 Para depuración (opcional, puedes borrar estas líneas después)
+            console.log(`🔍 Carrera: ${carrera.nombre}`);
+            console.log(`   📅 Fecha inicio: ${fechaInicio.toLocaleString()}`);
+            console.log(`   ⏰ Fecha límite (48h antes): ${fechaLimite.toLocaleString()}`);
+            console.log(`   🕐 Hoy: ${hoy.toLocaleString()}`);
             
             // Verificar si tiene pronóstico
             const { data: pronostico } = await this.supabase
@@ -535,7 +544,7 @@ class PronosticosManager {
                 }
             }
             
-            // CASO 3: Plazo expirado
+            // CASO 3: Plazo expirado (entre fecha límite y fecha de inicio)
             if (hoy > fechaLimite && hoy <= fechaInicio) {
                 carreraSeleccionada = carrera;
                 if (tienePronostico) {
@@ -547,7 +556,7 @@ class PronosticosManager {
                 break;
             }
             
-            // CASO 4: Dentro del plazo
+            // CASO 4: Dentro del plazo (antes de la fecha límite)
             if (hoy <= fechaLimite) {
                 carreraSeleccionada = carrera;
                 if (tienePronostico) {
