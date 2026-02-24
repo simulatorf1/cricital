@@ -1455,7 +1455,7 @@ class TabManager {
             const { data: carreras, error } = await supabase
                 .from('calendario_gp')
                 .select('id, nombre, fecha_inicio')
-                .order('fecha_inicio', { ascending: false });
+                .order('fecha_inicio', { ascending: true });
             
             if (error) throw error;
             
