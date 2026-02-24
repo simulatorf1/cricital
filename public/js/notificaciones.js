@@ -1121,30 +1121,6 @@ class NotificacionesManager {
     }
 }
 
-// Inicializar cuando todo esté listo
-window.NotificacionesManager = NotificacionesManager;
-
-function iniciarNotificaciones() {
-    if (!window.notificacionesManager) {
-        window.notificacionesManager = new NotificacionesManager();
-        window.notificacionesManager.inicializar();
-    }
-}
-
-// Intentar varias veces
-if (document.readyState === 'complete') {
-    setTimeout(iniciarNotificaciones, 2000);
-} else {
-    window.addEventListener('load', () => setTimeout(iniciarNotificaciones, 2000));
-}
-
-// También intentar después de auth
-document.addEventListener('auth-completado', () => {
-    setTimeout(iniciarNotificaciones, 2000);
-});
-// Inicializar cuando todo esté listo
-window.NotificacionesManager = NotificacionesManager;
-
 // Inicialización ÚNICA
 window.NotificacionesManager = NotificacionesManager;
 
@@ -1161,5 +1137,12 @@ if (document.readyState === 'complete') {
 } else {
     window.addEventListener('load', () => setTimeout(iniciarNotificaciones, 2000));
 }
+
+// También intentar después de auth (solo si no se ha iniciado)
+document.addEventListener('auth-completado', () => {
+    if (!window.notificacionesManager) {
+        setTimeout(iniciarNotificaciones, 1000);
+    }
+});
 
 console.log('✅ Sistema de notificaciones listo');
