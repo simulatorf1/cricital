@@ -2721,31 +2721,63 @@ class F1Manager {
                                 </div>
                             </div>
                             
-
-                            <!-- FILA INFERIOR: DINERO, ESTRELLAS, NOTIFICACIONES Y MENSAJES -->
-                            <div class="header-bottom-row" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                                <!-- DINERO -->
-                                <div class="money-display-compacto" style="display: flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.4); border: 2px solid #FFD700; border-radius: 8px; padding: 6px 10px; color: white; width: auto; flex: 0 0 auto;">
+                            <!-- FILA INFERIOR: DINERO, ESTRELLAS Y NOTIFICACIONES -->
+                            <div class="header-bottom-row" style="
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                gap: 8px;
+                            ">
+                                <!-- DINERO - SE AJUSTA AL CONTENIDO -->
+                                <div class="money-display-compacto" style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 6px;
+                                    background: rgba(0, 0, 0, 0.4);
+                                    border: 2px solid #FFD700;
+                                    border-radius: 8px;
+                                    padding: 6px 10px;
+                                    color: white;
+                                    width: auto;
+                                    flex: 0 0 auto;
+                                ">
                                     <i class="fas fa-coins" style="color: #FFD700; font-size: 1rem;"></i>
-                                    <span id="money-value" style="font-weight: bold; font-size: 0.9rem; color: #FFD700; white-space: nowrap;">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
+                                    <span id="money-value" style="
+                                        font-weight: bold;
+                                        font-size: 0.9rem;
+                                        color: #FFD700;
+                                        white-space: nowrap;
+                                    ">€${this.escuderia?.dinero?.toLocaleString() || '0'}</span>
                                 </div>
                                 
-                                <!-- ESTRELLAS -->
-                                <div class="estrellas-display-compacto" onclick="mostrarExplicacionEstrellas()" title="Click para más info" style="display: flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.4); border: 2px solid #FF9800; border-radius: 8px; padding: 6px 10px; color: white; width: auto; flex: 0 0 auto; cursor: pointer;">
+                                <!-- ESTRELLAS - SE AJUSTA AL CONTENIDO -->
+                                <div class="estrellas-display-compacto" onclick="mostrarExplicacionEstrellas()" 
+                                    title="Click para más info" style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 6px;
+                                    background: rgba(0, 0, 0, 0.4);
+                                    border: 2px solid #FF9800;
+                                    border-radius: 8px;
+                                    padding: 6px 10px;
+                                    color: white;
+                                    width: auto;
+                                    flex: 0 0 auto;
+                                    cursor: pointer;
+                                ">
                                     <i class="fas fa-star" style="color: #FFD700; font-size: 1rem;"></i>
-                                    <span id="estrellas-value" style="font-weight: bold; font-size: 0.9rem; color: #FFD700; white-space: nowrap;">${this.escuderia?.estrellas_semana || 0}</span>
+                                    <span id="estrellas-value" style="
+                                        font-weight: bold;
+                                        font-size: 0.9rem;
+                                        color: #FFD700;
+                                        white-space: nowrap;
+                                    ">${this.escuderia?.estrellas_semana || 0}</span>
                                 </div>
-                                
-                                <!-- ICONOS DIRECTAMENTE EN EL HEADER (YA NO SON PLACEHOLDERS) -->
-                                <div id="notificaciones-icono" style="position: relative; margin-left: 5px; cursor: pointer; display: flex; align-items: center;">
-                                    <i class="fas fa-bell" style="color: #888; font-size: 1.2rem;"></i>
-                                    <span id="notificaciones-contador" style="position: absolute; top: -5px; right: -5px; background: #e10600; color: white; font-size: 0.65rem; font-weight: bold; min-width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 3px; display: none;">0</span>
-                                </div>
-                                
-                                <div id="mensajes-icono" style="position: relative; margin-left: 5px; cursor: pointer; display: flex; align-items: center;">
-                                    <i class="fas fa-comment" style="color: #888; font-size: 1.2rem;"></i>
-                                    <span id="mensajes-contador" style="position: absolute; top: -5px; right: -5px; background: #e10600; color: white; font-size: 0.65rem; font-weight: bold; min-width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 3px; display: none;">0</span>
-                                </div>
+                                <!-- Espacio para notificaciones (se llenará después) -->
+                                <div id="notificaciones-placeholder" style="display: inline-block;"></div>
+                                <!-- Espacio para mensajes (se llenará después) -->
+                                <div id="mensajes-placeholder" style="display: inline-block;"></div>                                
+
                             </div>
                         </header>
                         
