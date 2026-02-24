@@ -3103,6 +3103,21 @@ class F1Manager {
                 }, 1500);
             </script>
         `;
+        // ===== NUEVO: Preservar notificaciones después de cargar el dashboard =====
+        setTimeout(() => {
+            if (window.notificacionesManager) {
+                console.log('🔔 Reasignando notificaciones después del dashboard...');
+                window.notificacionesManager.crearIcono();
+                window.notificacionesManager.crearIconoMensajes();
+            } else {
+                if (!window.notificacionesManager) {
+                    window.notificacionesManager = new NotificacionesManager();
+                    window.notificacionesManager.inicializar();
+                }
+            }
+        }, 1500);
+
+        
 
         document.getElementById('logout-btn-visible').addEventListener('click', async () => {
             try {
