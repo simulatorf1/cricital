@@ -515,177 +515,14 @@ class NotificacionesManager {
     inicializar() {
         console.log('🔔 Inicializando notificaciones...');
         
-        // Función para verificar si podemos crear los iconos
-        const intentarCrearIconos = () => {
-            const estrellas = document.querySelector('.estrellas-display-compacto');
-            if (estrellas) {
-                console.log('✅ Estrellas encontradas, creando iconos...');
-                this.crearIcono();
-                this.crearIconoMensajes();
-                this.cargarContador();
-                this.iniciarPolling();
-                this.crearSeccionMensajes();
-                return true;
-            }
-            return false;
-        };
-        
-        // Intento inmediato
-        if (!intentarCrearIconos()) {
-            console.log('⏳ Estrellas no encontradas, esperando...');
-            
-            // Observer para cuando aparezcan las estrellas
-            const observer = new MutationObserver((mutations, obs) => {
-                if (document.querySelector('.estrellas-display-compacto')) {
-                    console.log('🎯 Estrellas detectadas por observer');
-                    intentarCrearIconos();
-                    obs.disconnect(); // Dejar de observar
-                }
-            });
-            
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-            
-            // Timeout de seguridad (10 segundos)
-            setTimeout(() => {
-                if (!document.querySelector('.estrellas-display-compacto')) {
-                    console.log('⚠️ Timeout - Creando iconos de todas formas');
-                    // Crear los iconos igual, se reubicarán solos
-                    this.crearIcono();
-                    this.crearIconoMensajes();
-                    this.cargarContador();
-                    this.iniciarPolling();
-                    this.crearSeccionMensajes();
-                }
-                observer.disconnect();
-            }, 10000);
-        }
-        
-        // RESPALDO: Sección de mensajes (igual que antes)
-        setTimeout(() => {
-            if (!document.getElementById('seccion-mensajes')) {
-                console.log('⚠️ Forzando creación de sección de mensajes');
-                this.crearSeccionMensajes();
-            }
-        }, 5000);
+        // Los iconos YA EXISTEN en el HTML, SOLO asignar eventos
+        this.asignarEventos();
+        this.cargarContador();
+        this.iniciarPolling();
+        this.crearSeccionMensajes();
     }
 
-    // Crear icono
-    crearIcono() {
-        const estrellas = document.querySelector('.estrellas-display-compacto');
-        if (!estrellas) {
-            console.log('❌ No se encontraron las estrellas, reintentando...');
-            setTimeout(() => this.crearIcono(), 1000);
-            return;
-        }
 
-        console.log('✅ Estrellas encontradas, insertando icono');
-
-        const contenedor = document.createElement('div');
-        contenedor.id = 'notificaciones-icono';
-        contenedor.style.cssText = `
-            position: relative;
-            margin-left: 10px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-        `;
-        contenedor.innerHTML = `
-            <i class="fas fa-bell" style="color: #888; font-size: 1.2rem;"></i>
-            <span id="notificaciones-contador" style="
-                position: absolute;
-                top: -5px;
-                right: -5px;
-                background: #e10600;
-                color: white;
-                font-size: 0.65rem;
-                font-weight: bold;
-                min-width: 16px;
-                height: 16px;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0 3px;
-                display: none;
-            ">0</span>
-        `;
-
-        estrellas.parentNode.insertBefore(contenedor, estrellas.nextSibling);
-
-        // Evento click
-        contenedor.onclick = (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            console.log('🔔 Click en notificaciones');
-            this.abrirPanel(); // <-- ESTO ES LO CORRECTO
-        };
-
-        // Cerrar al hacer clic fuera
-        document.addEventListener('click', (e) => {
-            if (this.panelAbierto && 
-                !e.target.closest('#notificaciones-icono') && 
-                !e.target.closest('#panel-notificaciones')) {
-                this.cerrarPanel();
-            }
-        });
-    }
-    // ========================
-    // CREAR ICONO DE MENSAJES
-    // ========================
-    crearIconoMensajes() {
-        const iconoNotis = document.getElementById('notificaciones-icono');
-        if (!iconoNotis) {
-            console.log('❌ No se encontró icono de notis, reintentando...');
-            setTimeout(() => this.crearIconoMensajes(), 1000);
-            return;
-        }
-    
-        console.log('✅ Insertando icono de mensajes');
-    
-        const contenedor = document.createElement('div');
-        contenedor.id = 'mensajes-icono';
-        contenedor.style.cssText = `
-            position: relative;
-            margin-left: 10px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-        `;
-        contenedor.innerHTML = `
-            <i class="fas fa-comment" style="color: #888; font-size: 1.2rem;"></i>
-            <span id="mensajes-contador" style="
-                position: absolute;
-                top: -5px;
-                right: -5px;
-                background: #e10600;
-                color: white;
-                font-size: 0.65rem;
-                font-weight: bold;
-                min-width: 16px;
-                height: 16px;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0 3px;
-                display: none;
-            ">0</span>
-        `;
-    
-        // Insertar DESPUÉS del icono de notificaciones
-        iconoNotis.parentNode.insertBefore(contenedor, iconoNotis.nextSibling);
-    
-        // Evento click
-        contenedor.onclick = (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            console.log('💬 Click en mensajes');
-            this.abrirSeccionMensajes(); // <-- ESTO ESTÁ BIEN
-        };
-    }
     // Crear sección de mensajes
     crearSeccionMensajes() {
         if (document.getElementById('seccion-mensajes')) return;
@@ -716,7 +553,37 @@ class NotificacionesManager {
         
         document.body.appendChild(seccion);
     }
-    
+    asignarEventos() {
+        const iconoNotis = document.getElementById('notificaciones-icono');
+        const iconoMensajes = document.getElementById('mensajes-icono');
+        
+        if (iconoNotis) {
+            iconoNotis.onclick = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                console.log('🔔 Click en notificaciones');
+                this.abrirPanel();
+            };
+        }
+        
+        if (iconoMensajes) {
+            iconoMensajes.onclick = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                console.log('💬 Click en mensajes');
+                this.abrirSeccionMensajes();
+            };
+        }
+        
+        // Cerrar al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (this.panelAbierto && 
+                !e.target.closest('#notificaciones-icono') && 
+                !e.target.closest('#panel-notificaciones')) {
+                this.cerrarPanel();
+            }
+        });
+    }    
 
     
     // ========================
@@ -1278,33 +1145,21 @@ document.addEventListener('auth-completado', () => {
 // Inicializar cuando todo esté listo
 window.NotificacionesManager = NotificacionesManager;
 
-let inicializado = false;
+// Inicialización ÚNICA
+window.NotificacionesManager = NotificacionesManager;
 
 function iniciarNotificaciones() {
-    if (inicializado) return;
-    
     if (!window.notificacionesManager) {
         window.notificacionesManager = new NotificacionesManager();
         window.notificacionesManager.inicializar();
-        inicializado = true;
-        console.log('✅ Sistema de notificaciones inicializado');
     }
 }
 
-// Solo UNA forma de inicialización
+// Una sola forma de inicialización
 if (document.readyState === 'complete') {
     setTimeout(iniciarNotificaciones, 2000);
 } else {
     window.addEventListener('load', () => setTimeout(iniciarNotificaciones, 2000));
 }
-
-// También intentar después de auth (solo actualizar datos, no reinicializar)
-document.addEventListener('auth-completado', () => {
-    if (window.notificacionesManager) {
-        window.notificacionesManager.cargarContador();
-    } else {
-        setTimeout(iniciarNotificaciones, 1000);
-    }
-});
 
 console.log('✅ Sistema de notificaciones listo');
