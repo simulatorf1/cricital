@@ -763,34 +763,27 @@ class TabManager {
                     </div>
                 </div>
                 
-                <!-- 🆕 NUEVO: CONTENEDOR PARA RESULTADOS HISTÓRICOS -->
+                <!-- 🆕 NUEVO: CONTENEDOR PARA RESULTADOS HISTÓRICOS (UNA SOLA TABLA) -->
                 <div id="contenedor-historico-gp" style="display: none; margin-bottom: 30px;">
                     <div class="gp-historical-title" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #00d2be;">
                         <h3 id="titulo-gp-seleccionado" style="color: #00d2be;">Gran Premio</h3>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <!-- VUELTAS RÁPIDAS -->
-                        <div class="historical-card" style="background: #1a1a1a; border-radius: 8px; padding: 15px; border: 1px solid #333;">
-                            <h4 style="color: #00d2be; margin-bottom: 15px;">
-                                <i class="fas fa-stopwatch"></i> Top 10 Vueltas Rápidas
-                            </h4>
-                            <div id="top-vueltas-gp" style="min-height: 200px;">
-                                <div class="cargando" style="text-align: center; padding: 30px;">
-                                    <i class="fas fa-spinner fa-spin"></i> Cargando...
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- MAYORES ACIERTOS -->
-                        <div class="historical-card" style="background: #1a1a1a; border-radius: 8px; padding: 15px; border: 1px solid #333;">
-                            <h4 style="color: #ffb400; margin-bottom: 15px;">
-                                <i class="fas fa-trophy"></i> Top 10 Mayores Aciertos
-                            </h4>
-                            <div id="top-aciertos-gp" style="min-height: 200px;">
-                                <div class="cargando" style="text-align: center; padding: 30px;">
-                                    <i class="fas fa-spinner fa-spin"></i> Cargando...
-                                </div>
+                    <!-- BOTONES DE SELECCIÓN -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button id="btn-ver-vueltas" class="btn-selector-tipo active" style="padding: 10px 20px; background: #00d2be; color: black; border: none; border-radius: 4px; cursor: pointer;">
+                            <i class="fas fa-stopwatch"></i> Vueltas Rápidas
+                        </button>
+                        <button id="btn-ver-aciertos" class="btn-selector-tipo" style="padding: 10px 20px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
+                            <i class="fas fa-trophy"></i> Mayores Aciertos
+                        </button>
+                    </div>
+                    
+                    <!-- CONTENEDOR ÚNICO PARA LA TABLA -->
+                    <div class="historical-card" style="background: #1a1a1a; border-radius: 8px; padding: 15px; border: 1px solid #333;">
+                        <div id="contenido-historico-unico" style="min-height: 200px;">
+                            <div class="cargando" style="text-align: center; padding: 30px;">
+                                <i class="fas fa-spinner fa-spin"></i> Selecciona un Gran Premio
                             </div>
                         </div>
                     </div>
@@ -1155,18 +1148,96 @@ class TabManager {
         this.cargarGrandesPremiosSelector();
         
         // ============================================
-        // 🆕 EVENTO DEL BOTÓN DE HISTÓRICO
+        // 🆕 VARIABLE PARA GUARDAR GP SELECCIONADO
         // ============================================
-        document.getElementById('btn-cargar-gp-historico')?.addEventListener('click', () => {
-            const gpId = document.getElementById('selector-gp-historico').value;
-            if (!gpId) {
-                if (window.f1Manager?.showNotification) {
-                    window.f1Manager.showNotification('❌ Selecciona un Gran Premio', 'error');
-                }
-                return;
+        let gpActualSeleccionado = null;
+        
+        // ============================================
+        // 🆕 EVENTOS DE LOS BOTONES DE VUELTA/ACIERTOS
+        // ============================================
+        setTimeout(() => {
+            const btnVueltas = document.getElementById('btn-ver-vueltas');
+            const btnAciertos = document.getElementById('btn-ver-aciertos');
+            
+            if (btnVueltas) {
+                btnVueltas.addEventListener('click', () => {
+                    if (!gpActualSeleccionado) {
+                        if (window.f1Manager?.showNotification) {
+                            window.f1Manager.showNotification('❌ Selecciona un Gran Premio primero', 'error');
+                        }
+                        return;
+                    }
+                    
+                    // Actualizar estilos de botones
+                    btnVueltas.style.background = '#00d2be';
+                    btnVueltas.style.color = 'black';
+                    if (btnAciertos) {
+                        btnAciertos.style.background = '#1a1a1a';
+                        btnAciertos.style.color = 'white';
+                    }
+                    
+                    this.cargarVueltasGP(gpActualSeleccionado);
+                });
             }
-            this.cargarRankingPorGP(gpId);
-        });
+            
+            if (btnAciertos) {
+                btnAciertos.addEventListener('click', () => {
+                    if (!gpActualSeleccionado) {
+                        if (window.f1Manager?.showNotification) {
+                            window.f1Manager.showNotification('❌ Selecciona un Gran Premio primero', 'error');
+                        }
+                        return;
+                    }
+                    
+                    // Actualizar estilos de botones
+                    btnAciertos.style.background = '#00d2be';
+                    btnAciertos.style.color = 'black';
+                    if (btnVueltas) {
+                        btnVueltas.style.background = '#1a1a1a';
+                        btnVueltas.style.color = 'white';
+                    }
+                    
+                    this.cargarAciertosGP(gpActualSeleccionado);
+                });
+            }
+        }, 200);
+        
+        // ============================================
+        // 🆕 EVENTO DEL BOTÓN DE HISTÓRICO (MODIFICADO)
+        // ============================================
+        const btnCargar = document.getElementById('btn-cargar-gp-historico');
+        if (btnCargar) {
+            // Clonar para quitar eventos anteriores
+            const nuevoBtn = btnCargar.cloneNode(true);
+            btnCargar.parentNode.replaceChild(nuevoBtn, btnCargar);
+            
+            nuevoBtn.addEventListener('click', () => {
+                const gpId = document.getElementById('selector-gp-historico').value;
+                if (!gpId) {
+                    if (window.f1Manager?.showNotification) {
+                        window.f1Manager.showNotification('❌ Selecciona un Gran Premio', 'error');
+                    }
+                    return;
+                }
+                
+                gpActualSeleccionado = gpId;
+                
+                // Resetear botones a estado inicial (vueltas activo)
+                const btnVueltas = document.getElementById('btn-ver-vueltas');
+                const btnAciertos = document.getElementById('btn-ver-aciertos');
+                
+                if (btnVueltas) {
+                    btnVueltas.style.background = '#00d2be';
+                    btnVueltas.style.color = 'black';
+                }
+                if (btnAciertos) {
+                    btnAciertos.style.background = '#1a1a1a';
+                    btnAciertos.style.color = 'white';
+                }
+                
+                this.cargarRankingPorGPUnico(gpId, 'vueltas');
+            });
+        }
         
         // ============================================
         // ✅ EVENTOS DE LA CLASIFICACIÓN GENERAL (LO QUE YA TIENES)
@@ -1229,6 +1300,117 @@ class TabManager {
             }, 200);
         }, 100);
     }
+    async cargarVueltasGP(gpId) {
+        const contenedor = document.getElementById('contenido-historico-unico');
+        contenedor.innerHTML = '<div class="cargando" style="text-align: center; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> Cargando vueltas...</div>';
+        
+        try {
+            const { data: carrera } = await supabase
+                .from('calendario_gp')
+                .select('fecha_inicio')
+                .eq('id', gpId)
+                .single();
+            
+            const fechaCarrera = new Date(carrera.fecha_inicio);
+            const fechaFinPeriodo = new Date(fechaCarrera);
+            fechaFinPeriodo.setDate(fechaCarrera.getDate() - 2);
+            fechaFinPeriodo.setHours(23, 59, 59, 999);
+            
+            const fechaInicioPeriodo = new Date(fechaCarrera);
+            fechaInicioPeriodo.setDate(fechaCarrera.getDate() - 6);
+            fechaInicioPeriodo.setHours(0, 0, 0, 0);
+            
+            const { data: vueltas } = await supabase
+                .from('pruebas_pista')
+                .select(`
+                    tiempo_formateado,
+                    fecha_prueba,
+                    escuderia_id,
+                    escuderias!inner (
+                        nombre
+                    )
+                `)
+                .gte('fecha_prueba', fechaInicioPeriodo.toISOString())
+                .lte('fecha_prueba', fechaFinPeriodo.toISOString())
+                .order('tiempo_formateado', { ascending: true })
+                .limit(10);
+            
+            if (!vueltas || vueltas.length === 0) {
+                contenedor.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No hay vueltas registradas para este GP</div>';
+                return;
+            }
+            
+            let html = '<table style="width: 100%; border-collapse: collapse;">';
+            html += '<thead><tr style="border-bottom: 1px solid #333;"><th>#</th><th>Escudería</th><th>Tiempo</th><th>Fecha</th></tr></thead><tbody>';
+            
+            vueltas.forEach((vuelta, index) => {
+                const fecha = new Date(vuelta.fecha_prueba).toLocaleDateString('es-ES');
+                html += `
+                    <tr style="border-bottom: 1px solid #222;">
+                        <td style="padding: 8px; font-weight: bold; color: ${index === 0 ? '#FFD700' : (index === 1 ? '#C0C0C0' : (index === 2 ? '#CD7F32' : 'white'))};">${index + 1}</td>
+                        <td style="padding: 8px;">${vuelta.escuderias?.nombre || 'Desconocida'}</td>
+                        <td style="padding: 8px; font-family: monospace; font-weight: bold;">${vuelta.tiempo_formateado}</td>
+                        <td style="padding: 8px; color: #888; font-size: 0.9rem;">${fecha}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            contenedor.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Error:', error);
+            contenedor.innerHTML = '<div style="text-align: center; padding: 40px; color: #f44336;">Error cargando datos</div>';
+        }
+    }
+    
+    async cargarAciertosGP(gpId) {
+        const contenedor = document.getElementById('contenido-historico-unico');
+        contenedor.innerHTML = '<div class="cargando" style="text-align: center; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> Cargando aciertos...</div>';
+        
+        try {
+            const { data: pronosticos } = await supabase
+                .from('pronosticos_usuario')
+                .select(`
+                    escuderia_id,
+                    aciertos,
+                    escuderias!inner (
+                        nombre
+                    )
+                `)
+                .eq('carrera_id', gpId)
+                .eq('estado', 'calificado')
+                .not('aciertos', 'is', null)
+                .order('aciertos', { ascending: false })
+                .limit(10);
+            
+            if (!pronosticos || pronosticos.length === 0) {
+                contenedor.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No hay pronósticos calificados para este GP</div>';
+                return;
+            }
+            
+            let html = '<table style="width: 100%; border-collapse: collapse;">';
+            html += '<thead><tr style="border-bottom: 1px solid #333;"><th>#</th><th>Escudería</th><th>Aciertos</th></tr></thead><tbody>';
+            
+            pronosticos.forEach((p, index) => {
+                html += `
+                    <tr style="border-bottom: 1px solid #222;">
+                        <td style="padding: 8px; font-weight: bold; color: ${index === 0 ? '#FFD700' : (index === 1 ? '#C0C0C0' : (index === 2 ? '#CD7F32' : 'white'))};">${index + 1}</td>
+                        <td style="padding: 8px;">${p.escuderias?.nombre || 'Desconocida'}</td>
+                        <td style="padding: 8px; font-weight: bold; color: #00d2be;">${p.aciertos}/10</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            contenedor.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Error:', error);
+            contenedor.innerHTML = '<div style="text-align: center; padding: 40px; color: #f44336;">Error cargando datos</div>';
+        }
+    }
+    
     async cargarGrandesPremiosSelector() {
         try {
             console.log('📅 Cargando Grandes Premios para selector...');
