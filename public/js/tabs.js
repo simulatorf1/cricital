@@ -1312,7 +1312,6 @@ class TabManager {
                 .from('pruebas_pista')
                 .select(`
                     tiempo_formateado,
-                    tiempo_ms,
                     fecha_prueba,
                     escuderia_id,
                     escuderias!inner (
@@ -1321,7 +1320,7 @@ class TabManager {
                 `)
                 .gte('fecha_prueba', fechaInicioPeriodo.toISOString())
                 .lte('fecha_prueba', fechaFinPeriodo.toISOString())
-                .order('tiempo_ms', { ascending: true })
+                .order('tiempo_formateado', { ascending: true })
                 .limit(10);
             
             if (errorVueltas) throw errorVueltas;
