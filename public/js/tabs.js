@@ -1243,7 +1243,7 @@ class TabManager {
             const selector = document.getElementById('selector-gp-historico');
             if (!selector) return;
             
-            let html = '<option value="">-- Selecciona un Gran Premio --</option>';
+            let html = '<option value="">-- Selecciona --</option>';
             
             carreras.forEach(carrera => {
                 const fecha = new Date(carrera.fecha_inicio).toLocaleDateString('es-ES', {
