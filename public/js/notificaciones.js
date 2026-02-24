@@ -633,6 +633,28 @@ class NotificacionesManager {
         });
     }
     // ========================
+    // REINICIALIZAR (para cuando el dashboard recarga el HTML)
+    // ========================
+    reinicializar() {
+        console.log('🔄 Reinicializando iconos de notificaciones...');
+        
+        // Eliminar iconos existentes si los hay (para evitar duplicados)
+        const iconoNotis = document.getElementById('notificaciones-icono');
+        const iconoMensajes = document.getElementById('mensajes-icono');
+        
+        if (iconoNotis) iconoNotis.remove();
+        if (iconoMensajes) iconoMensajes.remove();
+        
+        // Crear los iconos de nuevo
+        this.crearIcono();
+        this.crearIconoMensajes();
+        
+        // Recargar contador
+        this.cargarContador();
+    }
+
+    
+    // ========================
     // CREAR ICONO DE MENSAJES
     // ========================
     crearIconoMensajes() {
