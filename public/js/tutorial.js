@@ -15,14 +15,43 @@ class TutorialManager {
     // ========================
     // INICIAR TUTORIAL
     // ========================
-    iniciar() {
+    // ========================
+    // INICIAR TUTORIAL (CORREGIDO)
+    // ========================
+    async iniciar() {
+        // Verificar localStorage primero (rápido)
         const tutorialCompletado = localStorage.getItem('f1_tutorial_completado');
         
         if (tutorialCompletado === 'true') {
-            console.log('✅ Tutorial ya completado, omitiendo...');
-            return;
+            console.log('✅ Tutorial ya completado (según localStorage), verificando BD...');
+            
+            // Doble verificación con BD para estar seguros
+            if (this.f1Manager.escuderia?.id && this.f1Manager.supabase) {
+                try {
+                    const { data, error } = await this.f1Manager.supabase
+                        .from('escuderias')
+                        .select('tutorial_completado')
+                        .eq('id', this.f1Manager.escuderia.id)
+                        .single();
+                    
+                    if (!error && data?.tutorial_completado === true) {
+                        console.log('✅ Confirmado: tutorial completado en BD');
+                        return;
+                    } else {
+                        // El localStorage mentía, la BD dice que no está completado
+                        console.log('⚠️ LocalStorage decía true pero BD dice false, mostrando tutorial...');
+                        localStorage.removeItem('f1_tutorial_completado');
+                    }
+                } catch (error) {
+                    console.error('❌ Error verificando BD:', error);
+                }
+            } else {
+                return; // No podemos verificar BD, asumimos que está completado
+            }
         }
         
+        // Si llegamos aquí, el tutorial no está completado
+        console.log('🎓 Iniciando tutorial por primera vez...');
         setTimeout(() => {
             this.mostrarPaso(0);
         }, 1000);
@@ -1109,6 +1138,9 @@ class TutorialManager {
     // ========================
     // FINALIZAR TUTORIAL COMPLETO (IGUAL)
     // ========================
+    // ========================
+    // FINALIZAR TUTORIAL COMPLETO (CORREGIDO)
+    // ========================
     async finalizarTutorialCompleto() {
         console.log('✅ Finalizando tutorial completo...');
         
@@ -1122,16 +1154,19 @@ class TutorialManager {
         
         if (this.f1Manager.escuderia && this.f1Manager.supabase) {
             try {
-                await this.f1Manager.supabase
+                // SOLO actualizar tutorial_completado, sin updated_at
+                const { error } = await this.f1Manager.supabase
                     .from('escuderias')
-                    .update({ 
-                        tutorial_completado: true,
-                        updated_at: new Date().toISOString()
-                    })
+                    .update({ tutorial_completado: true })
                     .eq('id', this.f1Manager.escuderia.id);
-                console.log('✅ Tutorial marcado como completado en BD');
+                
+                if (error) {
+                    console.error('❌ Error actualizando tutorial en BD:', error);
+                } else {
+                    console.log('✅ Tutorial marcado como completado en BD');
+                }
             } catch (error) {
-                console.error('❌ Error actualizando tutorial en BD:', error);
+                console.error('❌ Error en actualización:', error);
             }
         }
         
