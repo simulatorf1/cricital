@@ -932,15 +932,22 @@ class IngenieriaManager {
             this.simulacionId = simulacion.id;
             this.tiempoRestante = this.config.duracionSimulacion;
             
-            // Iniciar contador
-            this.iniciarContadorSimulacion();
+
             
             // Mostrar notificación
             this.f1Manager.showNotification('🏁 Simulación iniciada - Resultados en 1 minuto', 'success');
             
             // Recargar la vista
+            // Recargar la vista y asegurar que el coche existe
             setTimeout(() => {
                 this.cargarTabIngenieria();
+                
+                // Dar tiempo a que se renderice el SVG antes de iniciar el contador
+                setTimeout(() => {
+                    if (this.simulacionActiva) {
+                        this.iniciarContadorSimulacion();
+                    }
+                }, 300);
             }, 500);
             
             // Programar finalización automática
@@ -1579,179 +1586,215 @@ class IngenieriaManager {
     // INICIAR CONTADOR DE SIMULACIÓN
     // ========================
     iniciarContadorSimulacion() {
-        let segundosTranscurridos = 0;
-        const duracionTotal = this.config.duracionSimulacion; // 60 segundos
-        const puntoMedio = 30; // Cambio a clasificación a los 30 segundos
+        console.log('🏁 Iniciando contador de simulación con circuito animado');
         
-        // Referencias a elementos DOM
-        const coche = document.getElementById('coche-animado');
-        const faseActual = document.getElementById('fase-actual');
-        const sectoresContainer = document.getElementById('sectores-container');
-        const tiempoRestanteSpan = document.getElementById('tiempo-restante-circuito');
+        // Referencias a elementos DOM (con reintento si no existen)
+        let coche = document.getElementById('coche-animado');
+        let faseActual = document.getElementById('fase-actual');
+        let sectoresContainer = document.getElementById('sectores-container');
+        let tiempoRestanteSpan = document.getElementById('tiempo-restante-circuito');
         
-        if (!coche) {
-            console.error('❌ No se encontró el coche animado');
-            return;
-        }
-        
-        // Resetear sectores al inicio
-        document.querySelectorAll('.sector').forEach(s => {
-            s.style.strokeDashoffset = s.style.strokeDasharray.split(' ')[0];
-        });
-        
-        // Limpiar intervalo anterior si existe
-        if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-        }
-        
-        // Función para calcular punto en la curva usando interpolación por longitud de arco
-        const puntosCircuito = [
-            {x: 80, y: 90, t: 0.00},  // Meta/Salida
-            {x: 85, y: 70, t: 0.05},
-            {x: 110, y: 45, t: 0.12},
-            {x: 150, y: 32, t: 0.20},
-            {x: 190, y: 32, t: 0.28},
-            {x: 230, y: 40, t: 0.35},
-            {x: 260, y: 55, t: 0.42},
-            {x: 285, y: 75, t: 0.48},  // Fin S1 aprox
-            {x: 305, y: 95, t: 0.55},
-            {x: 320, y: 120, t: 0.62},
-            {x: 310, y: 140, t: 0.68}, // Fin S2 aprox
-            {x: 280, y: 152, t: 0.75},
-            {x: 240, y: 155, t: 0.82},
-            {x: 200, y: 148, t: 0.88},
-            {x: 160, y: 135, t: 0.92},
-            {x: 120, y: 115, t: 0.96},
-            {x: 90, y: 100, t: 0.99},
-            {x: 80, y: 90, t: 1.00}   // Vuelta completa
-        ];
-        
-        // Función para obtener posición según progreso (0-1)
-        const getPosicionEnCircuito = (progreso) => {
-            // Asegurar que progreso esté entre 0 y 1
-            progreso = Math.max(0, Math.min(1, progreso));
+        // Reintentar obtener referencias si no existen (el DOM puede tardar)
+        let reintentos = 0;
+        const esperarElementos = setInterval(() => {
+            coche = document.getElementById('coche-animado');
+            faseActual = document.getElementById('fase-actual');
+            sectoresContainer = document.getElementById('sectores-container');
+            tiempoRestanteSpan = document.getElementById('tiempo-restante-circuito');
             
-            // Encontrar segmento
-            for (let i = 0; i < puntosCircuito.length - 1; i++) {
-                if (progreso >= puntosCircuito[i].t && progreso <= puntosCircuito[i+1].t) {
-                    const p1 = puntosCircuito[i];
-                    const p2 = puntosCircuito[i+1];
-                    
-                    // Interpolación lineal entre puntos
-                    const segmentoProgreso = (progreso - p1.t) / (p2.t - p1.t);
-                    const x = p1.x + (p2.x - p1.x) * segmentoProgreso;
-                    const y = p1.y + (p2.y - p1.y) * segmentoProgreso;
-                    
-                    return {x, y};
+            if (coche && faseActual) {
+                clearInterval(esperarElementos);
+                console.log('✅ Elementos del circuito encontrados');
+                iniciarAnimacion();
+            } else {
+                reintentos++;
+                if (reintentos > 20) { // 2 segundos máximo de espera
+                    clearInterval(esperarElementos);
+                    console.error('❌ No se pudieron encontrar los elementos del circuito');
+                    // Fallback: usar el contador antiguo
+                    this.iniciarContadorSimple();
                 }
             }
-            
-            return {x: 80, y: 90}; // Default: meta
-        };
+        }, 100);
         
-        this.timerInterval = setInterval(() => {
-            if (this.tiempoRestante > 0) {
-                this.tiempoRestante--;
-                segundosTranscurridos += 0.2; // Incremento de 0.2 segundos
+        const iniciarAnimacion = () => {
+            // Variables de control
+            let tiempoInicio = Date.now();
+            let duracionTotal = 60000; // 60 segundos en milisegundos
+            let calentamientoDuration = 30000; // 30 segundos
+            let clasificacionDuration = 30000; // 30 segundos
+            
+            // Resetear sectores
+            document.querySelectorAll('.sector').forEach(s => {
+                s.style.strokeDashoffset = s.style.strokeDasharray.split(' ')[0];
+            });
+            
+            // Posicionar coche al inicio
+            coche.setAttribute('x', '80');
+            coche.setAttribute('y', '90');
+            coche.setAttribute('fill', '#FFD700');
+            
+            // Puntos del circuito (MÁS DETALLADOS con forma de Bahrein real)
+            const puntosCircuito = [
+                {x: 80, y: 90, t: 0.00},  // Meta/Salida
+                {x: 85, y: 65, t: 0.04},  // Recta de salida
+                {x: 110, y: 40, t: 0.08},
+                {x: 150, y: 28, t: 0.12}, // Curva 1 (izquierda)
+                {x: 190, y: 28, t: 0.18}, // Recta corta
+                {x: 220, y: 35, t: 0.23}, // Curva 2 (derecha)
+                {x: 245, y: 50, t: 0.28}, // S-Curve entrada
+                {x: 265, y: 70, t: 0.33}, // S-Curve salida (FIN S1)
+                {x: 285, y: 92, t: 0.38}, // Recta trasera
+                {x: 310, y: 115, t: 0.44}, // Curva 4
+                {x: 330, y: 135, t: 0.50}, // Zona técnica (FIN S2)
+                {x: 310, y: 150, t: 0.56}, // Curva 5
+                {x: 280, y: 160, t: 0.62}, // Curva 6
+                {x: 240, y: 165, t: 0.68}, // Recta interior
+                {x: 200, y: 160, t: 0.74}, // Curva 7
+                {x: 165, y: 148, t: 0.80}, // Curva 8
+                {x: 130, y: 130, t: 0.86}, // Última curva
+                {x: 100, y: 110, t: 0.92}, // Recta de meta
+                {x: 85, y: 95, t: 0.97},
+                {x: 80, y: 90, t: 1.00}   // Meta
+            ];
+            
+            // Función para obtener posición interpolada
+            const getPosicionEnCircuito = (progreso) => {
+                progreso = Math.max(0, Math.min(1, progreso));
                 
-                // Actualizar tiempo restante
+                for (let i = 0; i < puntosCircuito.length - 1; i++) {
+                    if (progreso >= puntosCircuito[i].t && progreso <= puntosCircuito[i+1].t) {
+                        const p1 = puntosCircuito[i];
+                        const p2 = puntosCircuito[i+1];
+                        
+                        const segmentoProgreso = (progreso - p1.t) / (p2.t - p1.t);
+                        const x = p1.x + (p2.x - p1.x) * segmentoProgreso;
+                        const y = p1.y + (p2.y - p1.y) * segmentoProgreso;
+                        
+                        return {x, y};
+                    }
+                }
+                return {x: 80, y: 90};
+            };
+            
+            // Limpiar intervalo anterior
+            if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+            }
+            
+            // Intervalo de animación (cada 50ms para movimiento suave)
+            this.timerInterval = setInterval(() => {
+                const tiempoActual = Date.now();
+                const tiempoTranscurrido = tiempoActual - tiempoInicio;
+                
+                // Actualizar tiempo restante (para el display)
                 if (tiempoRestanteSpan) {
-                    tiempoRestanteSpan.textContent = this.formatearTiempoContador(this.tiempoRestante);
+                    const segundosRestantes = Math.max(0, Math.ceil((duracionTotal - tiempoTranscurrido) / 1000));
+                    this.tiempoRestante = segundosRestantes;
+                    tiempoRestanteSpan.textContent = this.formatearTiempoContador(segundosRestantes);
                 }
                 
-                // Calcular progreso total (0-1)
-                const progresoTotal = segundosTranscurridos / duracionTotal;
-                
-                // FASE 1: Calentamiento (primeros 30 segundos)
-                if (segundosTranscurridos <= 30) {
+                // FASE 1: CALENTAMIENTO (0-30 segundos)
+                if (tiempoTranscurrido < calentamientoDuration) {
                     if (faseActual) {
                         faseActual.innerHTML = '🟢 VUELTA DE CALENTAMIENTO - Preparando neumáticos...';
                         faseActual.style.color = '#aaa';
                     }
-                    
-                    // Ocultar indicadores de sectores
                     if (sectoresContainer) sectoresContainer.style.display = 'none';
                     
-                    // En calentamiento, el coche da una vuelta completa (progreso 0-1)
-                    const progresoCalentamiento = segundosTranscurridos / 30; // 0 a 1 en 30s
-                    const pos = getPosicionEnCircuito(progresoCalentamiento);
+                    // Progreso en calentamiento (0 a 1)
+                    const progreso = tiempoTranscurrido / calentamientoDuration;
+                    const pos = getPosicionEnCircuito(progreso);
                     coche.setAttribute('x', pos.x);
                     coche.setAttribute('y', pos.y);
                 }
                 
-                // FASE 2: Clasificación (segundos 31-60)
-                if (segundosTranscurridos > 30) {
-                    // Cambiar mensaje y mostrar sectores
+                // FASE 2: CLASIFICACIÓN (30-60 segundos)
+                else if (tiempoTranscurrido < duracionTotal) {
                     if (faseActual) {
                         faseActual.innerHTML = '🔴 VUELTA DE CLASIFICACIÓN - Marcando sectores';
                         faseActual.style.color = '#e10600';
                     }
                     if (sectoresContainer) sectoresContainer.style.display = 'flex';
                     
-                    // Progreso en clasificación (0 a 1 en 30 segundos)
-                    const progresoClasif = (segundosTranscurridos - 30) / 30;
-                    
-                    // Actualizar posición del coche
+                    // Progreso en clasificación (0 a 1)
+                    const progresoClasif = (tiempoTranscurrido - calentamientoDuration) / clasificacionDuration;
                     const pos = getPosicionEnCircuito(progresoClasif);
                     coche.setAttribute('x', pos.x);
                     coche.setAttribute('y', pos.y);
                     
                     // Actualizar sectores
                     if (progresoClasif < 0.33) {
-                        // Sector 1 en progreso
+                        // Sector 1 (0-33%)
                         const t = progresoClasif / 0.33;
                         const sector1 = document.querySelector('.sector1');
                         if (sector1) sector1.style.strokeDashoffset = 280 * (1 - t);
                         
+                        // Resetear otros sectores
+                        document.querySelector('.sector2').style.strokeDashoffset = 160;
+                        document.querySelector('.sector3').style.strokeDashoffset = 260;
+                        
                     } else if (progresoClasif < 0.66) {
-                        // Sector 2 en progreso
+                        // Sector 2 (33-66%)
                         const t = (progresoClasif - 0.33) / 0.33;
                         
-                        // Sector 1 completo
                         document.querySelector('.sector1').style.strokeDashoffset = 0;
-                        
-                        const sector2 = document.querySelector('.sector2');
-                        if (sector2) sector2.style.strokeDashoffset = 160 * (1 - t);
+                        document.querySelector('.sector2').style.strokeDashoffset = 160 * (1 - t);
+                        document.querySelector('.sector3').style.strokeDashoffset = 260;
                         
                     } else {
-                        // Sector 3 en progreso
+                        // Sector 3 (66-100%)
                         const t = (progresoClasif - 0.66) / 0.34;
                         
-                        // Sectores 1 y 2 completos
                         document.querySelector('.sector1').style.strokeDashoffset = 0;
                         document.querySelector('.sector2').style.strokeDashoffset = 0;
-                        
-                        const sector3 = document.querySelector('.sector3');
-                        if (sector3) sector3.style.strokeDashoffset = 260 * (1 - t);
+                        document.querySelector('.sector3').style.strokeDashoffset = 260 * (1 - t);
                     }
                 }
                 
-            } else {
-                // SIMULACIÓN COMPLETADA
-                clearInterval(this.timerInterval);
-                this.timerInterval = null;
-                
-                // Poner coche en la meta
-                if (coche) {
+                // FINALIZAR SIMULACIÓN
+                else {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                    
+                    // Coche en meta
                     coche.setAttribute('x', '80');
                     coche.setAttribute('y', '90');
                     coche.setAttribute('fill', '#4CAF50');
+                    
+                    if (faseActual) {
+                        faseActual.innerHTML = '✅ SIMULACIÓN COMPLETADA';
+                        faseActual.style.color = '#4CAF50';
+                    }
+                    
+                    // Todos los sectores completados
+                    document.querySelector('.sector1').style.strokeDashoffset = 0;
+                    document.querySelector('.sector2').style.strokeDashoffset = 0;
+                    document.querySelector('.sector3').style.strokeDashoffset = 0;
+                    
+                    // Calcular resultado INMEDIATAMENTE (sin espera)
+                    this.finalizarSimulacion(this.simulacionId);
                 }
-                
-                // Mensaje final
-                if (faseActual) {
-                    faseActual.innerHTML = '✅ SIMULACIÓN COMPLETADA - Calculando tiempos...';
-                    faseActual.style.color = '#4CAF50';
-                }
-                
-                // Todos los sectores iluminados
-                document.querySelectorAll('.sector').forEach(s => {
-                    s.style.strokeDashoffset = 0;
-                });
-            }
-        }, 200); // ¡200ms = 0.2 segundos!
+            }, 50); // 50ms para movimiento muy suave
+        };
     }
-    
+    iniciarContadorSimple() {
+        console.log('⚠️ Usando contador simple de emergencia');
+        
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+        }
+        
+        this.timerInterval = setInterval(() => {
+            if (this.tiempoRestante > 0) {
+                this.tiempoRestante--;
+            } else {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+                this.finalizarSimulacion(this.simulacionId);
+            }
+        }, 1000);
+    }    
     // ========================
     // INICIAR CONTADOR VISUAL
     // ========================
