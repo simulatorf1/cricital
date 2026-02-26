@@ -1589,20 +1589,78 @@ class IngenieriaManager {
         const sectoresContainer = document.getElementById('sectores-container');
         const tiempoRestanteSpan = document.getElementById('tiempo-restante-circuito');
         
+        if (!coche) {
+            console.error('❌ No se encontró el coche animado');
+            return;
+        }
+        
         // Resetear sectores al inicio
         document.querySelectorAll('.sector').forEach(s => {
             s.style.strokeDashoffset = s.style.strokeDasharray.split(' ')[0];
         });
         
+        // Limpiar intervalo anterior si existe
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+        }
+        
+        // Función para calcular punto en la curva usando interpolación por longitud de arco
+        const puntosCircuito = [
+            {x: 80, y: 90, t: 0.00},  // Meta/Salida
+            {x: 85, y: 70, t: 0.05},
+            {x: 110, y: 45, t: 0.12},
+            {x: 150, y: 32, t: 0.20},
+            {x: 190, y: 32, t: 0.28},
+            {x: 230, y: 40, t: 0.35},
+            {x: 260, y: 55, t: 0.42},
+            {x: 285, y: 75, t: 0.48},  // Fin S1 aprox
+            {x: 305, y: 95, t: 0.55},
+            {x: 320, y: 120, t: 0.62},
+            {x: 310, y: 140, t: 0.68}, // Fin S2 aprox
+            {x: 280, y: 152, t: 0.75},
+            {x: 240, y: 155, t: 0.82},
+            {x: 200, y: 148, t: 0.88},
+            {x: 160, y: 135, t: 0.92},
+            {x: 120, y: 115, t: 0.96},
+            {x: 90, y: 100, t: 0.99},
+            {x: 80, y: 90, t: 1.00}   // Vuelta completa
+        ];
+        
+        // Función para obtener posición según progreso (0-1)
+        const getPosicionEnCircuito = (progreso) => {
+            // Asegurar que progreso esté entre 0 y 1
+            progreso = Math.max(0, Math.min(1, progreso));
+            
+            // Encontrar segmento
+            for (let i = 0; i < puntosCircuito.length - 1; i++) {
+                if (progreso >= puntosCircuito[i].t && progreso <= puntosCircuito[i+1].t) {
+                    const p1 = puntosCircuito[i];
+                    const p2 = puntosCircuito[i+1];
+                    
+                    // Interpolación lineal entre puntos
+                    const segmentoProgreso = (progreso - p1.t) / (p2.t - p1.t);
+                    const x = p1.x + (p2.x - p1.x) * segmentoProgreso;
+                    const y = p1.y + (p2.y - p1.y) * segmentoProgreso;
+                    
+                    return {x, y};
+                }
+            }
+            
+            return {x: 80, y: 90}; // Default: meta
+        };
+        
         this.timerInterval = setInterval(() => {
             if (this.tiempoRestante > 0) {
                 this.tiempoRestante--;
-                segundosTranscurridos++;
+                segundosTranscurridos += 0.2; // Incremento de 0.2 segundos
                 
                 // Actualizar tiempo restante
                 if (tiempoRestanteSpan) {
                     tiempoRestanteSpan.textContent = this.formatearTiempoContador(this.tiempoRestante);
                 }
+                
+                // Calcular progreso total (0-1)
+                const progresoTotal = segundosTranscurridos / duracionTotal;
                 
                 // FASE 1: Calentamiento (primeros 30 segundos)
                 if (segundosTranscurridos <= 30) {
@@ -1614,7 +1672,11 @@ class IngenieriaManager {
                     // Ocultar indicadores de sectores
                     if (sectoresContainer) sectoresContainer.style.display = 'none';
                     
-                    // El coche ya se mueve automáticamente por el animateMotion
+                    // En calentamiento, el coche da una vuelta completa (progreso 0-1)
+                    const progresoCalentamiento = segundosTranscurridos / 30; // 0 a 1 en 30s
+                    const pos = getPosicionEnCircuito(progresoCalentamiento);
+                    coche.setAttribute('x', pos.x);
+                    coche.setAttribute('y', pos.y);
                 }
                 
                 // FASE 2: Clasificación (segundos 31-60)
@@ -1626,76 +1688,41 @@ class IngenieriaManager {
                     }
                     if (sectoresContainer) sectoresContainer.style.display = 'flex';
                     
-                    // Detener la animación de calentamiento y cambiar a control manual
-                    if (coche && segundosTranscurridos === 31) {
-                        // Detener animación actual
-                        const animations = document.querySelectorAll('animateMotion');
-                        animations.forEach(a => a.beginElementAt(0)); // Reiniciar
-                        
-                        // Posicionar coche al inicio del circuito
-                        coche.setAttribute('cx', '50');
-                        coche.setAttribute('cy', '75');
-                    }
+                    // Progreso en clasificación (0 a 1 en 30 segundos)
+                    const progresoClasif = (segundosTranscurridos - 30) / 30;
                     
-                    // Control manual del coche en clasificación (avanza según el tiempo)
-                    if (coche) {
-                        const progresoClasif = (segundosTranscurridos - 30) / 30; // 0 a 1 en 30 segundos
+                    // Actualizar posición del coche
+                    const pos = getPosicionEnCircuito(progresoClasif);
+                    coche.setAttribute('x', pos.x);
+                    coche.setAttribute('y', pos.y);
+                    
+                    // Actualizar sectores
+                    if (progresoClasif < 0.33) {
+                        // Sector 1 en progreso
+                        const t = progresoClasif / 0.33;
+                        const sector1 = document.querySelector('.sector1');
+                        if (sector1) sector1.style.strokeDashoffset = 280 * (1 - t);
                         
-                        // Calcular posición en el circuito según progreso
-                        const puntos = [
-                            {x: 50, y: 75},  // Inicio
-                            {x: 150, y: 25},  // Fin S1
-                            {x: 300, y: 40},  // Fin S2
-                            {x: 50, y: 75}    // Meta (vuelta completa)
-                        ];
+                    } else if (progresoClasif < 0.66) {
+                        // Sector 2 en progreso
+                        const t = (progresoClasif - 0.33) / 0.33;
                         
-                        let puntoInicio, puntoFin, t;
+                        // Sector 1 completo
+                        document.querySelector('.sector1').style.strokeDashoffset = 0;
                         
-                        if (progresoClasif < 0.33) {
-                            // Sector 1 (0-33%)
-                            puntoInicio = puntos[0];
-                            puntoFin = puntos[1];
-                            t = progresoClasif / 0.33;
-                            
-                            // Iluminar sector 1
-                            const sector1 = document.querySelector('.sector1');
-                            if (sector1) sector1.style.strokeDashoffset = 160 * (1 - t);
-                            
-                        } else if (progresoClasif < 0.66) {
-                            // Sector 2 (33-66%)
-                            puntoInicio = puntos[1];
-                            puntoFin = puntos[2];
-                            t = (progresoClasif - 0.33) / 0.33;
-                            
-                            // Sector 1 completo
-                            document.querySelector('.sector1').style.strokeDashoffset = 0;
-                            
-                            // Iluminar sector 2
-                            const sector2 = document.querySelector('.sector2');
-                            if (sector2) sector2.style.strokeDashoffset = 160 * (1 - t);
-                            
-                        } else {
-                            // Sector 3 (66-100%)
-                            puntoInicio = puntos[2];
-                            puntoFin = puntos[3];
-                            t = (progresoClasif - 0.66) / 0.34;
-                            
-                            // Sectores 1 y 2 completos
-                            document.querySelector('.sector1').style.strokeDashoffset = 0;
-                            document.querySelector('.sector2').style.strokeDashoffset = 0;
-                            
-                            // Iluminar sector 3
-                            const sector3 = document.querySelector('.sector3');
-                            if (sector3) sector3.style.strokeDashoffset = 260 * (1 - t);
-                        }
+                        const sector2 = document.querySelector('.sector2');
+                        if (sector2) sector2.style.strokeDashoffset = 160 * (1 - t);
                         
-                        // Interpolación lineal para posición del coche
-                        if (puntoInicio && puntoFin) {
-                            const x = puntoInicio.x + (puntoFin.x - puntoInicio.x) * t;
-                            const y = puntoInicio.y + (puntoFin.y - puntoInicio.y) * t;
-                            coche.setAttribute('cx', x);
-                            coche.setAttribute('cy', y);
-                        }
+                    } else {
+                        // Sector 3 en progreso
+                        const t = (progresoClasif - 0.66) / 0.34;
+                        
+                        // Sectores 1 y 2 completos
+                        document.querySelector('.sector1').style.strokeDashoffset = 0;
+                        document.querySelector('.sector2').style.strokeDashoffset = 0;
+                        
+                        const sector3 = document.querySelector('.sector3');
+                        if (sector3) sector3.style.strokeDashoffset = 260 * (1 - t);
                     }
                 }
                 
@@ -1705,11 +1732,10 @@ class IngenieriaManager {
                 this.timerInterval = null;
                 
                 // Poner coche en la meta
-                const coche = document.getElementById('coche-animado');
                 if (coche) {
-                    coche.setAttribute('cx', '50');
-                    coche.setAttribute('cy', '75');
-                    coche.setAttribute('fill', '#4CAF50'); // Verde al completar
+                    coche.setAttribute('x', '80');
+                    coche.setAttribute('y', '90');
+                    coche.setAttribute('fill', '#4CAF50');
                 }
                 
                 // Mensaje final
@@ -1723,17 +1749,15 @@ class IngenieriaManager {
                     s.style.strokeDashoffset = 0;
                 });
             }
-        }, 1000);
+        }, 200); // ¡200ms = 0.2 segundos!
     }
     
     // ========================
     // INICIAR CONTADOR VISUAL
     // ========================
     iniciarContadorVisual() {
-        if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-        }
-        this.iniciarContadorSimulacion(); // Reutilizamos la misma lógica
+        // Simplemente llamamos a iniciarContadorSimulacion que ya tiene la lógica
+        this.iniciarContadorSimulacion();
     }
     
     // ========================
@@ -1944,44 +1968,58 @@ class IngenieriaManager {
             <div class="control-activo">
                 <h4><i class="fas fa-spinner fa-spin"></i> SIMULACIÓN EN CURSO</h4>
                 
-                <!-- CIRCUITO ANIMADO -->
+                <!-- CIRCUITO ANIMADO - ESTILO BAHRéIN -->
                 <div class="circuito-container">
-                    <svg id="circuito-svg" width="100%" height="200" viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
-                        <!-- Fondo del circuito (gris tenue) -->
-                        <path id="circuito-base" d="M 50,75 C 50,40 100,25 150,25 C 200,25 250,40 300,40 C 350,40 370,60 350,90 C 330,120 280,120 220,120 C 160,120 100,110 50,75" 
-                              fill="none" stroke="#333" stroke-width="4" stroke-linecap="round"/>
-                        
-                        <!-- SECTOR 1 (Verde) - Recta principal + primeras curvas -->
-                        <path id="sector1" d="M 50,75 C 50,40 100,25 150,25" 
-                              fill="none" stroke="#2e7d32" stroke-width="6" stroke-linecap="round" 
-                              class="sector sector1" style="stroke-dasharray: 160; stroke-dashoffset: 160;"/>
-                        
-                        <!-- SECTOR 2 (Azul) - Zona técnica -->
-                        <path id="sector2" d="M 150,25 C 200,25 250,40 300,40" 
-                              fill="none" stroke="#0d47a1" stroke-width="6" stroke-linecap="round" 
-                              class="sector sector2" style="stroke-dasharray: 160; stroke-dashoffset: 160;"/>
-                        
-                        <!-- SECTOR 3 (Rojo) - Últimas curvas + meta -->
-                        <path id="sector3" d="M 300,40 C 350,40 370,60 350,90 C 330,120 280,120 220,120 C 160,120 100,110 50,75" 
-                              fill="none" stroke="#b71c1c" stroke-width="6" stroke-linecap="round" 
-                              class="sector sector3" style="stroke-dasharray: 260; stroke-dashoffset: 260;"/>
-                        
-                        <!-- COCHE (círculo) -->
-                        <circle id="coche-animado" cx="50" cy="75" r="8" fill="#FFD700" stroke="#fff" stroke-width="2" filter="url(#glow)">
-                            <animateMotion id="movimiento-calentamiento" path="M 50,75 C 50,40 100,25 150,25 C 200,25 250,40 300,40 C 350,40 370,60 350,90 C 330,120 280,120 220,120 C 160,120 100,110 50,75" 
-                                           dur="30s" fill="freeze" repeatCount="1" begin="0s" restart="never"/>
-                        </circle>
-                        
-                        <!-- Filtro de glow para el coche -->
+                    <svg id="circuito-svg" width="100%" height="220" viewBox="0 0 500 180" preserveAspectRatio="xMidYMid meet">
+                        <!-- Definiciones: marcador de posición del coche -->
                         <defs>
-                            <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+                            <filter id="glow-coche" x="-30%" y="-30%" width="160%" height="160%">
                                 <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                                 <feMerge>
                                     <feMergeNode in="coloredBlur"/>
                                     <feMergeNode in="SourceGraphic"/>
                                 </feMerge>
                             </filter>
+                            
+                            <!-- Flecha/coche con dirección (para que se vea mejor) -->
+                            <g id="coche-icon">
+                                <circle cx="0" cy="0" r="6" fill="#FFD700" stroke="white" stroke-width="2"/>
+                                <circle cx="0" cy="0" r="3" fill="black"/>
+                                <line x1="0" y1="-8" x2="0" y2="8" stroke="white" stroke-width="1.5"/>
+                                <line x1="-8" y1="0" x2="8" y2="0" stroke="white" stroke-width="1.5"/>
+                            </g>
                         </defs>
+                        
+                        <!-- Fondo del circuito (gris tenue) - FORMA DE BAHRéIN (circuito con curvas pronunciadas) -->
+                        <path id="circuito-base" 
+                              d="M 80,90 
+                                 C 80,50 130,30 180,30    /* Recta principal + curva 1 */
+                                 C 230,30 270,45 290,70    /* Curva 2 y 3 */
+                                 C 320,100 340,140 300,150 /* Curvas técnicas */
+                                 C 260,160 200,150 150,130 /* Zona de estadio */
+                                 C 100,110 70,100 80,90"   /* Retorno a meta */
+                              fill="none" stroke="#333" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                        
+                        <!-- SECTOR 1 (Verde) - Recta principal y curvas iniciales -->
+                        <path id="sector1" 
+                              d="M 80,90 C 80,50 130,30 180,30 C 230,30 270,45 290,70" 
+                              fill="none" stroke="#4CAF50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"
+                              class="sector sector1" style="stroke-dasharray: 280; stroke-dashoffset: 280;"/>
+                        
+                        <!-- SECTOR 2 (Azul) - Zona técnica media -->
+                        <path id="sector2" 
+                              d="M 290,70 C 320,100 340,140 300,150" 
+                              fill="none" stroke="#2196F3" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"
+                              class="sector sector2" style="stroke-dasharray: 160; stroke-dashoffset: 160;"/>
+                        
+                        <!-- SECTOR 3 (Rojo) - Últimas curvas y retorno a meta -->
+                        <path id="sector3" 
+                              d="M 300,150 C 260,160 200,150 150,130 C 100,110 70,100 80,90" 
+                              fill="none" stroke="#e10600" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"
+                              class="sector sector3" style="stroke-dasharray: 260; stroke-dashoffset: 260;"/>
+                        
+                        <!-- COCHE - USAMOS USE PARA MAYOR PRECISIÓN -->
+                        <use id="coche-animado" href="#coche-icon" x="80" y="90" filter="url(#glow-coche)"/>
                     </svg>
                     
                     <!-- FASE ACTUAL Y MENSAJES -->
@@ -1989,14 +2027,14 @@ class IngenieriaManager {
                         🟢 VUELTA DE CALENTAMIENTO - Preparando neumáticos...
                     </div>
                     
-                    <!-- INDICADOR DE SECTORES (visible solo en clasificación) -->
+                    <!-- INDICADOR DE SECTORES -->
                     <div id="sectores-container" class="sectores-container" style="display: none; justify-content: center; gap: 20px; margin: 10px 0;">
-                        <div class="sector-indicator" id="sector1-indicator" style="padding: 5px 15px; border-radius: 20px; background: #333; color: #2e7d32;">🏁 S1</div>
-                        <div class="sector-indicator" id="sector2-indicator" style="padding: 5px 15px; border-radius: 20px; background: #333; color: #0d47a1;">🏁 S2</div>
-                        <div class="sector-indicator" id="sector3-indicator" style="padding: 5px 15px; border-radius: 20px; background: #333; color: #b71c1c;">🏁 S3</div>
+                        <div class="sector-indicator" id="sector1-indicator" style="padding: 5px 15px; border-radius: 20px; background: #333; color: #4CAF50; border: 1px solid #4CAF50;">🏁 S1</div>
+                        <div class="sector-indicator" id="sector2-indicator" style="padding: 5px 15px; border-radius: 20px; background: #333; color: #2196F3; border: 1px solid #2196F3;">🏁 S2</div>
+                        <div class="sector-indicator" id="sector3-indicator" style="padding: 5px 15px; border-radius: 20px; background: #333; color: #e10600; border: 1px solid #e10600;">🏁 S3</div>
                     </div>
                     
-                    <!-- TIEMPO RESTANTE (opcional, pequeño) -->
+                    <!-- TIEMPO RESTANTE -->
                     <div style="text-align: center; color: #aaa; font-size: 0.8rem; margin-top: 5px;">
                         <span id="tiempo-restante-circuito">${this.formatearTiempoContador(this.tiempoRestante)}</span>
                     </div>
@@ -2986,6 +3024,7 @@ class IngenieriaManager {
             // AÑADIR DENTRO DE aplicarEstilosIngenieria(), junto con los otros estilos
             
             /* CIRCUITO ANIMADO */
+            /* CIRCUITO ANIMADO */
             .circuito-container {
                 background: rgba(0, 0, 0, 0.4);
                 border-radius: 12px;
@@ -2994,8 +3033,23 @@ class IngenieriaManager {
                 border: 1px solid rgba(255, 215, 0, 0.2);
             }
             
+            /* ✅ MEJORADO: más sombra y brillo */
+            .circuito-container {
+                background: rgba(0, 0, 0, 0.5);
+                border-radius: 16px;
+                padding: 20px;
+                margin: 15px 0;
+                border: 2px solid rgba(0, 210, 190, 0.3);
+                box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            }
+            
             #circuito-svg {
                 filter: drop-shadow(0 0 10px rgba(0, 210, 190, 0.3));
+            }
+            
+            /* ✅ MEJORADO: más sombra */
+            #circuito-svg {
+                filter: drop-shadow(0 0 15px rgba(0, 210, 190, 0.5));
             }
             
             .sector {
@@ -3003,9 +3057,21 @@ class IngenieriaManager {
                 filter: drop-shadow(0 0 8px currentColor);
             }
             
+            /* ✅ MEJORADO: update más rápido y más glow */
+            .sector {
+                transition: stroke-dashoffset 0.2s ease;
+                filter: drop-shadow(0 0 12px currentColor);
+            }
+            
             .sector1 {
                 stroke: #4CAF50;
                 filter: drop-shadow(0 0 12px #4CAF50);
+            }
+            
+            /* ✅ MEJORADO */
+            .sector1 {
+                stroke: #4CAF50;
+                filter: drop-shadow(0 0 15px #4CAF50);
             }
             
             .sector2 {
@@ -3013,9 +3079,21 @@ class IngenieriaManager {
                 filter: drop-shadow(0 0 12px #2196F3);
             }
             
+            /* ✅ MEJORADO */
+            .sector2 {
+                stroke: #2196F3;
+                filter: drop-shadow(0 0 15px #2196F3);
+            }
+            
             .sector3 {
                 stroke: #e10600;
                 filter: drop-shadow(0 0 12px #e10600);
+            }
+            
+            /* ✅ MEJORADO */
+            .sector3 {
+                stroke: #e10600;
+                filter: drop-shadow(0 0 15px #e10600);
             }
             
             #coche-animado {
@@ -3024,9 +3102,25 @@ class IngenieriaManager {
                 r: 8;
             }
             
+            /* ✅ CAMBIADO: ahora usamos x,y en lugar de cx,cy (porque es un <use>) */
+            #coche-animado {
+                transition: x 0.2s linear, y 0.2s linear;
+                filter: drop-shadow(0 0 20px gold);
+            }
+            
+            /* ✅ NUEVO: estilos para el círculo dentro del coche */
+            #coche-animado circle {
+                transition: r 0.2s ease;
+            }
+            
             #coche-animado:hover {
                 r: 10;
                 filter: drop-shadow(0 0 20px #FFD700);
+            }
+            
+            /* ✅ MEJORADO */
+            #coche-animado:hover circle {
+                r: 8;
             }
             
             .sector-indicator {
@@ -3035,9 +3129,25 @@ class IngenieriaManager {
                 letter-spacing: 1px;
             }
             
+            /* ✅ NUEVO: fondo más oscuro y blur */
+            .sector-indicator {
+                transition: all 0.3s ease;
+                font-weight: bold;
+                letter-spacing: 1px;
+                background: rgba(0, 0, 0, 0.6) !important;
+                backdrop-filter: blur(5px);
+            }
+            
             .sector-indicator.completado {
                 background: currentColor !important;
                 color: black !important;
+            }
+            
+            /* ✅ NUEVO: sombra al completar */
+            .sector-indicator.completado {
+                background: currentColor !important;
+                color: black !important;
+                box-shadow: 0 0 20px currentColor;
             }
             
             .fase-actual {
@@ -3047,10 +3157,26 @@ class IngenieriaManager {
                 animation: pulse 2s infinite;
             }
             
+            /* ✅ MEJORADO: más grande y con glow */
+            .fase-actual {
+                font-size: 1.1rem;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                animation: pulse 1.5s infinite;
+                text-shadow: 0 0 10px currentColor;
+            }
+            
             @keyframes pulse {
                 0% { opacity: 0.7; }
                 50% { opacity: 1; }
                 100% { opacity: 0.7; }
+            }
+            
+            /* ✅ MEJORADO: con text-shadow */
+            @keyframes pulse {
+                0% { opacity: 0.7; text-shadow: 0 0 5px currentColor; }
+                50% { opacity: 1; text-shadow: 0 0 15px currentColor; }
+                100% { opacity: 0.7; text-shadow: 0 0 5px currentColor; }
             }
             
             /* Responsive */
@@ -3062,7 +3188,18 @@ class IngenieriaManager {
                 #coche-animado {
                     r: 6;
                 }
-            }            
+            }
+            
+            /* ✅ NUEVO: responsive para el nuevo coche */
+            @media (max-width: 768px) {
+                .circuito-container svg {
+                    height: 150px;
+                }
+                
+                #coche-animado circle {
+                    r: 4;
+                }
+            }         
             /* RESPONSIVE */
             @media (max-width: 768px) {
                 .simulacion-info {
