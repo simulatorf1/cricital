@@ -1433,14 +1433,7 @@ class TabManager {
                     <h3 style="color: #00d2be; margin: 0;" id="gp-actual-nombre-titulo">
                         <i class="fas fa-flag-checkered"></i> ${carrera.nombre} (${new Date(carrera.fecha_fin).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })})
                     </h3>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <select id="selector-gp-historico" style="width: 250px; padding: 8px 12px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 6px;">
-                            <option value="">📅 Ver otro Gran Premio...</option>
-                        </select>
-                        <button id="btn-cargar-gp-seleccionado" class="btn-primary" style="padding: 8px 16px; background: #333; color: white; border: 1px solid #00d2be; border-radius: 6px; cursor: pointer;">
-                            <i class="fas fa-search"></i> Ver
-                        </button>
-                    </div>
+                    
                 </div>
                 
                 <div style="margin-bottom: 15px;">
