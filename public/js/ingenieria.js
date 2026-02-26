@@ -1634,28 +1634,43 @@ class IngenieriaManager {
             coche.setAttribute('y', '90');
             coche.setAttribute('fill', '#FFD700');
             
-            // Puntos del circuito (MÁS DETALLADOS con forma de Bahrein real)
+
+            // Puntos del circuito (ESCALADOS para 500x180)
             const puntosCircuito = [
-                {x: 80, y: 90, t: 0.00},  // Meta/Salida
-                {x: 85, y: 65, t: 0.04},  // Recta de salida
-                {x: 110, y: 40, t: 0.08},
-                {x: 150, y: 28, t: 0.12}, // Curva 1 (izquierda)
-                {x: 190, y: 28, t: 0.18}, // Recta corta
-                {x: 220, y: 35, t: 0.23}, // Curva 2 (derecha)
-                {x: 245, y: 50, t: 0.28}, // S-Curve entrada
-                {x: 265, y: 70, t: 0.33}, // S-Curve salida (FIN S1)
-                {x: 285, y: 92, t: 0.38}, // Recta trasera
-                {x: 310, y: 115, t: 0.44}, // Curva 4
-                {x: 330, y: 135, t: 0.50}, // Zona técnica (FIN S2)
-                {x: 310, y: 150, t: 0.56}, // Curva 5
-                {x: 280, y: 160, t: 0.62}, // Curva 6
-                {x: 240, y: 165, t: 0.68}, // Recta interior
-                {x: 200, y: 160, t: 0.74}, // Curva 7
-                {x: 165, y: 148, t: 0.80}, // Curva 8
-                {x: 130, y: 130, t: 0.86}, // Última curva
-                {x: 100, y: 110, t: 0.92}, // Recta de meta
-                {x: 85, y: 95, t: 0.97},
-                {x: 80, y: 90, t: 1.00}   // Meta
+                {x: 100, y: 90, t: 0.000},  // Meta/Salida
+                {x: 110, y: 80, t: 0.050},
+                {x: 130, y: 70, t: 0.100},
+                {x: 160, y: 62, t: 0.150},
+                {x: 200, y: 58, t: 0.200},
+                {x: 240, y: 58, t: 0.250},
+                {x: 280, y: 62, t: 0.300},
+                {x: 320, y: 68, t: 0.350},
+                {x: 360, y: 68, t: 0.400},
+                {x: 400, y: 58, t: 0.450},
+                {x: 430, y: 38, t: 0.500},
+                {x: 420, y: 15, t: 0.550},
+                {x: 390, y: 22, t: 0.600},
+                {x: 360, y: 30, t: 0.650},
+                {x: 330, y: 30, t: 0.700},
+                {x: 300, y: 28, t: 0.750},
+                {x: 270, y: 28, t: 0.800},
+                {x: 240, y: 30, t: 0.820},
+                {x: 210, y: 35, t: 0.840},
+                {x: 180, y: 42, t: 0.860},
+                {x: 150, y: 52, t: 0.880},
+                {x: 120, y: 65, t: 0.900},
+                {x: 95, y: 80, t: 0.920},
+                {x: 85, y: 95, t: 0.940},
+                {x: 90, y: 110, t: 0.960},
+                {x: 110, y: 125, t: 0.970},
+                {x: 140, y: 135, t: 0.980},
+                {x: 180, y: 140, t: 0.985},
+                {x: 220, y: 138, t: 0.990},
+                {x: 260, y: 132, t: 0.993},
+                {x: 290, y: 124, t: 0.996},
+                {x: 310, y: 115, t: 0.998},
+                {x: 320, y: 105, t: 0.999},
+                {x: 100, y: 90, t: 1.000}   // Vuelta a meta
             ];
             
             // Función para obtener posición interpolada
@@ -2011,10 +2026,10 @@ class IngenieriaManager {
             <div class="control-activo">
                 <h4><i class="fas fa-spinner fa-spin"></i> SIMULACIÓN EN CURSO</h4>
 
-                <!-- CIRCUITO ANIMADO - ESTILO BAHRéIN -->
+
+                <!-- CIRCUITO ANIMADO - DISEÑO PERSONALIZADO -->
                 <div class="circuito-container">
                     <svg id="circuito-svg" width="100%" height="220" viewBox="0 0 500 180" preserveAspectRatio="xMidYMid meet">
-                        <!-- Definiciones: marcador de posición del coche -->
                         <defs>
                             <filter id="glow-coche" x="-30%" y="-30%" width="160%" height="160%">
                                 <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -2024,7 +2039,6 @@ class IngenieriaManager {
                                 </feMerge>
                             </filter>
                             
-                            <!-- Flecha/coche con dirección -->
                             <g id="coche-icon">
                                 <circle cx="0" cy="0" r="6" fill="#FFD700" stroke="white" stroke-width="2"/>
                                 <circle cx="0" cy="0" r="3" fill="black"/>
@@ -2033,31 +2047,31 @@ class IngenieriaManager {
                             </g>
                         </defs>
                         
-                        <!-- Fondo del circuito (gris tenue) - SIN COMENTARIOS EN EL d -->
+                        <!-- Fondo del circuito (gris) -->
                         <path id="circuito-base" 
-                              d="M 80,90 C 80,50 130,30 180,30 C 230,30 270,45 290,70 C 320,100 340,140 300,150 C 260,160 200,150 150,130 C 100,110 70,100 80,90"
-                              fill="none" stroke="#333" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                              d="M 100,90 C 100,70 130,55 160,50 C 190,45 220,45 250,50 C 280,55 310,70 340,70 C 370,70 400,60 420,40 C 440,20 430,0 400,10 C 370,20 340,30 310,30 C 280,30 250,25 220,25 C 190,25 160,30 130,40 C 100,50 80,70 80,90 C 80,110 100,130 130,140 C 160,150 190,150 220,145 C 250,140 280,130 300,120 C 320,110 340,100 350,100 C 360,100 370,110 360,120 C 350,130 330,140 300,145 C 270,150 240,150 210,145 C 180,140 150,130 130,120 C 110,110 100,100 100,90" 
+                              fill="none" stroke="#333" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
                         
-                        <!-- SECTOR 1 (Verde) - SIN COMENTARIOS -->
+                        <!-- SECTOR 1 (Verde) - Primera parte -->
                         <path id="sector1" 
-                              d="M 80,90 C 80,50 130,30 180,30 C 230,30 270,45 290,70" 
-                              fill="none" stroke="#4CAF50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"
+                              d="M 100,90 C 100,70 130,55 160,50 C 190,45 220,45 250,50 C 280,55 310,70 340,70" 
+                              fill="none" stroke="#4CAF50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
                               class="sector sector1" style="stroke-dasharray: 280; stroke-dashoffset: 280;"/>
                         
-                        <!-- SECTOR 2 (Azul) - SIN COMENTARIOS -->
+                        <!-- SECTOR 2 (Azul) - Parte media -->
                         <path id="sector2" 
-                              d="M 290,70 C 320,100 340,140 300,150" 
-                              fill="none" stroke="#2196F3" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"
-                              class="sector sector2" style="stroke-dasharray: 160; stroke-dashoffset: 160;"/>
+                              d="M 340,70 C 370,70 400,60 420,40 C 440,20 430,0 400,10 C 370,20 340,30 310,30 C 280,30 250,25 220,25 C 190,25 160,30 130,40 C 100,50 80,70 80,90" 
+                              fill="none" stroke="#2196F3" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
+                              class="sector sector2" style="stroke-dasharray: 450; stroke-dashoffset: 450;"/>
                         
-                        <!-- SECTOR 3 (Rojo) - SIN COMENTARIOS -->
+                        <!-- SECTOR 3 (Rojo) - Parte final -->
                         <path id="sector3" 
-                              d="M 300,150 C 260,160 200,150 150,130 C 100,110 70,100 80,90" 
-                              fill="none" stroke="#e10600" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"
-                              class="sector sector3" style="stroke-dasharray: 260; stroke-dashoffset: 260;"/>
+                              d="M 80,90 C 80,110 100,130 130,140 C 160,150 190,150 220,145 C 250,140 280,130 300,120 C 320,110 340,100 350,100 C 360,100 370,110 360,120 C 350,130 330,140 300,145 C 270,150 240,150 210,145 C 180,140 150,130 130,120 C 110,110 100,100 100,90" 
+                              fill="none" stroke="#e10600" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
+                              class="sector sector3" style="stroke-dasharray: 380; stroke-dashoffset: 380;"/>
                         
                         <!-- COCHE -->
-                        <use id="coche-animado" href="#coche-icon" x="80" y="90" filter="url(#glow-coche)"/>
+                        <use id="coche-animado" href="#coche-icon" x="100" y="90" filter="url(#glow-coche)"/>
                     </svg>
                     
                     <!-- FASE ACTUAL Y MENSAJES -->
@@ -2383,7 +2397,18 @@ class IngenieriaManager {
                 padding-bottom: 15px;
                 border-bottom: 2px solid rgba(0, 210, 190, 0.3);
             }
+            /* Mejora visual del circuito */
+            #circuito-base {
+                filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
             
+            .sector {
+                transition: stroke-dashoffset 0.3s ease-out;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }            
             .ingenieria-header h2 {
                 color: #00d2be;
                 margin: 0;
