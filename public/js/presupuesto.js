@@ -515,26 +515,40 @@ class PresupuestoManager {
 
     async registrarTransaccion(tipo, cantidad, descripcion, categoria = null, referencia = null) {
         try {
-            // 1. PRIMERO: Obtener el último saldo conocido
-            const { data: ultimaTransaccion } = await this.supabase
-                .from('transacciones')
-                .select('saldo_resultante')
-                .eq('escuderia_id', this.escuderiaId)
-                .order('fecha', { ascending: false })
-                .limit(1)
-                .single();
-            
-            // 2. Calcular el nuevo saldo
-            const saldoAnterior = ultimaTransaccion?.saldo_resultante || 5000000; // Default si no hay historial
-            let nuevoSaldo = saldoAnterior;
-            
-            if (tipo === 'ingreso') {
-                nuevoSaldo = saldoAnterior + Number(cantidad);
-            } else {
-                nuevoSaldo = saldoAnterior - Number(cantidad);
+            // Verificar que existe escuderiaId
+            if (!this.escuderiaId) {
+                console.error('❌ Error: No hay escuderiaId en PresupuestoManager');
+                console.log('Estado:', {
+                    escuderiaId: this.escuderiaId,
+                    escuderia: this.escuderia
+                });
+                return false;
             }
             
-            // 3. Crear transacción con el saldo calculado
+            // ✅ Obtener el dinero REAL de la escudería (FUENTE DE VERDAD)
+            const { data: escuderia, error: errorEscuderia } = await this.supabase
+                .from('escuderias')
+                .select('dinero')
+                .eq('id', this.escuderiaId)
+                .single();
+            
+            if (errorEscuderia) {
+                console.error('❌ Error obteniendo dinero de escudería:', errorEscuderia);
+                return false;
+            }
+            
+            // El saldo ACTUAL es el dinero que tiene AHORA (50.000.000€ por defecto)
+            const saldoActual = escuderia?.dinero ?? 50000000; // ← CAMBIADO A 50 MILLONES
+            
+            // Calcular nuevo saldo (el que tendrá DESPUÉS de esta operación)
+            let nuevoSaldo;
+            if (tipo === 'ingreso') {
+                nuevoSaldo = saldoActual + Number(cantidad);
+            } else {
+                nuevoSaldo = saldoActual - Number(cantidad);
+            }
+            
+            // Crear transacción con el saldo resultante REAL
             const transaccion = {
                 escuderia_id: this.escuderiaId,
                 tipo: tipo,
@@ -543,20 +557,32 @@ class PresupuestoManager {
                 categoria: categoria || 'otros',
                 referencia: referencia,
                 fecha: new Date().toISOString(),
-                saldo_resultante: nuevoSaldo  // ← AHORA SÍ TIENE VALOR REAL
+                saldo_resultante: nuevoSaldo  // ← COINCIDE CON escuderias.dinero
             };
     
             console.log('💰 Insertando transacción:', transaccion);
     
-            const { error } = await this.supabase
+            // Insertar la transacción
+            const { error: insertError } = await this.supabase
                 .from('transacciones')
                 .insert([transaccion]);
     
-            if (error) throw error;
+            if (insertError) throw insertError;
+            
+            // ✅ ACTUALIZAR el dinero en escuderias (por si acaso)
+            const { error: updateError } = await this.supabase
+                .from('escuderias')
+                .update({ dinero: nuevoSaldo })
+                .eq('id', this.escuderiaId);
+            
+            if (updateError) {
+                console.error('❌ Error actualizando dinero en escuderias:', updateError);
+                // No lanzamos error, la transacción ya se registró
+            }
             
             // Agregar a la lista local
             this.transacciones.unshift(transaccion);
-            console.log(`✅ Transacción registrada: ${tipo} ${cantidad}€ - ${descripcion}`);
+            console.log(`✅ Transacción registrada: ${tipo} ${cantidad}€ - ${descripcion}. Nuevo saldo: ${nuevoSaldo}€`);
             return true;
             
         } catch (error) {
