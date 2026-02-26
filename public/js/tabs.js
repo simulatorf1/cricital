@@ -733,10 +733,6 @@ class TabManager {
                 <!-- 🏁 SECCIÓN GRAN PREMIO ACTUAL (NUEVA) -->
                 <div class="gp-actual-container" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, rgba(0,210,190,0.15), rgba(0,0,0,0.3)); border-radius: 12px; border-left: 4px solid #00d2be;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3 style="color: #00d2be; margin: 0;">
-                            <i class="fas fa-flag-checkered"></i> 
-                            <span id="gp-actual-nombre">Cargando Gran Premio actual...</span>
-                        </h3>
                         <div class="gp-selector-wrapper" style="display: flex; gap: 10px; align-items: center;">
                             <select id="selector-gp-historico" style="width: 250px; padding: 8px 12px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 6px;">
                                 <option value="">📅 Ver otro Gran Premio...</option>
