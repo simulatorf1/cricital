@@ -1379,15 +1379,6 @@ class TabManager {
             
             if (errorCarrera) throw errorCarrera;
             
-            // Actualizar título
-            const gpNombreSpan = document.getElementById('gp-actual-nombre');
-            if (gpNombreSpan) {
-                const fecha = new Date(carrera.fecha_fin).toLocaleDateString('es-ES', {
-                    day: 'numeric', month: 'short'
-                });
-                gpNombreSpan.textContent = `${carrera.nombre} (${fecha})`;
-            }
-            
             // Calcular período de vueltas (7 días antes de la carrera)
             const fechaCarrera = new Date(carrera.fecha_fin);
             const fechaInicioPeriodo = new Date(fechaCarrera);
@@ -1439,12 +1430,27 @@ class TabManager {
             // ID de mi escudería
             const miEscuderiaId = window.f1Manager?.escuderia?.id;
             
-            // Generar HTML
+            // Generar HTML con título en línea superior
             let html = `
+                <!-- TÍTULO EN LÍNEA SUPERIOR -->
+                <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="color: #00d2be; margin: 0;" id="gp-actual-nombre-titulo">
+                        <i class="fas fa-flag-checkered"></i> ${carrera.nombre} (${new Date(carrera.fecha_fin).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })})
+                    </h3>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="selector-gp-historico" style="width: 250px; padding: 8px 12px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 6px;">
+                            <option value="">📅 Ver otro Gran Premio...</option>
+                        </select>
+                        <button id="btn-cargar-gp-seleccionado" class="btn-primary" style="padding: 8px 16px; background: #333; color: white; border: 1px solid #00d2be; border-radius: 6px; cursor: pointer;">
+                            <i class="fas fa-search"></i> Ver
+                        </button>
+                    </div>
+                </div>
+                
                 <div style="margin-bottom: 15px;">
                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                         <button id="btn-tabla-vueltas" class="btn-selector-tipo active" style="padding: 8px 16px; background: #00d2be; color: black; border: none; border-radius: 4px; cursor: pointer;">
-                            <i class="fas fa-stopwatch"></i> Vueltas Rápidas
+                            <i class="fas fa-stopwatch"></i> Mejores Vueltas
                         </button>
                         <button id="btn-tabla-aciertos" class="btn-selector-tipo" style="padding: 8px 16px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
                             <i class="fas fa-trophy"></i> Pronósticos
@@ -1454,8 +1460,11 @@ class TabManager {
                     <div id="contenido-tabla-gp" style="background: #1a1a1a; border-radius: 8px; border: 1px solid #333; overflow: hidden;">
             `;
             
-            // ===== TABLA DE VUELTAS (por defecto) =====
-            html += this.generarTablaVueltasGP(vueltas, miEscuderiaId);
+            // PROCESAR VUELTAS: solo la mejor de cada escudería
+            const vueltasUnicas = this.procesarMejoresVueltas(vueltas);
+            
+            // Generar tabla de vueltas por defecto
+            html += this.generarTablaVueltasGP(vueltasUnicas, miEscuderiaId);
             
             html += `
                     </div>
@@ -1477,7 +1486,7 @@ class TabManager {
                         btnAciertos.style.background = '#1a1a1a';
                         btnAciertos.style.color = 'white';
                         
-                        contenidoTabla.innerHTML = this.generarTablaVueltasGP(vueltas, miEscuderiaId);
+                        contenidoTabla.innerHTML = this.generarTablaVueltasGP(vueltasUnicas, miEscuderiaId);
                     });
                 }
                 
@@ -1502,6 +1511,30 @@ class TabManager {
                 </div>
             `;
         }
+    }
+    
+    // ===== NUEVO: PROCESAR SOLO LA MEJOR VUELTA DE CADA ESCUDERÍA =====
+    procesarMejoresVueltas(vueltas) {
+        if (!vueltas || vueltas.length === 0) return [];
+        
+        const mapaMejoresVueltas = new Map();
+        
+        vueltas.forEach(vuelta => {
+            const escuderiaId = vuelta.escuderia_id;
+            
+            if (!mapaMejoresVueltas.has(escuderiaId)) {
+                mapaMejoresVueltas.set(escuderiaId, vuelta);
+            } else {
+                const vueltaActual = mapaMejoresVueltas.get(escuderiaId);
+                if (vuelta.tiempo_vuelta < vueltaActual.tiempo_vuelta) {
+                    mapaMejoresVueltas.set(escuderiaId, vuelta);
+                }
+            }
+        });
+        
+        // Convertir mapa a array y ordenar por tiempo
+        const vueltasUnicas = Array.from(mapaMejoresVueltas.values());
+        return vueltasUnicas.sort((a, b) => a.tiempo_vuelta - b.tiempo_vuelta);
     }
     
     // ===== GENERAR TABLA DE VUELTAS =====
