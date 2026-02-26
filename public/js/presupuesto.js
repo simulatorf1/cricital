@@ -515,25 +515,35 @@ class PresupuestoManager {
 
     async registrarTransaccion(tipo, cantidad, descripcion, categoria = null, referencia = null) {
         try {
-            // ✅ CORREGIDO: Solo chequear this.escuderiaId
-            if (!this.escuderiaId) {
-                console.error('❌ Error: No hay escuderiaId en PresupuestoManager');
-                console.log('Estado:', {
-                    escuderiaId: this.escuderiaId,
-                    escuderia: this.escuderia
-                });
-                return false;
+            // 1. PRIMERO: Obtener el último saldo conocido
+            const { data: ultimaTransaccion } = await this.supabase
+                .from('transacciones')
+                .select('saldo_resultante')
+                .eq('escuderia_id', this.escuderiaId)
+                .order('fecha', { ascending: false })
+                .limit(1)
+                .single();
+            
+            // 2. Calcular el nuevo saldo
+            const saldoAnterior = ultimaTransaccion?.saldo_resultante || 5000000; // Default si no hay historial
+            let nuevoSaldo = saldoAnterior;
+            
+            if (tipo === 'ingreso') {
+                nuevoSaldo = saldoAnterior + Number(cantidad);
+            } else {
+                nuevoSaldo = saldoAnterior - Number(cantidad);
             }
             
+            // 3. Crear transacción con el saldo calculado
             const transaccion = {
-                escuderia_id: this.escuderiaId,  // ← Usar this.escuderiaId
+                escuderia_id: this.escuderiaId,
                 tipo: tipo,
                 cantidad: cantidad,
                 descripcion: descripcion,
                 categoria: categoria || 'otros',
                 referencia: referencia,
                 fecha: new Date().toISOString(),
-                saldo_resultante: 0  // ← Puedes calcular esto o dejarlo como 0
+                saldo_resultante: nuevoSaldo  // ← AHORA SÍ TIENE VALOR REAL
             };
     
             console.log('💰 Insertando transacción:', transaccion);
