@@ -155,7 +155,7 @@ class IngenieriaManager {
                     </div>
                     
                     <div class="ingenieria-footer">
-                        <p><i class="fas fa-info-circle"></i> La simulación tarda 1 hora en completarse. Durante este tiempo podrás seguir usando otras secciones.</p>                        
+                        <p><i class="fas fa-info-circle"></i> La simulación tarda 1 minuto en completarse. Durante este tiempo podrás seguir usando otras secciones.</p>                        
                     </div>
                 </div>
             `;
@@ -936,7 +936,7 @@ class IngenieriaManager {
             this.iniciarContadorSimulacion();
             
             // Mostrar notificación
-            this.f1Manager.showNotification('🏁 Simulación iniciada - Resultados en 1 hora', 'success');
+            this.f1Manager.showNotification('🏁 Simulación iniciada - Resultados en 1 minuto', 'success');
             
             // Recargar la vista
             setTimeout(() => {
@@ -1812,7 +1812,7 @@ class IngenieriaManager {
             
                 <button id="iniciar-simulacion-btn" class="btn-iniciar-simulacion" ${!puedeProbar ? 'disabled' : ''}>
                     <i class="fas fa-play"></i>
-                    ${puedeProbar ? 'INICIAR SIMULACIÓN (1 HORA)' : 'NO HAY PIEZAS MONTADAS'}
+                    ${puedeProbar ? 'INICIAR SIMULACIÓN (1 Minuto)' : 'NO HAY PIEZAS MONTADAS'}
                 </button>
                 
                 ${ultimaPrueba ? `
