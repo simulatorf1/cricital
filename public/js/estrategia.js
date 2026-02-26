@@ -248,6 +248,9 @@ class EstrategiaManager {
     // ========================
     // VERIFICAR CONTRATOS VENCIDOS
     // ========================
+    // ========================
+    // VERIFICAR CONTRATOS VENCIDOS (CON NOTIFICACIONES A CAMPANA)
+    // ========================
     async verificarContratosVencidos() {
         let cambios = false;
         
@@ -269,7 +272,7 @@ class EstrategiaManager {
                     this.escuderia.dinero -= sueldo;
                     await this.f1Manager.updateEscuderiaMoney();
                     
-                    // Registrar transacción
+                    // Registrar transacción en presupuesto
                     if (window.presupuestoManager) {
                         await window.presupuestoManager.registrarTransaccion(
                             'gasto',
@@ -280,17 +283,46 @@ class EstrategiaManager {
                         );
                     }
                     
+                    // ✅ NOTIFICACIÓN A LA CAMPANA (pago)
+                    if (window.notificacionesManager) {
+                        await window.notificacionesManager.crearNotificacion(
+                            this.f1Manager.user.id,
+                            'estrategas',
+                            '💰 Pago de estratega',
+                            `Se ha cobrado €${sueldo.toLocaleString()} a ${estratega.nombre} por 7 días de servicio`,
+                            estratega.id // relación
+                        );
+                    }
+                    
+                    // Notificación flotante (opcional, la que ya tenías)
                     this.f1Manager.showNotification(`💰 Pagado €${sueldo.toLocaleString()} a ${estratega.nombre}`, 'info');
+                    
                 } else {
+                    // ❌ NO HAY DINERO → Estratega se va
+                    
+                    // ✅ NOTIFICACIÓN A LA CAMPANA (abandono)
+                    if (window.notificacionesManager) {
+                        await window.notificacionesManager.crearNotificacion(
+                            this.f1Manager.user.id,
+                            'estrategas',
+                            '👋 Estratega abandonó el equipo',
+                            `${estratega.nombre} se ha ido por falta de fondos para pagar su salario`,
+                            estratega.id // relación
+                        );
+                    }
+                    
+                    // Notificación flotante
                     this.f1Manager.showNotification(`👋 ${estratega.nombre} se fue (sin fondos)`, 'warning');
                 }
                 
-                // Actualizar BD
+                // Actualizar BD (siempre, haya cobrado o no)
                 await this.supabase
                     .from('estrategas_contrataciones')
                     .update({
                         estado: 'finalizado',
-                        fecha_fin_contrato: new Date().toISOString()
+                        fecha_fin_contrato: new Date().toISOString(),
+                        total_pagado: this.escuderia.dinero >= sueldo ? (contratacion.total_pagado || 0) + sueldo : contratacion.total_pagado || 0,
+                        motivo_fin: this.escuderia.dinero >= sueldo ? 'pago_completado' : 'falta_pago'
                     })
                     .eq('id', contratacion.id);
                 
@@ -1595,25 +1627,25 @@ class EstrategiaManager {
     // INICIAR TIMERS
     // ========================
     iniciarTimers() {
-        // Timer para actualizar barras cada minuto
+        // Timer para actualizar barras cada minuto (YA EXISTE)
         this.timers.barras = setInterval(() => {
             if (document.querySelector('.estratega-slot')) {
                 this.actualizarUIEstrategas();
             }
-        }, 60000); // 1 minuto
+        }, 60000);
         
-        // Timer para procesar pagos cada hora (verifica si es domingo 23:59)
-        this.timers.pagos = setInterval(() => {
-            this.procesarPagosAutomaticos();
-        }, 3600000); // 1 hora
-        // Timer para verificar contratos vencidos (cada minuto)
+        // ✅ CAMBIAR ESTE: Verificar contratos vencidos CADA 10 SEGUNDOS
         this.timers.vencimientos = setInterval(() => {
             this.verificarContratosVencidos();
-        }, 60000); // 1 minuto        
-        // Timer para notificaciones de próximo pago (cada 6 horas)
+        }, 10000); // ← 10 segundos, no 1 minuto
+        
+        // Timer para procesar pagos (puedes eliminarlo si ya no lo usas)
+        // this.timers.pagos = setInterval(...); ← OPCIONAL: BORRAR
+        
+        // Timer para notificaciones de próximo pago (si lo tienes)
         this.timers.notificaciones = setInterval(() => {
             this.verificarProximosPagos();
-        }, 21600000); // 6 horas
+        }, 21600000);
         
         console.log('⏱️ Timers de estrategas iniciados');
     }
