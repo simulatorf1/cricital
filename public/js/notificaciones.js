@@ -1188,6 +1188,17 @@ class NotificacionesManager {
                         window.cargarPantallaPronostico();
                     }
                 }
+        
+                // 👇 AÑADE AQUÍ EL NUEVO CASO
+                if (tipo === 'resumen_semanal') {
+                    // Cerrar panel
+                    this.cerrarPanel();
+                    
+                    // Mostrar modal con el resumen
+                    if (window.resumenSemanalManager) {
+                        window.resumenSemanalManager.mostrarResumenSemanal(tipoRelacion); // tipoRelacion = resumenId
+                    }
+                }
             };
         });
     }
