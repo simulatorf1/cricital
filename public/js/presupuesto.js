@@ -128,7 +128,29 @@ class PresupuestoManager {
                         Semana del ${this.formatFecha(this.semanaInicio)} al ${this.formatFecha(new Date())}
                     </div>
                 </div>
-                
+                // Después del header, añadir botón
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+                    <button onclick="window.resumenSemanalManager?.mostrarResumenSemanal()" 
+                            style="
+                                background: rgba(0,210,190,0.1);
+                                border: 2px solid #00d2be;
+                                color: white;
+                                padding: 8px 15px;
+                                border-radius: 6px;
+                                font-size: 0.85rem;
+                                font-weight: bold;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                                transition: all 0.2s;
+                            "
+                            onmouseover="this.style.background='rgba(0,210,190,0.2)'"
+                            onmouseout="this.style.background='rgba(0,210,190,0.1)'">
+                        <i class="fas fa-calendar-alt"></i>
+                        VER RESUMEN DE LA ÚLTIMA SEMANA
+                    </button>
+                </div>                
                 <!-- RESUMEN SEMANAL -->
                 <div class="resumen-semanal">
                     <div class="resumen-header">
