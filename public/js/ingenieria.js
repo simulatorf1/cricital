@@ -1967,7 +1967,7 @@ class IngenieriaManager {
         return `
             <div class="control-activo">
                 <h4><i class="fas fa-spinner fa-spin"></i> SIMULACIÓN EN CURSO</h4>
-                
+
                 <!-- CIRCUITO ANIMADO - ESTILO BAHRéIN -->
                 <div class="circuito-container">
                     <svg id="circuito-svg" width="100%" height="220" viewBox="0 0 500 180" preserveAspectRatio="xMidYMid meet">
@@ -1981,7 +1981,7 @@ class IngenieriaManager {
                                 </feMerge>
                             </filter>
                             
-                            <!-- Flecha/coche con dirección (para que se vea mejor) -->
+                            <!-- Flecha/coche con dirección -->
                             <g id="coche-icon">
                                 <circle cx="0" cy="0" r="6" fill="#FFD700" stroke="white" stroke-width="2"/>
                                 <circle cx="0" cy="0" r="3" fill="black"/>
@@ -1990,35 +1990,30 @@ class IngenieriaManager {
                             </g>
                         </defs>
                         
-                        <!-- Fondo del circuito (gris tenue) - FORMA DE BAHRéIN (circuito con curvas pronunciadas) -->
+                        <!-- Fondo del circuito (gris tenue) - SIN COMENTARIOS EN EL d -->
                         <path id="circuito-base" 
-                              d="M 80,90 
-                                 C 80,50 130,30 180,30    /* Recta principal + curva 1 */
-                                 C 230,30 270,45 290,70    /* Curva 2 y 3 */
-                                 C 320,100 340,140 300,150 /* Curvas técnicas */
-                                 C 260,160 200,150 150,130 /* Zona de estadio */
-                                 C 100,110 70,100 80,90"   /* Retorno a meta */
+                              d="M 80,90 C 80,50 130,30 180,30 C 230,30 270,45 290,70 C 320,100 340,140 300,150 C 260,160 200,150 150,130 C 100,110 70,100 80,90"
                               fill="none" stroke="#333" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
                         
-                        <!-- SECTOR 1 (Verde) - Recta principal y curvas iniciales -->
+                        <!-- SECTOR 1 (Verde) - SIN COMENTARIOS -->
                         <path id="sector1" 
                               d="M 80,90 C 80,50 130,30 180,30 C 230,30 270,45 290,70" 
                               fill="none" stroke="#4CAF50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"
                               class="sector sector1" style="stroke-dasharray: 280; stroke-dashoffset: 280;"/>
                         
-                        <!-- SECTOR 2 (Azul) - Zona técnica media -->
+                        <!-- SECTOR 2 (Azul) - SIN COMENTARIOS -->
                         <path id="sector2" 
                               d="M 290,70 C 320,100 340,140 300,150" 
                               fill="none" stroke="#2196F3" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"
                               class="sector sector2" style="stroke-dasharray: 160; stroke-dashoffset: 160;"/>
                         
-                        <!-- SECTOR 3 (Rojo) - Últimas curvas y retorno a meta -->
+                        <!-- SECTOR 3 (Rojo) - SIN COMENTARIOS -->
                         <path id="sector3" 
                               d="M 300,150 C 260,160 200,150 150,130 C 100,110 70,100 80,90" 
                               fill="none" stroke="#e10600" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"
                               class="sector sector3" style="stroke-dasharray: 260; stroke-dashoffset: 260;"/>
                         
-                        <!-- COCHE - USAMOS USE PARA MAYOR PRECISIÓN -->
+                        <!-- COCHE -->
                         <use id="coche-animado" href="#coche-icon" x="80" y="90" filter="url(#glow-coche)"/>
                     </svg>
                     
