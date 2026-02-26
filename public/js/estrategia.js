@@ -224,7 +224,7 @@ class EstrategiaManager {
     // ========================
     // CALCULAR TIEMPO RESTANTE
     // ========================
-    e(fechaInicio) {
+    calcularTiempoRestante(fechaInicio) {
         const unaSemanaMs = 7 * 24 * 60 * 60 * 1000; // 168 horas
         const ahora = new Date().getTime();
         const inicio = new Date(fechaInicio).getTime();
