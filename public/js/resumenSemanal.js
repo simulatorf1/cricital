@@ -1,5 +1,6 @@
 // ========================
 // resumenSemanal.js - Sistema de Resumen Semanal de Presupuesto
+// CON CATEGORÍAS DINÁMICAS
 // ========================
 console.log('📅 Sistema de resumen semanal cargado');
 
@@ -82,7 +83,7 @@ class ResumenSemanalManager {
     }
 
     // ========================
-    // OBTENER DATOS DE LA SEMANA
+    // OBTENER DATOS DE LA SEMANA (CON CATEGORÍAS DINÁMICAS)
     // ========================
     async obtenerDatosSemana(fechaInicio, fechaFin) {
         try {
@@ -115,63 +116,39 @@ class ResumenSemanalManager {
             // Saldo final (última transacción de la semana)
             const saldoFinal = transacciones[transacciones.length - 1]?.saldo_resultante || 0;
 
-            // Inicializar contadores por categoría
-            const ingresos = {
-                'ingresos': 0,
-                'publicidad': 0,
-                'otros_ingresos': 0
-            };
-
-            const gastos = {
-                'produccion': 0,
-                'mercado': 0,
-                'sueldos': 0,
-                'apuestas': 0,
-                'otros_gastos': 0
-            };
+            // ===== CATEGORÍAS DINÁMICAS =====
+            const ingresosPorCategoria = {};
+            const gastosPorCategoria = {};
 
             let totalIngresos = 0;
             let totalGastos = 0;
 
-            // Procesar cada transacción
+            // Procesar cada transacción y agrupar por categoría
             transacciones.forEach(t => {
                 const cantidad = Number(t.cantidad || 0);
                 const categoria = t.categoria || 'otros';
 
                 if (t.tipo === 'ingreso') {
                     totalIngresos += cantidad;
-                    
-                    // Clasificar ingresos
-                    if (categoria === 'ingresos') {
-                        ingresos.ingresos += cantidad;
-                    } else if (categoria === 'publicidad' || t.descripcion?.includes('Pago dominical')) {
-                        ingresos.publicidad += cantidad;
-                    } else {
-                        ingresos.otros_ingresos += cantidad;
-                    }
+                    ingresosPorCategoria[categoria] = (ingresosPorCategoria[categoria] || 0) + cantidad;
                 } else {
                     totalGastos += cantidad;
-                    
-                    // Clasificar gastos
-                    switch(categoria) {
-                        case 'produccion':
-                            gastos.produccion += cantidad;
-                            break;
-                        case 'mercado':
-                            gastos.mercado += cantidad;
-                            break;
-                        case 'sueldos':
-                            gastos.sueldos += cantidad;
-                            break;
-                        case 'apuestas':
-                            gastos.apuestas += cantidad;
-                            break;
-                        default:
-                            gastos.otros_gastos += cantidad;
-                            break;
-                    }
+                    gastosPorCategoria[categoria] = (gastosPorCategoria[categoria] || 0) + cantidad;
                 }
             });
+
+            // Separar publicidad si existe como categoría o si viene del pago dominical
+            let publicidad = 0;
+            if (ingresosPorCategoria['publicidad']) {
+                publicidad = ingresosPorCategoria['publicidad'];
+            } else {
+                // Buscar en transacciones por descripción
+                transacciones.forEach(t => {
+                    if (t.tipo === 'ingreso' && t.descripcion?.includes('Pago dominical')) {
+                        publicidad += Number(t.cantidad || 0);
+                    }
+                });
+            }
 
             const balance = totalIngresos - totalGastos;
 
@@ -183,8 +160,9 @@ class ResumenSemanalManager {
                 totalIngresos,
                 totalGastos,
                 balance,
-                ingresos,
-                gastos,
+                ingresosPorCategoria,  // ← OBJETO DINÁMICO
+                gastosPorCategoria,     // ← OBJETO DINÁMICO
+                publicidad,             // ← PUBLICIDAD POR SEPARADO
                 transacciones: transacciones.length
             };
 
@@ -268,12 +246,61 @@ class ResumenSemanalManager {
     }
 
     // ========================
+    // GENERAR HTML DE CATEGORÍAS DINÁMICAMENTE
+    // ========================
+    generarHTMLCategorias(datos) {
+        const formatoMoneda = (num) => {
+            return num.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '€';
+        };
+
+        let htmlIngresos = '';
+        let htmlGastos = '';
+
+        // INGRESOS - TODAS LAS CATEGORÍAS
+        for (const [categoria, total] of Object.entries(datos.ingresosPorCategoria)) {
+            // No mostrar publicidad aquí si ya la mostramos aparte
+            if (categoria === 'publicidad') continue;
+            
+            htmlIngresos += `
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px;">
+                    <span style="text-transform: capitalize;">${categoria}:</span>
+                    <span style="color: #4CAF50;">${formatoMoneda(total)}</span>
+                </div>
+            `;
+        }
+
+        // GASTOS - TODAS LAS CATEGORÍAS
+        for (const [categoria, total] of Object.entries(datos.gastosPorCategoria)) {
+            htmlGastos += `
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px;">
+                    <span style="text-transform: capitalize;">${categoria}:</span>
+                    <span style="color: #e10600;">${formatoMoneda(total)}</span>
+                </div>
+            `;
+        }
+
+        // Si no hay ingresos (aparte de publicidad)
+        if (htmlIngresos === '') {
+            htmlIngresos = '<div style="color: #888; text-align: center; padding: 10px;">No hay ingresos esta semana</div>';
+        }
+
+        // Si no hay gastos
+        if (htmlGastos === '') {
+            htmlGastos = '<div style="color: #888; text-align: center; padding: 10px;">No hay gastos esta semana</div>';
+        }
+
+        return { htmlIngresos, htmlGastos };
+    }
+
+    // ========================
     // MOSTRAR MODAL
     // ========================
     mostrarModal(datos) {
         // Eliminar modal existente si lo hay
         const modalExistente = document.getElementById('modal-resumen-semanal');
         if (modalExistente) modalExistente.remove();
+
+        const { htmlIngresos, htmlGastos } = this.generarHTMLCategorias(datos);
 
         // Crear modal
         const modal = document.createElement('div');
@@ -307,7 +334,6 @@ class ResumenSemanalManager {
             box-shadow: 0 0 30px rgba(0, 210, 190, 0.5);
         `;
 
-        // Generar HTML del resumen
         const formatoMoneda = (num) => {
             return num.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '€';
         };
@@ -363,18 +389,7 @@ class ResumenSemanalManager {
                     </div>
                     
                     <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px;">
-                            <span>Ingresos generales:</span>
-                            <span style="color: #4CAF50;">${formatoMoneda(datos.ingresos.ingresos)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px;">
-                            <span>Publicidad/Estrellas:</span>
-                            <span style="color: #4CAF50;">${formatoMoneda(datos.ingresos.publicidad)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px;">
-                            <span>Otros ingresos:</span>
-                            <span style="color: #4CAF50;">${formatoMoneda(datos.ingresos.otros_ingresos)}</span>
-                        </div>
+                        ${htmlIngresos}
                     </div>
                 </div>
                 
@@ -388,29 +403,17 @@ class ResumenSemanalManager {
                     </div>
                     
                     <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px;">
-                            <span>Producción:</span>
-                            <span style="color: #e10600;">${formatoMoneda(datos.gastos.produccion)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px;">
-                            <span>Mercado:</span>
-                            <span style="color: #e10600;">${formatoMoneda(datos.gastos.mercado)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px;">
-                            <span>Sueldos:</span>
-                            <span style="color: #e10600;">${formatoMoneda(datos.gastos.sueldos)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px;">
-                            <span>Apuestas:</span>
-                            <span style="color: #e10600;">${formatoMoneda(datos.gastos.apuestas)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px;">
-                            <span>Otros gastos:</span>
-                            <span style="color: #e10600;">${formatoMoneda(datos.gastos.otros_gastos)}</span>
-                        </div>
+                        ${htmlGastos}
                     </div>
                 </div>
             </div>
+            
+            <!-- PUBLICIDAD (si existe) -->
+            ${datos.publicidad > 0 ? `
+            <div style="margin-top: 15px; background: rgba(255, 215, 0, 0.1); border-radius: 8px; padding: 10px; text-align: center;">
+                <span style="color: #FFD700;"><i class="fas fa-star"></i> PUBLICIDAD/ESTRELLAS: ${formatoMoneda(datos.publicidad)}</span>
+            </div>
+            ` : ''}
             
             <div style="margin-top: 20px; text-align: center; font-size: 0.8rem; color: #aaa;">
                 <i class="fas fa-info-circle"></i> Puedes volver a ver este resumen desde la pestaña Presupuesto
