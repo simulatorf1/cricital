@@ -79,12 +79,16 @@ class EstrategiaManager {
         
         // 3. Cargar estrategas contratados
         await this.cargarEstrategasContratados();
-        await this.verificarContratosVencidos(); // ← AÑADE ESTA LÍNEA        
         
         // 4. Iniciar timers
         this.iniciarTimers();
         
-        // 5. Actualizar UI
+        // 5. ✅ Pequeño retraso para asegurar que todo está listo
+        setTimeout(() => {
+            this.verificarContratosVencidos();
+        }, 100);
+        
+        // 6. Actualizar UI
         this.actualizarUIEstrategas();
         
         console.log('✅ EstrategiaManager inicializado');
