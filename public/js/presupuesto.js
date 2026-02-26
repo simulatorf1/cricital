@@ -128,7 +128,7 @@ class PresupuestoManager {
                         Semana del ${this.formatFecha(this.semanaInicio)} al ${this.formatFecha(new Date())}
                     </div>
                 </div>
-                // Después del header, añadir botón
+
                 <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
                     <button onclick="window.resumenSemanalManager?.mostrarResumenSemanal()" 
                             style="
