@@ -1357,7 +1357,8 @@ class TabManager {
     
     // ===== NUEVO: CARGAR DATOS DEL GP ACTUAL =====
     // ===== NUEVO: CARGAR DATOS DEL GP ACTUAL (CONSULTAS CORREGIDAS) =====
-    async cargarDatosGranPremio(gpId, mostrarVueltas = true) {
+    // ===== CARGAR DATOS DEL GP ACTUAL CON TABLA ÚNICA =====
+    async cargarDatosGranPremio(gpId) {
         const contenedor = document.getElementById('contenedor-gp-actual');
         if (!contenedor) return;
         
@@ -1372,50 +1373,50 @@ class TabManager {
             // Obtener nombre de la carrera
             const { data: carrera, error: errorCarrera } = await supabase
                 .from('calendario_gp')
-                .select('nombre, fecha_inicio')
+                .select('nombre, fecha_fin')
                 .eq('id', gpId)
                 .single();
             
             if (errorCarrera) throw errorCarrera;
             
-            // Actualizar título del GP actual si existe
+            // Actualizar título
             const gpNombreSpan = document.getElementById('gp-actual-nombre');
             if (gpNombreSpan) {
-                const fecha = new Date(carrera.fecha_inicio).toLocaleDateString('es-ES', {
+                const fecha = new Date(carrera.fecha_fin).toLocaleDateString('es-ES', {
                     day: 'numeric', month: 'short'
                 });
                 gpNombreSpan.textContent = `${carrera.nombre} (${fecha})`;
             }
             
-            // Obtener mejor vuelta del GP (solo la mejor)
-            const fechaCarrera = new Date(carrera.fecha_inicio);
-            const fechaFinPeriodo = new Date(fechaCarrera);
-            fechaFinPeriodo.setDate(fechaCarrera.getDate() - 2);
-            fechaFinPeriodo.setHours(23, 59, 59, 999);
-            
+            // Calcular período de vueltas (7 días antes de la carrera)
+            const fechaCarrera = new Date(carrera.fecha_fin);
             const fechaInicioPeriodo = new Date(fechaCarrera);
-            fechaInicioPeriodo.setDate(fechaCarrera.getDate() - 6);
+            fechaInicioPeriodo.setDate(fechaCarrera.getDate() - 7);
             fechaInicioPeriodo.setHours(0, 0, 0, 0);
             
-            // CONSULTA CORREGIDA - sin .single() para evitar errores si no hay datos
-            const { data: mejorVuelta, error: errorVuelta } = await supabase
+            const fechaFinPeriodo = new Date(fechaCarrera);
+            fechaFinPeriodo.setHours(23, 59, 59, 999);
+            
+            // Obtener TODAS las vueltas del período
+            const { data: vueltas, error: errorVueltas } = await supabase
                 .from('pruebas_pista')
                 .select(`
                     tiempo_formateado,
+                    tiempo_vuelta,
                     fecha_prueba,
                     escuderia_id,
                     escuderias!inner (
+                        id,
                         nombre
                     )
                 `)
                 .gte('fecha_prueba', fechaInicioPeriodo.toISOString())
                 .lte('fecha_prueba', fechaFinPeriodo.toISOString())
-                .order('tiempo_formateado', { ascending: true })
-                .limit(1);
+                .order('tiempo_vuelta', { ascending: true });
             
-            if (errorVuelta) console.error('Error consultando vueltas:', errorVuelta);
+            if (errorVueltas) console.error('Error consultando vueltas:', errorVueltas);
             
-            // CONSULTA CORREGIDA para pronósticos
+            // Obtener TODOS los pronósticos del GP
             const { data: pronosticos, error: errorPronosticos } = await supabase
                 .from('pronosticos_usuario')
                 .select(`
@@ -1423,6 +1424,7 @@ class TabManager {
                     aciertos,
                     puntuacion_total,
                     escuderias!inner (
+                        id,
                         nombre
                     )
                 `)
@@ -1430,81 +1432,30 @@ class TabManager {
                 .eq('estado', 'calificado')
                 .not('aciertos', 'is', null)
                 .order('aciertos', { ascending: false })
-                .order('puntuacion_total', { ascending: false })
-                .limit(5);
+                .order('puntuacion_total', { ascending: false });
             
             if (errorPronosticos) console.error('Error consultando pronósticos:', errorPronosticos);
             
+            // ID de mi escudería
+            const miEscuderiaId = window.f1Manager?.escuderia?.id;
+            
             // Generar HTML
             let html = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <!-- COLUMNA IZQUIERDA: MEJOR VUELTA -->
-                    <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 15px; border: 1px solid #333;">
-                        <h4 style="color: #00d2be; margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-stopwatch"></i> Mejor Vuelta Rápida
-                        </h4>
-            `;
-            
-            if (mejorVuelta && mejorVuelta.length > 0) {
-                const vuelta = mejorVuelta[0];
-                const fechaVuelta = new Date(vuelta.fecha_prueba).toLocaleDateString('es-ES');
-                html += `
-                    <div style="background: linear-gradient(145deg, #1a1a1a, #111); padding: 20px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 2rem; font-family: monospace; font-weight: bold; color: #FFD700; margin-bottom: 5px;">
-                            ${vuelta.tiempo_formateado}
-                        </div>
-                        <div style="font-size: 1.2rem; color: white; margin-bottom: 5px;">
-                            ${vuelta.escuderias?.nombre || 'Desconocida'}
-                        </div>
-                        <div style="color: #888; font-size: 0.9rem;">
-                            <i class="fas fa-calendar"></i> ${fechaVuelta}
-                        </div>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; text-align: center; color: #888;">
-                        <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                        <p>No hay vueltas registradas</p>
-                    </div>
-                `;
-            }
-            
-            html += `
+                <div style="margin-bottom: 15px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <button id="btn-tabla-vueltas" class="btn-selector-tipo active" style="padding: 8px 16px; background: #00d2be; color: black; border: none; border-radius: 4px; cursor: pointer;">
+                            <i class="fas fa-stopwatch"></i> Vueltas Rápidas
+                        </button>
+                        <button id="btn-tabla-aciertos" class="btn-selector-tipo" style="padding: 8px 16px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
+                            <i class="fas fa-trophy"></i> Pronósticos
+                        </button>
                     </div>
                     
-                    <!-- COLUMNA DERECHA: TOP 5 ACIERTOS -->
-                    <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 15px; border: 1px solid #333;">
-                        <h4 style="color: #00d2be; margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-trophy"></i> Top 5 Aciertos
-                        </h4>
+                    <div id="contenido-tabla-gp" style="background: #1a1a1a; border-radius: 8px; border: 1px solid #333; overflow: hidden;">
             `;
             
-            if (pronosticos && pronosticos.length > 0) {
-                html += `<div style="display: flex; flex-direction: column; gap: 8px;">`;
-                
-                pronosticos.forEach((p, index) => {
-                    const medalla = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : ''));
-                    html += `
-                        <div style="display: flex; align-items: center; justify-content: space-between; background: #1a1a1a; padding: 10px 15px; border-radius: 6px; border-left: 3px solid ${index === 0 ? '#FFD700' : (index === 1 ? '#C0C0C0' : (index === 2 ? '#CD7F32' : '#333'))};">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-weight: bold; width: 30px;">${medalla || (index + 1)}</span>
-                                <span>${p.escuderias?.nombre || 'Desconocida'}</span>
-                            </div>
-                            <div style="font-weight: bold; color: #00d2be;">${p.aciertos}/10</div>
-                        </div>
-                    `;
-                });
-                
-                html += `</div>`;
-            } else {
-                html += `
-                    <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; text-align: center; color: #888;">
-                        <i class="fas fa-chart-line" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                        <p>No hay pronósticos calificados</p>
-                    </div>
-                `;
-            }
+            // ===== TABLA DE VUELTAS (por defecto) =====
+            html += this.generarTablaVueltasGP(vueltas, miEscuderiaId);
             
             html += `
                     </div>
@@ -1513,16 +1464,190 @@ class TabManager {
             
             contenedor.innerHTML = html;
             
+            // Configurar eventos de los botones
+            setTimeout(() => {
+                const btnVueltas = document.getElementById('btn-tabla-vueltas');
+                const btnAciertos = document.getElementById('btn-tabla-aciertos');
+                const contenidoTabla = document.getElementById('contenido-tabla-gp');
+                
+                if (btnVueltas) {
+                    btnVueltas.addEventListener('click', () => {
+                        btnVueltas.style.background = '#00d2be';
+                        btnVueltas.style.color = 'black';
+                        btnAciertos.style.background = '#1a1a1a';
+                        btnAciertos.style.color = 'white';
+                        
+                        contenidoTabla.innerHTML = this.generarTablaVueltasGP(vueltas, miEscuderiaId);
+                    });
+                }
+                
+                if (btnAciertos) {
+                    btnAciertos.addEventListener('click', () => {
+                        btnAciertos.style.background = '#00d2be';
+                        btnAciertos.style.color = 'black';
+                        btnVueltas.style.background = '#1a1a1a';
+                        btnVueltas.style.color = 'white';
+                        
+                        contenidoTabla.innerHTML = this.generarTablaPronosticosGP(pronosticos, miEscuderiaId);
+                    });
+                }
+            }, 100);
+            
         } catch (error) {
             console.error('❌ Error cargando datos del GP:', error);
             contenedor.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #f44336;">
                     <i class="fas fa-exclamation-triangle fa-2x"></i>
-                    <p style="margin-top: 10px;">Error cargando datos del Gran Premio</p>
-                    <p style="color: #888; font-size: 0.9rem;">${error.message}</p>
+                    <p style="margin-top: 10px;">Error cargando datos</p>
                 </div>
             `;
         }
+    }
+    
+    // ===== GENERAR TABLA DE VUELTAS =====
+    generarTablaVueltasGP(vueltas, miEscuderiaId) {
+        if (!vueltas || vueltas.length === 0) {
+            return `
+                <div style="text-align: center; padding: 40px; color: #888;">
+                    <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <p>Aún no hay vueltas registradas para este GP</p>
+                </div>
+            `;
+        }
+        
+        // Encontrar mi posición
+        let miIndice = -1;
+        if (miEscuderiaId) {
+            miIndice = vueltas.findIndex(v => v.escuderia_id === miEscuderiaId);
+        }
+        
+        // Determinar qué vueltas mostrar (alrededor de mi posición o las primeras)
+        let vueltasAMostrar = [];
+        
+        if (miIndice >= 0) {
+            // Mostrar 9 por encima, mi vuelta, y 9 por debajo
+            const inicio = Math.max(0, miIndice - 9);
+            const fin = Math.min(vueltas.length, miIndice + 10);
+            vueltasAMostrar = vueltas.slice(inicio, fin);
+        } else {
+            // Si no tengo vuelta, mostrar las primeras 19
+            vueltasAMostrar = vueltas.slice(0, 19);
+        }
+        
+        let html = `
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead style="background: #0a0a0a; border-bottom: 2px solid #00d2be;">
+                    <tr>
+                        <th style="padding: 12px 8px; text-align: left; width: 50px;">#</th>
+                        <th style="padding: 12px 8px; text-align: left;">Escudería</th>
+                        <th style="padding: 12px 8px; text-align: right; width: 100px;">Tiempo</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        vueltasAMostrar.forEach((vuelta, index) => {
+            const esMiEscuderia = vuelta.escuderia_id === miEscuderiaId;
+            const posicionGlobal = vueltas.findIndex(v => v.escuderia_id === vuelta.escuderia_id) + 1;
+            
+            let colorFila = '';
+            if (esMiEscuderia) {
+                colorFila = 'background: rgba(0,210,190,0.2); border-left: 3px solid #00d2be;';
+            } else if (index === 0 && !miEscuderiaId) {
+                colorFila = 'background: rgba(255,215,0,0.1);'; // Dorado para el primero
+            }
+            
+            html += `
+                <tr style="border-bottom: 1px solid #333; ${colorFila}">
+                    <td style="padding: 10px 8px; font-weight: bold; color: ${posicionGlobal === 1 ? '#FFD700' : (posicionGlobal === 2 ? '#C0C0C0' : (posicionGlobal === 3 ? '#CD7F32' : 'white'))};">${posicionGlobal}</td>
+                    <td style="padding: 10px 8px;">
+                        ${esMiEscuderia ? '<i class="fas fa-user" style="color: #00d2be; margin-right: 5px;"></i>' : ''}
+                        ${vuelta.escuderias?.nombre || 'Desconocida'}
+                    </td>
+                    <td style="padding: 10px 8px; text-align: right; font-family: monospace; font-weight: bold; color: #00d2be;">${vuelta.tiempo_formateado}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+        `;
+        
+        return html;
+    }
+    
+    // ===== GENERAR TABLA DE PRONÓSTICOS =====
+    generarTablaPronosticosGP(pronosticos, miEscuderiaId) {
+        if (!pronosticos || pronosticos.length === 0) {
+            return `
+                <div style="text-align: center; padding: 40px; color: #888;">
+                    <i class="fas fa-chart-line" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <p>Aún no hay pronósticos calificados para este GP</p>
+                </div>
+            `;
+        }
+        
+        // Encontrar mi posición
+        let miIndice = -1;
+        if (miEscuderiaId) {
+            miIndice = pronosticos.findIndex(p => p.escuderia_id === miEscuderiaId);
+        }
+        
+        // Determinar qué pronósticos mostrar (alrededor de mi posición o los primeros)
+        let pronosticosAMostrar = [];
+        
+        if (miIndice >= 0) {
+            // Mostrar 9 por encima, mi pronóstico, y 9 por debajo
+            const inicio = Math.max(0, miIndice - 9);
+            const fin = Math.min(pronosticos.length, miIndice + 10);
+            pronosticosAMostrar = pronosticos.slice(inicio, fin);
+        } else {
+            // Si no tengo pronóstico, mostrar los primeros 19
+            pronosticosAMostrar = pronosticos.slice(0, 19);
+        }
+        
+        let html = `
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead style="background: #0a0a0a; border-bottom: 2px solid #00d2be;">
+                    <tr>
+                        <th style="padding: 12px 8px; text-align: left; width: 50px;">#</th>
+                        <th style="padding: 12px 8px; text-align: left;">Escudería</th>
+                        <th style="padding: 12px 8px; text-align: right; width: 80px;">Aciertos</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        pronosticosAMostrar.forEach((p, index) => {
+            const esMiEscuderia = p.escuderia_id === miEscuderiaId;
+            const posicionGlobal = pronosticos.findIndex(pr => pr.escuderia_id === p.escuderia_id) + 1;
+            
+            let colorFila = '';
+            if (esMiEscuderia) {
+                colorFila = 'background: rgba(0,210,190,0.2); border-left: 3px solid #00d2be;';
+            } else if (index === 0 && !miEscuderiaId) {
+                colorFila = 'background: rgba(255,215,0,0.1);';
+            }
+            
+            html += `
+                <tr style="border-bottom: 1px solid #333; ${colorFila}">
+                    <td style="padding: 10px 8px; font-weight: bold; color: ${posicionGlobal === 1 ? '#FFD700' : (posicionGlobal === 2 ? '#C0C0C0' : (posicionGlobal === 3 ? '#CD7F32' : 'white'))};">${posicionGlobal}</td>
+                    <td style="padding: 10px 8px;">
+                        ${esMiEscuderia ? '<i class="fas fa-user" style="color: #00d2be; margin-right: 5px;"></i>' : ''}
+                        ${p.escuderias?.nombre || 'Desconocida'}
+                    </td>
+                    <td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #00d2be;">${p.aciertos}/10</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+        `;
+        
+        return html;
     }
 
     
