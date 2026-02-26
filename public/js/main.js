@@ -4749,7 +4749,14 @@ window.addEventListener('auth-completado', (evento) => {
                             console.error('❌ Error inicializando mercadoManager:', error);
                         });
                 }
-                
+                // 👇 AÑADE AQUÍ EL CÓDIGO DEL RESUMEN SEMANAL
+                // Inicializar ResumenSemanalManager
+                if (window.ResumenSemanalManager && !window.resumenSemanalManager) {
+                    window.resumenSemanalManager = new ResumenSemanalManager();
+                    window.resumenSemanalManager.inicializar();
+                    console.log('✅ ResumenSemanalManager inicializado');
+                }
+
                 // Verificar si mostrar tutorial
                 // PRIMERO: Siempre cargar dashboard principal
                 console.log('✅ Cargando dashboard principal...');
