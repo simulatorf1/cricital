@@ -1133,11 +1133,13 @@ class TabManager {
         // ============================================
         // 🎯 MOSTRAR GP ACTUAL AUTOMÁTICAMENTE
         // ============================================
+
         setTimeout(async () => {
             const gpActual = await this.obtenerGranPremioActual();
             
             if (gpActual) {
-                // Cargar datos del GP actual
+                // Hay GP en curso - mostrar datos normales
+                console.log('🏁 Mostrando GP en curso:', gpActual.nombre);
                 await this.cargarDatosGranPremio(gpActual.id);
                 
                 // Seleccionar en el dropdown
@@ -1146,22 +1148,25 @@ class TabManager {
                     selector.value = gpActual.id;
                 }
             } else {
-                // Si no hay GP actual, mostrar mensaje
-                const contenedor = document.getElementById('contenedor-gp-actual');
-                const gpNombreSpan = document.getElementById('gp-actual-nombre');
-                
-                if (gpNombreSpan) {
-                    gpNombreSpan.textContent = 'No hay Gran Premio en curso';
-                }
-                
-                if (contenedor) {
-                    contenedor.innerHTML = `
-                        <div style="text-align: center; padding: 40px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-                            <i class="fas fa-calendar-times fa-3x" style="color: #888;"></i>
-                            <p style="margin-top: 15px; color: #888;">No hay ningún Gran Premio disputándose actualmente</p>
-                            <p style="color: #666; font-size: 0.9rem;">Selecciona uno del desplegable para ver resultados históricos</p>
-                        </div>
-                    `;
+                // NO HAY GP EN CURSO - Mostrar la primera carrera del calendario
+                const { data: primerGp } = await supabase
+                    .from('calendario_gp')
+                    .select('id, nombre, fecha_fin')
+                    .order('fecha_fin', { ascending: true })
+                    .limit(1)
+                    .single();
+        
+                if (primerGp) {
+                    console.log('📅 Mostrando primera carrera del calendario:', primerGp.nombre);
+                    await this.cargarDatosGranPremio(primerGp.id);
+                    
+                    const gpNombreSpan = document.getElementById('gp-actual-nombre');
+                    if (gpNombreSpan) {
+                        const fecha = new Date(primerGp.fecha_fin).toLocaleDateString('es-ES', {
+                            day: 'numeric', month: 'short'
+                        });
+                        gpNombreSpan.textContent = `${primerGp.nombre} (${fecha})`;
+                    }
                 }
             }
         }, 100);
@@ -1304,52 +1309,48 @@ class TabManager {
     }
     // ===== NUEVO: OBTENER GRAN PREMIO ACTUAL =====
     // ===== NUEVO: OBTENER GRAN PREMIO ACTUAL (CORREGIDO) =====
+    // ===== OBTENER GRAN PREMIO EN CURSO (LA PRÓXIMA CARRERA) =====
     async obtenerGranPremioActual() {
         try {
-            const ahora = new Date().toISOString();
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0); // Principio del día de hoy
             
-            // Consulta más simple primero para ver qué datos tenemos
-            const { data: todosGps, error: errorTodos } = await supabase
+            console.log('📅 Buscando próximo GP - Fecha actual:', hoy.toISOString().split('T')[0]);
+            
+            // Obtener TODOS los GP ordenados por fecha_fin (más cercanos primero)
+            const { data: todosGps, error } = await supabase
                 .from('calendario_gp')
-                .select('id, nombre, fecha_inicio, fecha_fin');
+                .select('id, nombre, fecha_fin')
+                .order('fecha_fin', { ascending: true });
             
-            if (errorTodos) {
-                console.error('Error obteniendo todos los GP:', errorTodos);
+            if (error) throw error;
+            
+            if (!todosGps || todosGps.length === 0) {
+                console.log('📅 No hay GP en calendario');
                 return null;
             }
             
-            console.log('📅 Total GPs en calendario:', todosGps?.length);
+            console.log('📅 Total GPs:', todosGps.length);
             
-            // Filtrar manualmente en JavaScript para evitar problemas con la consulta
-            const gpActual = todosGps?.find(gp => {
-                const fechaInicio = new Date(gp.fecha_inicio);
-                const fechaFin = gp.fecha_fin ? new Date(gp.fecha_fin) : new Date(fechaInicio);
-                fechaFin.setDate(fechaInicio.getDate() + 3); // Si no hay fecha_fin, asumimos 3 días después
-                
-                const ahoraDate = new Date();
-                return ahoraDate >= fechaInicio && ahoraDate <= fechaFin;
+            // Buscar el primer GP cuya fecha_fin sea >= hoy (la próxima carrera)
+            const proximaCarrera = todosGps.find(gp => {
+                const fechaFin = new Date(gp.fecha_fin);
+                fechaFin.setHours(0, 0, 0, 0);
+                return fechaFin >= hoy;
             });
             
-            if (gpActual) {
-                console.log('🏁 GP Actual encontrado:', gpActual.nombre);
-                return gpActual;
+            if (proximaCarrera) {
+                console.log(`🏁 PRÓXIMA CARRERA: ${proximaCarrera.nombre} (finaliza: ${proximaCarrera.fecha_fin})`);
+                return proximaCarrera;
             }
             
-            // Si no hay GP actual, buscar el próximo
-            const proximoGP = todosGps
-                ?.filter(gp => new Date(gp.fecha_inicio) > new Date())
-                .sort((a, b) => new Date(a.fecha_inicio) - new Date(b.fecha_inicio))[0];
-            
-            if (proximoGP) {
-                console.log('📅 Próximo GP:', proximoGP.nombre);
-                return null; // No devolvemos el próximo, solo informamos
-            }
-            
-            console.log('📅 No hay GP activo actualmente');
-            return null;
+            // Si todas las carreras ya pasaron, mostrar la última (la más reciente)
+            const ultimaCarrera = todosGps[todosGps.length - 1];
+            console.log(`📅 TEMPORADA FINALIZADA - Última carrera: ${ultimaCarrera.nombre}`);
+            return ultimaCarrera;
             
         } catch (error) {
-            console.error('❌ Error obteniendo GP actual:', error);
+            console.error('❌ Error obteniendo próximo GP:', error);
             return null;
         }
     }
