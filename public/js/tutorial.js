@@ -870,6 +870,9 @@ class TutorialManager {
     // ========================
     // CONFIGURAR MINIMIZAR (CON OVERLAY)
     // ========================
+    // ========================
+    // CONFIGURAR MINIMIZAR (CORREGIDO)
+    // ========================
     configurarMinimizar() {
         const btnMinimizar = this.ventanaTutorial.querySelector('#btn-minimizar-tutorial');
         const overlay = document.getElementById('tutorial-overlay');
@@ -879,7 +882,8 @@ class TutorialManager {
         
         btnMinimizar.onclick = () => {
             if (estaMinimizado) {
-                // MAXIMIZAR
+                // ===== MAXIMIZAR =====
+                // Ventana grande
                 this.ventanaTutorial.style.width = '90%';
                 this.ventanaTutorial.style.maxWidth = '700px';
                 this.ventanaTutorial.style.height = 'auto';
@@ -890,10 +894,11 @@ class TutorialManager {
                 this.ventanaTutorial.style.padding = '20px';
                 this.ventanaTutorial.style.borderRadius = '4px';
                 
-                // Mostrar overlay
+                // Mostrar overlay con oscuridad y blur
                 if (overlay) {
                     overlay.style.background = 'rgba(0, 0, 0, 0.85)';
                     overlay.style.backdropFilter = 'blur(4px)';
+                    overlay.style.display = 'block'; // Asegurar que está visible
                 }
                 
                 // Mostrar todo el contenido
@@ -906,11 +911,12 @@ class TutorialManager {
                     }
                 });
                 
-                btnMinimizar.innerHTML = '<i class="fas fa-window-minimize" style="color: #909096;"></i> Minimizar';
+                btnMinimizar.innerHTML = '<i class="fas fa-window-minimize" style="color: #909096; font-size: 11px;"></i> Minimizar';
                 estaMinimizado = false;
                 
             } else {
-                // MINIMIZAR
+                // ===== MINIMIZAR =====
+                // Ventana pequeña en esquina
                 this.ventanaTutorial.style.width = 'auto';
                 this.ventanaTutorial.style.height = 'auto';
                 this.ventanaTutorial.style.top = '20px';
@@ -919,10 +925,9 @@ class TutorialManager {
                 this.ventanaTutorial.style.padding = '10px 15px';
                 this.ventanaTutorial.style.borderRadius = '3px';
                 
-                // Ocultar overlay o hacerlo más transparente
+                // OCULTAR overlay completamente para que se vea el juego normal
                 if (overlay) {
-                    overlay.style.background = 'rgba(0, 0, 0, 0.3)';
-                    overlay.style.backdropFilter = 'blur(2px)';
+                    overlay.style.display = 'none'; // Simplemente lo ocultamos
                 }
                 
                 // Ocultar TODO excepto header y botón
@@ -947,7 +952,7 @@ class TutorialManager {
                     btnMinimizar.style.width = 'auto';
                 }
                 
-                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize" style="color: #909096;"></i> Tutorial';
+                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize" style="color: #909096; font-size: 11px;"></i> Tutorial';
                 estaMinimizado = true;
             }
         };
