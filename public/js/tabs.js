@@ -1303,26 +1303,50 @@ class TabManager {
         }, 100);
     }
     // ===== NUEVO: OBTENER GRAN PREMIO ACTUAL =====
+    // ===== NUEVO: OBTENER GRAN PREMIO ACTUAL (CORREGIDO) =====
     async obtenerGranPremioActual() {
         try {
             const ahora = new Date().toISOString();
             
-            const { data: gpActual, error } = await supabase
+            // Consulta más simple primero para ver qué datos tenemos
+            const { data: todosGps, error: errorTodos } = await supabase
                 .from('calendario_gp')
-                .select('id, nombre, fecha_inicio, fecha_fin')
-                .lte('fecha_inicio', ahora)
-                .gte('fecha_fin', ahora)
-                .order('fecha_inicio', { ascending: false })
-                .limit(1)
-                .single();
+                .select('id, nombre, fecha_inicio, fecha_fin');
             
-            if (error || !gpActual) {
-                console.log('📅 No hay GP activo actualmente');
+            if (errorTodos) {
+                console.error('Error obteniendo todos los GP:', errorTodos);
                 return null;
             }
             
-            console.log('🏁 GP Actual encontrado:', gpActual.nombre);
-            return gpActual;
+            console.log('📅 Total GPs en calendario:', todosGps?.length);
+            
+            // Filtrar manualmente en JavaScript para evitar problemas con la consulta
+            const gpActual = todosGps?.find(gp => {
+                const fechaInicio = new Date(gp.fecha_inicio);
+                const fechaFin = gp.fecha_fin ? new Date(gp.fecha_fin) : new Date(fechaInicio);
+                fechaFin.setDate(fechaInicio.getDate() + 3); // Si no hay fecha_fin, asumimos 3 días después
+                
+                const ahoraDate = new Date();
+                return ahoraDate >= fechaInicio && ahoraDate <= fechaFin;
+            });
+            
+            if (gpActual) {
+                console.log('🏁 GP Actual encontrado:', gpActual.nombre);
+                return gpActual;
+            }
+            
+            // Si no hay GP actual, buscar el próximo
+            const proximoGP = todosGps
+                ?.filter(gp => new Date(gp.fecha_inicio) > new Date())
+                .sort((a, b) => new Date(a.fecha_inicio) - new Date(b.fecha_inicio))[0];
+            
+            if (proximoGP) {
+                console.log('📅 Próximo GP:', proximoGP.nombre);
+                return null; // No devolvemos el próximo, solo informamos
+            }
+            
+            console.log('📅 No hay GP activo actualmente');
+            return null;
             
         } catch (error) {
             console.error('❌ Error obteniendo GP actual:', error);
@@ -1331,6 +1355,7 @@ class TabManager {
     }
     
     // ===== NUEVO: CARGAR DATOS DEL GP ACTUAL =====
+    // ===== NUEVO: CARGAR DATOS DEL GP ACTUAL (CONSULTAS CORREGIDAS) =====
     async cargarDatosGranPremio(gpId, mostrarVueltas = true) {
         const contenedor = document.getElementById('contenedor-gp-actual');
         if (!contenedor) return;
@@ -1371,7 +1396,8 @@ class TabManager {
             fechaInicioPeriodo.setDate(fechaCarrera.getDate() - 6);
             fechaInicioPeriodo.setHours(0, 0, 0, 0);
             
-            const { data: mejorVuelta } = await supabase
+            // CONSULTA CORREGIDA - sin .single() para evitar errores si no hay datos
+            const { data: mejorVuelta, error: errorVuelta } = await supabase
                 .from('pruebas_pista')
                 .select(`
                     tiempo_formateado,
@@ -1386,8 +1412,10 @@ class TabManager {
                 .order('tiempo_formateado', { ascending: true })
                 .limit(1);
             
-            // Obtener mejores aciertos del GP (top 5)
-            const { data: pronosticos } = await supabase
+            if (errorVuelta) console.error('Error consultando vueltas:', errorVuelta);
+            
+            // CONSULTA CORREGIDA para pronósticos
+            const { data: pronosticos, error: errorPronosticos } = await supabase
                 .from('pronosticos_usuario')
                 .select(`
                     escuderia_id,
@@ -1403,6 +1431,8 @@ class TabManager {
                 .order('aciertos', { ascending: false })
                 .order('puntuacion_total', { ascending: false })
                 .limit(5);
+            
+            if (errorPronosticos) console.error('Error consultando pronósticos:', errorPronosticos);
             
             // Generar HTML
             let html = `
@@ -1488,6 +1518,7 @@ class TabManager {
                 <div style="text-align: center; padding: 40px; color: #f44336;">
                     <i class="fas fa-exclamation-triangle fa-2x"></i>
                     <p style="margin-top: 10px;">Error cargando datos del Gran Premio</p>
+                    <p style="color: #888; font-size: 0.9rem;">${error.message}</p>
                 </div>
             `;
         }
