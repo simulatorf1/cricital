@@ -70,10 +70,31 @@ class TutorialManager {
         this.actualizarContenidoPaso(numeroPaso);
     }
 
+
     // ========================
-    // CREAR VENTANA BASE (IGUAL)
+    // CREAR VENTANA BASE
     // ========================
     crearVentanaBase() {
+        // Crear OVERLAY (fondo oscuro)
+        const overlay = document.createElement('div');
+        overlay.id = 'tutorial-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 999997;
+            transition: all 0.3s ease;
+        `;
+        document.body.appendChild(overlay);
+        
+        // Crear ventana tutorial
+
+
+        
         this.ventanaTutorial = document.createElement('div');
         this.ventanaTutorial.id = 'tutorial-ventana-flotante';
         this.ventanaTutorial.style.cssText = `
@@ -846,24 +867,34 @@ class TutorialManager {
     // ========================
     // CONFIGURAR MINIMIZAR (NUEVA VERSIÓN CORREGIDA)
     // ========================
+    // ========================
+    // CONFIGURAR MINIMIZAR (CON OVERLAY)
+    // ========================
     configurarMinimizar() {
         const btnMinimizar = this.ventanaTutorial.querySelector('#btn-minimizar-tutorial');
+        const overlay = document.getElementById('tutorial-overlay');
         if (!btnMinimizar) return;
         
         let estaMinimizado = false;
         
         btnMinimizar.onclick = () => {
             if (estaMinimizado) {
-                // MAXIMIZAR: Mostrar todo normal
+                // MAXIMIZAR
                 this.ventanaTutorial.style.width = '90%';
-                this.ventanaTutorial.style.maxWidth = '800px';
+                this.ventanaTutorial.style.maxWidth = '700px';
                 this.ventanaTutorial.style.height = 'auto';
                 this.ventanaTutorial.style.maxHeight = '85vh';
                 this.ventanaTutorial.style.top = '50%';
                 this.ventanaTutorial.style.left = '50%';
                 this.ventanaTutorial.style.transform = 'translate(-50%, -50%)';
-                this.ventanaTutorial.style.padding = '30px';
-                this.ventanaTutorial.style.borderRadius = '20px';
+                this.ventanaTutorial.style.padding = '20px';
+                this.ventanaTutorial.style.borderRadius = '4px';
+                
+                // Mostrar overlay
+                if (overlay) {
+                    overlay.style.background = 'rgba(0, 0, 0, 0.85)';
+                    overlay.style.backdropFilter = 'blur(4px)';
+                }
                 
                 // Mostrar todo el contenido
                 const elementos = this.ventanaTutorial.querySelectorAll('*');
@@ -872,63 +903,54 @@ class TutorialManager {
                         el.style.display = '';
                         el.style.visibility = '';
                         el.style.opacity = '';
-                        el.style.position = '';
                     }
                 });
                 
-                // Cambiar icono
-                btnMinimizar.innerHTML = '<i class="fas fa-window-minimize"></i> Minimizar';
+                btnMinimizar.innerHTML = '<i class="fas fa-window-minimize" style="color: #909096;"></i> Minimizar';
                 estaMinimizado = false;
                 
             } else {
-                // MINIMIZAR: Solo mostrar el botón en esquina
+                // MINIMIZAR
                 this.ventanaTutorial.style.width = 'auto';
                 this.ventanaTutorial.style.height = 'auto';
                 this.ventanaTutorial.style.top = '20px';
                 this.ventanaTutorial.style.left = '20px';
                 this.ventanaTutorial.style.transform = 'none';
-                this.ventanaTutorial.style.padding = '15px';
-                this.ventanaTutorial.style.borderRadius = '10px';
-                this.ventanaTutorial.style.bottom = 'auto';
-                this.ventanaTutorial.style.right = 'auto';
+                this.ventanaTutorial.style.padding = '10px 15px';
+                this.ventanaTutorial.style.borderRadius = '3px';
                 
-                // Ocultar TODO excepto el header y el botón
+                // Ocultar overlay o hacerlo más transparente
+                if (overlay) {
+                    overlay.style.background = 'rgba(0, 0, 0, 0.3)';
+                    overlay.style.backdropFilter = 'blur(2px)';
+                }
+                
+                // Ocultar TODO excepto header y botón
                 const elementos = this.ventanaTutorial.querySelectorAll('*');
                 elementos.forEach(el => {
-                    // No ocultar el botón ni el header
                     if (el.id !== 'tutorial-header' && el.id !== 'btn-minimizar-tutorial') {
                         el.style.display = 'none';
                     }
                 });
                 
-                // Asegurar que header solo muestre el botón
                 const header = this.ventanaTutorial.querySelector('#tutorial-header');
                 if (header) {
                     header.style.display = 'flex';
                     header.style.justifyContent = 'center';
-                    header.style.alignItems = 'center';
                     header.style.margin = '0';
                     header.style.padding = '0';
                     
                     const titleContainer = header.querySelector('#tutorial-title-container');
-                    if (titleContainer) {
-                        titleContainer.style.display = 'none';
-                    }
+                    if (titleContainer) titleContainer.style.display = 'none';
                     
-                    // Centrar botón en header
-                    btnMinimizar.style.margin = '0 auto';
-                    btnMinimizar.style.width = '100%';
-                    btnMinimizar.style.justifyContent = 'center';
-                    btnMinimizar.style.alignSelf = 'center';
+                    btnMinimizar.style.margin = '0';
+                    btnMinimizar.style.width = 'auto';
                 }
                 
-                // Cambiar texto
-                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize"></i> Tutorial';
+                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize" style="color: #909096;"></i> Tutorial';
                 estaMinimizado = true;
             }
         };
-        
-        
     }
     // ========================
     // FINALIZAR TUTORIAL COMPLETO (IGUAL)
@@ -936,9 +958,17 @@ class TutorialManager {
     // ========================
     // FINALIZAR TUTORIAL COMPLETO (CORREGIDO)
     // ========================
+    // ========================
+    // FINALIZAR TUTORIAL COMPLETO
+    // ========================
     async finalizarTutorialCompleto() {
         console.log('✅ Finalizando tutorial completo...');
         
+        // Eliminar overlay
+        const overlay = document.getElementById('tutorial-overlay');
+        if (overlay) overlay.remove();
+        
+        // Eliminar ventana tutorial
         if (this.ventanaTutorial) {
             this.ventanaTutorial.remove();
             this.ventanaTutorial = null;
@@ -949,17 +979,12 @@ class TutorialManager {
         
         if (this.f1Manager.escuderia && this.f1Manager.supabase) {
             try {
-                // SOLO actualizar tutorial_completado, sin updated_at
                 const { error } = await this.f1Manager.supabase
                     .from('escuderias')
                     .update({ tutorial_completado: true })
                     .eq('id', this.f1Manager.escuderia.id);
                 
-                if (error) {
-                    console.error('❌ Error actualizando tutorial en BD:', error);
-                } else {
-                    console.log('✅ Tutorial marcado como completado en BD');
-                }
+                if (error) console.error('❌ Error actualizando tutorial en BD:', error);
             } catch (error) {
                 console.error('❌ Error en actualización:', error);
             }
@@ -978,7 +1003,24 @@ class TutorialManager {
             this.f1Manager.escuderia.tutorial_completado = true;
         }
     }
-
+    // ========================
+    // CERRAR CON TECLA ESC
+    // ========================
+    configurarCerrarConEsc() {
+        const handleEsc = (e) => {
+            if (e.key === 'Escape' && this.ventanaTutorial) {
+                const overlay = document.getElementById('tutorial-overlay');
+                if (overlay) overlay.remove();
+                this.ventanaTutorial.remove();
+                this.ventanaTutorial = null;
+            }
+        };
+        
+        document.addEventListener('keydown', handleEsc);
+        
+        // Guardar para poder remover después si es necesario
+        this.handleEscFunction = handleEsc;
+    }
     // ========================
     // FUNCIONES UTILITARIAS (NUEVAS)
     // ========================
