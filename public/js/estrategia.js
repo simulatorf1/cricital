@@ -79,6 +79,7 @@ class EstrategiaManager {
         
         // 3. Cargar estrategas contratados
         await this.cargarEstrategasContratados();
+        await this.verificarContratosVencidos(); // ← AÑADE ESTA LÍNEA        
         
         // 4. Iniciar timers
         this.iniciarTimers();
@@ -219,7 +220,7 @@ class EstrategiaManager {
     // ========================
     // CALCULAR TIEMPO RESTANTE
     // ========================
-    calcularTiempoRestante(fechaInicio) {
+    e(fechaInicio) {
         const unaSemanaMs = 7 * 24 * 60 * 60 * 1000; // 168 horas
         const ahora = new Date().getTime();
         const inicio = new Date(fechaInicio).getTime();
@@ -244,7 +245,65 @@ class EstrategiaManager {
         if (porcentaje < 85) return '#FF9800';     // Amarillo (días 5-6)
         return '#e10600';                          // Rojo (día 7)
     }
-
+    // ========================
+    // VERIFICAR CONTRATOS VENCIDOS
+    // ========================
+    async verificarContratosVencidos() {
+        let cambios = false;
+        
+        for (let i = this.estrategasContratados.length - 1; i >= 0; i--) {
+            const contratacion = this.estrategasContratados[i];
+            if (!contratacion) continue;
+            
+            const tiempo = this.calcularTiempoRestante(contratacion.fecha_inicio_contrato);
+            
+            // Si el tiempo restante es 0 o negativo
+            if (tiempo.dias === 0 && tiempo.horas === 0 && tiempo.minutos === 0) {
+                console.log(`⏰ Contrato vencido: ${contratacion.estratega.nombre}`);
+                
+                const estratega = contratacion.estratega;
+                const sueldo = estratega.sueldo_semanal;
+                
+                // Cobrar sueldo (si hay dinero)
+                if (this.escuderia.dinero >= sueldo) {
+                    this.escuderia.dinero -= sueldo;
+                    await this.f1Manager.updateEscuderiaMoney();
+                    
+                    // Registrar transacción
+                    if (window.presupuestoManager) {
+                        await window.presupuestoManager.registrarTransaccion(
+                            'gasto',
+                            sueldo,
+                            `Pago semanal ${estratega.nombre}`,
+                            'estrategas',
+                            { estratega_id: estratega.id }
+                        );
+                    }
+                    
+                    this.f1Manager.showNotification(`💰 Pagado €${sueldo.toLocaleString()} a ${estratega.nombre}`, 'info');
+                } else {
+                    this.f1Manager.showNotification(`👋 ${estratega.nombre} se fue (sin fondos)`, 'warning');
+                }
+                
+                // Actualizar BD
+                await this.supabase
+                    .from('estrategas_contrataciones')
+                    .update({
+                        estado: 'finalizado',
+                        fecha_fin_contrato: new Date().toISOString()
+                    })
+                    .eq('id', contratacion.id);
+                
+                // Eliminar de la lista local
+                this.estrategasContratados.splice(i, 1);
+                cambios = true;
+            }
+        }
+        
+        if (cambios) {
+            this.actualizarUIEstrategas();
+        }
+    }
 
     // ========================
     // ACTUALIZAR UI ESTRATEGAS (VERSIÓN COMPACTA)
@@ -1547,7 +1606,10 @@ class EstrategiaManager {
         this.timers.pagos = setInterval(() => {
             this.procesarPagosAutomaticos();
         }, 3600000); // 1 hora
-        
+        // Timer para verificar contratos vencidos (cada minuto)
+        this.timers.vencimientos = setInterval(() => {
+            this.verificarContratosVencidos();
+        }, 60000); // 1 minuto        
         // Timer para notificaciones de próximo pago (cada 6 horas)
         this.timers.notificaciones = setInterval(() => {
             this.verificarProximosPagos();
