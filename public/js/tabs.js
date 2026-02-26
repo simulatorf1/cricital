@@ -726,124 +726,108 @@ class TabManager {
         return `
             <div class="clasificacion-container">
                 <div class="clasificacion-header">
-                    <h2><i class="fas fa-medal"></i> Clasificación Global</h2>
-                    <p class="clasificacion-subtitle">Ranking de todas las escuderías</p>
+                    <h2><i class="fas fa-medal"></i> Clasificación</h2>
+                    <p class="clasificacion-subtitle">Ranking global y resultados por Gran Premio</p>
                 </div>
                 
-                <!-- ✅ SELECTOR DE TIPO (LO QUE YA TIENES) -->
-                <div class="clasificacion-selector">
-                    <div class="selector-buttons">
-                        <button class="btn-selector-tipo active" data-tipo="dinero">
-                            <i class="fas fa-coins"></i> Por Dinero
-                        </button>
-                        <button class="btn-selector-tipo" data-tipo="vuelta">
-                            <i class="fas fa-stopwatch"></i> Por Vuelta Rápida
-                        </button>
-                        <button class="btn-selector-tipo" data-tipo="aciertos">
-                            <i class="fas fa-chart-line"></i> % Aciertos
-                        </button>
-                        <button class="btn-selector-tipo" data-tipo="carreras">
-                            <i class="fas fa-flag-checkered"></i> Carreras
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- 🆕 NUEVO: SELECTOR DE GRAN PREMIO -->
-                <div class="gp-historical-selector" style="margin: 20px 0; padding: 15px; background: rgba(0,210,190,0.1); border-radius: 8px; border: 1px solid #00d2be;">
-                    <h3 style="color: #00d2be; margin-bottom: 10px;">
-                        <i class="fas fa-history"></i> Ver rankings históricos por Gran Premio
-                    </h3>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <select id="selector-gp-historico" style="width: 200px; padding: 8px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 4px;">
-                            <option value="">-- Selecciona... --</option>
-                        </select>
-                        <button id="btn-cargar-gp-historico" class="btn-primary" style="padding: 10px 20px; background: #00d2be; color: black; border: none; border-radius: 4px; cursor: pointer;">
-                            <i class="fas fa-search"></i> Ver
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- 🆕 NUEVO: CONTENEDOR PARA RESULTADOS HISTÓRICOS (UNA SOLA TABLA) -->
-                <div id="contenedor-historico-gp" style="display: none; margin-bottom: 30px;">
-                    <div class="gp-historical-title" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #00d2be;">
-                        <h3 id="titulo-gp-seleccionado" style="color: #00d2be;">Gran Premio</h3>
+                <!-- 🏁 SECCIÓN GRAN PREMIO ACTUAL (NUEVA) -->
+                <div class="gp-actual-container" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, rgba(0,210,190,0.15), rgba(0,0,0,0.3)); border-radius: 12px; border-left: 4px solid #00d2be;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="color: #00d2be; margin: 0;">
+                            <i class="fas fa-flag-checkered"></i> 
+                            <span id="gp-actual-nombre">Cargando Gran Premio actual...</span>
+                        </h3>
+                        <div class="gp-selector-wrapper" style="display: flex; gap: 10px; align-items: center;">
+                            <select id="selector-gp-historico" style="width: 250px; padding: 8px 12px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 6px;">
+                                <option value="">📅 Ver otro Gran Premio...</option>
+                            </select>
+                            <button id="btn-cargar-gp-seleccionado" class="btn-primary" style="padding: 8px 16px; background: #333; color: white; border: 1px solid #00d2be; border-radius: 6px; cursor: pointer;">
+                                <i class="fas fa-search"></i> Ver
+                            </button>
+                        </div>
                     </div>
                     
-                    <!-- BOTONES DE SELECCIÓN -->
-                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                        <button id="btn-ver-vueltas" class="btn-selector-tipo active" style="padding: 10px 20px; background: #00d2be; color: black; border: none; border-radius: 4px; cursor: pointer;">
-                            <i class="fas fa-stopwatch"></i> Vueltas Rápidas
-                        </button>
-                        <button id="btn-ver-aciertos" class="btn-selector-tipo" style="padding: 10px 20px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
-                            <i class="fas fa-trophy"></i> Mayores Aciertos
-                        </button>
-                    </div>
-                    
-                    <!-- CONTENEDOR ÚNICO PARA LA TABLA -->
-                    <div class="historical-card" style="background: #1a1a1a; border-radius: 8px; padding: 15px; border: 1px solid #333;">
-                        <div id="contenido-historico-unico" style="min-height: 200px;">
-                            <div class="cargando" style="text-align: center; padding: 30px;">
-                                <i class="fas fa-spinner fa-spin"></i> Selecciona un Gran Premio
-                            </div>
+                    <!-- CONTENEDOR ÚNICO PARA EL GP SELECCIONADO/ACTUAL -->
+                    <div id="contenedor-gp-actual" style="min-height: 200px;">
+                        <div class="cargando-gp" style="text-align: center; padding: 30px;">
+                            <i class="fas fa-spinner fa-spin fa-2x" style="color: #00d2be;"></i>
+                            <p style="margin-top: 10px; color: #888;">Cargando información del Gran Premio...</p>
                         </div>
                     </div>
                 </div>
                 
-                <!-- ✅ CONTENIDO DE CLASIFICACIÓN GENERAL (LO QUE YA TIENES) -->
-                <div class="tabla-controls">
-                    <div class="ordenamiento-buttons">
-                        <button class="btn-ordenar active" data-order="desc" id="btn-desc">
-                            <i class="fas fa-sort-amount-down-alt"></i> Mayor a menor
+                <!-- 📊 CLASIFICACIONES GLOBALES (SOLO 2) -->
+                <div class="clasificacion-global-container">
+                    <div class="clasificacion-selector" style="margin-bottom: 20px;">
+                        <div class="selector-buttons" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-selector-tipo active" data-tipo="dinero" style="padding: 10px 20px; background: #00d2be; color: black; border: none; border-radius: 6px; cursor: pointer;">
+                                <i class="fas fa-coins"></i> Por Dinero
+                            </button>
+                            <button class="btn-selector-tipo" data-tipo="carreras" style="padding: 10px 20px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 6px; cursor: pointer;">
+                                <i class="fas fa-flag-checkered"></i> Por Carreras Disputadas
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- CONTROLES DE BÚSQUEDA Y ORDEN (se mantienen) -->
+                    <div class="tabla-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div class="ordenamiento-buttons" style="display: flex; gap: 8px;">
+                            <button class="btn-ordenar active" data-order="desc" id="btn-desc" style="padding: 8px 16px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-sort-amount-down-alt"></i> Mayor a menor
+                            </button>
+                            <button class="btn-ordenar" data-order="asc" id="btn-asc" style="padding: 8px 16px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-sort-amount-up"></i> Menor a mayor
+                            </button>
+                            <button class="btn-ordenar" data-order="nombre" id="btn-nombre" style="padding: 8px 16px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-sort-alpha-down"></i> Nombre A-Z
+                            </button>
+                        </div>
+                        <div class="search-box" style="position: relative;">
+                            <input type="text" id="buscar-escuderia" placeholder="Buscar escudería..." class="search-input" style="padding: 8px 12px 8px 35px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 20px; width: 250px;">
+                            <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- TABLA DE CLASIFICACIÓN -->
+                    <div class="tabla-contenedor-scroll" style="overflow-x: auto; border-radius: 8px; border: 1px solid #333;">
+                        <table class="tabla-clasificacion-simple" style="width: 100%; border-collapse: collapse;">
+                            <thead style="background: #1a1a1a; border-bottom: 2px solid #00d2be;">
+                                <tr>
+                                    <th class="col-posicion" style="padding: 12px; text-align: left;">#</th>
+                                    <th class="col-nombre" style="padding: 12px; text-align: left;">Escudería</th>
+                                    <th class="col-metrica" id="columna-metrica-titulo" style="padding: 12px; text-align: left;">Dinero (€)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-clasificacion-body">
+                                <tr class="loading-row">
+                                    <td colspan="3" style="text-align: center; padding: 40px;">
+                                        <div class="cargando-clasificacion">
+                                            <i class="fas fa-spinner fa-spin fa-2x" style="color: #00d2be;"></i>
+                                            <p style="margin-top: 10px; color: #888;">Cargando clasificación...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- FOOTER (se mantiene) -->
+                    <div class="tabla-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px; background: #1a1a1a; border-radius: 6px;">
+                        <div class="pagination-info" style="color: #888;">
+                            Mostrando <span id="filas-mostradas">0</span> de <span id="total-filas">0</span> escuderías
+                        </div>
+                        <div class="last-update" style="color: #888;">
+                            <i class="fas fa-sync-alt"></i>
+                            <span id="ultima-actualizacion">Actualizado hace unos segundos</span>
+                        </div>
+                    </div>
+                    
+                    <!-- BOTÓN ACTUALIZAR -->
+                    <div class="actualizar-buttons" style="margin-top: 15px; text-align: right;">
+                        <button class="btn-actualizar" id="btn-actualizar-clasificacion" style="padding: 10px 20px; background: #00d2be; color: black; border: none; border-radius: 6px; cursor: pointer;">
+                            <i class="fas fa-sync-alt"></i> Actualizar clasificación
                         </button>
-                        <button class="btn-ordenar" data-order="asc" id="btn-asc">
-                            <i class="fas fa-sort-amount-up"></i> Menor a mayor
-                        </button>
-                        <button class="btn-ordenar" data-order="nombre" id="btn-nombre">
-                            <i class="fas fa-sort-alpha-down"></i> Nombre A-Z
-                        </button>
                     </div>
-                    <div class="search-box">
-                        <input type="text" id="buscar-escuderia" placeholder="Buscar escudería..." class="search-input">
-                        <i class="fas fa-search"></i>
-                    </div>
-                </div>
-                
-                <div class="tabla-contenedor-scroll">
-                    <table class="tabla-clasificacion-simple">
-                        <thead>
-                            <tr>
-                                <th class="col-posicion">#</th>
-                                <th class="col-nombre">Escudería</th>
-                                <th class="col-metrica" id="columna-metrica-titulo">Dinero (€)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-clasificacion-body">
-                            <tr class="loading-row">
-                                <td colspan="3" style="text-align: center; padding: 40px;">
-                                    <div class="cargando-clasificacion">
-                                        <i class="fas fa-spinner fa-spin fa-2x"></i>
-                                        <p>Cargando clasificación...</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="tabla-footer">
-                    <div class="pagination-info">
-                        Mostrando <span id="filas-mostradas">0</span> de <span id="total-filas">0</span> escuderías
-                    </div>
-                    <div class="last-update">
-                        <i class="fas fa-sync-alt"></i>
-                        <span id="ultima-actualizacion">Actualizado hace unos segundos</span>
-                    </div>
-                </div>
-                
-                <div class="actualizar-buttons">
-                    <button class="btn-actualizar" id="btn-actualizar-clasificacion">
-                        <i class="fas fa-sync-alt"></i> Actualizar clasificación
-                    </button>
                 </div>
             </div>
         `;
@@ -1134,7 +1118,6 @@ class TabManager {
     
     
     // ===== NUEVO MÉTODO PARA CONFIGURAR EVENTOS DE CLASIFICACIÓN =====
-    // ===== NUEVO MÉTODO PARA CONFIGURAR EVENTOS DE CLASIFICACIÓN =====
     setupClasificacionEvents() {
         console.log('🔧 Configurando eventos de clasificación...');
         
@@ -1143,75 +1126,55 @@ class TabManager {
         let ordenActual = 'desc';
         
         // ============================================
-        // 🆕 CARGAR GRANDES PREMIOS EN EL SELECTOR
+        // 🏁 CARGAR GP ACTUAL Y SELECTOR
         // ============================================
         this.cargarGrandesPremiosSelector();
         
         // ============================================
-        // 🆕 VARIABLE PARA GUARDAR GP SELECCIONADO
+        // 🎯 MOSTRAR GP ACTUAL AUTOMÁTICAMENTE
         // ============================================
-        let gpActualSeleccionado = null;
+        setTimeout(async () => {
+            const gpActual = await this.obtenerGranPremioActual();
+            
+            if (gpActual) {
+                // Cargar datos del GP actual
+                await this.cargarDatosGranPremio(gpActual.id);
+                
+                // Seleccionar en el dropdown
+                const selector = document.getElementById('selector-gp-historico');
+                if (selector) {
+                    selector.value = gpActual.id;
+                }
+            } else {
+                // Si no hay GP actual, mostrar mensaje
+                const contenedor = document.getElementById('contenedor-gp-actual');
+                const gpNombreSpan = document.getElementById('gp-actual-nombre');
+                
+                if (gpNombreSpan) {
+                    gpNombreSpan.textContent = 'No hay Gran Premio en curso';
+                }
+                
+                if (contenedor) {
+                    contenedor.innerHTML = `
+                        <div style="text-align: center; padding: 40px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                            <i class="fas fa-calendar-times fa-3x" style="color: #888;"></i>
+                            <p style="margin-top: 15px; color: #888;">No hay ningún Gran Premio disputándose actualmente</p>
+                            <p style="color: #666; font-size: 0.9rem;">Selecciona uno del desplegable para ver resultados históricos</p>
+                        </div>
+                    `;
+                }
+            }
+        }, 100);
         
         // ============================================
-        // 🆕 EVENTOS DE LOS BOTONES DE VUELTA/ACIERTOS
+        // 📅 EVENTO DEL SELECTOR DE GP
         // ============================================
-        setTimeout(() => {
-            const btnVueltas = document.getElementById('btn-ver-vueltas');
-            const btnAciertos = document.getElementById('btn-ver-aciertos');
-            
-            if (btnVueltas) {
-                btnVueltas.addEventListener('click', () => {
-                    if (!gpActualSeleccionado) {
-                        if (window.f1Manager?.showNotification) {
-                            window.f1Manager.showNotification('❌ Selecciona un Gran Premio primero', 'error');
-                        }
-                        return;
-                    }
-                    
-                    // Actualizar estilos de botones
-                    btnVueltas.style.background = '#00d2be';
-                    btnVueltas.style.color = 'black';
-                    if (btnAciertos) {
-                        btnAciertos.style.background = '#1a1a1a';
-                        btnAciertos.style.color = 'white';
-                    }
-                    
-                    this.cargarVueltasGP(gpActualSeleccionado);
-                });
-            }
-            
-            if (btnAciertos) {
-                btnAciertos.addEventListener('click', () => {
-                    if (!gpActualSeleccionado) {
-                        if (window.f1Manager?.showNotification) {
-                            window.f1Manager.showNotification('❌ Selecciona un Gran Premio primero', 'error');
-                        }
-                        return;
-                    }
-                    
-                    // Actualizar estilos de botones
-                    btnAciertos.style.background = '#00d2be';
-                    btnAciertos.style.color = 'black';
-                    if (btnVueltas) {
-                        btnVueltas.style.background = '#1a1a1a';
-                        btnVueltas.style.color = 'white';
-                    }
-                    
-                    this.cargarAciertosGP(gpActualSeleccionado);
-                });
-            }
-        }, 200);
-        
-        // ============================================
-        // 🆕 EVENTO DEL BOTÓN DE HISTÓRICO (MODIFICADO)
-        // ============================================
-        const btnCargar = document.getElementById('btn-cargar-gp-historico');
+        const btnCargar = document.getElementById('btn-cargar-gp-seleccionado');
         if (btnCargar) {
-            // Clonar para quitar eventos anteriores
             const nuevoBtn = btnCargar.cloneNode(true);
             btnCargar.parentNode.replaceChild(nuevoBtn, btnCargar);
             
-            nuevoBtn.addEventListener('click', () => {
+            nuevoBtn.addEventListener('click', async () => {
                 const gpId = document.getElementById('selector-gp-historico').value;
                 if (!gpId) {
                     if (window.f1Manager?.showNotification) {
@@ -1220,52 +1183,91 @@ class TabManager {
                     return;
                 }
                 
-                gpActualSeleccionado = gpId;
+                // Actualizar título del GP actual
+                const { data: carrera } = await supabase
+                    .from('calendario_gp')
+                    .select('nombre, fecha_inicio')
+                    .eq('id', gpId)
+                    .single();
                 
-                // Resetear botones a estado inicial (vueltas activo)
-                const btnVueltas = document.getElementById('btn-ver-vueltas');
-                const btnAciertos = document.getElementById('btn-ver-aciertos');
-                
-                if (btnVueltas) {
-                    btnVueltas.style.background = '#00d2be';
-                    btnVueltas.style.color = 'black';
+                if (carrera) {
+                    const gpNombreSpan = document.getElementById('gp-actual-nombre');
+                    if (gpNombreSpan) {
+                        const fecha = new Date(carrera.fecha_inicio).toLocaleDateString('es-ES', {
+                            day: 'numeric', month: 'short'
+                        });
+                        gpNombreSpan.textContent = `${carrera.nombre} (${fecha})`;
+                    }
                 }
-                if (btnAciertos) {
-                    btnAciertos.style.background = '#1a1a1a';
-                    btnAciertos.style.color = 'white';
-                }
                 
-                this.cargarRankingPorGPUnico(gpId, 'vueltas');
+                await this.cargarDatosGranPremio(gpId);
             });
         }
         
         // ============================================
-        // ✅ EVENTOS DE LA CLASIFICACIÓN GENERAL (LO QUE YA TIENES)
+        // 📊 EVENTOS DE CLASIFICACIÓN GLOBAL (SOLO 2 TIPOS)
         // ============================================
         
-        // Botón actualizar
-        document.getElementById('btn-actualizar-clasificacion')?.addEventListener('click', () => {
-            this.loadClasificacionData(tipoActual, ordenActual);
-        });
-        
-        // Selector de tipo (Dinero / Vuelta / Aciertos / Carreras)
+        // Selector de tipo (Dinero / Carreras)
         document.querySelectorAll('.btn-selector-tipo').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const nuevoTipo = e.currentTarget.dataset.tipo;
                 
-                document.querySelectorAll('.btn-selector-tipo').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.btn-selector-tipo').forEach(b => {
+                    b.classList.remove('active');
+                    b.style.background = '#1a1a1a';
+                    b.style.color = 'white';
+                });
+                
                 e.currentTarget.classList.add('active');
+                e.currentTarget.style.background = '#00d2be';
+                e.currentTarget.style.color = 'black';
                 
                 tipoActual = nuevoTipo;
                 
-                if (nuevoTipo === 'vuelta') {
-                    ordenActual = 'asc';
-                } else if (nuevoTipo === 'aciertos' || nuevoTipo === 'carreras' || nuevoTipo === 'dinero') {
+                // Resetear orden por defecto según tipo
+                if (nuevoTipo === 'dinero') {
+                    ordenActual = 'desc';
+                } else if (nuevoTipo === 'carreras') {
                     ordenActual = 'desc';
                 }
                 
                 this.loadClasificacionData(tipoActual, ordenActual);
             });
+        });
+        
+        // Botones de ordenamiento
+        document.querySelectorAll('.btn-ordenar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.btn-ordenar').forEach(b => {
+                    b.classList.remove('active');
+                    b.style.background = '#1a1a1a';
+                });
+                
+                e.currentTarget.classList.add('active');
+                e.currentTarget.style.background = '#333';
+                
+                ordenActual = e.currentTarget.dataset.order;
+                this.loadClasificacionData(tipoActual, ordenActual);
+            });
+        });
+        
+        // Botón actualizar
+        document.getElementById('btn-actualizar-clasificacion')?.addEventListener('click', () => {
+            this.loadClasificacionData(tipoActual, ordenActual);
+            
+            // También recargar GP actual si hay uno
+            setTimeout(async () => {
+                const selector = document.getElementById('selector-gp-historico');
+                if (selector && selector.value) {
+                    await this.cargarDatosGranPremio(selector.value);
+                } else {
+                    const gpActual = await this.obtenerGranPremioActual();
+                    if (gpActual) {
+                        await this.cargarDatosGranPremio(gpActual.id);
+                    }
+                }
+            }, 500);
         });
         
         // Buscador
@@ -1281,7 +1283,7 @@ class TabManager {
                         return;
                     }
                     
-                    const nombre = fila.querySelector('.celda-nombre').textContent.toLowerCase();
+                    const nombre = fila.querySelector('.celda-nombre')?.textContent.toLowerCase() || '';
                     const esVisible = nombre.includes(termino);
                     fila.style.display = esVisible ? '' : 'none';
                     if (esVisible) filasVisibles++;
@@ -1291,7 +1293,7 @@ class TabManager {
             });
         }
         
-        // Cargar datos iniciales
+        // Cargar datos iniciales de clasificación global
         setTimeout(() => {
             this.loadClasificacionData('dinero', 'desc');
             
@@ -1300,17 +1302,66 @@ class TabManager {
             }, 200);
         }, 100);
     }
-    async cargarVueltasGP(gpId) {
-        const contenedor = document.getElementById('contenido-historico-unico');
-        contenedor.innerHTML = '<div class="cargando" style="text-align: center; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> Cargando vueltas...</div>';
+    // ===== NUEVO: OBTENER GRAN PREMIO ACTUAL =====
+    async obtenerGranPremioActual() {
+        try {
+            const ahora = new Date().toISOString();
+            
+            const { data: gpActual, error } = await supabase
+                .from('calendario_gp')
+                .select('id, nombre, fecha_inicio, fecha_fin')
+                .lte('fecha_inicio', ahora)
+                .gte('fecha_fin', ahora)
+                .order('fecha_inicio', { ascending: false })
+                .limit(1)
+                .single();
+            
+            if (error || !gpActual) {
+                console.log('📅 No hay GP activo actualmente');
+                return null;
+            }
+            
+            console.log('🏁 GP Actual encontrado:', gpActual.nombre);
+            return gpActual;
+            
+        } catch (error) {
+            console.error('❌ Error obteniendo GP actual:', error);
+            return null;
+        }
+    }
+    
+    // ===== NUEVO: CARGAR DATOS DEL GP ACTUAL =====
+    async cargarDatosGranPremio(gpId, mostrarVueltas = true) {
+        const contenedor = document.getElementById('contenedor-gp-actual');
+        if (!contenedor) return;
+        
+        contenedor.innerHTML = `
+            <div class="cargando-gp" style="text-align: center; padding: 30px;">
+                <i class="fas fa-spinner fa-spin fa-2x" style="color: #00d2be;"></i>
+                <p style="margin-top: 10px; color: #888;">Cargando datos...</p>
+            </div>
+        `;
         
         try {
-            const { data: carrera } = await supabase
+            // Obtener nombre de la carrera
+            const { data: carrera, error: errorCarrera } = await supabase
                 .from('calendario_gp')
-                .select('fecha_inicio')
+                .select('nombre, fecha_inicio')
                 .eq('id', gpId)
                 .single();
             
+            if (errorCarrera) throw errorCarrera;
+            
+            // Actualizar título del GP actual si existe
+            const gpNombreSpan = document.getElementById('gp-actual-nombre');
+            if (gpNombreSpan) {
+                const fecha = new Date(carrera.fecha_inicio).toLocaleDateString('es-ES', {
+                    day: 'numeric', month: 'short'
+                });
+                gpNombreSpan.textContent = `${carrera.nombre} (${fecha})`;
+            }
+            
+            // Obtener mejor vuelta del GP (solo la mejor)
             const fechaCarrera = new Date(carrera.fecha_inicio);
             const fechaFinPeriodo = new Date(fechaCarrera);
             fechaFinPeriodo.setDate(fechaCarrera.getDate() - 2);
@@ -1320,7 +1371,7 @@ class TabManager {
             fechaInicioPeriodo.setDate(fechaCarrera.getDate() - 6);
             fechaInicioPeriodo.setHours(0, 0, 0, 0);
             
-            const { data: vueltas } = await supabase
+            const { data: mejorVuelta } = await supabase
                 .from('pruebas_pista')
                 .select(`
                     tiempo_formateado,
@@ -1333,47 +1384,15 @@ class TabManager {
                 .gte('fecha_prueba', fechaInicioPeriodo.toISOString())
                 .lte('fecha_prueba', fechaFinPeriodo.toISOString())
                 .order('tiempo_formateado', { ascending: true })
-                .limit(10);
+                .limit(1);
             
-            if (!vueltas || vueltas.length === 0) {
-                contenedor.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No hay vueltas registradas para este GP</div>';
-                return;
-            }
-            
-            let html = '<table style="width: 100%; border-collapse: collapse;">';
-            html += '<thead><tr style="border-bottom: 1px solid #333;"><th>#</th><th>Escudería</th><th>Tiempo</th><th>Fecha</th></tr></thead><tbody>';
-            
-            vueltas.forEach((vuelta, index) => {
-                const fecha = new Date(vuelta.fecha_prueba).toLocaleDateString('es-ES');
-                html += `
-                    <tr style="border-bottom: 1px solid #222;">
-                        <td style="padding: 8px; font-weight: bold; color: ${index === 0 ? '#FFD700' : (index === 1 ? '#C0C0C0' : (index === 2 ? '#CD7F32' : 'white'))};">${index + 1}</td>
-                        <td style="padding: 8px;">${vuelta.escuderias?.nombre || 'Desconocida'}</td>
-                        <td style="padding: 8px; font-family: monospace; font-weight: bold;">${vuelta.tiempo_formateado}</td>
-                        <td style="padding: 8px; color: #888; font-size: 0.9rem;">${fecha}</td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table>';
-            contenedor.innerHTML = html;
-            
-        } catch (error) {
-            console.error('Error:', error);
-            contenedor.innerHTML = '<div style="text-align: center; padding: 40px; color: #f44336;">Error cargando datos</div>';
-        }
-    }
-    
-    async cargarAciertosGP(gpId) {
-        const contenedor = document.getElementById('contenido-historico-unico');
-        contenedor.innerHTML = '<div class="cargando" style="text-align: center; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> Cargando aciertos...</div>';
-        
-        try {
+            // Obtener mejores aciertos del GP (top 5)
             const { data: pronosticos } = await supabase
                 .from('pronosticos_usuario')
                 .select(`
                     escuderia_id,
                     aciertos,
+                    puntuacion_total,
                     escuderias!inner (
                         nombre
                     )
@@ -1382,34 +1401,102 @@ class TabManager {
                 .eq('estado', 'calificado')
                 .not('aciertos', 'is', null)
                 .order('aciertos', { ascending: false })
-                .limit(10);
+                .order('puntuacion_total', { ascending: false })
+                .limit(5);
             
-            if (!pronosticos || pronosticos.length === 0) {
-                contenedor.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No hay pronósticos calificados para este GP</div>';
-                return;
+            // Generar HTML
+            let html = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- COLUMNA IZQUIERDA: MEJOR VUELTA -->
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 15px; border: 1px solid #333;">
+                        <h4 style="color: #00d2be; margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-stopwatch"></i> Mejor Vuelta Rápida
+                        </h4>
+            `;
+            
+            if (mejorVuelta && mejorVuelta.length > 0) {
+                const vuelta = mejorVuelta[0];
+                const fechaVuelta = new Date(vuelta.fecha_prueba).toLocaleDateString('es-ES');
+                html += `
+                    <div style="background: linear-gradient(145deg, #1a1a1a, #111); padding: 20px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 2rem; font-family: monospace; font-weight: bold; color: #FFD700; margin-bottom: 5px;">
+                            ${vuelta.tiempo_formateado}
+                        </div>
+                        <div style="font-size: 1.2rem; color: white; margin-bottom: 5px;">
+                            ${vuelta.escuderias?.nombre || 'Desconocida'}
+                        </div>
+                        <div style="color: #888; font-size: 0.9rem;">
+                            <i class="fas fa-calendar"></i> ${fechaVuelta}
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; text-align: center; color: #888;">
+                        <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>No hay vueltas registradas</p>
+                    </div>
+                `;
             }
             
-            let html = '<table style="width: 100%; border-collapse: collapse;">';
-            html += '<thead><tr style="border-bottom: 1px solid #333;"><th>#</th><th>Escudería</th><th>Aciertos</th></tr></thead><tbody>';
+            html += `
+                    </div>
+                    
+                    <!-- COLUMNA DERECHA: TOP 5 ACIERTOS -->
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 15px; border: 1px solid #333;">
+                        <h4 style="color: #00d2be; margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-trophy"></i> Top 5 Aciertos
+                        </h4>
+            `;
             
-            pronosticos.forEach((p, index) => {
+            if (pronosticos && pronosticos.length > 0) {
+                html += `<div style="display: flex; flex-direction: column; gap: 8px;">`;
+                
+                pronosticos.forEach((p, index) => {
+                    const medalla = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : ''));
+                    html += `
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: #1a1a1a; padding: 10px 15px; border-radius: 6px; border-left: 3px solid ${index === 0 ? '#FFD700' : (index === 1 ? '#C0C0C0' : (index === 2 ? '#CD7F32' : '#333'))};">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-weight: bold; width: 30px;">${medalla || (index + 1)}</span>
+                                <span>${p.escuderias?.nombre || 'Desconocida'}</span>
+                            </div>
+                            <div style="font-weight: bold; color: #00d2be;">${p.aciertos}/10</div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            } else {
                 html += `
-                    <tr style="border-bottom: 1px solid #222;">
-                        <td style="padding: 8px; font-weight: bold; color: ${index === 0 ? '#FFD700' : (index === 1 ? '#C0C0C0' : (index === 2 ? '#CD7F32' : 'white'))};">${index + 1}</td>
-                        <td style="padding: 8px;">${p.escuderias?.nombre || 'Desconocida'}</td>
-                        <td style="padding: 8px; font-weight: bold; color: #00d2be;">${p.aciertos}/10</td>
-                    </tr>
+                    <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; text-align: center; color: #888;">
+                        <i class="fas fa-chart-line" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>No hay pronósticos calificados</p>
+                    </div>
                 `;
-            });
+            }
             
-            html += '</tbody></table>';
+            html += `
+                    </div>
+                </div>
+            `;
+            
             contenedor.innerHTML = html;
             
         } catch (error) {
-            console.error('Error:', error);
-            contenedor.innerHTML = '<div style="text-align: center; padding: 40px; color: #f44336;">Error cargando datos</div>';
+            console.error('❌ Error cargando datos del GP:', error);
+            contenedor.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #f44336;">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    <p style="margin-top: 10px;">Error cargando datos del Gran Premio</p>
+                </div>
+            `;
         }
     }
+
+    
+
+    
+
     async cargarRankingPorGPUnico(gpId, tipo = 'vueltas') {
         console.log(`🏁 Cargando ranking único para GP: ${gpId}, tipo: ${tipo}`);
         
@@ -1455,14 +1542,14 @@ class TabManager {
             const { data: carreras, error } = await supabase
                 .from('calendario_gp')
                 .select('id, nombre, fecha_inicio')
-                .order('fecha_inicio', { ascending: true });
+                .order('fecha_inicio', { ascending: false }); // Orden descendente para ver los más recientes primero
             
             if (error) throw error;
-       
+            
             const selector = document.getElementById('selector-gp-historico');
             if (!selector) return;
             
-            let html = '<option value="">-- Selecciona un Gran Premio --</option>';
+            let html = '<option value="">📅 Ver otro Gran Premio...</option>';
             
             carreras.forEach(carrera => {
                 const fecha = new Date(carrera.fecha_inicio).toLocaleDateString('es-ES', {
@@ -1471,154 +1558,17 @@ class TabManager {
                     day: 'numeric'
                 });
                 
-                
                 html += `<option value="${carrera.id}">${carrera.nombre} (${fecha})</option>`;
             });
             
             selector.innerHTML = html;
-            console.log(`✅ ${carreras.length} Grandes Premios cargados (${gpConDatos.size} con datos)`);
+            console.log(`✅ ${carreras.length} Grandes Premios cargados`);
             
         } catch (error) {
             console.error('❌ Error cargando Grandes Premios:', error);
         }
     }
-    async cargarRankingPorGP(gpId) {
-        console.log(`🏁 Cargando ranking histórico para GP: ${gpId}`);
-        
-        const contenedor = document.getElementById('contenedor-historico-gp');
-        const topVueltas = document.getElementById('top-vueltas-gp');
-        const topAciertos = document.getElementById('top-aciertos-gp');
-        const titulo = document.getElementById('titulo-gp-seleccionado');
-        
-        if (!contenedor || !topVueltas || !topAciertos) return;
-        
-        // Mostrar contenedor y poner cargando
-        contenedor.style.display = 'block';
-        topVueltas.innerHTML = '<div class="cargando" style="text-align: center; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> Cargando vueltas...</div>';
-        topAciertos.innerHTML = '<div class="cargando" style="text-align: center; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> Cargando aciertos...</div>';
-        
-        try {
-            // ============================================
-            // 1. OBTENER DATOS DE LA CARRERA
-            // ============================================
-            const { data: carrera, error: errorCarrera } = await supabase
-                .from('calendario_gp')
-                .select('nombre, fecha_inicio')
-                .eq('id', gpId)
-                .single();
-            
-            if (errorCarrera) throw errorCarrera;
-            
-            titulo.textContent = `${carrera.nombre} - ${new Date(carrera.fecha_inicio).toLocaleDateString('es-ES')}`;
-            
-            // ============================================
-            // 2. CALCULAR PERÍODO DE VUELTAS RÁPIDAS (6-2 días antes)
-            // ============================================
-            const fechaCarrera = new Date(carrera.fecha_inicio);
-            
-            const fechaFinPeriodo = new Date(fechaCarrera);
-            fechaFinPeriodo.setDate(fechaCarrera.getDate() - 2);
-            fechaFinPeriodo.setHours(23, 59, 59, 999);
-            
-            const fechaInicioPeriodo = new Date(fechaCarrera);
-            fechaInicioPeriodo.setDate(fechaCarrera.getDate() - 6);
-            fechaInicioPeriodo.setHours(0, 0, 0, 0);
-            
-            console.log('📅 Período vueltas:', fechaInicioPeriodo.toISOString(), 'a', fechaFinPeriodo.toISOString());
-            
-            // ============================================
-            // 3. TOP 10 VUELTAS RÁPIDAS
-            // ============================================
-            const { data: vueltas, error: errorVueltas } = await supabase
-                .from('pruebas_pista')
-                .select(`
-                    tiempo_formateado,
-                    fecha_prueba,
-                    escuderia_id,
-                    escuderias!inner (
-                        nombre
-                    )
-                `)
-                .gte('fecha_prueba', fechaInicioPeriodo.toISOString())
-                .lte('fecha_prueba', fechaFinPeriodo.toISOString())
-                .order('tiempo_formateado', { ascending: true })
-                .limit(10);
-            
-            if (errorVueltas) throw errorVueltas;
-            
-            if (!vueltas || vueltas.length === 0) {
-                topVueltas.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No hay vueltas registradas para este GP</div>';
-            } else {
-                let vueltasHTML = '<table style="width: 100%; border-collapse: collapse;">';
-                vueltasHTML += '<thead><tr style="border-bottom: 1px solid #333;"><th>#</th><th>Escudería</th><th>Tiempo</th><th>Fecha</th></tr></thead><tbody>';
-                
-                vueltas.forEach((vuelta, index) => {
-                    const fecha = new Date(vuelta.fecha_prueba).toLocaleDateString('es-ES');
-                    vueltasHTML += `
-                        <tr style="border-bottom: 1px solid #222;">
-                            <td style="padding: 8px; font-weight: bold; color: ${index === 0 ? '#FFD700' : (index === 1 ? '#C0C0C0' : (index === 2 ? '#CD7F32' : 'white'))};">${index + 1}</td>
-                            <td style="padding: 8px;">${vuelta.escuderias?.nombre || 'Desconocida'}</td>
-                            <td style="padding: 8px; font-family: monospace; font-weight: bold;">${vuelta.tiempo_formateado}</td>
-                            <td style="padding: 8px; color: #888; font-size: 0.9rem;">${fecha}</td>
-                        </tr>
-                    `;
-                });
-                
-                vueltasHTML += '</tbody></table>';
-                topVueltas.innerHTML = vueltasHTML;
-            }
-            
-            // ============================================
-            // 4. TOP 10 MAYORES ACIERTOS
-            // ============================================
-            const { data: pronosticos, error: errorPronosticos } = await supabase
-                .from('pronosticos_usuario')
-                .select(`
-                    escuderia_id,
-                    aciertos,
-                    puntuacion_total,
-                    dinero_ganado,
-                    escuderias!inner (
-                        nombre
-                    )
-                `)
-                .eq('carrera_id', gpId)
-                .eq('estado', 'calificado')
-                .not('aciertos', 'is', null)
-                .order('aciertos', { ascending: false })
-                .limit(10);
-            
-            if (errorPronosticos) throw errorPronosticos;
-            
-            if (!pronosticos || pronosticos.length === 0) {
-                topAciertos.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No hay pronósticos calificados para este GP</div>';
-            } else {
-                let aciertosHTML = '<table style="width: 100%; border-collapse: collapse;">';
-                aciertosHTML += '<thead><tr style="border-bottom: 1px solid #333;"><th>#</th><th>Escudería</th><th>Aciertos</th><th>Puntos</th></tr></thead><tbody>';
-                
-                pronosticos.forEach((p, index) => {
-                    aciertosHTML += `
-                        <tr style="border-bottom: 1px solid #222;">
-                            <td style="padding: 8px; font-weight: bold; color: ${index === 0 ? '#FFD700' : (index === 1 ? '#C0C0C0' : (index === 2 ? '#CD7F32' : 'white'))};">${index + 1}</td>
-                            <td style="padding: 8px;">${p.escuderias?.nombre || 'Desconocida'}</td>
-                            <td style="padding: 8px; font-weight: bold; color: #00d2be;">${p.aciertos}/10</td>
-                            <td style="padding: 8px;">${Math.round(p.puntuacion_total || 0)} pts</td>
-                        </tr>
-                    `;
-                });
-                
-                aciertosHTML += '</tbody></table>';
-                topAciertos.innerHTML = aciertosHTML;
-            }
-            
-            console.log('✅ Rankings históricos cargados');
-            
-        } catch (error) {
-            console.error('❌ Error cargando ranking por GP:', error);
-            topVueltas.innerHTML = '<div style="text-align: center; padding: 40px; color: #f44336;">Error cargando datos</div>';
-            topAciertos.innerHTML = '<div style="text-align: center; padding: 40px; color: #f44336;">Error cargando datos</div>';
-        }
-    }
+
     async refrescarSelectorGP() {
         await this.cargarGrandesPremiosSelector();
     }    
