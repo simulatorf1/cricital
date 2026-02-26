@@ -82,21 +82,22 @@ class TutorialManager {
             left: 50%;
             transform: translate(-50%, -50%);
             width: 90%;
-            max-width: 800px;
+            max-width: 700px;
             max-height: 85vh;
-            background: linear-gradient(135deg, #0c0c1a 0%, #1a1a3a 100%);
-            border: 3px solid #00f0ff;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0, 240, 255, 0.6),
-                        0 0 120px rgba(0, 240, 255, 0.3);
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f12;
+            border: 1px solid #2a2a30;
+            border-radius: 4px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            color: #e8e8e8;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
             z-index: 999998;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            backdrop-filter: blur(10px);
+            font-size: 13px;
+            line-height: 1.5;
+            letter-spacing: 0.2px;
         `;
         
         this.ventanaTutorial.innerHTML = `
@@ -105,22 +106,22 @@ class TutorialManager {
                     <!-- Título y paso se actualizarán desde actualizarContenidoPaso() -->
                 </div>
                 <button id="btn-minimizar-tutorial" style="
-                    background: rgba(0, 210, 190, 0.25);
-                    border: 2px solid #00d2be;
-                    color: #00d2be;
-                    padding: 8px 18px;
-                    border-radius: 8px;
+                    background: transparent;
+                    border: none;
+                    color: #909096;
+                    padding: 4px 10px;
+                    border-radius: 3px;
                     cursor: pointer;
-                    font-size: 0.95rem;
-                    font-weight: bold;
+                    font-size: 12px;
+                    font-weight: 400;
                     display: flex;
                     align-items: center;
-                    gap: 8px;
-                    transition: all 0.3s;
-                    box-shadow: 0 0 15px rgba(0, 210, 190, 0.3);
+                    gap: 6px;
+                    transition: opacity 0.2s;
+                    opacity: 0.7;
                     z-index: 999999;
                 ">
-                    <i class="fas fa-window-minimize"></i>
+                    <i class="fas fa-window-minimize" style="color: #909096; font-size: 11px;"></i>
                     Minimizar
                 </button>
             </div>
@@ -133,20 +134,20 @@ class TutorialManager {
             
             <div id="tutorial-botones" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid rgba(0, 210, 190, 0.2); padding-top: 12px;">
                 <button id="btn-anterior-paso" style="
-                    background: #ff3366;
-                    color: white;
-                    border: none;
-                    padding: 8px 16px;
-                    border-radius: 6px;
-                    font-weight: bold;
+                    background: transparent;
+                    color: #909096;
+                    border: 1px solid #2a2a30;
+                    padding: 6px 14px;
+                    border-radius: 3px;
+                    font-weight: 400;
+                    font-size: 12px;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
                     gap: 6px;
-                    font-size: 0.85rem;
-                    box-shadow: 0 2px 8px rgba(255, 51, 102, 0.4);
+                    letter-spacing: 0.5px;
                 ">
-                    <i class="fas fa-arrow-left" style="font-size: 0.8rem;"></i>
+                    <i class="fas fa-arrow-left" style="font-size: 11px; color: #909096;"></i>
                     Anterior
                 </button>
                 
@@ -903,51 +904,45 @@ class TutorialManager {
             if (paso.esFinal) {
                 siguienteContainer.innerHTML = `
                     <button id="btn-finalizar-tutorial" style="
-                        background: linear-gradient(135deg, #ff3366 0%, #cc2255 100%);
-                        color: white;
+                        background: #d4af37;
+                        color: #0f0f12;
                         border: none;
-                        padding: 8px 20px;
-                        border-radius: 6px;
-                        font-weight: bold;
+                        padding: 6px 16px;
+                        border-radius: 3px;
+                        font-weight: 600;
+                        font-size: 12px;
                         cursor: pointer;
                         display: flex;
                         align-items: center;
                         gap: 8px;
-                        font-size: 0.9rem;
-                        box-shadow: 0 2px 10px rgba(255, 51, 102, 0.5);
+                        letter-spacing: 0.5px;
+                        text-transform: uppercase;
                     ">
-                        <i class="fas ${paso.botonIcono}"></i>
+                        <i class="fas ${paso.botonIcono}" style="color: #0f0f12; font-size: 11px;"></i>
                         ${paso.botonTexto}
                     </button>
                 `;
-                
-                siguienteContainer.querySelector('#btn-finalizar-tutorial').onclick = () => {
-                    this.finalizarTutorialCompleto();
-                };
             } else {
                 siguienteContainer.innerHTML = `
                     <button id="btn-siguiente-paso" style="
-                        background: ${paso.colorBoton || '#00d2be'};
-                        color: white;
-                        border: none;
-                        padding: 8px 20px;
-                        border-radius: 6px;
-                        font-weight: bold;
+                        background: transparent;
+                        color: #c0c0c0;
+                        border: 1px solid #c0c0c0;
+                        padding: 6px 16px;
+                        border-radius: 3px;
+                        font-weight: 500;
+                        font-size: 12px;
                         cursor: pointer;
                         display: flex;
                         align-items: center;
                         gap: 8px;
-                        font-size: 0.9rem;
-                        box-shadow: 0 2px 10px rgba(${this.hexToRgb(paso.colorBoton || '#00d2be')}, 0.5);
+                        letter-spacing: 0.5px;
+                        text-transform: uppercase;
                     ">
                         ${paso.botonTexto}
-                        <i class="fas ${paso.botonIcono}"></i>
+                        <i class="fas ${paso.botonIcono}" style="color: #c0c0c0; font-size: 11px;"></i>
                     </button>
                 `;
-                
-                siguienteContainer.querySelector('#btn-siguiente-paso').onclick = () => {
-                    this.mostrarPaso(numeroPaso + 1);
-                };
             }
         }
         
