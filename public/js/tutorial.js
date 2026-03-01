@@ -849,12 +849,12 @@ class TutorialManager {
             } else {
                 siguienteContainer.innerHTML = `
                     <button id="btn-siguiente-paso" style="
-                        background: transparent;
-                        color: #c0c0c0;
-                        border: 1px solid #c0c0c0;
+                        background: ${paso.colorBoton === "#28a745" ? "#28a745" : "transparent"};
+                        color: ${paso.colorBoton === "#28a745" ? "white" : paso.colorBoton};
+                        border: 1px solid ${paso.colorBoton};
                         padding: 6px 16px;
                         border-radius: 3px;
-                        font-weight: 500;
+                        font-weight: ${paso.colorBoton === "#28a745" ? "600" : "500"};
                         font-size: 12px;
                         cursor: pointer;
                         display: flex;
@@ -862,9 +862,10 @@ class TutorialManager {
                         gap: 8px;
                         letter-spacing: 0.5px;
                         text-transform: uppercase;
+                        transition: all 0.2s ease;
                     ">
                         ${paso.botonTexto}
-                        <i class="fas ${paso.botonIcono}" style="color: #c0c0c0; font-size: 11px;"></i>
+                        <i class="fas ${paso.botonIcono}" style="color: ${paso.colorBoton === "#28a745" ? "white" : paso.colorBoton}; font-size: 11px;"></i>
                     </button>
                 `;
                 
