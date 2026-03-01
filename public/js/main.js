@@ -4263,7 +4263,7 @@ window.recogerPiezaSiLista = async function(fabricacionId, lista, slotIndex) {
         notificacion.innerHTML = `
             <div class="notification-content">
                 <i class="fas fa-hourglass-half"></i>
-                <span>Fabricación en curso<br><small>Visita el taller</small></span>
+                <span>Fabricación en curso<br><small>Ya casi está...</small></span>
             </div>
         `;
         document.body.appendChild(notificacion);
