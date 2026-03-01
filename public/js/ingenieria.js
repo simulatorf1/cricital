@@ -2047,7 +2047,7 @@ class IngenieriaManager {
 
                 <!-- CIRCUITO ANIMADO - DISEÑO PERSONALIZADO -->
                 <div class="circuito-container">
-                    <svg id="circuito-svg" width="100%" height="220" viewBox="0 0 500 180" preserveAspectRatio="xMidYMid meet">
+                    <svg id="circuito-svg" width="100%" height="220" viewBox="0 0 500 200" preserveAspectRatio="xMidYMid meet">
                         <defs>
                             <filter id="glow-coche" x="-30%" y="-30%" width="160%" height="160%">
                                 <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -2065,31 +2065,127 @@ class IngenieriaManager {
                             </g>
                         </defs>
                         
-                        <!-- Fondo del circuito (gris) -->
+                        <!-- Fondo del circuito (gris) - TU CIRCUITO DE GEOGEBRA -->
                         <path id="circuito-base" 
-                              d="M 100,90 C 100,70 130,55 160,50 C 190,45 220,45 250,50 C 280,55 310,70 340,70 C 370,70 400,60 420,40 C 440,20 430,0 400,10 C 370,20 340,30 310,30 C 280,30 250,25 220,25 C 190,25 160,30 130,40 C 100,50 80,70 80,90 C 80,110 100,130 130,140 C 160,150 190,150 220,145 C 250,140 280,130 300,120 C 320,110 340,100 350,100 C 360,100 370,110 360,120 C 350,130 330,140 300,145 C 270,150 240,150 210,145 C 180,140 150,130 130,120 C 110,110 100,100 100,90" 
+                              d="M 250,90 
+                                 L 170,90 
+                                 L 165.4,86.5 
+                                 L 165.4,81.9 
+                                 L 164.4,71.9 
+                                 L 154.736,69.703 
+                                 L 147.016,80.775 
+                                 L 146.483,90 
+                                 L 145.152,98.784 
+                                 L 139.296,97.453 
+                                 L 132.641,92.928 
+                                 L 124.389,93.46 
+                                 L 121.194,108.633 
+                                 L 120.928,129.131 
+                                 L 110.935,146.027 
+                                 L 99.874,161.236 
+                                 L 101.947,173.335 
+                                 L 110.589,179.557 
+                                 L 119.922,174.372 
+                                 L 134.441,165.384 
+                                 L 142.737,161.927 
+                                 L 157.601,165.73 
+                                 L 166.242,176.791 
+                                 L 175.23,188.544 
+                                 L 190,190 
+                                 L 201.846,182.668 
+                                 L 206.686,169.532 
+                                 L 199.426,155.705 
+                                 L 184.908,141.533 
+                                 L 181.452,132.545 
+                                 L 193.204,131.508 
+                                 L 205.649,128.397 
+                                 L 218.438,127.015 
+                                 L 226.735,141.533 
+                                 L 233.302,162.273 
+                                 L 241.944,179.557 
+                                 L 256.462,174.372 
+                                 L 260.265,164.347 
+                                 L 258.536,156.051 
+                                 L 270,150 
+                                 L 281.696,151.557 
+                                 L 284.116,142.57 
+                                 L 284.807,122.175 
+                                 L 286.536,101.781 
+                                 L 288.61,76.201 
+                                 L 273.054,74.473 
+                                 L 266.487,90 
+                                 L 259.573,99.015 
+                                 L 250,90" 
                               fill="none" stroke="#333" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
                         
-                        <!-- SECTOR 1 (Verde) - Primera parte -->
+                        <!-- SECTOR 1 (Verde) - Primer tercio del circuito -->
                         <path id="sector1" 
-                              d="M 100,90 C 100,70 130,55 160,50 C 190,45 220,45 250,50 C 280,55 310,70 340,70" 
+                              d="M 250,90 
+                                 L 170,90 
+                                 L 165.4,86.5 
+                                 L 165.4,81.9 
+                                 L 164.4,71.9 
+                                 L 154.736,69.703 
+                                 L 147.016,80.775 
+                                 L 146.483,90 
+                                 L 145.152,98.784 
+                                 L 139.296,97.453 
+                                 L 132.641,92.928 
+                                 L 124.389,93.46 
+                                 L 121.194,108.633 
+                                 L 120.928,129.131 
+                                 L 110.935,146.027 
+                                 L 99.874,161.236" 
                               fill="none" stroke="#4CAF50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
-                              class="sector sector1" style="stroke-dasharray: 280; stroke-dashoffset: 280;"/>
+                              class="sector sector1" style="stroke-dasharray: 450; stroke-dashoffset: 450;"/>
                         
-                        <!-- SECTOR 2 (Azul) - Parte media -->
+                        <!-- SECTOR 2 (Azul) - Segundo tercio del circuito -->
                         <path id="sector2" 
-                              d="M 340,70 C 370,70 400,60 420,40 C 440,20 430,0 400,10 C 370,20 340,30 310,30 C 280,30 250,25 220,25 C 190,25 160,30 130,40 C 100,50 80,70 80,90" 
+                              d="M 99.874,161.236 
+                                 L 101.947,173.335 
+                                 L 110.589,179.557 
+                                 L 119.922,174.372 
+                                 L 134.441,165.384 
+                                 L 142.737,161.927 
+                                 L 157.601,165.73 
+                                 L 166.242,176.791 
+                                 L 175.23,188.544 
+                                 L 190,190 
+                                 L 201.846,182.668 
+                                 L 206.686,169.532 
+                                 L 199.426,155.705 
+                                 L 184.908,141.533 
+                                 L 181.452,132.545 
+                                 L 193.204,131.508" 
                               fill="none" stroke="#2196F3" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
-                              class="sector sector2" style="stroke-dasharray: 450; stroke-dashoffset: 450;"/>
+                              class="sector sector2" style="stroke-dasharray: 380; stroke-dashoffset: 380;"/>
                         
-                        <!-- SECTOR 3 (Rojo) - Parte final -->
+                        <!-- SECTOR 3 (Rojo) - Último tercio del circuito -->
                         <path id="sector3" 
-                              d="M 80,90 C 80,110 100,130 130,140 C 160,150 190,150 220,145 C 250,140 280,130 300,120 C 320,110 340,100 350,100 C 360,100 370,110 360,120 C 350,130 330,140 300,145 C 270,150 240,150 210,145 C 180,140 150,130 130,120 C 110,110 100,100 100,90" 
+                              d="M 193.204,131.508 
+                                 L 205.649,128.397 
+                                 L 218.438,127.015 
+                                 L 226.735,141.533 
+                                 L 233.302,162.273 
+                                 L 241.944,179.557 
+                                 L 256.462,174.372 
+                                 L 260.265,164.347 
+                                 L 258.536,156.051 
+                                 L 270,150 
+                                 L 281.696,151.557 
+                                 L 284.116,142.57 
+                                 L 284.807,122.175 
+                                 L 286.536,101.781 
+                                 L 288.61,76.201 
+                                 L 273.054,74.473 
+                                 L 266.487,90 
+                                 L 259.573,99.015 
+                                 L 250,90" 
                               fill="none" stroke="#e10600" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
-                              class="sector sector3" style="stroke-dasharray: 380; stroke-dashoffset: 380;"/>
+                              class="sector sector3" style="stroke-dasharray: 420; stroke-dashoffset: 420;"/>
                         
                         <!-- COCHE -->
-                        <use id="coche-animado" href="#coche-icon" x="100" y="90" filter="url(#glow-coche)"/>
+                        <use id="coche-animado" href="#coche-icon" x="250" y="90" filter="url(#glow-coche)"/>
                     </svg>
                     
                     <!-- FASE ACTUAL Y MENSAJES -->
