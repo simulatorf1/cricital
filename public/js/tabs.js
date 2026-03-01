@@ -1091,7 +1091,7 @@ class TabManager {
                         <span class="usuario-link" 
                               data-usuario-id="${escuderia.id}"
                               data-usuario-nombre="${escuderia.nombre || 'Sin nombre'}"
-                              style="cursor: pointer; color: #00d2be; text-decoration: underline; text-decoration-style: dotted; transition: all 0.2s; display: inline-block; padding: 2px 4px; border-radius: 3px; font-family: 'Segoe UI', Arial, sans-serif;">
+                              style="cursor: pointer; color: #00d2be; text-decoration: none; transition: all 0.2s; display: inline-block; padding: 2px 4px; border-radius: 3px; font-family: 'Segoe UI', Arial, sans-serif;">
                             ${escuderia.nombre || 'Sin nombre'}
                         </span>
                     </td>
