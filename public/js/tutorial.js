@@ -245,7 +245,7 @@ class TutorialManager {
                 `,
                 botonTexto: "Aceptar el Mando",
                 botonIcono: "fa-check-circle",
-                colorBoton: "#c0c0c0"
+                colorBoton: "#00a86b"
             },
             
             // PASO 1
