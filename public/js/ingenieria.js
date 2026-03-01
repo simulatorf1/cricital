@@ -1468,8 +1468,8 @@ class IngenieriaManager {
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 10000;
+            background: rgba(0,0,0,0.95);
+            z-index: 99999;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -1486,6 +1486,8 @@ class IngenieriaManager {
                 max-height: 90vh;
                 overflow-y: auto;
                 padding: 25px;
+                position: relative;
+                box-shadow: 0 0 30px rgba(0,210,190,0.5);
             ">
                 <div class="modal-header" style="
                     display: flex;
@@ -1494,21 +1496,30 @@ class IngenieriaManager {
                     margin-bottom: 20px;
                     padding-bottom: 15px;
                     border-bottom: 1px solid #00d2be;
+                    position: sticky;
+                    top: 0;
+                    background: #1a1a2e;
+                    z-index: 10;
                 ">
                     <h3 style="color: #00d2be; margin: 0; display: flex; align-items: center; gap: 10px;">
                         <i class="fas fa-flag-checkered"></i>
                         SIMULACIÓN COMPLETADA
                     </h3>
-                    <button id="cerrar-informe" style="
+                    <button class="cerrar-informe-btn" style="
                         background: #e10600;
                         color: white;
                         border: none;
-                        width: 30px;
-                        height: 30px;
+                        width: 40px;
+                        height: 40px;
                         border-radius: 50%;
                         cursor: pointer;
                         font-weight: bold;
-                        font-size: 1rem;
+                        font-size: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        transition: all 0.2s;
+                        border: 2px solid #ff4444;
                     ">×</button>
                 </div>
                 
@@ -1527,7 +1538,7 @@ class IngenieriaManager {
                     ${mejora ? `
                         <div style="color: ${mejora > 0 ? '#4CAF50' : '#e10600'}; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
                             <i class="fas fa-${mejora > 0 ? 'arrow-up' : 'arrow-down'}"></i>
-                            ${mejora > 0 ? 'MEJORA DE ' : 'REGREsiÓN DE '}${this.formatearTiempo(Math.abs(mejora))}
+                            ${mejora > 0 ? 'MEJORA DE ' : 'REGRESIÓN DE '}${this.formatearTiempo(Math.abs(mejora))}
                         </div>
                     ` : ''}
                 </div>
@@ -1540,8 +1551,12 @@ class IngenieriaManager {
                     margin-top: 25px;
                     padding-top: 20px;
                     border-top: 1px solid #333;
+                    position: sticky;
+                    bottom: 0;
+                    background: #1a1a2e;
+                    z-index: 10;
                 ">
-                    <button id="ver-historico" style="
+                    <button class="ver-historico-btn" style="
                         flex: 1;
                         padding: 12px;
                         background: rgba(0,210,190,0.2);
@@ -1550,10 +1565,11 @@ class IngenieriaManager {
                         border-radius: 6px;
                         cursor: pointer;
                         font-weight: bold;
+                        transition: all 0.2s;
                     ">
                         <i class="fas fa-history"></i> VER HISTÓRICO
                     </button>
-                    <button id="nueva-prueba" style="
+                    <button class="nueva-prueba-btn" style="
                         flex: 1;
                         padding: 12px;
                         background: #00d2be;
@@ -1562,6 +1578,7 @@ class IngenieriaManager {
                         border-radius: 6px;
                         cursor: pointer;
                         font-weight: bold;
+                        transition: all 0.2s;
                     ">
                         <i class="fas fa-redo"></i> NUEVA PRUEBA
                     </button>
@@ -1571,28 +1588,88 @@ class IngenieriaManager {
         
         document.body.appendChild(modal);
         
-        // Eventos del modal
-        document.getElementById('cerrar-informe').onclick = () => modal.remove();
-        document.getElementById('ver-historico').onclick = () => {
-            modal.remove();
-            // Desplazarse al histórico
-            const historialSection = document.querySelector('.historial-panel');
-            if (historialSection) {
-                historialSection.scrollIntoView({ behavior: 'smooth' });
-            }
-        };
-        document.getElementById('nueva-prueba').onclick = () => {
-            modal.remove();
-            // Iniciar nueva simulación si no hay activa
-            if (!this.simulacionActiva) {
-                this.iniciarSimulacion();
+        // Eventos del modal - USANDO CLASS EN LUGAR DE ID
+        const cerrarBtn = modal.querySelector('.cerrar-informe-btn');
+        const verHistoricoBtn = modal.querySelector('.ver-historico-btn');
+        const nuevaPruebaBtn = modal.querySelector('.nueva-prueba-btn');
+        
+        // Función para cerrar modal
+        const cerrarModal = () => {
+            if (modal && modal.parentNode) {
+                modal.remove();
             }
         };
         
+        // Evento cerrar
+        if (cerrarBtn) {
+            cerrarBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                cerrarModal();
+            });
+        }
+        
+        // Evento ver histórico
+        if (verHistoricoBtn) {
+            verHistoricoBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                cerrarModal();
+                // Desplazarse al histórico
+                setTimeout(() => {
+                    const historialSection = document.querySelector('.historial-panel');
+                    if (historialSection) {
+                        historialSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }, 100);
+            });
+        }
+        
+        // Evento nueva prueba
+        if (nuevaPruebaBtn) {
+            nuevaPruebaBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                cerrarModal();
+                // Iniciar nueva simulación si no hay activa
+                setTimeout(() => {
+                    if (!this.simulacionActiva) {
+                        this.iniciarSimulacion();
+                    }
+                }, 100);
+            });
+        }
+        
         // Cerrar con ESC
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') modal.remove();
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                cerrarModal();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+        
+        // Cerrar al hacer clic fuera del modal
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                cerrarModal();
+            }
         });
+        
+        // Prevenir que el scroll del body se desplace mientras el modal está abierto
+        document.body.style.overflow = 'hidden';
+        
+        // Restaurar scroll al cerrar
+        const restoreScroll = () => {
+            document.body.style.overflow = '';
+        };
+        
+        // Guardar la función de restauración para usarla al cerrar
+        const originalRemove = modal.remove;
+        modal.remove = function() {
+            restoreScroll();
+            originalRemove.call(this);
+        };
     }
     
     // ========================
