@@ -12,6 +12,20 @@
 
 </head>
 <body>
+    <!-- ========================================= -->
+    <!-- REPRODUCTOR DE MÚSICA PERMANENTE (NUNCA SE DESTRUYE) -->
+    <!-- ========================================= -->
+    <div id="reproductor-fijo" style="position: fixed; width: 0; height: 0; overflow: hidden; opacity: 0; pointer-events: none; z-index: -9999;">
+        <iframe src="/player.html" style="width: 100%; height: 100%; border: none;"></iframe>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- CONTENEDOR PRINCIPAL DEL JUEGO -->
+    <!-- ========================================= -->
+    <div id="contenedor-juego" style="width: 100%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #000;">
+        <!-- El juego se inyectará aquí desde main.js -->
+    </div>
+
     <!-- CARGA DE SUPABASE CON GARANTÍA -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
     
@@ -52,7 +66,7 @@
                 'js/pronosticos.js',
                 'js/integracion.js',
                 'js/tutorial.js',
-                'js/estrategia.js',  // ← MOVERLO AQUÍ (ANTES de main.js)
+                'js/estrategia.js',
                 'js/main.js',
                 'js/usuario.js',
                 'js/tabs.js', 
@@ -179,9 +193,6 @@
             }
         };
     </script>
-    <!-- Reproductor de música permanente (NUNCA se destruye) -->
-    <iframe src="/player.html" style="position: absolute; width: 0; height: 0; border: none; visibility: hidden;"></iframe>
-
     
 </body>
 </html>
