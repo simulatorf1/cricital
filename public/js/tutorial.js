@@ -377,17 +377,17 @@ class TutorialManager {
                 contenido: `
                     <div style="background: #1a1a1f; padding: 12px; border-radius: 3px; margin-bottom: 15px;">
                         <p style="margin: 0 0 8px 0; font-weight: 500; color: #c0c0c0; font-size: 13px;">
-                            📊 AQUÍ SE COMPROBARÁN TUS TIEMPOS CON LOS DE OTROS JUGADORES
+                            📊 AQUÍ COMPROBAREMOS CÓMO ES DE RÁPIDO NUESTRO COCHE
                         </p>
                         <p style="margin: 0; font-size: 13px; color: #909096;">
-                            Cambia tantas veces como quieras las piezas equipadas y prueba en ingeniería qué tiempo puedes lograr. Nuestros ingenieros te dirán cuál es el área a mejorar y te mostrarán todas las estadísticas.
+                            Equipa desde el almacen diferentes piezas tanas veces como quieras y comprobaremos qué tiempo podemos lograr. Nuestros ingenieros te dirán cuál es el área a mejorar y te mostrarán todas las estadísticas.
                         </p>
                     </div>
                     
                     <div style="background: #1a1a1f; padding: 8px 12px; border-radius: 3px; margin: 12px 0; border-left: 2px solid #d4af37;">
                         <p style="margin: 0; font-size: 12px; color: #d4af37;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Para poder hacer un tiempo por vuelta debes tener alguna pieza equipada. Haz clic en <strong>"Iniciar simulación"</strong>. Cuando finalice ya tendrás tu tiempo por vuelta que aparecerá en todas las estadísticas, en tu perfil y en tu pantalla principal.
+                            <strong>OBLIGATORIO:</strong> Para poder hacer un tiempo por vuelta debes tener alguna pieza equipada. MINIMIZA esta ventana y haz clic en la ficha ingenieria, <strong>"Iniciar simulación"</strong>. Cuando finalice ya tendrás tu tiempo por vuelta que aparecerá en todas las estadísticas, en tu perfil, en tu pantalla principal y en el ranking general con otros jugadores.
                         </p>
                     </div>
                     
