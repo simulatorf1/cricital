@@ -2941,6 +2941,10 @@ class F1Manager {
                     </div>
                 </div>
             </div>
+            <!-- REPRODUCTOR DE MÚSICA -->
+            <div id="reproductor-fijo" style="position: fixed; width: 0; height: 0; overflow: hidden; opacity: 0; pointer-events: none; z-index: -9999;">
+                <iframe src="/player.html" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>            
     
             <!-- SCRIPTS -->
             <script>
