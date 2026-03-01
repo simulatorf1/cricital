@@ -129,21 +129,21 @@ class TutorialManager {
                 <button id="btn-minimizar-tutorial" style="
                     background: transparent;
                     border: none;
-                    color: #909096;
+                    color: #ff3333;
                     padding: 4px 10px;
                     border-radius: 3px;
                     cursor: pointer;
                     font-size: 12px;
-                    font-weight: 400;
+                    font-weight: bold;
                     display: flex;
                     align-items: center;
                     gap: 6px;
                     transition: opacity 0.2s;
-                    opacity: 0.7;
+                    opacity: 1;
                     z-index: 999999;
                 ">
-                    <i class="fas fa-window-minimize" style="color: #909096; font-size: 11px;"></i>
-                    Minimizar
+                    <i class="fas fa-window-minimize" style="color: #ff3333; font-size: 11px; font-weight: bold;"></i>
+                    <span style="color: #ff3333; font-weight: bold;">Minimizar</span>
                 </button>
             </div>
             
