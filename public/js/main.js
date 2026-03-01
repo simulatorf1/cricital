@@ -4046,7 +4046,7 @@ class F1Manager {
         try {
             const { data: fabricaciones, error } = await this.supabase
                 .from('fabricacion_actual')
-                .select('id,tiempo_fin,area,nivel')
+                .select('id, tiempo_fin, area, nivel')
                 .eq('escuderia_id', this.escuderia.id)
                 .eq('completada', false);
             
@@ -4064,16 +4064,33 @@ class F1Manager {
                 const tiempoFinUTC = new Date(tiempoFinStr).getTime();
                 const tiempoRestante = tiempoFinUTC - ahoraUTC;
                 
+                // 🟢 CAMBIO AQUÍ: Si tiempoRestante <= 0, actualizar el onclick
                 if (tiempoRestante <= 0) {
+                    // Obtener el slotIndex actual (si está en el onclick antiguo)
+                    const match = slot.getAttribute('onclick')?.match(/, (\d+)\)/);
+                    const slotIndex = match ? match[1] : '0';
+                    
+                    // ACTUALIZAR EL ONCLICK con lista = true
+                    slot.setAttribute('onclick', `recogerPiezaSiLista('${fabricacionId}', true, ${slotIndex})`);
+                    
+                    // Cambiar clases y contenido visual
                     slot.classList.remove('produccion-activa');
                     slot.classList.add('produccion-lista');
-                    // === ACTUALIZAR TEXTO A NUEVO FORMATO ===
+                    
                     const nombreArea = this.getNombreArea(fabricacion.area);
                     const nombreMostrar = "Actualización " + nombreArea;
                     const nivelMostrar = "Q" + fabricacion.nivel;
-                    // === FIN ACTUALIZACIÓN ===
-                    slot.innerHTML = '<div class="produccion-icon">✅</div><div class="produccion-info"><span class="produccion-nombre">' + nombreMostrar + '</span><span class="produccion-pieza-num">' + nivelMostrar + '</span><span class="produccion-lista-text">¡LISTA!</span></div>';
+                    
+                    slot.innerHTML = `
+                        <div class="produccion-icon">✅</div>
+                        <div class="produccion-info">
+                            <span class="produccion-nombre">${nombreMostrar}</span>
+                            <span class="produccion-pieza-num">${nivelMostrar}</span>
+                            <span class="produccion-lista-text">¡LISTA!</span>
+                        </div>
+                    `;
                 } else {
+                    // Si no ha llegado a cero, solo actualizar el tiempo
                     const tiempoElement = slot.querySelector('.produccion-tiempo');
                     if (tiempoElement) {
                         tiempoElement.textContent = this.formatTime(tiempoRestante);
