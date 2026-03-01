@@ -1598,6 +1598,9 @@ class IngenieriaManager {
     // ========================
     // INICIAR CONTADOR DE SIMULACIÓN
     // ========================
+    // ========================
+    // INICIAR CONTADOR DE SIMULACIÓN
+    // ========================
     iniciarContadorSimulacion() {
         console.log('🏁 Iniciando contador de simulación con circuito animado');
         
@@ -1632,22 +1635,22 @@ class IngenieriaManager {
         
         const iniciarAnimacion = () => {
             // Variables de control
-            // Si ya hay un tiempo de inicio guardado, úsalo, si no, crea uno nuevo
-            let tiempoInicio = this.tiempoInicioSimulacion || Date.now();
-            // Si acabamos de crear uno nuevo, guardarlo
-            if (!this.tiempoInicioSimulacion) {
-                this.tiempoInicioSimulacion = tiempoInicio;
-            }
-            let duracionTotal = 60000; // 60 segundos en milisegundos
             let calentamientoDuration = 30000; // 30 segundos
             let clasificacionDuration = 30000; // 30 segundos
+            let duracionTotal = 60000; // 60 segundos en milisegundos
+            
+            // Si no hay tiempo de inicio guardado, crear uno nuevo
+            if (!this.tiempoInicioSimulacion) {
+                this.tiempoInicioSimulacion = Date.now();
+                this.duracionTotalSimulacion = duracionTotal;
+            }
             
             // Resetear sectores
             document.querySelectorAll('.sector').forEach(s => {
                 s.style.strokeDashoffset = s.style.strokeDasharray.split(' ')[0];
             });
             
-            // Puntos del circuito (ÚNICOS PARA TODO)
+            // Puntos del circuito (DESDE GEOGEBRA - ESCALADOS para 500x180)
             const puntosCircuito = [
                 {x: 250, y: 90, t: 0.000},
                 {x: 170, y: 90, t: 0.021},
@@ -1699,7 +1702,7 @@ class IngenieriaManager {
                 {x: 259.573, y: 99.015, t: 0.979},
                 {x: 250, y: 90, t: 1.000}
             ];
-        
+    
             // Posicionar coche al inicio
             coche.setAttribute('x', puntosCircuito[0].x);
             coche.setAttribute('y', puntosCircuito[0].y);
@@ -1733,7 +1736,6 @@ class IngenieriaManager {
             this.timerInterval = setInterval(() => {
                 // Calcular progreso real basado en el tiempo transcurrido desde el inicio GLOBAL
                 const tiempoTranscurridoReal = Date.now() - this.tiempoInicioSimulacion;
-                const progresoReal = Math.min(1, tiempoTranscurridoReal / this.duracionTotalSimulacion);
                 
                 // Actualizar tiempo restante (para el display)
                 if (tiempoRestanteSpan) {
@@ -1799,24 +1801,37 @@ class IngenieriaManager {
                         const sector1 = document.querySelector('.sector1');
                         if (sector1) sector1.style.strokeDashoffset = sector1Length * (1 - progresoSector);
                         
-                        document.querySelector('.sector2').style.strokeDashoffset = sector2Length;
-                        document.querySelector('.sector3').style.strokeDashoffset = sector3Length;
+                        const sector2 = document.querySelector('.sector2');
+                        if (sector2) sector2.style.strokeDashoffset = sector2Length;
+                        
+                        const sector3 = document.querySelector('.sector3');
+                        if (sector3) sector3.style.strokeDashoffset = sector3Length;
                         
                     } else if (progresoClasif < 0.66) {
                         // Sector 2 (33-66% de la vuelta de clasificación)
                         const progresoSector = (progresoClasif - 0.33) / 0.33; // 0 a 1 dentro del sector 2
                         
-                        document.querySelector('.sector1').style.strokeDashoffset = 0;
-                        document.querySelector('.sector2').style.strokeDashoffset = sector2Length * (1 - progresoSector);
-                        document.querySelector('.sector3').style.strokeDashoffset = sector3Length;
+                        const sector1 = document.querySelector('.sector1');
+                        if (sector1) sector1.style.strokeDashoffset = 0;
+                        
+                        const sector2 = document.querySelector('.sector2');
+                        if (sector2) sector2.style.strokeDashoffset = sector2Length * (1 - progresoSector);
+                        
+                        const sector3 = document.querySelector('.sector3');
+                        if (sector3) sector3.style.strokeDashoffset = sector3Length;
                         
                     } else {
                         // Sector 3 (66-100% de la vuelta de clasificación)
                         const progresoSector = (progresoClasif - 0.66) / 0.34; // 0 a 1 dentro del sector 3
                         
-                        document.querySelector('.sector1').style.strokeDashoffset = 0;
-                        document.querySelector('.sector2').style.strokeDashoffset = 0;
-                        document.querySelector('.sector3').style.strokeDashoffset = sector3Length * (1 - progresoSector);
+                        const sector1 = document.querySelector('.sector1');
+                        if (sector1) sector1.style.strokeDashoffset = 0;
+                        
+                        const sector2 = document.querySelector('.sector2');
+                        if (sector2) sector2.style.strokeDashoffset = 0;
+                        
+                        const sector3 = document.querySelector('.sector3');
+                        if (sector3) sector3.style.strokeDashoffset = sector3Length * (1 - progresoSector);
                     }
                     // ========== FIN ACTUALIZACIÓN SECTORES ==========
                 } 
@@ -1836,13 +1851,19 @@ class IngenieriaManager {
                     }
                     
                     // Todos los sectores completados
-                    document.querySelector('.sector1').style.strokeDashoffset = 0;
-                    document.querySelector('.sector2').style.strokeDashoffset = 0;
-                    document.querySelector('.sector3').style.strokeDashoffset = 0;
+                    const sector1 = document.querySelector('.sector1');
+                    if (sector1) sector1.style.strokeDashoffset = 0;
+                    
+                    const sector2 = document.querySelector('.sector2');
+                    if (sector2) sector2.style.strokeDashoffset = 0;
+                    
+                    const sector3 = document.querySelector('.sector3');
+                    if (sector3) sector3.style.strokeDashoffset = 0;
                     
                     this.finalizarSimulacion(this.simulacionId);
                 }
             }, 50);
+        };
     }
     iniciarContadorSimple() {
         console.log('⚠️ Usando contador simple de emergencia');
