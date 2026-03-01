@@ -452,19 +452,19 @@ class TutorialManager {
                             👨‍💼 CONTRATA HASTA 4 ESTRATEGAS
                         </p>
                         <p style="margin: 0; font-size: 13px; color: #909096;">
-                            Ya tenemos las piezas equipadas y un tiempo por vuelta, para aumentar nuestras posibilidades en carrera necesitamos contratar estrategas.
+                            Ya tenemos las piezas equipadas y un tiempo por vuelta, para aumentar nuestras posibilidades en carrera necesitamos contratar estrategas. Son los que potenciarán tus aciertos en los pronósticos.
                         </p>
                     </div>
                     
                     <div style="background: #1a1a1f; padding: 8px 12px; border-radius: 3px; margin: 12px 0; border-left: 2px solid #d4af37;">
                         <p style="margin: 0; font-size: 12px; color: #d4af37;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en "Gestionar Estrategas" (pantalla principal). Contrata un estratega ahora. La duración del contrato será de 7 días desde que lo contratas, y el salario se paga al final del contrato. Puedes cancelar el contrato antes de tiempo con una penalización.
+                            <strong>OBLIGATORIO:</strong> Haz clic en "Gestionar Estrategas" (desde la pantalla principal- Estrategas). Contrata un estratega ahora. La duración del contrato será de 7 días desde que lo contratas, y el salario se paga al final del contrato. Puedes cancelar el contrato antes de tiempo con una penalización.
                         </p>
                     </div>
                     
                     <ul style="margin: 12px 0; padding-left: 20px; font-size: 13px; color: #909096;">
-                        <li>Especialización por área</li>
+                        <li>Especialización por área:</li> 11 areas diferentes, por ejemplo el area de meteorologia servira para las preguntas que tengan que ver con las condiciones climatologicas de la carrera.
                         <li>Sueldo diferente</li>
                         <li>Bonificación por acierto</li>
                     </ul>
