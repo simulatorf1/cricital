@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reproductor de música</title>
+</head>
+<body>
+    <audio id="bgMusic" src="/f1.mp3" loop autoplay style="display: none;"></audio>
+    <script>
+        // Forzar reproducción continua
+        const audio = document.getElementById('bgMusic');
+        audio.volume = 0.3;
+        
+        // Si se corta, reintentar
+        setInterval(() => {
+            if (audio.paused) {
+                audio.play().catch(() => {});
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
