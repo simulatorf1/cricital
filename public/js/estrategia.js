@@ -630,7 +630,6 @@ class EstrategiaManager {
                      `• Especialidad: ${estratega.especialidad_nombre}\n` +
                      `• Bono: +${estratega.porcentaje_bono}%\n` +
                      `• Sueldo: €${estratega.sueldo_semanal.toLocaleString()}/semana\n` +
-                     `\n💰 **PRIMER PAGO: DOMINGO 23:59**\n` +
                      `✅ Contratación GRATIS ahora\n` +
                      `✅ Pago automático cada domingo\n` +
                      `❌ Despido anticipado: Penalización 3× sueldo`)) {
