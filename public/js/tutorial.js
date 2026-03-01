@@ -398,7 +398,7 @@ class TutorialManager {
                     <div style="background: #1a1a1f; padding: 8px 12px; border-radius: 3px; margin: 12px 0; border-left: 2px solid #c0c0c0;">
                         <p style="margin: 0; font-size: 12px; color: #909096;">
                             <i class="fas fa-exclamation-circle" style="color: #c0c0c0;"></i> 
-                            <strong style="color: #e8e8e8;">IMPORTANTE:</strong> Para poder hacer un pronóstico de carrera debes tener hecho el test de vuelta obligatoriamente.
+                            <strong style="color: #e8e8e8;">IMPORTANTE:</strong> Para poder hacer un pronóstico de carrera debes tener hecho el test de vuelta obligatoriamente. Cada fin de semana de gran prmeio, el coche rendirá de diferente manera, deberás seguir investigando y probando piezas durante todo el campeonato. En la parte inferior de la ficha INGENIERIA puedes ver la evolución de tus vueltas rápidas respeto a la escudería rival que tenga la mejor vuelta.
                         </p>
                     </div>
                 `,
