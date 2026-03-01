@@ -1082,21 +1082,21 @@ class TabManager {
             const clasePosicion = posicion <= 3 ? `top-${posicion}` : '';
             
             html += `
-                <tr class="${claseFila}">
-                    <td class="celda-posicion ${clasePosicion}">
+                <tr class="${claseFila}" style="font-family: 'Segoe UI', Arial, sans-serif;">
+                    <td class="celda-posicion ${clasePosicion}" style="font-family: 'Segoe UI', Arial, sans-serif;">
                         <span class="numero-posicion">${posicion}</span>
                     </td>
-                    <td class="celda-nombre">
+                    <td class="celda-nombre" style="font-family: 'Segoe UI', Arial, sans-serif;">
                         ${esMiEscuderia ? '<i class="fas fa-user" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
                         <span class="usuario-link" 
                               data-usuario-id="${escuderia.id}"
                               data-usuario-nombre="${escuderia.nombre || 'Sin nombre'}"
-                              style="cursor: pointer; color: #00d2be; text-decoration: underline; text-decoration-style: dotted; transition: all 0.2s; display: inline-block; padding: 2px 4px; border-radius: 3px;">
+                              style="cursor: pointer; color: #00d2be; text-decoration: underline; text-decoration-style: dotted; transition: all 0.2s; display: inline-block; padding: 2px 4px; border-radius: 3px; font-family: 'Segoe UI', Arial, sans-serif;">
                             ${escuderia.nombre || 'Sin nombre'}
                         </span>
                     </td>
-                    <td class="${claseColumna}">
-                        <span class="${tipo === 'dinero' ? 'valor-dinero' : 'valor-vuelta'}">
+                    <td class="${claseColumna}" style="font-family: 'Segoe UI', Arial, sans-serif;">
+                        <span class="${tipo === 'dinero' ? 'valor-dinero' : 'valor-vuelta'}" style="font-family: 'Segoe UI', Arial, sans-serif;">
                             ${valorMostrar}
                         </span>
                     </td>
