@@ -585,7 +585,7 @@ class TutorialManager {
                     </div>
                     
                     <p style="font-size: 13px; color: #909096;">
-                        <strong style="color: #e8e8e8;">⭐ Cada día, tus patrocinadores te asignarán estrellas por entrar a gestionar la escudería, por fabricar y por probar en pista.</strong>
+                        <strong style="color: #e8e8e8;">⭐ Cada día, tus patrocinadores te asignarán estrellas por entrar a gestionar la escudería, por fabricar y por probar en pista.</strong> Al finalizar la semana las estrellas se convertirán en dinero.
                     </p>
                 `,
                 botonTexto: "He visto las Estrellas",
