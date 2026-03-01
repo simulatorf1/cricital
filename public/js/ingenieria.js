@@ -1757,30 +1757,54 @@ class IngenieriaManager {
                     const sector2Length = 380;
                     const sector3Length = 420;
                     
+
+                    // Actualizar sectores (calculados según la longitud REAL de cada sector)
+                    // Calculamos la longitud de cada sector basada en los puntos
+                    const sector1Points = puntosCircuito.filter(p => p.t <= 0.33);
+                    const sector2Points = puntosCircuito.filter(p => p.t > 0.33 && p.t <= 0.66);
+                    const sector3Points = puntosCircuito.filter(p => p.t > 0.66);
+                    
+                    // Función para calcular longitud de un conjunto de puntos
+                    function calcularLongitud(puntos) {
+                        let longitud = 0;
+                        for (let i = 0; i < puntos.length - 1; i++) {
+                            const dx = puntos[i+1].x - puntos[i].x;
+                            const dy = puntos[i+1].y - puntos[i].y;
+                            longitud += Math.sqrt(dx*dx + dy*dy);
+                        }
+                        return longitud;
+                    }
+                    
+                    const sector1Length = calcularLongitud(sector1Points);
+                    const sector2Length = calcularLongitud(sector2Points);
+                    const sector3Length = calcularLongitud(sector3Points);
+                    
+                    console.log('Longitudes reales:', {sector1Length, sector2Length, sector3Length});
+                    
                     if (progresoClasif < 0.33) {
                         // Sector 1 (0-33%)
-                        const t = progresoClasif / 0.33;
+                        const progresoSector = progresoClasif / 0.33; // 0 a 1 dentro del sector 1
                         const sector1 = document.querySelector('.sector1');
-                        if (sector1) sector1.style.strokeDashoffset = sector1Length * (1 - t);
+                        if (sector1) sector1.style.strokeDashoffset = sector1Length * (1 - progresoSector);
                         
                         document.querySelector('.sector2').style.strokeDashoffset = sector2Length;
                         document.querySelector('.sector3').style.strokeDashoffset = sector3Length;
                         
                     } else if (progresoClasif < 0.66) {
                         // Sector 2 (33-66%)
-                        const t = (progresoClasif - 0.33) / 0.33;
+                        const progresoSector = (progresoClasif - 0.33) / 0.33; // 0 a 1 dentro del sector 2
                         
                         document.querySelector('.sector1').style.strokeDashoffset = 0;
-                        document.querySelector('.sector2').style.strokeDashoffset = sector2Length * (1 - t);
+                        document.querySelector('.sector2').style.strokeDashoffset = sector2Length * (1 - progresoSector);
                         document.querySelector('.sector3').style.strokeDashoffset = sector3Length;
                         
                     } else {
                         // Sector 3 (66-100%)
-                        const t = (progresoClasif - 0.66) / 0.34;
+                        const progresoSector = (progresoClasif - 0.66) / 0.34; // 0 a 1 dentro del sector 3
                         
                         document.querySelector('.sector1').style.strokeDashoffset = 0;
                         document.querySelector('.sector2').style.strokeDashoffset = 0;
-                        document.querySelector('.sector3').style.strokeDashoffset = sector3Length * (1 - t);
+                        document.querySelector('.sector3').style.strokeDashoffset = sector3Length * (1 - progresoSector);
                     }
                 }
                 
