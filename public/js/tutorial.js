@@ -337,12 +337,7 @@ class TutorialManager {
             {
                 titulo: "EL ALMACÉN",
                 contenido: `
-                    <div style="background: #1a1a1f; padding: 8px 12px; border-radius: 3px; margin: 12px 0; border-left: 2px solid #d4af37;">
-                        <p style="margin: 0; font-size: 12px; color: #d4af37;">
-                            <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> MINIMIZA ESTA VENTANA Y haz clic en la pieza que has fabricado. En el momento que la pinchas queda equipada en el coche.
-                        </p>
-                    </div>
+
                     
                     <div style="background: #1a1a1f; padding: 12px; border-radius: 3px; margin-bottom: 15px;">
                         <p style="margin: 0 0 8px 0; font-weight: 500; color: #c0c0c0; font-size: 13px;">
@@ -352,7 +347,12 @@ class TutorialManager {
                             Desde el Almacén puedes equipar, desmontar o vender piezas.
                         </p>
                     </div>
-                    
+                    <div style="background: #1a1a1f; padding: 8px 12px; border-radius: 3px; margin: 12px 0; border-left: 2px solid #d4af37;">
+                        <p style="margin: 0; font-size: 12px; color: #d4af37;">
+                            <i class="fas fa-mouse-pointer"></i> 
+                            <strong>OBLIGATORIO:</strong> MINIMIZA ESTA VENTANA Y haz clic en la pieza que has fabricado. En el momento que la pinchas queda equipada en el coche.
+                        </p>
+                    </div>                    
                     <p style="font-size: 13px; margin-bottom: 12px; color: #e8e8e8;">
                         Para ver todas las piezas equipadas del coche vete a la pestaña principal a la sección <strong>"piezas montadas"</strong>, allí verás qué tienes montado y qué no.
                     </p>
