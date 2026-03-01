@@ -1629,64 +1629,63 @@ class IngenieriaManager {
                 s.style.strokeDashoffset = s.style.strokeDasharray.split(' ')[0];
             });
             
-            // Posicionar coche al inicio
-            coche.setAttribute('x', '80');
-            coche.setAttribute('y', '90');
-            coche.setAttribute('fill', '#FFD700');
-            
-
-            // Puntos del circuito (ESCALADOS para 500x180)
+            // Puntos del circuito (ÚNICOS PARA TODO)
             const puntosCircuito = [
-                {x: 0, y: 0, t: 0.000},
-                {x: -8, y: 0, t: 0.021},
-                {x: -8.46, y: -0.35, t: 0.042},
-                {x: -8.46, y: -0.91, t: 0.063},
-                {x: -8.56, y: -1.91, t: 0.083},
-                {x: -9.5264248, y: -2.1296549999999947, t: 0.104},
-                {x: -10.298404800000005, y: -1.2245749999999942, t: 0.125},
-                {x: -10.351644800000006, y: 0, t: 0.146},
-                {x: -10.484744800000005, y: 0.878405000000007, t: 0.167},
-                {x: -11.070384800000006, y: 0.745305000000007, t: 0.188},
-                {x: -11.735884800000006, y: 0.29276500000000666, t: 0.208},
-                {x: -12.561104800000006, y: 0.3460050000000067, t: 0.229},
-                {x: -12.880544800000006, y: 1.8633450000000076, t: 0.250},
-                {x: -12.907164800000006, y: 3.9130850000000086, t: 0.271},
-                {x: -13.906493104780491, y: 5.6026540626341585, t: 0.292},
-                {x: -15.01263850965854, y: 7.123603994341474, t: 0.313},
-                {x: -14.805236246243906, y: 8.33345053092684, t: 0.333},
-                {x: -13.941060148682931, y: 8.955657321170742, t: 0.354},
-                {x: -13.007749963317076, y: 8.437151662634157, t: 0.375},
-                {x: -11.555934119414637, y: 7.538408521170743, t: 0.396},
-                {x: -10.7263250657561, y: 7.192738082146352, t: 0.417},
-                {x: -9.239942177951223, y: 7.572975565073182, t: 0.438},
-                {x: -8.375766080390246, y: 8.67912096995123, t: 0.458},
-                {x: -7.477022938926831, y: 9.854400462634155, t: 0.479},
-                {x: -6, y: 10, t: 0.500},
-                {x: -4.815360558439026, y: 9.266760716292692, t: 0.521},
-                {x: -4.331421943804879, y: 7.953213048000011, t: 0.542},
-                {x: -5.057329865756099, y: 6.5705312919024506, t: 0.563},
-                {x: -6.509145709658538, y: 5.153282491902451, t: 0.583},
-                {x: -6.854816148682929, y: 4.254539350439037, t: 0.604},
-                {x: -5.679536656000002, y: 4.15083821873172, t: 0.625},
-                {x: -4.435123075512196, y: 3.8397348236097693, t: 0.646},
-                {x: -3.1561424511219527, y: 3.701466648000013, t: 0.667},
-                {x: -2.326533397463416, y: 5.153282491902451, t: 0.688},
-                {x: -1.6697595633170743, y: 7.227305126048791, t: 0.708},
-                {x: -0.8055834657560984, y: 8.955657321170742, t: 0.729},
-                {x: 0.6462323781463409, y: 8.437151662634157, t: 0.750},
-                {x: 1.0264698610731702, y: 7.4347073894634255, t: 0.771},
-                {x: 0.8536346415609751, y: 6.60509833580489, t: 0.792},
-                {x: 2, y: 6, t: 0.813},
-                {x: 3.16962658302439, y: 6.155726765073182, t: 0.833},
-                {x: 3.4115958903414634, y: 5.256983623609768, t: 0.854},
-                {x: 3.4807299781463414, y: 3.217528033365867, t: 0.875},
-                {x: 3.6535651976585366, y: 1.1780724431219658, t: 0.896},
-                {x: 3.860967461073171, y: -1.3798888056585206, t: 0.917},
-                {x: 2.3054504854634144, y: -1.5527240251707155, t: 0.938},
-                {x: 1.6486766513170727, y: 0, t: 0.958},
-                {x: 0.9573357732682922, y: 0.9015360919024537, t: 0.979},
-                {x: 0, y: 0, t: 1.000}
+                {x: 250, y: 90, t: 0.000},
+                {x: 170, y: 90, t: 0.021},
+                {x: 165.4, y: 86.5, t: 0.042},
+                {x: 165.4, y: 81.9, t: 0.063},
+                {x: 164.4, y: 71.9, t: 0.083},
+                {x: 154.736, y: 69.703, t: 0.104},
+                {x: 147.016, y: 80.775, t: 0.125},
+                {x: 146.483, y: 90, t: 0.146},
+                {x: 145.152, y: 98.784, t: 0.167},
+                {x: 139.296, y: 97.453, t: 0.188},
+                {x: 132.641, y: 92.928, t: 0.208},
+                {x: 124.389, y: 93.46, t: 0.229},
+                {x: 121.194, y: 108.633, t: 0.250},
+                {x: 120.928, y: 129.131, t: 0.271},
+                {x: 110.935, y: 146.027, t: 0.292},
+                {x: 99.874, y: 161.236, t: 0.313},
+                {x: 101.947, y: 173.335, t: 0.333},
+                {x: 110.589, y: 179.557, t: 0.354},
+                {x: 119.922, y: 174.372, t: 0.375},
+                {x: 134.441, y: 165.384, t: 0.396},
+                {x: 142.737, y: 161.927, t: 0.417},
+                {x: 157.601, y: 165.73, t: 0.438},
+                {x: 166.242, y: 176.791, t: 0.458},
+                {x: 175.23, y: 188.544, t: 0.479},
+                {x: 190, y: 190, t: 0.500},
+                {x: 201.846, y: 182.668, t: 0.521},
+                {x: 206.686, y: 169.532, t: 0.542},
+                {x: 199.426, y: 155.705, t: 0.563},
+                {x: 184.908, y: 141.533, t: 0.583},
+                {x: 181.452, y: 132.545, t: 0.604},
+                {x: 193.204, y: 131.508, t: 0.625},
+                {x: 205.649, y: 128.397, t: 0.646},
+                {x: 218.438, y: 127.015, t: 0.667},
+                {x: 226.735, y: 141.533, t: 0.688},
+                {x: 233.302, y: 162.273, t: 0.708},
+                {x: 241.944, y: 179.557, t: 0.729},
+                {x: 256.462, y: 174.372, t: 0.750},
+                {x: 260.265, y: 164.347, t: 0.771},
+                {x: 258.536, y: 156.051, t: 0.792},
+                {x: 270, y: 150, t: 0.813},
+                {x: 281.696, y: 151.557, t: 0.833},
+                {x: 284.116, y: 142.57, t: 0.854},
+                {x: 284.807, y: 122.175, t: 0.875},
+                {x: 286.536, y: 101.781, t: 0.896},
+                {x: 288.61, y: 76.201, t: 0.917},
+                {x: 273.054, y: 74.473, t: 0.938},
+                {x: 266.487, y: 90, t: 0.958},
+                {x: 259.573, y: 99.015, t: 0.979},
+                {x: 250, y: 90, t: 1.000}
             ];
+        
+            // Posicionar coche al inicio
+            coche.setAttribute('x', puntosCircuito[0].x);
+            coche.setAttribute('y', puntosCircuito[0].y);
+            coche.setAttribute('fill', '#FFD700');
             
             // Función para obtener posición interpolada
             const getPosicionEnCircuito = (progreso) => {
@@ -1704,7 +1703,7 @@ class IngenieriaManager {
                         return {x, y};
                     }
                 }
-                return {x: 80, y: 90};
+                return puntosCircuito[0];
             };
             
             // Limpiar intervalo anterior
@@ -1712,12 +1711,12 @@ class IngenieriaManager {
                 clearInterval(this.timerInterval);
             }
             
-            // Intervalo de animación (cada 50ms para movimiento suave)
+            // Intervalo de animación (cada 50ms)
             this.timerInterval = setInterval(() => {
                 const tiempoActual = Date.now();
                 const tiempoTranscurrido = tiempoActual - tiempoInicio;
                 
-                // Actualizar tiempo restante (para el display)
+                // Actualizar tiempo restante
                 if (tiempoRestanteSpan) {
                     const segundosRestantes = Math.max(0, Math.ceil((duracionTotal - tiempoTranscurrido) / 1000));
                     this.tiempoRestante = segundosRestantes;
@@ -1753,24 +1752,27 @@ class IngenieriaManager {
                     coche.setAttribute('x', pos.x);
                     coche.setAttribute('y', pos.y);
                     
-                    // Actualizar sectores
+                    // Actualizar sectores (calculados según los puntos reales)
+                    const sector1Length = 450; // Ajusta estos valores según necesites
+                    const sector2Length = 380;
+                    const sector3Length = 420;
+                    
                     if (progresoClasif < 0.33) {
                         // Sector 1 (0-33%)
                         const t = progresoClasif / 0.33;
                         const sector1 = document.querySelector('.sector1');
-                        if (sector1) sector1.style.strokeDashoffset = 280 * (1 - t);
+                        if (sector1) sector1.style.strokeDashoffset = sector1Length * (1 - t);
                         
-                        // Resetear otros sectores
-                        document.querySelector('.sector2').style.strokeDashoffset = 160;
-                        document.querySelector('.sector3').style.strokeDashoffset = 260;
+                        document.querySelector('.sector2').style.strokeDashoffset = sector2Length;
+                        document.querySelector('.sector3').style.strokeDashoffset = sector3Length;
                         
                     } else if (progresoClasif < 0.66) {
                         // Sector 2 (33-66%)
                         const t = (progresoClasif - 0.33) / 0.33;
                         
                         document.querySelector('.sector1').style.strokeDashoffset = 0;
-                        document.querySelector('.sector2').style.strokeDashoffset = 160 * (1 - t);
-                        document.querySelector('.sector3').style.strokeDashoffset = 260;
+                        document.querySelector('.sector2').style.strokeDashoffset = sector2Length * (1 - t);
+                        document.querySelector('.sector3').style.strokeDashoffset = sector3Length;
                         
                     } else {
                         // Sector 3 (66-100%)
@@ -1778,7 +1780,7 @@ class IngenieriaManager {
                         
                         document.querySelector('.sector1').style.strokeDashoffset = 0;
                         document.querySelector('.sector2').style.strokeDashoffset = 0;
-                        document.querySelector('.sector3').style.strokeDashoffset = 260 * (1 - t);
+                        document.querySelector('.sector3').style.strokeDashoffset = sector3Length * (1 - t);
                     }
                 }
                 
@@ -1787,9 +1789,9 @@ class IngenieriaManager {
                     clearInterval(this.timerInterval);
                     this.timerInterval = null;
                     
-                    // Coche en meta
-                    coche.setAttribute('x', '80');
-                    coche.setAttribute('y', '90');
+                    // Coche en meta (primer punto)
+                    coche.setAttribute('x', puntosCircuito[0].x);
+                    coche.setAttribute('y', puntosCircuito[0].y);
                     coche.setAttribute('fill', '#4CAF50');
                     
                     if (faseActual) {
@@ -1802,10 +1804,9 @@ class IngenieriaManager {
                     document.querySelector('.sector2').style.strokeDashoffset = 0;
                     document.querySelector('.sector3').style.strokeDashoffset = 0;
                     
-                    // Calcular resultado INMEDIATAMENTE (sin espera)
                     this.finalizarSimulacion(this.simulacionId);
                 }
-            }, 50); // 50ms para movimiento muy suave
+            }, 50);
         };
     }
     iniciarContadorSimple() {
