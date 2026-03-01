@@ -2568,6 +2568,7 @@ class IngenieriaManager {
     // ========================
     // APLICAR ESTILOS
     // ========================
+
     aplicarEstilosIngenieria() {
         if (document.getElementById('estilos-ingenieria')) return;
         
@@ -2589,18 +2590,7 @@ class IngenieriaManager {
                 padding-bottom: 15px;
                 border-bottom: 2px solid rgba(0, 210, 190, 0.3);
             }
-            /* Mejora visual del circuito */
-            #circuito-base {
-                filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
-                stroke-linecap: round;
-                stroke-linejoin: round;
-            }
             
-            .sector {
-                transition: stroke-dashoffset 0.3s ease-out;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-            }            
             .ingenieria-header h2 {
                 color: #00d2be;
                 margin: 0;
@@ -2641,6 +2631,7 @@ class IngenieriaManager {
                 padding: 25px;
                 margin-bottom: 30px;
             }
+            
             .simulacion-info {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -2689,7 +2680,6 @@ class IngenieriaManager {
                 color: #888;
                 font-size: 0.8rem;
             }
-            
             
             /* === GRÁFICO DE EVOLUCIÓN === */
             .grafico-panel {
@@ -2805,49 +2795,6 @@ class IngenieriaManager {
                 align-items: center;
             }
             
-            /* Responsive */
-            @media (max-width: 768px) {
-                .barras-container {
-                    gap: 5px;
-                }
-                
-                .barra-item {
-                    width: 55px;
-                }
-                
-                .barra {
-                    width: 28px;
-                }
-                
-                .barra-tiempo {
-                    font-size: 0.7rem;
-                }
-                
-                .linea-meta-texto {
-                    white-space: normal;
-                    font-size: 0.6rem;
-                    right: 0 !important;
-                    left: 0 !important;
-                    width: 90%;
-                    margin: 0 auto;
-                    text-align: center;
-                }
-            }
-            
-            @media (max-width: 480px) {
-                .barras-container {
-                    flex-wrap: wrap;
-                    justify-content: center;
-                }
-                
-                .barra-item {
-                    width: 45px;
-                }
-                
-                .barra {
-                    width: 24px;
-                }
-            }            
             /* CONTROLES DE SIMULACIÓN */
             .control-inactivo, .control-activo {
                 padding: 20px;
@@ -2935,7 +2882,7 @@ class IngenieriaManager {
                 text-align: center;
             }
             
-            /* SIMULACIÓN ACTIVA */
+            /* SIMULACIÓN ACTIVA - CIRCUITO MEJORADO */
             .simulacion-progreso-text {
                 color: #ccc;
                 margin-bottom: 20px;
@@ -2978,17 +2925,124 @@ class IngenieriaManager {
                 font-family: 'Orbitron', sans-serif;
             }
             
+            /* CIRCUITO ANIMADO - MÁS GRANDE Y CENTRADO */
+            .circuito-container {
+                background: rgba(0, 0, 0, 0.6);
+                border-radius: 24px;
+                padding: 30px 20px;
+                margin: 25px 0 20px 0;
+                border: 2px solid rgba(0, 210, 190, 0.4);
+                box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 550px;
+                width: 100%;
+            }
+            
+            #circuito-svg {
+                filter: drop-shadow(0 0 25px rgba(0, 210, 190, 0.6));
+                max-width: 100%;
+                height: auto;
+                min-height: 500px;
+                width: 100%;
+            }
+            
+            #circuito-base {
+                filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+            
+            .sector {
+                transition: stroke-dashoffset 0.2s ease;
+                filter: drop-shadow(0 0 15px currentColor);
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+            
+            .sector1 {
+                stroke: #4CAF50;
+                filter: drop-shadow(0 0 18px #4CAF50);
+            }
+            
+            .sector2 {
+                stroke: #2196F3;
+                filter: drop-shadow(0 0 18px #2196F3);
+            }
+            
+            .sector3 {
+                stroke: #e10600;
+                filter: drop-shadow(0 0 18px #e10600);
+            }
+            
+            #coche-animado {
+                transition: x 0.15s linear, y 0.15s linear;
+                filter: drop-shadow(0 0 25px gold);
+            }
+            
+            #coche-animado circle {
+                transition: r 0.2s ease;
+            }
+            
+            #coche-animado:hover circle {
+                r: 8;
+            }
+            
+            .sector-indicator {
+                transition: all 0.3s ease;
+                font-weight: bold;
+                letter-spacing: 1px;
+                background: rgba(0, 0, 0, 0.7) !important;
+                backdrop-filter: blur(5px);
+                padding: 8px 25px;
+                border-radius: 25px;
+                font-size: 1rem;
+            }
+            
+            .sector-indicator.completado {
+                background: currentColor !important;
+                color: black !important;
+                box-shadow: 0 0 25px currentColor;
+            }
+            
+            .fase-actual {
+                font-size: 1.2rem;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                animation: pulse 1.5s infinite;
+                text-shadow: 0 0 15px currentColor;
+                margin: 20px 0 15px 0;
+                text-align: center;
+                font-weight: bold;
+            }
+            
+            .sectores-container {
+                display: flex;
+                justify-content: center;
+                gap: 30px;
+                margin: 20px 0 10px 0;
+            }
+            
             .simulacion-activa-info {
                 padding: 15px;
                 background: rgba(255, 152, 0, 0.1);
                 border-radius: 8px;
                 border: 1px solid rgba(255, 152, 0, 0.3);
+                margin-top: 20px;
             }
             
             .simulacion-activa-info p {
                 margin: 5px 0;
                 color: #FF9800;
-                font-size: 0.9rem;
+                font-size: 0.95rem;
+                text-align: center;
+            }
+            
+            @keyframes pulse {
+                0% { opacity: 0.7; text-shadow: 0 0 8px currentColor; }
+                50% { opacity: 1; text-shadow: 0 0 20px currentColor; }
+                100% { opacity: 0.7; text-shadow: 0 0 8px currentColor; }
             }
             
             /* LISTA DE PIEZAS */
@@ -3275,179 +3329,32 @@ class IngenieriaManager {
             .informe-firma strong {
                 color: #00d2be;
             }
-            // AÑADIR DENTRO DE aplicarEstilosIngenieria(), junto con los otros estilos
             
-            /* CIRCUITO ANIMADO */
-            /* CIRCUITO ANIMADO - MÁS GRANDE Y CENTRADO */
-            .circuito-container {
-                background: rgba(0, 0, 0, 0.6);
-                border-radius: 20px;
-                padding: 30px 20px;
-                margin: 20px 0;
-                border: 2px solid rgba(0, 210, 190, 0.4);
-                box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 550px;
-            }
-            
-            #circuito-svg {
-                filter: drop-shadow(0 0 20px rgba(0, 210, 190, 0.5));
-                max-width: 100%;
-                height: auto;
-                min-height: 500px;
-            }
-            
-            .sector {
-                transition: stroke-dashoffset 0.3s ease;
-                filter: drop-shadow(0 0 8px currentColor);
-            }
-            
-            /* ✅ MEJORADO: update más rápido y más glow */
-            .sector {
-                transition: stroke-dashoffset 0.2s ease;
-                filter: drop-shadow(0 0 12px currentColor);
-            }
-            
-            .sector1 {
-                stroke: #4CAF50;
-                filter: drop-shadow(0 0 12px #4CAF50);
-            }
-            
-            /* ✅ MEJORADO */
-            .sector1 {
-                stroke: #4CAF50;
-                filter: drop-shadow(0 0 15px #4CAF50);
-            }
-            
-            .sector2 {
-                stroke: #2196F3;
-                filter: drop-shadow(0 0 12px #2196F3);
-            }
-            
-            /* ✅ MEJORADO */
-            .sector2 {
-                stroke: #2196F3;
-                filter: drop-shadow(0 0 15px #2196F3);
-            }
-            
-            .sector3 {
-                stroke: #e10600;
-                filter: drop-shadow(0 0 12px #e10600);
-            }
-            
-            /* ✅ MEJORADO */
-            .sector3 {
-                stroke: #e10600;
-                filter: drop-shadow(0 0 15px #e10600);
-            }
-            
-            #coche-animado {
-                transition: cx 0.1s linear, cy 0.1s linear;
-                filter: drop-shadow(0 0 15px gold);
-                r: 8;
-            }
-            
-            /* ✅ CAMBIADO: ahora usamos x,y en lugar de cx,cy (porque es un <use>) */
-            #coche-animado {
-                transition: x 0.2s linear, y 0.2s linear;
-                filter: drop-shadow(0 0 20px gold);
-            }
-            
-            /* ✅ NUEVO: estilos para el círculo dentro del coche */
-            #coche-animado circle {
-                transition: r 0.2s ease;
-            }
-            
-            #coche-animado:hover {
-                r: 10;
-                filter: drop-shadow(0 0 20px #FFD700);
-            }
-            
-            /* ✅ MEJORADO */
-            #coche-animado:hover circle {
-                r: 8;
-            }
-            
-            .sector-indicator {
-                transition: all 0.3s ease;
-                font-weight: bold;
-                letter-spacing: 1px;
-            }
-            
-            /* ✅ NUEVO: fondo más oscuro y blur */
-            .sector-indicator {
-                transition: all 0.3s ease;
-                font-weight: bold;
-                letter-spacing: 1px;
-                background: rgba(0, 0, 0, 0.6) !important;
-                backdrop-filter: blur(5px);
-            }
-            
-            .sector-indicator.completado {
-                background: currentColor !important;
-                color: black !important;
-            }
-            
-            /* ✅ NUEVO: sombra al completar */
-            .sector-indicator.completado {
-                background: currentColor !important;
-                color: black !important;
-                box-shadow: 0 0 20px currentColor;
-            }
-            
-            .fase-actual {
-                font-size: 1rem;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                animation: pulse 2s infinite;
-            }
-            
-            /* ✅ MEJORADO: más grande y con glow */
-            .fase-actual {
-                font-size: 1.1rem;
-                text-transform: uppercase;
-                letter-spacing: 2px;
-                animation: pulse 1.5s infinite;
-                text-shadow: 0 0 10px currentColor;
-            }
-            
-            @keyframes pulse {
-                0% { opacity: 0.7; }
-                50% { opacity: 1; }
-                100% { opacity: 0.7; }
-            }
-            
-            /* ✅ MEJORADO: con text-shadow */
-            @keyframes pulse {
-                0% { opacity: 0.7; text-shadow: 0 0 5px currentColor; }
-                50% { opacity: 1; text-shadow: 0 0 15px currentColor; }
-                100% { opacity: 0.7; text-shadow: 0 0 5px currentColor; }
-            }
-            
-            /* Responsive */
-            @media (max-width: 768px) {
-                .circuito-container svg {
-                    height: 150px;
+            /* RESPONSIVE GLOBAL */
+            @media (max-width: 992px) {
+                .circuito-container {
+                    min-height: 450px;
+                    padding: 25px 15px;
                 }
                 
-                #coche-animado {
-                    r: 6;
+                #circuito-svg {
+                    min-height: 400px;
+                }
+                
+                .fase-actual {
+                    font-size: 1.1rem;
+                }
+                
+                .sectores-container {
+                    gap: 20px;
+                }
+                
+                .sector-indicator {
+                    padding: 6px 20px;
+                    font-size: 0.9rem;
                 }
             }
             
-            /* ✅ NUEVO: responsive para el nuevo coche */
-            @media (max-width: 768px) {
-                .circuito-container svg {
-                    height: 150px;
-                }
-                
-                #coche-animado circle {
-                    r: 4;
-                }
-            }         
-            /* RESPONSIVE */
             @media (max-width: 768px) {
                 .simulacion-info {
                     grid-template-columns: 1fr;
@@ -3471,6 +3378,57 @@ class IngenieriaManager {
                 
                 .puntos-actuales {
                     width: 100%;
+                }
+                
+                .circuito-container {
+                    min-height: 350px;
+                    padding: 20px 10px;
+                }
+                
+                #circuito-svg {
+                    min-height: 300px;
+                }
+                
+                .fase-actual {
+                    font-size: 1rem;
+                }
+                
+                .sectores-container {
+                    gap: 15px;
+                    flex-wrap: wrap;
+                }
+                
+                .sector-indicator {
+                    padding: 5px 15px;
+                    font-size: 0.85rem;
+                }
+                
+                #coche-animado circle {
+                    r: 4;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .barras-container {
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+                
+                .barra-item {
+                    width: 45px;
+                }
+                
+                .barra {
+                    width: 24px;
+                }
+                
+                .circuito-container {
+                    min-height: 300px;
+                    padding: 15px 8px;
+                }
+                
+                #circuito-svg {
+                    min-height: 250px;
                 }
             }
         `;
