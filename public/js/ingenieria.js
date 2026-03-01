@@ -1861,138 +1861,141 @@ class IngenieriaManager {
                 
                 <!-- ========== CUADERNO DEL INGENIERO - SIEMPRE MINIMIZADO ========== -->
                 <div id="cuaderno-ingeniero-container" style="
-                    background: rgba(0, 0, 0, 0.4);
-                    border: 1px solid rgba(0,210,190,0.3);
-                    border-radius: 8px;
+                    background: rgba(20, 20, 25, 0.95);
+                    border: 1px solid rgba(200, 200, 200, 0.2);
+                    border-radius: 6px;
                     margin-bottom: 20px;
                     overflow: hidden;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
                 ">
                     <!-- SOLO CABECERA - SIEMPRE VISIBLE -->
                     <div id="cabecera-cuaderno" onclick="toggleCuadernoIngeniero()" style="
                         display: flex;
                         align-items: center;
                         justify-content: space-between;
-                        padding: 12px 16px;
-                        background: rgba(0, 210, 190, 0.1);
+                        padding: 14px 18px;
+                        background: rgba(40, 40, 45, 0.8);
                         cursor: pointer;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
                     ">
-                        <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="
-                                background: #00d2be;
+                                background: #3a3a40;
                                 width: 32px;
                                 height: 32px;
-                                border-radius: 50%;
+                                border-radius: 4px;
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                color: black;
-                                font-weight: bold;
+                                color: #d4d4d8;
+                                font-size: 0.9rem;
                             ">
-                                <i class="fas fa-book"></i>
+                                <i class="fas fa-book-open"></i>
                             </div>
                             <div>
-                                <span style="color: white; font-weight: bold; font-size: 0.95rem;">
+                                <span style="color: #e0e0e0; font-weight: 500; font-size: 0.95rem; letter-spacing: 0.3px;">
                                     NOTAS DEL INGENIERO JEFE
                                 </span>
                                 <span style="
                                     display: inline-block;
-                                    margin-left: 10px;
+                                    margin-left: 12px;
                                     padding: 2px 8px;
-                                    background: rgba(255,255,255,0.1);
+                                    background: rgba(150, 150, 150, 0.15);
                                     color: #aaa;
                                     border-radius: 12px;
                                     font-size: 0.7rem;
-                                    font-weight: bold;
                                 ">
-                                    📘 ARCHIVO
+                                    ARCHIVO TÉCNICO
                                 </span>
                             </div>
                         </div>
                         
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <span id="flecha-cuaderno" style="color: #00d2be; font-size: 0.9rem;">
-                                <i class="fas fa-chevron-down"></i> TOCA PARA LEER
+                            <span id="flecha-cuaderno" style="color: #a0a0a0; font-size: 0.85rem;">
+                                <i class="fas fa-chevron-down"></i> VER ANOTACIONES
                             </span>
-                            <span style="color: #FFD700; font-size: 1rem;">📔</span>
                         </div>
                     </div>
                     
                     <!-- CONTENIDO - SIEMPRE OCULTO POR DEFECTO -->
-                    <div id="contenido-cuaderno" style="display: none; padding: 18px; background: rgba(0, 0, 0, 0.6); border-top: 1px solid #00d2be;">
-                        <!-- AQUÍ TODO EL CONTENIDO DEL CUADERNO -->
-                        <div style="display: flex; gap: 15px; align-items: flex-start;">
-                            <div style="font-size: 2rem; color: #FFD700;">📔</div>
+                    <div id="contenido-cuaderno" style="display: none; padding: 24px; background: rgba(18, 18, 22, 0.95); border-top: 1px solid rgba(200, 200, 200, 0.1);">
+                        
+                        <div style="display: flex; gap: 20px; align-items: flex-start;">
+                            <div style="font-size: 2.2rem; color: #5a5a60; opacity: 0.5; line-height: 1;">📓</div>
                             
                             <div style="flex: 1;">
-                                <p style="color: #FFD700; margin: 0 0 10px 0; font-weight: bold; font-size: 1rem;">
-                                    "Jefe, llevo 20 años en esto y aún me sorprendo"
+                                <!-- Título más profesional -->
+                                <div style="margin-bottom: 20px;">
+                                    <span style="color: #b0b0b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid rgba(200,200,200,0.2); padding-bottom: 6px;">
+                                        ANÁLISIS TÉCNICO · DEPARTAMENTO DE INGENIERÍA
+                                    </span>
+                                </div>
+                                
+                                <!-- Texto principal con tono profesional -->
+                                <p style="color: #d0d0d8; margin: 0 0 20px 0; font-size: 0.95rem; line-height: 1.7; font-weight: 400;">
+                                    <span style="color: #b0b0b8;">"Jefe, llevo 20 años en esto y aún me sorprendo."</span>
                                 </p>
                                 
-                                <p style="color: #ccc; margin: 0 0 16px 0; font-size: 0.95rem; line-height: 1.6;">
-                                    <span style="color: #e10600; font-weight: bold;">¿Recuerdas el Gran Premio de Spa del año pasado?</span> 
-                                    Todo el mundo daba por favorito a Ferrari. Traían <span style="color: #00d2be; font-weight: bold;">42 evoluciones</span> en las últimas 8 semanas. 
-                                    Gastaron <span style="color: #FFD700; font-weight: bold;">€18 millones</span> solo en el mes anterior.
+                                <p style="color: #c0c0c8; margin: 0 0 18px 0; font-size: 0.95rem; line-height: 1.7;">
+                                    ¿Recuerda el Gran Premio de Spa del año pasado? Todo el mundo daba por favorito a Ferrari. 
+                                    Traían 42 evoluciones en las últimas 8 semanas. Gastaron €18 millones solo en el mes anterior.
                                 </p>
                                 
-                                <p style="color: #ccc; margin: 0 0 16px 0; font-size: 0.95rem; line-height: 1.6;">
-                                    Y perdieron. Contra un equipo con <span style="color: #FFD700; font-weight: bold;">presupuesto medio</span>, 
-                                    solo <span style="color: #00d2be; font-weight: bold;">23 evoluciones</span>, pero <span style="color: #4CAF50; font-weight: bold; text-decoration: underline;">LAS PIEZAS ADECUADAS</span>.
+                                <p style="color: #c0c0c8; margin: 0 0 18px 0; font-size: 0.95rem; line-height: 1.7;">
+                                    Y perdieron. Contra un equipo con presupuesto medio, solo 23 evoluciones, pero las piezas adecuadas.
                                 </p>
                                 
-                                <p style="color: #ccc; margin: 0 0 16px 0; font-size: 0.95rem; line-height: 1.6;">
-                                    <span style="color: #FFD700; font-size: 1.1rem; font-weight: bold;">🔍 ¿Qué tenían ellos que nosotros no?</span><br>
-                                    No era dinero. No era personal. <span style="color: #e10600; font-weight: bold;">Era CONOCIMIENTO.</span> 
-                                    Habían probado, fallado, anotado, repetido. 
-                                    <span style="color: #4CAF50; font-weight: bold;">Sabían qué posiciones funcionaban y cuáles eran veneno puro.</span>
+                                <p style="color: #c0c0c8; margin: 0 0 18px 0; font-size: 0.95rem; line-height: 1.7;">
+                                    <span style="color: #d8d8e0;">¿Qué tenían ellos que nosotros no?</span> No era dinero. No era personal. 
+                                    Era conocimiento. Habían probado, fallado, anotado, repetido. Sabían qué configuraciones funcionaban 
+                                    y cuáles eran contraproducentes.
                                 </p>
                                 
-                                <p style="color: #ccc; margin: 0 0 16px 0; font-size: 0.95rem; line-height: 1.6;">
-                                    <span style="color: #FF9800; font-weight: bold; font-size: 1rem;">⚡ El 60% de las evoluciones fueron descartadas.</span><br>
-                                    Directamente a la papelera. No porque estuvieran rotas. 
-                                    <span style="color: #e10600; font-weight: bold;">Porque hacían el coche MÁS LENTO.</span> 
-                                    Y si no pruebas, <span style="color: #FFD700; font-weight: bold;">nunca sabes cuáles son veneno y cuáles son oro</span>.
+                                <p style="color: #c0c0c8; margin: 0 0 18px 0; font-size: 0.95rem; line-height: 1.7;">
+                                    El 60% de las evoluciones fueron descartadas. Directamente a la papelera. No porque estuvieran rotas. 
+                                    Porque hacían el coche más lento. Y si no pruebas, nunca sabes cuáles son perjudiciales y cuáles son beneficiosas.
                                 </p>
                                 
+                                <!-- Bloque de estadísticas con diseño limpio -->
                                 <div style="
-                                    background: linear-gradient(145deg, rgba(0,210,190,0.08) 0%, rgba(0,0,0,0.2) 100%);
-                                    border-left: 6px solid #00d2be;
-                                    padding: 16px 20px;
-                                    margin: 20px 0 10px 0;
-                                    border-radius: 0 12px 12px 0;
+                                    background: rgba(25, 25, 30, 0.8);
+                                    border-left: 3px solid #6a6a72;
+                                    padding: 18px 20px;
+                                    margin: 24px 0 20px 0;
                                 ">
-                                    <p style="color: white; margin: 0 0 8px 0; font-weight: bold; font-size: 1rem;">
-                                        <i class="fas fa-lightbulb" style="color: #FFD700; margin-right: 8px;"></i>
-                                        Esto es lo que aprendieron:
+                                    <p style="color: #e0e0e8; margin: 0 0 12px 0; font-weight: 500; font-size: 0.9rem;">
+                                        Análisis de efectividad:
                                     </p>
                                     
-                                    <div style="display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap;">
-                                        <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
-                                            <span style="color: #4CAF50; font-size: 1.2rem; display: block; margin-bottom: 6px;">✅ 40%</span>
-                                            <span style="color: #ccc; font-size: 0.85rem;">Piezas que MEJORARON el tiempo</span>
+                                    <div style="display: flex; gap: 24px; margin-top: 12px; flex-wrap: wrap;">
+                                        <div style="flex: 1; min-width: 180px;">
+                                            <div style="color: #9a9aa2; font-size: 0.8rem; margin-bottom: 4px;">MEJORAS EFECTIVAS</div>
+                                            <div style="color: #8bc34a; font-size: 1.2rem; font-weight: 400;">40%</div>
                                         </div>
-                                        <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
-                                            <span style="color: #e10600; font-size: 1.2rem; display: block; margin-bottom: 6px;">❌ 60%</span>
-                                            <span style="color: #ccc; font-size: 0.85rem;">Piezas que EMPEORARON el tiempo o no mejoraron NADA</span>
+                                        <div style="flex: 1; min-width: 180px;">
+                                            <div style="color: #9a9aa2; font-size: 0.8rem; margin-bottom: 4px;">SIN EFECTO O NEGATIVAS</div>
+                                            <div style="color: #ef5350; font-size: 1.2rem; font-weight: 400;">60%</div>
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <p style="color: #ffaa00; margin: 20px 0 0 0; font-size: 1rem; font-style: italic; font-weight: bold; border-top: 1px solid rgba(255,170,0,0.3); padding-top: 16px;">
-                                    <i class="fas fa-flag-checkered" style="color: #FFD700; margin-right: 8px;"></i>
-                                    "Nosotros no gastamos más que nadie. Solo <span style="color: #00d2be; border-bottom: 2px solid #00d2be;">GASTAMOS MEJOR</span>."
-                                    <span style="display: block; color: #888; font-size: 0.8rem; margin-top: 6px; font-style: normal;">— Ingeniero Jefe, equipo campeón</span>
+                                <!-- Cita final profesional -->
+                                <p style="color: #aaaab2; margin: 24px 0 0 0; font-size: 0.9rem; font-style: italic; border-top: 1px solid rgba(150,150,160,0.2); padding-top: 18px;">
+                                    <i class="fas fa-flag-checkered" style="color: #7a7a82; margin-right: 8px;"></i>
+                                    "Nosotros no gastamos más que nadie. Solo gastamos mejor."
+                                    <span style="display: block; color: #888890; font-size: 0.8rem; margin-top: 6px; font-style: normal;">
+                                        — Ingeniero Jefe
+                                    </span>
                                 </p>
                                 
-                                <!-- RESTO DEL CONTENIDO... -->
                                 <div style="
                                     display: flex;
                                     justify-content: flex-end;
-                                    margin-top: 15px;
+                                    margin-top: 20px;
                                     padding-top: 10px;
-                                    border-top: 1px solid rgba(255,255,255,0.1);
                                 ">
-                                    <span style="color: #888; font-size: 0.75rem;">
-                                        <i class="fas fa-info-circle"></i> Siempre disponible en el archivo
+                                    <span style="color: #66666e; font-size: 0.7rem;">
+                                        <i class="fas fa-info-circle"></i> Documentación interna · v1.0
                                     </span>
                                 </div>
                             </div>
