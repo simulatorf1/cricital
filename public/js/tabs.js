@@ -1018,9 +1018,8 @@ class TabManager {
     }
     // Añadir este método después de loadClasificacionData()
     generarTablaClasificacion(tablaBody, escuderias, tipo, orden) {
-        // Solo mantener los contadores que aún se usan en el footer
+        // Actualizar contadores
         document.getElementById('total-filas').textContent = escuderias.length;
-        document.getElementById('filas-mostradas').textContent = escuderias.length;
         
         // Actualizar título de columna según tipo
         const tituloMetrica = document.getElementById('columna-metrica-titulo');
@@ -1032,77 +1031,100 @@ class TabManager {
             tituloMetrica.innerHTML = titulo;
         }
         
-        // Encontrar mi escudería si existe
+        // Encontrar mi escudería
         const miEscuderiaId = window.f1Manager?.escuderia?.id;
+        let miIndice = -1;
         
-        // Generar filas de la tabla
+        if (miEscuderiaId) {
+            miIndice = escuderias.findIndex(e => e.id === miEscuderiaId);
+        }
+        
+        // Seleccionar qué escuderías mostrar
+        let escuderiasAMostrar = [];
+        
+        if (miIndice >= 0) {
+            // Estoy en la lista
+            const inicio = Math.max(0, miIndice - 2);  // 2 por encima
+            const fin = Math.min(escuderias.length, miIndice + 3);  // 2 por debajo + yo
+            escuderiasAMostrar = escuderias.slice(inicio, fin);
+            
+            // Asegurar que el líder (posición 0) está incluido
+            if (miIndice > 2 && !escuderiasAMostrar.some(e => e.id === escuderias[0].id)) {
+                escuderiasAMostrar = [escuderias[0], ...escuderiasAMostrar];
+            }
+        } else {
+            // No estoy en la lista, mostrar solo el líder
+            escuderiasAMostrar = escuderias.slice(0, 1);
+        }
+        
+        // Limitar a máximo 6 filas
+        escuderiasAMostrar = escuderiasAMostrar.slice(0, 6);
+        document.getElementById('filas-mostradas').textContent = escuderiasAMostrar.length;
+        
+        // Generar HTML
         let html = '';
         
-        escuderias.forEach((escuderia, index) => {
+        escuderiasAMostrar.forEach(escuderia => {
             const esMiEscuderia = escuderia.id === miEscuderiaId;
-            const posicion = index + 1;
+            const posicionGlobal = escuderias.findIndex(e => e.id === escuderia.id) + 1;
             
-            // Formatear valor a mostrar según tipo
+            // Formatear valor según tipo
             let valorMostrar;
             let claseColumna = '';
             
             switch(tipo) {
                 case 'dinero':
-                    valorMostrar = `€${new Intl.NumberFormat('es-ES', {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                    }).format(escuderia.dinero || 0)}`;
+                    valorMostrar = `€${new Intl.NumberFormat('es-ES').format(escuderia.dinero || 0)}`;
                     claseColumna = 'celda-dinero';
                     break;
-                    
                 case 'vuelta':
                     valorMostrar = escuderia.vuelta_rapida;
                     claseColumna = 'celda-vuelta';
                     break;
-                    
                 case 'aciertos':
                     valorMostrar = escuderia.porcentaje_aciertos ? `${escuderia.porcentaje_aciertos}%` : '0%';
-                    if (escuderia.aciertos_mostrar && escuderia.aciertos_mostrar !== 'Sin datos') {
-                        valorMostrar = escuderia.aciertos_mostrar;
-                    }
                     claseColumna = 'celda-aciertos';
                     break;
-                    
                 case 'carreras':
                     valorMostrar = escuderia.carreras_disputadas || 0;
                     claseColumna = 'celda-carreras';
                     break;
-                    
-                default:
-                    valorMostrar = '';
             }
             
-            // Clases CSS
             const claseFila = esMiEscuderia ? 'mi-escuderia' : '';
-            const clasePosicion = posicion <= 3 ? `top-${posicion}` : '';
+            const colorPosicion = posicionGlobal === 1 ? '#FFD700' : (posicionGlobal === 2 ? '#C0C0C0' : (posicionGlobal === 3 ? '#CD7F32' : 'white'));
             
             html += `
-                <tr class="${claseFila}" style="font-family: 'Segoe UI', Arial, sans-serif;">
-                    <td class="celda-posicion ${clasePosicion}" style="font-family: 'Segoe UI', Arial, sans-serif;">
-                        <span class="numero-posicion">${posicion}</span>
+                <tr class="${claseFila}" style="font-family: 'Segoe UI', Arial, sans-serif; ${esMiEscuderia ? 'background: rgba(0,210,190,0.2); border-left: 3px solid #00d2be;' : (posicionGlobal === 1 ? 'background: rgba(255,215,0,0.1);' : '')}">
+                    <td class="celda-posicion" style="font-family: 'Segoe UI', Arial, sans-serif; padding: 10px 8px; font-weight: bold; color: ${colorPosicion};">
+                        ${posicionGlobal}
                     </td>
-                    <td class="celda-nombre" style="font-family: 'Segoe UI', Arial, sans-serif;">
-                        ${esMiEscuderia ? '<i class="fas fa-user" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
+                    <td class="celda-nombre" style="font-family: 'Segoe UI', Arial, sans-serif; padding: 10px 8px;">
+                        ${esMiEscuderia ? '<i class="fas fa-user" style="color: #00d2be; margin-right: 8px;"></i>' : ''}
                         <span class="usuario-link" 
                               data-usuario-id="${escuderia.id}"
                               data-usuario-nombre="${escuderia.nombre || 'Sin nombre'}"
-                              style="cursor: pointer; color: #00d2be; text-decoration: none; transition: all 0.2s; display: inline-block; padding: 2px 4px; border-radius: 3px; font-family: 'Segoe UI', Arial, sans-serif;">
+                              style="cursor: pointer; color: #00d2be; text-decoration: none; transition: all 0.2s; display: inline-block; padding: 2px 4px; border-radius: 3px;">
                             ${escuderia.nombre || 'Sin nombre'}
                         </span>
                     </td>
-                    <td class="${claseColumna}" style="font-family: 'Segoe UI', Arial, sans-serif;">
-                        <span class="${tipo === 'dinero' ? 'valor-dinero' : 'valor-vuelta'}" style="font-family: 'Segoe UI', Arial, sans-serif;">
-                            ${valorMostrar}
-                        </span>
+                    <td class="${claseColumna}" style="font-family: 'Segoe UI', Arial, sans-serif; padding: 10px 8px; text-align: right; font-weight: bold;">
+                        <span style="color: #00d2be;">${valorMostrar}</span>
                     </td>
                 </tr>
             `;
         });
+        
+        // Añadir indicador de más filas si es necesario
+        if (escuderias.length > escuderiasAMostrar.length) {
+            html += `
+                <tr style="border-bottom: 1px solid #333; background: #0a0a0a;">
+                    <td colspan="3" style="padding: 8px; text-align: center; color: #888; font-size: 0.8rem;">
+                        <i class="fas fa-ellipsis-h"></i> ${escuderias.length - escuderiasAMostrar.length} más
+                    </td>
+                </tr>
+            `;
+        }
         
         tablaBody.innerHTML = html;
         
@@ -1110,6 +1132,11 @@ class TabManager {
         const ahora = new Date();
         document.getElementById('ultima-actualizacion').textContent = 
             `Actualizado a las ${ahora.getHours().toString().padStart(2, '0')}:${ahora.getMinutes().toString().padStart(2, '0')}`;
+        
+        // Configurar eventos de usuarios
+        setTimeout(() => {
+            this.configurarEventosUsuariosClasificacion();
+        }, 100);
     }
     
     
@@ -1543,18 +1570,25 @@ class TabManager {
             miIndice = vueltas.findIndex(v => v.escuderia_id === miEscuderiaId);
         }
         
-        // Determinar qué vueltas mostrar (alrededor de mi posición o las primeras)
         let vueltasAMostrar = [];
         
         if (miIndice >= 0) {
-            // Mostrar 9 por encima, mi vuelta, y 9 por debajo
-            const inicio = Math.max(0, miIndice - 9);
-            const fin = Math.min(vueltas.length, miIndice + 10);
+            // Estoy en la lista
+            const inicio = Math.max(0, miIndice - 2);  // 2 por encima
+            const fin = Math.min(vueltas.length, miIndice + 3);  // 2 por debajo + yo
             vueltasAMostrar = vueltas.slice(inicio, fin);
+            
+            // Asegurar que el líder (posición 0) está incluido si no está ya
+            if (miIndice > 2 && !vueltasAMostrar.some(v => v.escuderia_id === vueltas[0].escuderia_id)) {
+                vueltasAMostrar = [vueltas[0], ...vueltasAMostrar];
+            }
         } else {
-            // Si no tengo vuelta, mostrar las primeras 19
-            vueltasAMostrar = vueltas.slice(0, 19);
+            // No tengo vuelta, mostrar solo el líder
+            vueltasAMostrar = vueltas.slice(0, 1);
         }
+        
+        // Limitar a máximo 6 filas
+        vueltasAMostrar = vueltasAMostrar.slice(0, 6);
         
         let html = `
             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
@@ -1568,15 +1602,15 @@ class TabManager {
                 <tbody>
         `;
         
-        vueltasAMostrar.forEach((vuelta, index) => {
+        vueltasAMostrar.forEach(vuelta => {
             const esMiEscuderia = vuelta.escuderia_id === miEscuderiaId;
             const posicionGlobal = vueltas.findIndex(v => v.escuderia_id === vuelta.escuderia_id) + 1;
             
             let colorFila = '';
             if (esMiEscuderia) {
                 colorFila = 'background: rgba(0,210,190,0.2); border-left: 3px solid #00d2be;';
-            } else if (index === 0 && !miEscuderiaId) {
-                colorFila = 'background: rgba(255,215,0,0.1);'; // Dorado para el primero
+            } else if (posicionGlobal === 1) {
+                colorFila = 'background: rgba(255,215,0,0.1);'; // Dorado para el líder
             }
             
             html += `
@@ -1584,12 +1618,28 @@ class TabManager {
                     <td style="padding: 10px 8px; font-weight: bold; color: ${posicionGlobal === 1 ? '#FFD700' : (posicionGlobal === 2 ? '#C0C0C0' : (posicionGlobal === 3 ? '#CD7F32' : 'white'))};">${posicionGlobal}</td>
                     <td style="padding: 10px 8px;">
                         ${esMiEscuderia ? '<i class="fas fa-user" style="color: #00d2be; margin-right: 5px;"></i>' : ''}
-                        ${vuelta.escuderias?.nombre || 'Desconocida'}
+                        <span class="usuario-link" 
+                              data-usuario-id="${vuelta.escuderia_id}"
+                              data-usuario-nombre="${vuelta.escuderias?.nombre || 'Desconocida'}"
+                              style="cursor: pointer; color: #00d2be; text-decoration: none; transition: all 0.2s; display: inline-block; padding: 2px 4px; border-radius: 3px;">
+                            ${vuelta.escuderias?.nombre || 'Desconocida'}
+                        </span>
                     </td>
                     <td style="padding: 10px 8px; text-align: right; font-family: monospace; font-weight: bold; color: #00d2be;">${vuelta.tiempo_formateado}</td>
                 </tr>
             `;
         });
+        
+        // Si hay más vueltas pero no las mostramos, añadir indicador
+        if (vueltas.length > vueltasAMostrar.length) {
+            html += `
+                <tr style="border-bottom: 1px solid #333; background: #0a0a0a;">
+                    <td colspan="3" style="padding: 8px; text-align: center; color: #888; font-size: 0.8rem;">
+                        <i class="fas fa-ellipsis-h"></i> ${vueltas.length - vueltasAMostrar.length} más
+                    </td>
+                </tr>
+            `;
+        }
         
         html += `
                 </tbody>
