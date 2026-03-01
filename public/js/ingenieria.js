@@ -2125,8 +2125,8 @@ class IngenieriaManager {
 
 
                 <!-- CIRCUITO ANIMADO - DISEÑO PERSONALIZADO -->
-                <div class="circuito-container" style="height: 500px; padding: 0; background: transparent; border: none; box-shadow: none; margin: 0;">
-                    <svg id="circuito-svg" width="100%" height="100%" viewBox="0 0 500 200" preserveAspectRatio="xMidYMid meet" style="display: block; background: rgba(0,0,0,0.5); border-radius: 8px;">
+                <div class="circuito-container">
+                    <svg id="circuito-svg" width="100%" height="440" viewBox="0 0 500 200" preserveAspectRatio="xMidYMid meet">
                         <defs>
                             <filter id="glow-coche" x="-30%" y="-30%" width="160%" height="160%">
                                 <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -3280,22 +3280,31 @@ class IngenieriaManager {
             // AÑADIR DENTRO DE aplicarEstilosIngenieria(), junto con los otros estilos
             
             /* CIRCUITO ANIMADO */
-            /* CIRCUITO ANIMADO - VERSIÓN GRANDE */
+            /* CIRCUITO ANIMADO */
             .circuito-container {
-                width: 100%;
-                height: 500px;
+                background: rgba(0, 0, 0, 0.4);
+                border-radius: 12px;
+                padding: 20px;
                 margin: 15px 0;
-                padding: 0;
-                background: transparent;
-                border: none;
-                box-shadow: none;
+                border: 1px solid rgba(255, 215, 0, 0.2);
+            }
+            
+            /* ✅ MEJORADO: más sombra y brillo */
+            .circuito-container {
+                background: rgba(0, 0, 0, 0.5);
+                border-radius: 16px;
+                padding: 20px;
+                margin: 15px 0;
+                border: 2px solid rgba(0, 210, 190, 0.3);
+                box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
             }
             
             #circuito-svg {
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                border-radius: 8px;
+                filter: drop-shadow(0 0 10px rgba(0, 210, 190, 0.3));
+            }
+            
+            /* ✅ MEJORADO: más sombra */
+            #circuito-svg {
                 filter: drop-shadow(0 0 15px rgba(0, 210, 190, 0.5));
             }
             
