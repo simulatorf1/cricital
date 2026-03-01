@@ -6140,5 +6140,29 @@ setTimeout(() => {
             }, 1000);
         }
     };
-    
+    // ========================
+    // CONTROL DE MÚSICA DE FONDO
+    // ========================
+    window.iniciarMusica = function() {
+        const audio = document.getElementById('bgMusic');
+        if (audio) {
+            audio.volume = 0.3;
+            audio.play().catch(error => {
+                console.log("⏸️ Autoplay bloqueado, esperando interacción...", error);
+                document.removeEventListener('click', window.iniciarMusica);
+                document.addEventListener('click', function playOnClick() {
+                    audio.play();
+                    document.removeEventListener('click', playOnClick);
+                }, { once: true });
+            });
+        }
+    };
+
+    // Iniciar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            window.iniciarMusica();
+        }, 2000);
+    });
+
 })();
