@@ -4848,6 +4848,7 @@ window.addEventListener('auth-completado', (evento) => {
                         window.tutorialManager = null;
                     }
                 }
+                
             } catch (error) {
                 console.error('❌ Error crítico durante la inicialización:', error);
                 // Mostrar error al usuario
@@ -6141,6 +6142,26 @@ setTimeout(() => {
         }
     };
     // ========================
+    // AÑADIR AUDIO AL DOM DESPUÉS DE CARGAR TODO
+    // ========================
+    function agregarAudioAlDOM() {
+        if (document.getElementById('bgMusic')) return;
+        
+        const audio = document.createElement('audio');
+        audio.id = 'bgMusic';
+        audio.src = '/f1.mp3';
+        audio.loop = true;
+        audio.preload = 'auto';
+        audio.style.display = 'none';
+        document.body.appendChild(audio);
+        console.log('🎵 Audio añadido al DOM');
+        
+        setTimeout(() => {
+            window.iniciarMusica?.();
+        }, 1000);
+    }
+
+    // ========================
     // CONTROL DE MÚSICA DE FONDO
     // ========================
     window.iniciarMusica = function() {
@@ -6158,11 +6179,7 @@ setTimeout(() => {
         }
     };
 
-    // Iniciar cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(() => {
-            window.iniciarMusica();
-        }, 2000);
-    });
+    // Ejecutar después de cargar
+    setTimeout(agregarAudioAlDOM, 3000);
 
-})();
+})(); // <-- SOLO UN CIERRE
