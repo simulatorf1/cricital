@@ -674,7 +674,7 @@ class TutorialManager {
                     <div style="background: #1a1a1f; padding: 8px 12px; border-radius: 3px; margin: 12px 0; border-left: 2px solid #d4af37;">
                         <p style="margin: 0; font-size: 12px; color: #d4af37;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> MINIMIZA ESTA VENTANA y explora la sección de comunicación, luego vuelve al tutorial.
+                            <strong>OBLIGATORIO:</strong> MINIMIZA ESTA VENTANA y explora la sección de comunicación (icono del bocadillo al lado de notificación), luego vuelve al tutorial.
                         </p>
                     </div>
                 `,
@@ -698,7 +698,7 @@ class TutorialManager {
                     <div style="background: #1a1a1f; padding: 8px 12px; border-radius: 3px; margin: 12px 0; border-left: 2px solid #d4af37;">
                         <p style="margin: 0; font-size: 12px; color: #d4af37;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en tu "Perfil" para continuar.
+                            <strong>OBLIGATORIO:</strong> Haz clic en tu "Perfil" (pinchando en el nobmbre de tu escudería) para continuar.
                         </p>
                     </div>
                     
@@ -752,9 +752,14 @@ class TutorialManager {
                             <span style="color: #909096; font-size: 13px;"><strong style="color: #e8e8e8;">Analiza</strong> los datos</span>
                         </div>
                         <div style="display: flex; align-items: center; background: #1a1a1f; padding: 8px; border-radius: 3px;">
-                            <div style="background: #d4af37; color: #0f0f12; width: 24px; height: 24px; border-radius: 2px; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: 600; font-size: 12px;">4</div>
+                            <div style="background: #c0c0c0; color: #0f0f12; width: 24px; height: 24px; border-radius: 2px; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: 600; font-size: 12px;">4</div>
                             <span style="color: #909096; font-size: 13px;"><strong style="color: #e8e8e8;">Ajusta</strong> según resultados</span>
                         </div>
+                        <div style="display: flex; align-items: center; background: #1a1a1f; padding: 8px; border-radius: 3px;">
+                            <div style="background: #d4af37; color: #0f0f12; width: 24px; height: 24px; border-radius: 2px; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: 600; font-size: 12px;">4</div>
+                            <span style="color: #909096; font-size: 13px;"><strong style="color: #e8e8e8;">Haz el pronóstico</strong> para la carrera y GANA</span>
+                        </div>
+                        
                     </div>
                     
                     <div style="background: #1a1a1f; padding: 10px; border-radius: 3px; margin: 12px 0; text-align: center; border: 1px dashed #d4af37;">
