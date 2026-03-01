@@ -464,8 +464,8 @@ class TutorialManager {
                     </div>
                     
                     <ul style="margin: 12px 0; padding-left: 20px; font-size: 13px; color: #909096;">
-                        <li>Especialización por área:</li> 11 areas diferentes, por ejemplo el area de meteorologia servira para las preguntas que tengan que ver con las condiciones climatologicas de la carrera.
-                        <li>Sueldo diferente</li>
+                        <li><u>Especialización por área:</u></li> 11 areas diferentes, por ejemplo el area de meteorologia servira para las preguntas que tengan que ver con las condiciones climatologicas de la carrera.
+                        <li><u>Sueldo diferente</li></u>: Cada estratega cobrará en función de lo que te potenciará % tus aciertos en los pronosticos.
                         <li>Bonificación por acierto</li>
                     </ul>
                     
