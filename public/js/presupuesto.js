@@ -58,11 +58,11 @@ class PresupuestoManager {
             transaccionesAntesLunes.sort((a, b) => 
                 new Date(b.fecha) - new Date(a.fecha)
             );
-            return Number(transaccionesAntesLunes[0].saldo_resultante || 5000000);
+            return Number(transaccionesAntesLunes[0].saldo_resultante || 50000000);
         }
         
         // Si no hay transacciones, usar valor por defecto
-        return 5000000;
+        return 50000000;
     }
     // EN EL MÉTODO cargarTransacciones() - LÍNEA 75 APROX
     async cargarTransacciones(dias = 7) {
