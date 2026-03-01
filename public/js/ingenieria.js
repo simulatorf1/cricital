@@ -1773,67 +1773,12 @@ class IngenieriaManager {
                     coche.setAttribute('x', pos.x);
                     coche.setAttribute('y', pos.y);
                     
-                    // ========== ACTUALIZAR SECTORES CON LONGITUDES REALES ==========
-                    // Calcular la longitud de cada sector basada en los puntos
-                    const sector1Points = puntosCircuito.filter(p => p.t <= 0.33);
-                    const sector2Points = puntosCircuito.filter(p => p.t > 0.33 && p.t <= 0.66);
-                    const sector3Points = puntosCircuito.filter(p => p.t > 0.66);
-                    
-                    // Función para calcular longitud de un conjunto de puntos
-                    function calcularLongitud(puntos) {
-                        let longitud = 0;
-                        for (let i = 0; i < puntos.length - 1; i++) {
-                            const dx = puntos[i+1].x - puntos[i].x;
-                            const dy = puntos[i+1].y - puntos[i].y;
-                            longitud += Math.sqrt(dx*dx + dy*dy);
-                        }
-                        return longitud;
-                    }
-                    
-                    const sector1Length = calcularLongitud(sector1Points);
-                    const sector2Length = calcularLongitud(sector2Points);
-                    const sector3Length = calcularLongitud(sector3Points);
-                    
-                    // Aplicar el coloreado según el progreso
-                    if (progresoClasif < 0.33) {
-                        // Sector 1 (0-33% de la vuelta de clasificación)
-                        const progresoSector = progresoClasif / 0.33; // 0 a 1 dentro del sector 1
-                        const sector1 = document.querySelector('.sector1');
-                        if (sector1) sector1.style.strokeDashoffset = sector1Length * (1 - progresoSector);
-                        
-                        const sector2 = document.querySelector('.sector2');
-                        if (sector2) sector2.style.strokeDashoffset = sector2Length;
-                        
-                        const sector3 = document.querySelector('.sector3');
-                        if (sector3) sector3.style.strokeDashoffset = sector3Length;
-                        
-                    } else if (progresoClasif < 0.66) {
-                        // Sector 2 (33-66% de la vuelta de clasificación)
-                        const progresoSector = (progresoClasif - 0.33) / 0.33; // 0 a 1 dentro del sector 2
-                        
-                        const sector1 = document.querySelector('.sector1');
-                        if (sector1) sector1.style.strokeDashoffset = 0;
-                        
-                        const sector2 = document.querySelector('.sector2');
-                        if (sector2) sector2.style.strokeDashoffset = sector2Length * (1 - progresoSector);
-                        
-                        const sector3 = document.querySelector('.sector3');
-                        if (sector3) sector3.style.strokeDashoffset = sector3Length;
-                        
-                    } else {
-                        // Sector 3 (66-100% de la vuelta de clasificación)
-                        const progresoSector = (progresoClasif - 0.66) / 0.34; // 0 a 1 dentro del sector 3
-                        
-                        const sector1 = document.querySelector('.sector1');
-                        if (sector1) sector1.style.strokeDashoffset = 0;
-                        
-                        const sector2 = document.querySelector('.sector2');
-                        if (sector2) sector2.style.strokeDashoffset = 0;
-                        
-                        const sector3 = document.querySelector('.sector3');
-                        if (sector3) sector3.style.strokeDashoffset = sector3Length * (1 - progresoSector);
-                    }
-                    // ========== FIN ACTUALIZACIÓN SECTORES ==========
+                    // ========== SECTORES: APARECEN COMPLETOS NADA MÁS EMPEZAR LA CLASIFICACIÓN ==========
+                    // Los 3 sectores se muestran completos desde el segundo 30
+                    document.querySelector('.sector1').style.strokeDashoffset = 0;
+                    document.querySelector('.sector2').style.strokeDashoffset = 0;
+                    document.querySelector('.sector3').style.strokeDashoffset = 0;
+                    // ========== FIN SECTORES ==========
                 } 
                 else {
                     // FINALIZAR SIMULACIÓN
