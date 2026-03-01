@@ -6141,45 +6141,6 @@ setTimeout(() => {
             }, 1000);
         }
     };
-    // ========================
-    // AÑADIR AUDIO AL DOM DESPUÉS DE CARGAR TODO
-    // ========================
-    function agregarAudioAlDOM() {
-        if (document.getElementById('bgMusic')) return;
-        
-        const audio = document.createElement('audio');
-        audio.id = 'bgMusic';
-        audio.src = '/f1.mp3';
-        audio.loop = true;
-        audio.preload = 'auto';
-        audio.style.display = 'none';
-        document.body.appendChild(audio);
-        console.log('🎵 Audio añadido al DOM');
-        
-        setTimeout(() => {
-            window.iniciarMusica?.();
-        }, 1000);
-    }
 
-    // ========================
-    // CONTROL DE MÚSICA DE FONDO
-    // ========================
-    window.iniciarMusica = function() {
-        const audio = document.getElementById('bgMusic');
-        if (audio) {
-            audio.volume = 0.3;
-            audio.play().catch(error => {
-                console.log("⏸️ Autoplay bloqueado, esperando interacción...", error);
-                document.removeEventListener('click', window.iniciarMusica);
-                document.addEventListener('click', function playOnClick() {
-                    audio.play();
-                    document.removeEventListener('click', playOnClick);
-                }, { once: true });
-            });
-        }
-    };
-
-    // Ejecutar después de cargar
-    setTimeout(agregarAudioAlDOM, 3000);
 
 })(); // <-- SOLO UN CIERRE
