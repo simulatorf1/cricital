@@ -556,7 +556,7 @@ class EstrategiaManager {
         const footer = `
             <div style="text-align: center; color: #aaa; font-size: 0.9rem; padding-top: 20px; border-top: 1px solid #333;">
                 <div style="margin-bottom: 10px;">
-                    <i class="fas fa-info-circle"></i> Los pagos se realizan automáticamente cada domingo a las 23:59
+                    <i class="fas fa-info-circle"></i> 
                 </div>
                 <button onclick="document.getElementById('modal-contratacion-estrategas').remove()"
                         style="padding: 10px 30px; background: #333; color: white; border: none; 
@@ -631,7 +631,7 @@ class EstrategiaManager {
                      `• Bono: +${estratega.porcentaje_bono}%\n` +
                      `• Sueldo: €${estratega.sueldo_semanal.toLocaleString()}/semana\n` +
                      `✅ Contratación GRATIS ahora\n` +
-                     `✅ Pago automático cada domingo\n` +
+                     `✅ Pago automático al finalizar contrato\n` +
                      `❌ Despido anticipado: Penalización 3× sueldo`)) {
             return;
         }
