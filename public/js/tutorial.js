@@ -643,7 +643,7 @@ class TutorialManager {
                     <div style="background: #1a1a1f; padding: 8px 12px; border-radius: 3px; margin: 12px 0; border-left: 2px solid #d4af37;">
                         <p style="margin: 0; font-size: 12px; color: #d4af37;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> Haz clic en "Notificaciones" para continuar.
+                            <strong>OBLIGATORIO:</strong> Haz clic en el icono de la campana "Notificaciones" junto al nombre de escuderia para continuar.
                         </p>
                     </div>
                     
