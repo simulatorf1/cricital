@@ -2656,16 +2656,20 @@ class F1Manager {
             </div>
         `;
     
-        document.body.innerHTML = `
-            <div id="black-wrapper" style="
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: black;
-                z-index: 0;
-            ">
+        const contenedorJuego = document.getElementById('contenedor-juego');
+        
+        // Si existe, meter el juego DENTRO de ese contenedor
+        if (contenedorJuego) {
+            contenedorJuego.innerHTML = `
+                <div id="black-wrapper" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: black;
+                    z-index: 0;
+                ">
     
                 <div id="inner-game-container" style="
                     position: absolute;
