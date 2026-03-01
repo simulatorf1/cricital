@@ -12,6 +12,8 @@ class IngenieriaManager {
         this.user = f1Manager.user;
         this.escuderia = f1Manager.escuderia;
         this.simulacionActiva = false;
+        this.tiempoInicioSimulacion = null; // Guardar cuándo empezó
+        this.duracionTotalSimulacion = 60000; // 60 segundos
         this.tiempoRestante = 0;
         this.timerInterval = null;
         this.tiemposHistoricos = [];
@@ -161,7 +163,16 @@ class IngenieriaManager {
             `;
             
             container.innerHTML = html;
-            
+            // Si hay una simulación activa, restaurar su estado visual
+            if (this.simulacionActiva && this.tiempoInicioSimulacion) {
+                // Calcular tiempo restante real
+                const tiempoTranscurrido = Date.now() - this.tiempoInicioSimulacion;
+                const tiempoRestanteReal = Math.max(0, this.duracionTotalSimulacion - tiempoTranscurrido);
+                this.tiempoRestante = Math.ceil(tiempoRestanteReal / 1000);
+                
+                // Iniciar contador pero respetando el progreso real
+                this.iniciarContadorSimulacion();
+            }            
             // Agregar eventos si la simulación está inactiva
             if (!this.simulacionActiva) {
                 this.agregarEventosSimulacion();
@@ -931,6 +942,8 @@ class IngenieriaManager {
             this.simulacionActiva = true;
             this.simulacionId = simulacion.id;
             this.tiempoRestante = this.config.duracionSimulacion;
+            this.tiempoInicioSimulacion = Date.now(); // ✅ GUARDAR TIEMPO DE INICIO
+            this.duracionTotalSimulacion = this.config.duracionSimulacion * 1000; // en ms            
             
 
             
@@ -1619,7 +1632,12 @@ class IngenieriaManager {
         
         const iniciarAnimacion = () => {
             // Variables de control
-            let tiempoInicio = Date.now();
+            // Si ya hay un tiempo de inicio guardado, úsalo, si no, crea uno nuevo
+            let tiempoInicio = this.tiempoInicioSimulacion || Date.now();
+            // Si acabamos de crear uno nuevo, guardarlo
+            if (!this.tiempoInicioSimulacion) {
+                this.tiempoInicioSimulacion = tiempoInicio;
+            }
             let duracionTotal = 60000; // 60 segundos en milisegundos
             let calentamientoDuration = 30000; // 30 segundos
             let clasificacionDuration = 30000; // 30 segundos
@@ -1713,53 +1731,48 @@ class IngenieriaManager {
             
             // Intervalo de animación (cada 50ms)
             this.timerInterval = setInterval(() => {
-                const tiempoActual = Date.now();
-                const tiempoTranscurrido = tiempoActual - tiempoInicio;
+                // Calcular progreso real basado en el tiempo transcurrido desde el inicio GLOBAL
+                const tiempoTranscurridoReal = Date.now() - this.tiempoInicioSimulacion;
+                const progresoReal = Math.min(1, tiempoTranscurridoReal / this.duracionTotalSimulacion);
                 
-                // Actualizar tiempo restante
+                // Actualizar tiempo restante (para el display)
                 if (tiempoRestanteSpan) {
-                    const segundosRestantes = Math.max(0, Math.ceil((duracionTotal - tiempoTranscurrido) / 1000));
+                    const segundosRestantes = Math.max(0, Math.ceil((this.duracionTotalSimulacion - tiempoTranscurridoReal) / 1000));
                     this.tiempoRestante = segundosRestantes;
                     tiempoRestanteSpan.textContent = this.formatearTiempoContador(segundosRestantes);
                 }
                 
-                // FASE 1: CALENTAMIENTO (0-30 segundos)
-                if (tiempoTranscurrido < calentamientoDuration) {
+                // Determinar en qué fase estamos basado en el tiempo REAL
+                if (tiempoTranscurridoReal < calentamientoDuration) {
+                    // FASE 1: CALENTAMIENTO (0-30 segundos)
                     if (faseActual) {
                         faseActual.innerHTML = '🟢 VUELTA DE CALENTAMIENTO - Preparando neumáticos...';
                         faseActual.style.color = '#aaa';
                     }
                     if (sectoresContainer) sectoresContainer.style.display = 'none';
                     
-                    // Progreso en calentamiento (0 a 1)
-                    const progreso = tiempoTranscurrido / calentamientoDuration;
-                    const pos = getPosicionEnCircuito(progreso);
+                    // Progreso en calentamiento (0 a 1) - ocupa la primera mitad del recorrido (t: 0 a 0.5)
+                    const progresoCalentamiento = tiempoTranscurridoReal / calentamientoDuration;
+                    const pos = getPosicionEnCircuito(progresoCalentamiento * 0.5);
                     coche.setAttribute('x', pos.x);
                     coche.setAttribute('y', pos.y);
-                }
-                
-                // FASE 2: CLASIFICACIÓN (30-60 segundos)
-                else if (tiempoTranscurrido < duracionTotal) {
+                } 
+                else if (tiempoTranscurridoReal < duracionTotal) {
+                    // FASE 2: CLASIFICACIÓN (30-60 segundos)
                     if (faseActual) {
                         faseActual.innerHTML = '🔴 VUELTA DE CLASIFICACIÓN - Marcando sectores';
                         faseActual.style.color = '#e10600';
                     }
                     if (sectoresContainer) sectoresContainer.style.display = 'flex';
                     
-                    // Progreso en clasificación (0 a 1)
-                    const progresoClasif = (tiempoTranscurrido - calentamientoDuration) / clasificacionDuration;
-                    const pos = getPosicionEnCircuito(progresoClasif);
+                    // Progreso en clasificación (0 a 1) - ocupa la segunda mitad del recorrido (t: 0.5 a 1)
+                    const progresoClasif = (tiempoTranscurridoReal - calentamientoDuration) / clasificacionDuration;
+                    const pos = getPosicionEnCircuito(0.5 + progresoClasif * 0.5);
                     coche.setAttribute('x', pos.x);
                     coche.setAttribute('y', pos.y);
                     
-                    // Actualizar sectores (calculados según los puntos reales)
-                    const sector1Length = 450; // Ajusta estos valores según necesites
-                    const sector2Length = 380;
-                    const sector3Length = 420;
-                    
-
-                    // Actualizar sectores (calculados según la longitud REAL de cada sector)
-                    // Calculamos la longitud de cada sector basada en los puntos
+                    // ========== ACTUALIZAR SECTORES CON LONGITUDES REALES ==========
+                    // Calcular la longitud de cada sector basada en los puntos
                     const sector1Points = puntosCircuito.filter(p => p.t <= 0.33);
                     const sector2Points = puntosCircuito.filter(p => p.t > 0.33 && p.t <= 0.66);
                     const sector3Points = puntosCircuito.filter(p => p.t > 0.66);
@@ -1779,10 +1792,9 @@ class IngenieriaManager {
                     const sector2Length = calcularLongitud(sector2Points);
                     const sector3Length = calcularLongitud(sector3Points);
                     
-                    console.log('Longitudes reales:', {sector1Length, sector2Length, sector3Length});
-                    
+                    // Aplicar el coloreado según el progreso
                     if (progresoClasif < 0.33) {
-                        // Sector 1 (0-33%)
+                        // Sector 1 (0-33% de la vuelta de clasificación)
                         const progresoSector = progresoClasif / 0.33; // 0 a 1 dentro del sector 1
                         const sector1 = document.querySelector('.sector1');
                         if (sector1) sector1.style.strokeDashoffset = sector1Length * (1 - progresoSector);
@@ -1791,7 +1803,7 @@ class IngenieriaManager {
                         document.querySelector('.sector3').style.strokeDashoffset = sector3Length;
                         
                     } else if (progresoClasif < 0.66) {
-                        // Sector 2 (33-66%)
+                        // Sector 2 (33-66% de la vuelta de clasificación)
                         const progresoSector = (progresoClasif - 0.33) / 0.33; // 0 a 1 dentro del sector 2
                         
                         document.querySelector('.sector1').style.strokeDashoffset = 0;
@@ -1799,23 +1811,23 @@ class IngenieriaManager {
                         document.querySelector('.sector3').style.strokeDashoffset = sector3Length;
                         
                     } else {
-                        // Sector 3 (66-100%)
+                        // Sector 3 (66-100% de la vuelta de clasificación)
                         const progresoSector = (progresoClasif - 0.66) / 0.34; // 0 a 1 dentro del sector 3
                         
                         document.querySelector('.sector1').style.strokeDashoffset = 0;
                         document.querySelector('.sector2').style.strokeDashoffset = 0;
                         document.querySelector('.sector3').style.strokeDashoffset = sector3Length * (1 - progresoSector);
                     }
-                }
-                
-                // FINALIZAR SIMULACIÓN
+                    // ========== FIN ACTUALIZACIÓN SECTORES ==========
+                } 
                 else {
+                    // FINALIZAR SIMULACIÓN
                     clearInterval(this.timerInterval);
                     this.timerInterval = null;
                     
-                    // Coche en meta (primer punto)
-                    coche.setAttribute('x', puntosCircuito[0].x);
-                    coche.setAttribute('y', puntosCircuito[0].y);
+                    // Coche en meta
+                    coche.setAttribute('x', 250);
+                    coche.setAttribute('y', 90);
                     coche.setAttribute('fill', '#4CAF50');
                     
                     if (faseActual) {
@@ -1831,7 +1843,6 @@ class IngenieriaManager {
                     this.finalizarSimulacion(this.simulacionId);
                 }
             }, 50);
-        };
     }
     iniciarContadorSimple() {
         console.log('⚠️ Usando contador simple de emergencia');
