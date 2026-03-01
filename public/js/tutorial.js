@@ -961,6 +961,9 @@ class TutorialManager {
     // ========================
     // CONFIGURAR MINIMIZAR (CORREGIDO)
     // ========================
+    // ========================
+    // CONFIGURAR MINIMIZAR (CORREGIDO)
+    // ========================
     configurarMinimizar() {
         const btnMinimizar = this.ventanaTutorial.querySelector('#btn-minimizar-tutorial');
         const overlay = document.getElementById('tutorial-overlay');
@@ -970,8 +973,7 @@ class TutorialManager {
         
         btnMinimizar.onclick = () => {
             if (estaMinimizado) {
-                // ===== MAXIMIZAR =====
-                // Ventana grande
+                // ===== MAXIMIZAR (código existente) =====
                 this.ventanaTutorial.style.width = '90%';
                 this.ventanaTutorial.style.maxWidth = '700px';
                 this.ventanaTutorial.style.height = 'auto';
@@ -981,15 +983,14 @@ class TutorialManager {
                 this.ventanaTutorial.style.transform = 'translate(-50%, -50%)';
                 this.ventanaTutorial.style.padding = '20px';
                 this.ventanaTutorial.style.borderRadius = '4px';
+                this.ventanaTutorial.style.border = '1px solid #2a2a30'; // Borde normal
                 
-                // Mostrar overlay con oscuridad y blur
                 if (overlay) {
                     overlay.style.background = 'rgba(0, 0, 0, 0.85)';
                     overlay.style.backdropFilter = 'blur(4px)';
-                    overlay.style.display = 'block'; // Asegurar que está visible
+                    overlay.style.display = 'block';
                 }
                 
-                // Mostrar todo el contenido
                 const elementos = this.ventanaTutorial.querySelectorAll('*');
                 elementos.forEach(el => {
                     if (el.id !== 'btn-minimizar-tutorial') {
@@ -1000,22 +1001,33 @@ class TutorialManager {
                 });
                 
                 btnMinimizar.innerHTML = '<i class="fas fa-window-minimize" style="color: #ff3333; font-size: 11px; font-weight: bold;"></i> <span style="color: #ff3333; font-weight: bold;">Minimizar</span>';
+                
+                // Restaurar estilo original del botón
+                btnMinimizar.style.background = 'transparent';
+                btnMinimizar.style.border = 'none';
+                btnMinimizar.style.padding = '4px 10px';
+                btnMinimizar.style.boxShadow = 'none';
+                btnMinimizar.style.fontWeight = 'bold';
+                
                 estaMinimizado = false;
                 
             } else {
-                // ===== MINIMIZAR =====
+                // ===== MINIMIZAR (CON BOTÓN MÁS LLAMATIVO) =====
                 // Ventana pequeña en esquina
                 this.ventanaTutorial.style.width = 'auto';
                 this.ventanaTutorial.style.height = 'auto';
                 this.ventanaTutorial.style.top = '20px';
                 this.ventanaTutorial.style.left = '20px';
                 this.ventanaTutorial.style.transform = 'none';
-                this.ventanaTutorial.style.padding = '10px 15px';
-                this.ventanaTutorial.style.borderRadius = '3px';
+                this.ventanaTutorial.style.padding = '8px 12px';
+                this.ventanaTutorial.style.borderRadius = '8px';
+                this.ventanaTutorial.style.border = '3px solid #ff3333'; // BORDE GRUESO ROJO
+                this.ventanaTutorial.style.boxShadow = '0 0 20px rgba(255, 51, 51, 0.3)'; // Sombra roja
+                this.ventanaTutorial.style.background = '#0f0f12';
                 
-                // OCULTAR overlay completamente para que se vea el juego normal
+                // OCULTAR overlay
                 if (overlay) {
-                    overlay.style.display = 'none'; // Simplemente lo ocultamos
+                    overlay.style.display = 'none';
                 }
                 
                 // Ocultar TODO excepto header y botón
@@ -1032,15 +1044,27 @@ class TutorialManager {
                     header.style.justifyContent = 'center';
                     header.style.margin = '0';
                     header.style.padding = '0';
+                    header.style.width = '100%';
                     
                     const titleContainer = header.querySelector('#tutorial-title-container');
                     if (titleContainer) titleContainer.style.display = 'none';
-                    
-                    btnMinimizar.style.margin = '0';
-                    btnMinimizar.style.width = 'auto';
                 }
                 
-                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize" style="color: #ff3333; font-size: 11px; font-weight: bold;"></i> <span style="color: #ff3333; font-weight: bold;">Tutorial</span>';
+                // Hacer el botón MÁS LLAMATIVO
+                btnMinimizar.style.background = '#ff3333'; // Fondo rojo
+                btnMinimizar.style.border = '2px solid white'; // Borde blanco
+                btnMinimizar.style.padding = '10px 20px'; // Más grande
+                btnMinimizar.style.borderRadius = '50px'; // Muy redondeado
+                btnMinimizar.style.boxShadow = '0 0 15px rgba(255, 51, 51, 0.8)'; // Resplandor
+                btnMinimizar.style.fontSize = '14px'; // Texto más grande
+                btnMinimizar.style.fontWeight = 'bold';
+                btnMinimizar.style.letterSpacing = '1px';
+                btnMinimizar.style.textTransform = 'uppercase';
+                btnMinimizar.style.margin = '0 auto';
+                btnMinimizar.style.width = 'fit-content';
+                
+                btnMinimizar.innerHTML = '<i class="fas fa-window-maximize" style="color: white; font-size: 14px; margin-right: 8px;"></i> <span style="color: white; font-weight: bold;">TUTORIAL</span>';
+                
                 estaMinimizado = true;
             }
         };
