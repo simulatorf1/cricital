@@ -306,7 +306,7 @@ class TutorialManager {
                     <div style="background: #1a1a1f; padding: 8px 12px; border-radius: 3px; margin: 12px 0; border-left: 2px solid #d4af37;">
                         <p style="margin: 0; font-size: 12px; color: #d4af37;">
                             <i class="fas fa-mouse-pointer"></i> 
-                            <strong>OBLIGATORIO:</strong> MINIMIZA ESTA VENTANA y luego fabrica la pieza <strong>"Aerodinámica básico"</strong> del área SUELO (2 minutos, 100.000€), luego vuelve al tutorial.
+                            <strong>OBLIGATORIO:</strong> MINIMIZA ESTA VENTANA (arriba a ala derecha) y luego fabrica la pieza <strong>"Aerodinámica básico"</strong> del área SUELO (2 minutos, 100.000€), luego vuelve al tutorial.
                         </p>
                     </div>
                     
