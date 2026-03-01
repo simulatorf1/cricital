@@ -2728,8 +2728,9 @@ class F1Manager {
                                 align-items: center;
                                 gap: 8px;
                             ">
+
                                 <!-- DINERO - SE AJUSTA AL CONTENIDO -->
-                                <div class="money-display-compacto" style="
+                                <div class="money-display-compacto" onclick="irAPresupuesto()" style="
                                     display: flex;
                                     align-items: center;
                                     gap: 6px;
@@ -2740,6 +2741,8 @@ class F1Manager {
                                     color: white;
                                     width: auto;
                                     flex: 0 0 auto;
+                                    cursor: pointer;  /* ← AÑADE TAMBIÉN ESTO */
+                                    transition: transform 0.2s;  /* ← OPCIONAL: efecto suave */
                                 ">
                                     <i class="fas fa-coins" style="color: #FFD700; font-size: 1rem;"></i>
                                     <span id="money-value" style="
@@ -5059,7 +5062,32 @@ setTimeout(() => {
             alert('🏎️ Para realizar pruebas en pista:\n\n1. Ve a la pestaña "INGENIERÍA"\n2. Busca la opción "Pruebas en Pista"\n3. Realiza vueltas para registrar tiempos\n\n¡Registra tu primer tiempo!');
         }
     };
-    
+    // ========================
+    // FUNCIÓN PARA IR A PRESUPUESTO
+    // ========================
+    window.irAPresupuesto = function() {
+        console.log('💰 Redirigiendo a presupuesto...');
+        
+        // Buscar el botón de la pestaña presupuesto
+        const tabButton = document.querySelector('[data-tab="presupuesto"]');
+        
+        if (tabButton) {
+            tabButton.click();
+            console.log('✅ Click simulado en pestaña Presupuesto');
+        } else {
+            console.error('❌ No se encontró el botón de pestaña Presupuesto');
+            
+            // Plan B: Activar manualmente
+            document.querySelectorAll('.tab-btn-secundario').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            const presupuestoTab = document.getElementById('tab-presupuesto');
+            if (presupuestoTab) {
+                presupuestoTab.classList.add('active');
+                console.log('✅ Pestaña Presupuesto activada manualmente');
+            }
+        }
+    };    
     
     window.tutorialSeleccionarEstratega = function(id) {
         if (window.tutorialManager && typeof window.tutorialManager.tutorialSeleccionarEstratega === 'function') {
