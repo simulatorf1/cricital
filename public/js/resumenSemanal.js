@@ -573,59 +573,61 @@ class ResumenSemanalManager {
     }
 }
 
-// Exportar al ámbito global
+// ========================
+// EXPORTAR AL ÁMBITO GLOBAL
+// ========================
 window.ResumenSemanalManager = ResumenSemanalManager;
 
 // ========================
-// INICIALIZACIÓN MÁS ROBUSTA
+// INICIALIZACIÓN QUE FUNCIONA SEGURO
 // ========================
+console.log('📅 Inicializando sistema de resumen semanal...');
 
-// Intento 1: Con evento auth-completado
-document.addEventListener('auth-completado', function inicializar() {
-    console.log('📅 Evento auth-completado recibido');
-    
-    // Quitar el listener para que no se ejecute múltiples veces
-    document.removeEventListener('auth-completado', inicializar);
-    
-    setTimeout(() => {
-        if (!window.resumenSemanalManager) {
-            window.resumenSemanalManager = new ResumenSemanalManager(
-                window.presupuestoManager,
-                window.notificacionesManager
-            );
-            window.resumenSemanalManager.inicializar();
-        }
-    }, 2000);
-});
-
-// Intento 2: Verificar cada segundo hasta que existan los managers
-const checkInterval = setInterval(() => {
-    if (window.presupuestoManager?.escuderiaId && window.notificacionesManager) {
-        clearInterval(checkInterval);
+// Comprobar cada segundo si podemos inicializar
+const intervaloInicializacion = setInterval(() => {
+    // Comprobamos que existen los managers necesarios
+    if (window.presupuestoManager && window.notificacionesManager) {
         
-        console.log('📅 Managers detectados, creando ResumenSemanalManager');
+        console.log('✅ Managers detectados, creando ResumenSemanalManager');
+        clearInterval(intervaloInicializacion);
         
-        if (!window.resumenSemanalManager) {
-            window.resumenSemanalManager = new ResumenSemanalManager(
-                window.presupuestoManager,
-                window.notificacionesManager
-            );
-            window.resumenSemanalManager.inicializar();
-        }
+        // Crear el manager
+        window.resumenSemanalManager = new ResumenSemanalManager(
+            window.presupuestoManager,
+            window.notificacionesManager
+        );
+        
+        // Inicializar
+        window.resumenSemanalManager.inicializar();
+        
+        // Forzar verificación a los 3 segundos
+        setTimeout(() => {
+            if (window.resumenSemanalManager) {
+                console.log('🚀 Forzando verificación inicial...');
+                window.resumenSemanalManager.verificarResumenPendiente();
+            }
+        }, 3000);
     }
 }, 1000);
 
-// Intento 3: Forzar después de 5 segundos (por si acaso)
+// Respaldo: Forzar después de 5 segundos pase lo que pase
 setTimeout(() => {
-    if (!window.resumenSemanalManager && window.presupuestoManager) {
-        console.log('📅 Inicialización de emergencia');
+    clearInterval(intervaloInicializacion);
+    
+    if (!window.resumenSemanalManager) {
+        console.log('⚠️ Inicialización de emergencia');
         
         window.resumenSemanalManager = new ResumenSemanalManager(
             window.presupuestoManager,
             window.notificacionesManager
         );
+        
         window.resumenSemanalManager.inicializar();
+        
+        setTimeout(() => {
+            window.resumenSemanalManager.verificarResumenPendiente();
+        }, 2000);
     }
 }, 5000);
 
-console.log('✅ Sistema de resumen semanal listo (modo robusto)');
+console.log('✅ Sistema de resumen semanal cargado');
