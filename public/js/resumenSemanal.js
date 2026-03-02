@@ -576,16 +576,37 @@ class ResumenSemanalManager {
 // Exportar al ámbito global
 window.ResumenSemanalManager = ResumenSemanalManager;
 
-// Inicialización automática
+// Inicialización automática - VERSIÓN CORREGIDA
 document.addEventListener('auth-completado', () => {
     console.log('📅 Inicializando ResumenSemanalManager desde auth-completado');
     
     setTimeout(() => {
         if (!window.resumenSemanalManager) {
-            window.resumenSemanalManager = new ResumenSemanalManager();
+            // PASAR LOS MANAGERS EXPLÍCITAMENTE
+            window.resumenSemanalManager = new ResumenSemanalManager(
+                window.presupuestoManager,
+                window.notificacionesManager
+            );
             window.resumenSemanalManager.inicializar();
+            
+            console.log('✅ ResumenSemanalManager creado con:', {
+                presupuesto: !!window.resumenSemanalManager.presupuestoManager,
+                notificaciones: !!window.resumenSemanalManager.notificacionesManager
+            });
         }
     }, 3000);
 });
+
+// RESPALDO: Si ya pasó el evento, inicializar ahora
+if (window.presupuestoManager && window.notificacionesManager) {
+    console.log('📅 Inicialización directa (respaldo)');
+    if (!window.resumenSemanalManager) {
+        window.resumenSemanalManager = new ResumenSemanalManager(
+            window.presupuestoManager,
+            window.notificacionesManager
+        );
+        window.resumenSemanalManager.inicializar();
+    }
+}
 
 console.log('✅ Sistema de resumen semanal listo');
