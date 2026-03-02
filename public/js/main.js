@@ -6027,7 +6027,7 @@ setTimeout(() => {
                     <div style="background: rgba(0, 210, 190, 0.1); border-radius: 10px; padding: 15px; text-align: center;">
                         <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 5px;">PAGO AUTOMÁTICO</div>
                         <div style="color: #00d2be; font-weight: bold; font-size: 1.1rem;">
-                            Cada domingo a las 23:00, tus estrellas se convierten en dinero
+                            Cada miercoles a las 23:59, tus estrellas se convierten en dinero
                         </div>
                     </div>
                 </div>
