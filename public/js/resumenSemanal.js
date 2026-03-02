@@ -15,26 +15,21 @@ class ResumenSemanalManager {
     // ========================
     // INICIALIZAR
     // ========================
+    // ========================
+    // INICIALIZAR (NUEVA VERSIÓN)
+    // ========================
     inicializar() {
         console.log('📅 Inicializando ResumenSemanalManager...');
         
-        // 1. Esperar a que todo esté listo
+        // Verificar al inicio (SIEMPRE, no solo si es lunes)
         setTimeout(() => {
-            this.verificarResumenPendiente();
+            this.verificarResumenPendiente(); // ← ESTA ES LA CLAVE
         }, 5000);
         
-        // 2. Verificar cada hora (por si alguien deja la app abierta)
+        // Verificar cada hora
         setInterval(() => {
             this.verificarResumenPendiente();
         }, 3600000);
-        
-        // 3. También al cambiar de pestaña (por si vuelve después de horas)
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                console.log('👁️ Pestaña visible, verificando resúmenes...');
-                this.verificarResumenPendiente();
-            }
-        });
         
         console.log('✅ ResumenSemanalManager inicializado');
     }
