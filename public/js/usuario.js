@@ -281,6 +281,7 @@ class PerfilManager {
                 bloque: "🎯 CONSEJOS AVANZADOS"
             }
         ];
+    }    
     // ========================
     // MOSTRAR PERFIL (público - cualquier usuario puede ver el perfil de otro)
     // ========================
