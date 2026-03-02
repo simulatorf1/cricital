@@ -2281,7 +2281,83 @@ class F1Manager {
         };
         
         console.log('⏱️ Timers automáticos iniciados');
+        // ========================
+        // PAGO DE ESTRELLAS (MIÉRCOLES) - COLOCADO AQUÍ, FUERA DEL OBJETO
+        // ========================
+        
+        // Verificar pago de estrellas (miércoles)
+        this.verificarPagoEstrellas = async function() {
+            try {
+                const hoy = new Date();
+                const esMiercoles = hoy.getDay() === 3; // 3 = miércoles
+                
+                if (!esMiercoles) return;
+                
+                // Crear tabla si no existe
+                await this.supabase.rpc('crear_tabla_pagos_estrellas');
+                
+                // Comprobar si ya se pagó hoy
+                const { data: config } = await this.supabase
+                    .from('config_pagos_estrellas')
+                    .select('ultimo_pago')
+                    .eq('id', 1)
+                    .single();
+                
+                const ultimoPago = config?.ultimo_pago;
+                const hoyStr = hoy.toISOString().split('T')[0];
+                
+                if (ultimoPago === hoyStr) return;
+                
+                // Obtener estrellas
+                const { data: perfil } = await this.supabase
+                    .from('perfiles')
+                    .select('estrellas_semana')
+                    .eq('id', this.escuderia.id)
+                    .single();
+                
+                const estrellas = perfil?.estrellas_semana || 0;
+                
+                if (estrellas > 0) {
+                    const pago = estrellas * 10000;
+                    
+                    // Registrar transacción
+                    await window.presupuestoManager.registrarTransaccion(
+                        'ingreso',
+                        pago,
+                        'Pago semanal por estrellas de patrocinio',
+                        'publicidad'
+                    );
+                    
+                    // Poner estrellas a cero
+                    await this.supabase
+                        .from('perfiles')
+                        .update({ estrellas_semana: 0 })
+                        .eq('id', this.escuderia.id);
+                    
+                    // Actualizar UI
+                    const estrellasElement = document.getElementById('estrellas-value');
+                    if (estrellasElement) estrellasElement.textContent = '0';
+                    
+                    // Notificación
+                    this.showNotification(`⭐ ${pago.toLocaleString()}€ por ${estrellas} estrellas`, 'success');
+                }
+                
+                // Actualizar fecha
+                await this.supabase
+                    .from('config_pagos_estrellas')
+                    .update({ ultimo_pago: hoyStr })
+                    .eq('id', 1);
+                    
+            } catch (error) {
+                console.error('❌ Error en pago de estrellas:', error);
+            }
+        };
+        
+        // Ejecutar verificación
+        setTimeout(() => this.verificarPagoEstrellas(), 5000);
     }
+
+
 
     // ========================
     // MÉTODO CARGAR PIEZAS MONTADAS CON BLOQUEO ANTI-DOBLE EJECUCIÓN
