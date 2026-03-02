@@ -2125,7 +2125,7 @@ class IngenieriaManager {
     
                 <!-- CIRCUITO ANIMADO - MÁS GRANDE Y CENTRADO -->
                 <div class="circuito-container">
-                    <svg id="circuito-svg" width="100%" height="100%" viewBox="0 0 500 200" preserveAspectRatio="xMidYMid meet" style="display: block;">
+                    <svg id="circuito-svg" width="100%" height="100%" viewBox="80 60 230 140" preserveAspectRatio="xMidYMid meet" style="display: block;">
                         <defs>
                             <filter id="glow-coche" x="-30%" y="-30%" width="160%" height="160%">
                                 <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -2214,7 +2214,7 @@ class IngenieriaManager {
                                  L 120.928,129.131 
                                  L 110.935,146.027 
                                  L 99.874,161.236" 
-                              fill="none" stroke="#4CAF50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
+                              fill="none" stroke="#4CAF50" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"
                               class="sector sector1" style="stroke-dasharray: 450; stroke-dashoffset: 450;"/>
                         
                         <path id="sector2" 
@@ -2234,7 +2234,7 @@ class IngenieriaManager {
                                  L 184.908,141.533 
                                  L 181.452,132.545 
                                  L 193.204,131.508" 
-                              fill="none" stroke="#2196F3" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
+                              fill="none" stroke="#2196F3" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"
                               class="sector sector2" style="stroke-dasharray: 380; stroke-dashoffset: 380;"/>
                         
                         <path id="sector3" 
@@ -2257,7 +2257,7 @@ class IngenieriaManager {
                                  L 266.487,90 
                                  L 259.573,99.015 
                                  L 250,90" 
-                              fill="none" stroke="#e10600" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
+                              fill="none" stroke="#e10600" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"
                               class="sector sector3" style="stroke-dasharray: 420; stroke-dashoffset: 420;"/>
                         
                         <!-- COCHE -->
@@ -2933,11 +2933,11 @@ class IngenieriaManager {
                 border: 2px solid rgba(0, 210, 190, 0.4);
                 box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
                 width: 100%;
+                min-height: 400px;
                 height: auto;
-                aspect-ratio: 2.5 / 1; /* Relación ancho/alto basada en el viewBox 500x200 */
                 display: flex;
-                justify-content: center;
                 align-items: center;
+                justify-content: center;
                 overflow: hidden;
             }
             
@@ -2945,6 +2945,7 @@ class IngenieriaManager {
                 filter: drop-shadow(0 0 25px rgba(0, 210, 190, 0.6));
                 width: 100%;
                 height: 100%;
+                min-height: 400px;
                 display: block;
             }
             
@@ -2959,6 +2960,7 @@ class IngenieriaManager {
                 filter: drop-shadow(0 0 15px currentColor);
                 stroke-linecap: round;
                 stroke-linejoin: round;
+                stroke-width: 10 !important;
             }
             
             .sector1 {
@@ -2983,12 +2985,15 @@ class IngenieriaManager {
             
             #coche-animado circle {
                 transition: r 0.2s ease;
+                r: 10 !important;
             }
             
             #coche-animado:hover circle {
                 r: 8;
             }
-            
+            #coche-animado line {
+                stroke-width: 2.5 !important;
+            }
             .sector-indicator {
                 transition: all 0.3s ease;
                 font-weight: bold;
