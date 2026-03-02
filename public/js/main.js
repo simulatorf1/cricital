@@ -6021,7 +6021,7 @@ setTimeout(() => {
                     
                     <p style="font-size: 1rem; line-height: 1.5; margin-bottom: 15px;">
                         <strong>Máximo diario: 35🌟</strong> (si haces las 3 acciones)<br>
-                        <strong>Conversión:</strong> Cada estrella = <span style="color: #4CAF50; font-weight: bold;">€2,000</span>
+                        <strong>Conversión:</strong> Cada estrella = <span style="color: #4CAF50; font-weight: bold;">€10,000</span>
                     </p>
                     
                     <div style="background: rgba(0, 210, 190, 0.1); border-radius: 10px; padding: 15px; text-align: center;">
