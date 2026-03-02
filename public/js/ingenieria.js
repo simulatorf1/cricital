@@ -2125,7 +2125,7 @@ class IngenieriaManager {
     
                 <!-- CIRCUITO ANIMADO - MÁS GRANDE Y CENTRADO -->
                 <div class="circuito-container">
-                    <svg id="circuito-svg" width="100%" height="500" viewBox="-20 -10 540 220" preserveAspectRatio="xMidYMid meet">
+                    <svg id="circuito-svg" width="100%" height="100%" viewBox="0 0 500 200" preserveAspectRatio="xMidYMid meet" style="display: block;">
                         <defs>
                             <filter id="glow-coche" x="-30%" y="-30%" width="160%" height="160%">
                                 <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -2143,7 +2143,7 @@ class IngenieriaManager {
                             </g>
                         </defs>
                         
-                        <!-- Fondo del circuito (gris) - TU CIRCUITO DE GEOGEBRA -->
+                        <!-- Fondo del circuito -->
                         <path id="circuito-base" 
                               d="M 250,90 
                                  L 170,90 
@@ -2196,7 +2196,7 @@ class IngenieriaManager {
                                  L 250,90" 
                               fill="none" stroke="#333" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
                         
-                        <!-- SECTOR 1 (Verde) - Primer tercio del circuito -->
+                        <!-- SECTORES -->
                         <path id="sector1" 
                               d="M 250,90 
                                  L 170,90 
@@ -2217,7 +2217,6 @@ class IngenieriaManager {
                               fill="none" stroke="#4CAF50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
                               class="sector sector1" style="stroke-dasharray: 450; stroke-dashoffset: 450;"/>
                         
-                        <!-- SECTOR 2 (Azul) - Segundo tercio del circuito -->
                         <path id="sector2" 
                               d="M 99.874,161.236 
                                  L 101.947,173.335 
@@ -2238,7 +2237,6 @@ class IngenieriaManager {
                               fill="none" stroke="#2196F3" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
                               class="sector sector2" style="stroke-dasharray: 380; stroke-dashoffset: 380;"/>
                         
-                        <!-- SECTOR 3 (Rojo) - Último tercio del circuito -->
                         <path id="sector3" 
                               d="M 193.204,131.508 
                                  L 205.649,128.397 
@@ -2265,6 +2263,7 @@ class IngenieriaManager {
                         <!-- COCHE -->
                         <use id="coche-animado" href="#coche-icon" x="250" y="90" filter="url(#glow-coche)"/>
                     </svg>
+                </div>
                     
                     <!-- FASE ACTUAL Y MENSAJES -->
                     <div id="fase-actual" class="fase-actual" style="text-align: center; margin: 15px 0 10px 0; font-weight: bold; color: #00d2be;">
@@ -2929,23 +2928,24 @@ class IngenieriaManager {
             .circuito-container {
                 background: rgba(0, 0, 0, 0.6);
                 border-radius: 24px;
-                padding: 30px 20px;
-                margin: 25px 0 20px 0;
+                padding: 0;
+                margin: 15px 0 20px 0;
                 border: 2px solid rgba(0, 210, 190, 0.4);
                 box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+                width: 100%;
+                height: auto;
+                aspect-ratio: 2.5 / 1; /* Relación ancho/alto basada en el viewBox 500x200 */
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                min-height: 550px;
-                width: 100%;
+                overflow: hidden;
             }
             
             #circuito-svg {
                 filter: drop-shadow(0 0 25px rgba(0, 210, 190, 0.6));
-                max-width: 100%;
-                height: auto;
-                min-height: 500px;
                 width: 100%;
+                height: 100%;
+                display: block;
             }
             
             #circuito-base {
