@@ -5,11 +5,11 @@
 console.log('📅 Sistema de resumen semanal cargado');
 
 class ResumenSemanalManager {
-    constructor() {
-        this.presupuestoManager = window.presupuestoManager;
-        this.notificacionesManager = window.notificacionesManager;
+    constructor(presupuestoManager, notificacionesManager) {
+        this.presupuestoManager = presupuestoManager || window.presupuestoManager;
+        this.notificacionesManager = notificacionesManager || window.notificacionesManager;
         this.ultimoResumenEnviado = null;
-        this.resumenesGuardados = []; // Para histórico
+        // Eliminamos this.resumenesGuardados = [] (ya no lo usamos)
     }
 
     // ========================
@@ -18,15 +18,23 @@ class ResumenSemanalManager {
     inicializar() {
         console.log('📅 Inicializando ResumenSemanalManager...');
         
-        // Verificar al inicio
+        // 1. Esperar a que todo esté listo
         setTimeout(() => {
-            this.verificarYLanzarResumen();
+            this.verificarResumenPendiente();
         }, 5000);
         
-        // Verificar cada hora
+        // 2. Verificar cada hora (por si alguien deja la app abierta)
         setInterval(() => {
-            this.verificarYLanzarResumen();
-        }, 3600000); // 1 hora
+            this.verificarResumenPendiente();
+        }, 3600000);
+        
+        // 3. También al cambiar de pestaña (por si vuelve después de horas)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('👁️ Pestaña visible, verificando resúmenes...');
+                this.verificarResumenPendiente();
+            }
+        });
         
         console.log('✅ ResumenSemanalManager inicializado');
     }
@@ -81,53 +89,164 @@ class ResumenSemanalManager {
             console.error('❌ Error verificando resumen semanal:', error);
         }
     }
-
+    async verificarResumenPendiente() {
+        try {
+            console.log('📅 Verificando resúmenes pendientes...');
+            
+            // 1. Comprobar que tenemos todo lo necesario
+            if (!this.presupuestoManager?.escuderiaId || !window.supabase) {
+                console.log('⏳ Esperando a que inicialice...');
+                return;
+            }
+    
+            const escuderiaId = this.presupuestoManager.escuderiaId;
+            const ahora = new Date();
+            const diaSemana = ahora.getDay(); // 0 = domingo, 1 = lunes
+            
+            // 2. Calcular el lunes de esta semana
+            const lunesEstaSemana = new Date(ahora);
+            if (diaSemana === 0) { // Domingo
+                lunesEstaSemana.setDate(ahora.getDate() - 6);
+            } else { // Lunes a sábado
+                lunesEstaSemana.setDate(ahora.getDate() - (diaSemana - 1));
+            }
+            lunesEstaSemana.setHours(0, 0, 0, 0);
+            
+            // 3. Calcular la semana que debemos tener resumen (la anterior al lunes)
+            const lunesSemanaPasada = new Date(lunesEstaSemana);
+            lunesSemanaPasada.setDate(lunesEstaSemana.getDate() - 7);
+            
+            const domingoSemanaPasada = new Date(lunesEstaSemana);
+            domingoSemanaPasada.setDate(lunesEstaSemana.getDate() - 1);
+            domingoSemanaPasada.setHours(23, 59, 59, 999);
+            
+            const semanaKey = lunesSemanaPasada.toISOString().split('T')[0];
+            
+            console.log(`📅 Verificando resumen de la semana: ${semanaKey}`);
+            
+            // 4. BUSCAR EN SUPABASE si ya existe el resumen
+            const { data: resumenExistente, error } = await window.supabase
+                .from('resumenes_semanales')
+                .select('*')
+                .eq('escuderia_id', escuderiaId)
+                .eq('semana_key', semanaKey)
+                .maybeSingle();
+            
+            if (error) {
+                console.error('❌ Error buscando resumen:', error);
+                return;
+            }
+            
+            // 5. Si YA EXISTE el resumen
+            if (resumenExistente) {
+                console.log('✅ Resumen ya existe en BD');
+                
+                // Si NO lo hemos visto, mostrar notificación
+                if (!resumenExistente.visto) {
+                    console.log('🔔 Resumen no visto, mostrando notificación...');
+                    await this.crearNotificacionResumen(resumenExistente.id, resumenExistente.datos);
+                    
+                    // Marcar como visto
+                    await window.supabase
+                        .from('resumenes_semanales')
+                        .update({ visto: true })
+                        .eq('id', resumenExistente.id);
+                }
+                
+                this.ultimoResumenEnviado = semanaKey;
+                return;
+            }
+            
+            // 6. Si NO EXISTE, generar resumen AHORA
+            console.log('🆕 Generando nuevo resumen semanal...');
+            
+            // Obtener transacciones de la semana pasada
+            const datos = await this.obtenerDatosSemana(lunesSemanaPasada, domingoSemanaPasada);
+            
+            if (!datos || datos.transacciones === 0) {
+                console.log('📭 No hay transacciones en la semana pasada');
+                return;
+            }
+            
+            // Guardar en Supabase
+            const { data: nuevoResumen, error: insertError } = await window.supabase
+                .from('resumenes_semanales')
+                .insert({
+                    escuderia_id: escuderiaId,
+                    semana_key: semanaKey,
+                    fecha_inicio: lunesSemanaPasada.toISOString().split('T')[0],
+                    fecha_fin: domingoSemanaPasada.toISOString().split('T')[0],
+                    datos: datos,
+                    visto: false
+                })
+                .select()
+                .single();
+            
+            if (insertError) {
+                console.error('❌ Error guardando resumen:', insertError);
+                return;
+            }
+            
+            console.log('💾 Resumen guardado en BD');
+            
+            // Crear notificación
+            await this.crearNotificacionResumen(nuevoResumen.id, datos);
+            
+            this.ultimoResumenEnviado = semanaKey;
+            console.log('🎉 Resumen semanal generado y notificado');
+            
+        } catch (error) {
+            console.error('❌ Error en verificarResumenPendiente:', error);
+        }
+    }
     // ========================
     // OBTENER DATOS DE LA SEMANA (CON CATEGORÍAS DINÁMICAS)
     // ========================
     async obtenerDatosSemana(fechaInicio, fechaFin) {
         try {
-            if (!window.presupuestoManager || !window.presupuestoManager.escuderiaId) {
+            if (!this.presupuestoManager?.escuderiaId) {
                 console.error('❌ No hay presupuestoManager inicializado');
                 return null;
             }
-
-            const escuderiaId = window.presupuestoManager.escuderiaId;
+    
+            const escuderiaId = this.presupuestoManager.escuderiaId;
             
-            // Obtener TODAS las transacciones de la semana (sin límite de días)
+            // Obtener transacciones
             const { data: transacciones, error } = await window.supabase
                 .from('transacciones')
                 .select('*')
                 .eq('escuderia_id', escuderiaId)
                 .gte('fecha', fechaInicio.toISOString())
-                .lt('fecha', fechaFin.toISOString())
+                .lte('fecha', fechaFin.toISOString())
                 .order('fecha', { ascending: true });
-
+    
             if (error) throw error;
-
+    
             if (!transacciones || transacciones.length === 0) {
-                return null;
+                return { transacciones: 0 }; // Indicamos que no hay transacciones
             }
-
-            // Calcular saldo inicial (primera transacción de la semana)
-            const saldoInicial = transacciones[0]?.saldo_resultante - 
-                (transacciones[0]?.tipo === 'ingreso' ? -transacciones[0]?.cantidad : transacciones[0]?.cantidad);
-
-            // Saldo final (última transacción de la semana)
+    
+            // Calcular saldo inicial
+            let saldoInicial = 0;
+            if (transacciones.length > 0) {
+                const primeraTrans = transacciones[0];
+                saldoInicial = primeraTrans.saldo_resultante - 
+                    (primeraTrans.tipo === 'ingreso' ? -primeraTrans.cantidad : primeraTrans.cantidad);
+            }
+    
             const saldoFinal = transacciones[transacciones.length - 1]?.saldo_resultante || 0;
-
-            // ===== CATEGORÍAS DINÁMICAS =====
+    
+            // Categorías dinámicas
             const ingresosPorCategoria = {};
             const gastosPorCategoria = {};
-
+    
             let totalIngresos = 0;
             let totalGastos = 0;
-
-            // Procesar cada transacción y agrupar por categoría
+    
             transacciones.forEach(t => {
                 const cantidad = Number(t.cantidad || 0);
                 const categoria = t.categoria || 'otros';
-
+    
                 if (t.tipo === 'ingreso') {
                     totalIngresos += cantidad;
                     ingresosPorCategoria[categoria] = (ingresosPorCategoria[categoria] || 0) + cantidad;
@@ -136,22 +255,19 @@ class ResumenSemanalManager {
                     gastosPorCategoria[categoria] = (gastosPorCategoria[categoria] || 0) + cantidad;
                 }
             });
-
-            // Separar publicidad si existe como categoría o si viene del pago dominical
-            let publicidad = 0;
-            if (ingresosPorCategoria['publicidad']) {
-                publicidad = ingresosPorCategoria['publicidad'];
-            } else {
-                // Buscar en transacciones por descripción
+    
+            // Publicidad
+            let publicidad = ingresosPorCategoria['publicidad'] || 0;
+            if (publicidad === 0) {
                 transacciones.forEach(t => {
                     if (t.tipo === 'ingreso' && t.descripcion?.includes('Pago dominical')) {
                         publicidad += Number(t.cantidad || 0);
                     }
                 });
             }
-
+    
             const balance = totalIngresos - totalGastos;
-
+    
             return {
                 fechaInicio: fechaInicio.toISOString().split('T')[0],
                 fechaFin: fechaFin.toISOString().split('T')[0],
@@ -160,89 +276,103 @@ class ResumenSemanalManager {
                 totalIngresos,
                 totalGastos,
                 balance,
-                ingresosPorCategoria,  // ← OBJETO DINÁMICO
-                gastosPorCategoria,     // ← OBJETO DINÁMICO
-                publicidad,             // ← PUBLICIDAD POR SEPARADO
+                ingresosPorCategoria,
+                gastosPorCategoria,
+                publicidad,
                 transacciones: transacciones.length
             };
-
+    
         } catch (error) {
             console.error('❌ Error obteniendo datos de la semana:', error);
             return null;
         }
     }
 
-    // ========================
-    // GUARDAR RESUMEN
-    // ========================
-    guardarResumen(semanaKey, datos) {
-        const resumen = {
-            id: `semana_${semanaKey}_${Date.now()}`,
-            semanaKey,
-            fecha: new Date().toISOString(),
-            datos
-        };
-        
-        this.resumenesGuardados.unshift(resumen);
-        
-        // Mantener solo últimos 10 resúmenes
-        if (this.resumenesGuardados.length > 10) {
-            this.resumenesGuardados.pop();
-        }
-        
-        return resumen.id;
-    }
+
 
     // ========================
     // CREAR NOTIFICACIÓN DE RESUMEN
     // ========================
     async crearNotificacionResumen(resumenId, datos) {
-        if (!window.notificacionesManager || !window.f1Manager?.user?.id) {
+        if (!this.notificacionesManager || !window.f1Manager?.user?.id) {
             console.error('❌ No hay notificacionesManager o usuario');
             return;
         }
-
+    
         const titulo = `📊 RESUMEN SEMANAL ${datos.fechaInicio} al ${datos.fechaFin}`;
         
         let mensaje = '';
         if (datos.balance >= 0) {
-            mensaje = `✅ Balance POSITIVO: +${datos.balance.toLocaleString()}€ | Ingresos: ${datos.totalIngresos.toLocaleString()}€ | Gastos: ${datos.totalGastos.toLocaleString()}€`;
+            mensaje = `✅ Balance POSITIVO: +${datos.balance.toLocaleString()}€`;
         } else {
-            mensaje = `⚠️ Balance NEGATIVO: ${datos.balance.toLocaleString()}€ | Ingresos: ${datos.totalIngresos.toLocaleString()}€ | Gastos: ${datos.totalGastos.toLocaleString()}€`;
+            mensaje = `⚠️ Balance NEGATIVO: ${datos.balance.toLocaleString()}€`;
         }
-
-        await window.notificacionesManager.crearNotificacion(
+        
+        // Añadir resumen de ingresos/gastos
+        mensaje += ` | Ingresos: ${datos.totalIngresos.toLocaleString()}€ | Gastos: ${datos.totalGastos.toLocaleString()}€`;
+    
+        await this.notificacionesManager.crearNotificacion(
             window.f1Manager.user.id,
             'resumen_semanal',
             titulo,
             mensaje,
-            resumenId // Guardamos el ID del resumen para abrirlo después
+            resumenId // Guardamos el ID del resumen
         );
     }
-
     // ========================
     // MOSTRAR MODAL CON RESUMEN SEMANAL
     // ========================
-    mostrarResumenSemanal(resumenId = null) {
-        let datos = null;
-        
-        if (resumenId) {
-            // Buscar resumen por ID
-            const resumen = this.resumenesGuardados.find(r => r.id === resumenId);
-            datos = resumen?.datos;
-        } else {
-            // Mostrar el último resumen
-            datos = this.resumenesGuardados[0]?.datos;
-        }
-
-        if (!datos) {
-            if (window.f1Manager?.showNotification) {
-                window.f1Manager.showNotification('📅 No hay resumen semanal disponible', 'info');
+    async mostrarResumenSemanal(resumenId = null) {
+        try {
+            if (!this.presupuestoManager?.escuderiaId) {
+                console.error('❌ No hay escudería');
+                return;
             }
-            return;
+    
+            let resumen;
+            
+            if (resumenId) {
+                // Buscar por ID específico
+                const { data } = await window.supabase
+                    .from('resumenes_semanales')
+                    .select('*')
+                    .eq('id', resumenId)
+                    .single();
+                resumen = data;
+            } else {
+                // Buscar el último resumen NO visto o el más reciente
+                const { data } = await window.supabase
+                    .from('resumenes_semanales')
+                    .select('*')
+                    .eq('escuderia_id', this.presupuestoManager.escuderiaId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
+                resumen = data;
+            }
+    
+            if (!resumen) {
+                console.log('📭 No hay resúmenes disponibles');
+                if (window.f1Manager?.showNotification) {
+                    window.f1Manager.showNotification('📅 No hay resumen semanal disponible', 'info');
+                }
+                return;
+            }
+    
+            // Marcar como visto
+            if (!resumen.visto) {
+                await window.supabase
+                    .from('resumenes_semanales')
+                    .update({ visto: true })
+                    .eq('id', resumen.id);
+            }
+    
+            // Mostrar el modal (igual que antes)
+            this.mostrarModal(resumen.datos);
+            
+        } catch (error) {
+            console.error('❌ Error mostrando resumen:', error);
         }
-
-        this.mostrarModal(datos);
     }
 
     // ========================
