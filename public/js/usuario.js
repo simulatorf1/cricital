@@ -9,7 +9,278 @@ class PerfilManager {
         this.perfilActual = null;
         this.estadoClasificacion = {}; // ← AÑADE ESTO
     }
-
+    // ========================
+    // PREGUNTAS DE AYUDA
+    // ========================
+    this.preguntasAyuda = [
+        // BLOQUE 1: CONCEPTOS BÁSICOS
+        {
+            titulo: "¿Qué es Critical Lap y cómo se juega?",
+            contenido: "Critical Lap es un juego de gestión de escudería de F1 basado en resultados reales. Tu misión es gestionar una escudería heredada invirtiendo en mejoras, contratando estrategas y acertando pronósticos sobre las carreras reales. Compites contra otros managers en tres categorías: economía, vueltas rápidas y aciertos de pronóstico. Cada fin de semana de Gran Premio es una oportunidad para ganar dinero y mejorar tu posición.",
+            bloque: "📘 CONCEPTOS BÁSICOS"
+        },
+        {
+            titulo: "¿Con cuánto dinero empiezo y cómo consigo más?",
+            contenido: "Comienzas con 50.000.000€ iniciales. Puedes obtener más dinero mediante: resultados en carreras reales (mejor vuelta rápida), venta de piezas en el mercado, aciertos en pronósticos, patrocinadores (estrellas diarias) y finalización exitosa de cada semana de carrera.",
+            bloque: "📘 CONCEPTOS BÁSICOS"
+        },
+        {
+            titulo: "¿Qué son las estrellas y para qué sirven?",
+            contenido: "Las estrellas son recompensas diarias que te dan tus patrocinadores por ser activo en el juego. Las consigues por: entrar a gestionar tu escudería, fabricar piezas nuevas y probar en pista. Al finalizar cada semana, todas las estrellas acumuladas se convierten automáticamente en dinero para tu presupuesto.",
+            bloque: "📘 CONCEPTOS BÁSICOS"
+        },
+        {
+            titulo: "¿Cómo funciona el ciclo semanal del juego?",
+            contenido: "El ciclo semanal tiene varias fases: durante la semana previa al Gran Premio puedes fabricar piezas, probarlas en pista y contratar estrategas. Hasta 48 horas antes de la carrera real debes enviar tus pronósticos. El fin de semana se celebra la carrera real, y el lunes siguiente recibes tus recompensas basadas en tus aciertos y el rendimiento de tu coche.",
+            bloque: "📘 CONCEPTOS BÁSICOS"
+        },
+        {
+            titulo: "¿Cuánto tiempo tengo para prepararme antes de cada carrera?",
+            contenido: "Tienes desde el lunes después de la carrera anterior hasta 48 horas antes del siguiente Gran Premio para preparar tu escudería. Pasado ese plazo, ya no puedes enviar pronósticos para esa carrera. Cuando el contador de la pantalla principal llega a 00:00, se cierra la ventana de pronósticos hasta que se abra la siguiente carrera.",
+            bloque: "📘 CONCEPTOS BÁSICOS"
+        },
+        
+        // BLOQUE 2: TALLER Y FABRICACIÓN
+        {
+            titulo: "¿Cómo fabrico una pieza nueva para mi coche?",
+            contenido: "Para fabricar una pieza debes ir al Taller. Allí encontrarás 11 áreas técnicas diferentes (Suelo, Alerón delantero, Alerón trasero, etc.). Haz clic en el área que te interese, selecciona la pieza que quieres fabricar (por ejemplo 'Aerodinámica básico') y confirma la fabricación. Cada pieza tiene un coste y un tiempo de construcción.",
+            bloque: "🔧 TALLER Y FABRICACIÓN"
+        },
+        {
+            titulo: "¿Cuánto tiempo tarda en fabricarse una pieza?",
+            contenido: "Los tiempos de fabricación varían según la pieza, desde minutos hasta horas. El tiempo de construcción no determina la calidad de la pieza, solo el tiempo que debes esperar para poder usarla. Puedes ver el progreso en la sección 'Producción' de la pantalla principal.",
+            bloque: "🔧 TALLER Y FABRICACIÓN"
+        },
+        {
+            titulo: "¿Puedo fabricar varias piezas a la vez?",
+            contenido: "Sí, pero con un límite: solo puedes tener 4 piezas en fabricación simultáneamente. Debes gestionar bien este límite para optimizar tu producción antes de cada carrera.",
+            bloque: "🔧 TALLER Y FABRICACIÓN"
+        },
+        {
+            titulo: "¿Por qué unas piezas tardan más que otras?",
+            contenido: "Cada pieza tiene diferentes niveles de complejidad y rendimiento potencial. Las piezas más avanzadas suelen requerir más tiempo de fabricación, pero no siempre son las mejores para cada circuito. La estrategia está en elegir qué piezas fabricar según el tiempo disponible y las características del próximo Gran Premio.",
+            bloque: "🔧 TALLER Y FABRICACIÓN"
+        },
+        {
+            titulo: "¿Dónde veo las piezas que estoy fabricando?",
+            contenido: "En la pantalla principal, en la sección 'Producción', verás todas las piezas actualmente en fabricación con una barra de progreso y el tiempo restante. Cuando una pieza termine, aparecerá disponible en tu Almacén.",
+            bloque: "🔧 TALLER Y FABRICACIÓN"
+        },
+        
+        // BLOQUE 3: ALMACÉN Y EQUIPAMIENTO
+        {
+            titulo: "¿Cómo equipo una pieza en mi coche?",
+            contenido: "Ve al Almacén, localiza la pieza que quieres equipar (debe estar terminada y en tu inventario) y haz clic sobre ella. Automáticamente quedará equipada en el coche. Para ver todas las piezas que tienes montadas actualmente, ve a la pantalla principal, sección 'Piezas montadas'.",
+            bloque: "📦 ALMACÉN Y EQUIPAMIENTO"
+        },
+        {
+            titulo: "¿Qué significa la barrita de color debajo de cada pieza?",
+            contenido: "Esa barrita indica el desgaste de la pieza. Cuando una pieza está equipada, se desgasta gradualmente en 24 horas. Si llega a 0%, la pieza se destruye permanentemente. Para evitarlo, debes repararla antes pinchando sobre la barrita de desgaste, aunque esté al 100%.",
+            bloque: "📦 ALMACÉN Y EQUIPAMIENTO"
+        },
+        {
+            titulo: "¿Puedo vender las piezas que ya no uso?",
+            contenido: "Sí, desde el Almacén puedes vender cualquier pieza que no tengas equipada actualmente. Es una buena forma de obtener dinero extra o liberar espacio. Las piezas se venden a otros managers a través del Mercado.",
+            bloque: "📦 ALMACÉN Y EQUIPAMIENTO"
+        },
+        {
+            titulo: "¿Cómo sé qué combinación de piezas es la mejor?",
+            contenido: "No hay una combinación universalmente mejor, ya que cada circuito tiene características diferentes. Debes probar distintas configuraciones en Ingeniería para ver qué tiempos logras. La mejor combinación será la que se adapte mejor al circuito de la próxima carrera.",
+            bloque: "📦 ALMACÉN Y EQUIPAMIENTO"
+        },
+        {
+            titulo: "¿Las piezas se pueden intercambiar entre carreras?",
+            contenido: "Sí, puedes cambiar las piezas tantas veces como quieras. De hecho, es recomendable ajustar tu configuración para cada circuito específico. Simplemente desmonta una pieza desde el Almacén y equipa otra diferente.",
+            bloque: "📦 ALMACÉN Y EQUIPAMIENTO"
+        },
+        
+        // BLOQUE 4: INGENIERÍA Y RENDIMIENTO
+        {
+            titulo: "¿Cómo hago mi primera simulación de vuelta rápida?",
+            contenido: "Para hacer una simulación, primero debes tener al menos una pieza equipada en el coche. Luego ve a la pestaña Ingeniería y haz clic en 'Iniciar simulación'. Cuando termine, obtendrás tu tiempo por vuelta, que aparecerá en todas las estadísticas, tu perfil y el ranking general.",
+            bloque: "📊 INGENIERÍA Y RENDIMIENTO"
+        },
+        {
+            titulo: "¿Por qué es obligatorio hacer la simulación?",
+            contenido: "Sin una simulación no tienes tiempo registrado, y sin tiempo registrado no puedes enviar pronósticos para la carrera. Además, tu tiempo por vuelta determina cómo te comparas con otros managers y cuánto dinero puedes ganar. Es el paso fundamental antes de cada carrera.",
+            bloque: "📊 INGENIERÍA Y RENDIMIENTO"
+        },
+        {
+            titulo: "¿Cómo mejoro mi tiempo por vuelta?",
+            contenido: "Mejoras tu tiempo equipando mejores combinaciones de piezas y probando en Ingeniería. Cada vez que cambies piezas, debes volver a simular para ver si el tiempo ha mejorado. Los ingenieros te indicarán qué área del coche es la que más necesita mejora.",
+            bloque: "📊 INGENIERÍA Y RENDIMIENTO"
+        },
+        {
+            titulo: "¿Qué información me dan los ingenieros después de la simulación?",
+            contenido: "Los ingenieros te muestran un análisis completo: el tiempo conseguido, las áreas fuertes y débiles de tu coche, y una comparativa con la escudería rival que tiene la mejor vuelta. También puedes ver la evolución histórica de tus tiempos en la parte inferior de la ficha de Ingeniería.",
+            bloque: "📊 INGENIERÍA Y RENDIMIENTO"
+        },
+        {
+            titulo: "¿El rendimiento del coche varía en cada carrera?",
+            contenido: "Sí, cada circuito tiene características únicas. Una configuración que funcionó bien en un circuito puede no ser óptima para el siguiente. Por eso debes investigar y probar nuevas combinaciones durante toda la temporada.",
+            bloque: "📊 INGENIERÍA Y RENDIMIENTO"
+        },
+        
+        // BLOQUE 5: ESTRATEGAS
+        {
+            titulo: "¿Qué son los estrategas y para qué sirven?",
+            contenido: "Los estrategas son los miembros de tu equipo que potencian tus aciertos en los pronósticos. Puedes contratar hasta 4 estrategas, cada uno especializado en diferentes áreas (meteorología, neumáticos, motor, etc.). Cuanto mejor sea el estratega, mayor porcentaje de bonificación tendrás en los pronósticos de su especialidad.",
+            bloque: "👨‍💼 ESTRATEGAS"
+        },
+        {
+            titulo: "¿Cómo contrato un estratega?",
+            contenido: "Desde la pantalla principal, ve a la sección 'Estrategas' y haz clic en 'Gestionar Estrategas'. Allí verás una lista de estrategas disponibles con sus especialidades, sueldos y bonificaciones. Selecciona el que quieras y confirma la contratación.",
+            bloque: "👨‍💼 ESTRATEGAS"
+        },
+        {
+            titulo: "¿Cuánto dura el contrato de un estratega?",
+            contenido: "Los contratos duran 7 días desde el momento de la contratación. El salario se paga al finalizar el contrato. Puedes cancelar un contrato antes de tiempo, pero tendrás una penalización económica.",
+            bloque: "👨‍💼 ESTRATEGAS"
+        },
+        {
+            titulo: "¿Cómo sé qué estratega me conviene contratar?",
+            contenido: "Depende de tu estrategia. Si quieres especializarte en pronósticos meteorológicos, contrata estrategas de esa área. Fíjate también en la relación entre sueldo y porcentaje de bonificación. A veces un estratega más caro puede compensar si aciertas muchos pronósticos de su especialidad.",
+            bloque: "👨‍💼 ESTRATEGAS"
+        },
+        {
+            titulo: "¿Puedo tener varios estrategas de la misma especialidad?",
+            contenido: "Sí, puedes tener hasta 4 estrategas de cualquier combinación de especialidades. Sus bonificaciones se suman, así que especializarte en un área puede darte una gran ventaja en pronósticos concretos.",
+            bloque: "👨‍💼 ESTRATEGAS"
+        },
+        
+        // BLOQUE 6: PRONÓSTICOS
+        {
+            titulo: "¿Cómo envío un pronóstico para la carrera?",
+            contenido: "Ve a la sección 'Pronósticos' antes del cierre de la ventana (48 horas antes de la carrera). Verás una serie de preguntas sobre la próxima carrera, cada una con tres opciones posibles. Debes seleccionar la que creas que ocurrirá en la realidad. No hace falta que aciertes todas, cada acierto te da dinero.",
+            bloque: "🔮 PRONÓSTICOS"
+        },
+        {
+            titulo: "¿Qué tipo de preguntas aparecen en los pronósticos?",
+            contenido: "Las preguntas cambian cada semana y están adaptadas al circuito específico. Pueden ser sobre: condiciones meteorológicas, número de adelantamientos, piloto que hará la pole position, número de abandonos, safety car, etc. Cada pregunta está asignada a un área que cubren tus estrategas.",
+            bloque: "🔮 PRONÓSTICOS"
+        },
+        {
+            titulo: "¿Cuándo sé si he acertado mis pronósticos?",
+            contenido: "El lunes después de la carrera real, recibirás una notificación con los resultados. Tus aciertos se convertirán automáticamente en dinero para tu presupuesto. También verás en la clasificación cómo te comparas con otros managers en porcentaje de aciertos.",
+            bloque: "🔮 PRONÓSTICOS"
+        },
+        {
+            titulo: "¿Qué pasa si no envío pronóstico para una carrera?",
+            contenido: "Si no envías pronóstico, no podrás ganar dinero por aciertos en esa carrera. Sin embargo, seguirás pudiendo fabricar piezas, probar en pista y contratar estrategas para la siguiente. Es recomendable siempre enviar pronóstico, aunque sea con opciones aleatorias.",
+            bloque: "🔮 PRONÓSTICOS"
+        },
+        {
+            titulo: "¿Los estrategas influyen en mis aciertos?",
+            contenido: "Sí, los estrategas que tengas contratados potencian tus aciertos. Por ejemplo, si tienes un estratega de meteorología y aciertas una pregunta sobre el tiempo, tu bonificación será mayor que si no tuvieras ese estratega. Por eso es importante contratar estrategas de las áreas donde sueles acertar más.",
+            bloque: "🔮 PRONÓSTICOS"
+        },
+        
+        // BLOQUE 7: MERCADO Y ECONOMÍA
+        {
+            titulo: "¿Cómo funciona el Mercado de piezas?",
+            contenido: "En el Mercado puedes comprar piezas que otros managers han puesto a la venta y vender las tuyas. Es útil cuando necesitas una pieza urgente para una combinación específica y no tienes tiempo de fabricarla. Los precios los fija cada vendedor.",
+            bloque: "💰 MERCADO Y ECONOMÍA"
+        },
+        {
+            titulo: "¿Cómo pongo una pieza a la venta?",
+            contenido: "Desde tu Almacén, selecciona una pieza que no tengas equipada y elige la opción 'Vender'. Establece un precio y la pieza aparecerá en el Mercado para que otros managers puedan comprarla.",
+            bloque: "💰 MERCADO Y ECONOMÍA"
+        },
+        {
+            titulo: "¿Cuánto dinero puedo ganar vendiendo piezas?",
+            contenido: "Depende de la rareza y demanda de la pieza. Las piezas más difíciles de fabricar o las que son óptimas para ciertos circuitos suelen venderse mejor. Es una estrategia complementaria a los ingresos por carreras.",
+            bloque: "💰 MERCADO Y ECONOMÍA"
+        },
+        {
+            titulo: "¿Dónde veo mi historial de ingresos y gastos?",
+            contenido: "En la sección 'Presupuesto' tienes un desglose completo de todos tus movimientos económicos: ingresos por carreras, ventas, patrocinadores, y gastos en fabricación, salarios de estrategas y compras en el mercado.",
+            bloque: "💰 MERCADO Y ECONOMÍA"
+        },
+        {
+            titulo: "¿Cómo compito en la clasificación económica?",
+            contenido: "Tu escudería se compara con otras en tres categorías: dinero total, mejor vuelta rápida y porcentaje de aciertos en pronósticos. En la sección 'Clasificación' puedes ver tu posición en cada categoría y el histórico de campeones de bloques anteriores.",
+            bloque: "💰 MERCADO Y ECONOMÍA"
+        },
+        
+        // BLOQUE 8: COMUNICACIÓN Y PERFIL
+        {
+            titulo: "¿Cómo puedo hablar con otros jugadores?",
+            contenido: "Usa la sección 'Comunicación' (icono del bocadillo junto a notificaciones). Allí puedes conversar con otros managers, buscar jugadores específicos, compartir pronósticos, negociar compra/venta de piezas y aprender de jugadores más experimentados.",
+            bloque: "💬 COMUNICACIÓN Y PERFIL"
+        },
+        {
+            titulo: "¿Qué información veo en el perfil de un jugador?",
+            contenido: "En el perfil de cada manager puedes ver: vitrina de trofeos, posición en las distintas clasificaciones, capital total de la escudería, posición global, número de carreras disputadas, porcentaje histórico de aciertos en pronósticos y fecha de creación de la cuenta.",
+            bloque: "💬 COMUNICACIÓN Y PERFIL"
+        },
+        {
+            titulo: "¿Cómo agrego amigos en el juego?",
+            contenido: "Desde el perfil de otro jugador, busca la opción de agregar como amigo. También puedes buscar jugadores por nombre en la sección de comunicación. Una vez que sean amigos, podréis formar un grupo para competir entre vosotros y ver vuestras estadísticas comparadas.",
+            bloque: "💬 COMUNICACIÓN Y PERFIL"
+        },
+        {
+            titulo: "¿Qué son las notificaciones y para qué sirven?",
+            contenido: "Las notificaciones (icono de campana) te avisan de eventos importantes: piezas terminadas, resultados de carrera, piezas vendidas en el mercado, finalización de contratos de estrategas, solicitudes de amistad, etc. Es recomendable revisarlas a menudo para no perderte nada.",
+            bloque: "💬 COMUNICACIÓN Y PERFIL"
+        },
+        {
+            titulo: "¿Dónde veo el calendario de carreras?",
+            contenido: "En la pantalla principal hay un contador que muestra el tiempo restante para el próximo Gran Premio. Haciendo clic en él o en la sección correspondiente puedes ver el calendario completo de la temporada con todas las fechas importantes.",
+            bloque: "💬 COMUNICACIÓN Y PERFIL"
+        },
+        
+        // BLOQUE 9: CONSEJOS AVANZADOS
+        {
+            titulo: "¿Cuál es la mejor estrategia para empezar?",
+            contenido: "Comienza fabricando una pieza básica de cada área para tener un coche completo. Luego céntrate en las áreas que tus ingenieros identifiquen como más débiles. Contrata al menos un estratega de una especialidad que te interese y envía pronósticos desde la primera carrera. La constancia diaria es clave.",
+            bloque: "🎯 CONSEJOS AVANZADOS"
+        },
+        {
+            titulo: "¿Merece la pena especializarse en un área concreta?",
+            contenido: "Sí, especializarte puede darte ventaja en ciertos circuitos. Por ejemplo, si te especializas en aerodinámica, tendrás mejores tiempos en circuitos rápidos. Si te especializas en meteorología, acertarás más pronósticos relacionados con el clima.",
+            bloque: "🎯 CONSEJOS AVANZADOS"
+        },
+        {
+            titulo: "¿Cómo sé qué piezas fabricar para cada circuito?",
+            contenido: "Analiza las características del próximo circuito: ¿es de alta velocidad? ¿tiene muchas curvas lentas? ¿es probable que llueva? Adapta tu fabricación a esas necesidades. También puedes consultar en la comunicación qué están fabricando otros managers.",
+            bloque: "🎯 CONSEJOS AVANZADOS"
+        },
+        {
+            titulo: "¿Cuánto tiempo antes debo enviar mis pronósticos?",
+            contenido: "Es recomendable enviarlos tan pronto como tengas clara tu estrategia, pero siempre antes del cierre (48 horas antes de la carrera). Si esperas demasiado, podrías olvidarte o quedarte sin tiempo por imprevistos.",
+            bloque: "🎯 CONSEJOS AVANZADOS"
+        },
+        {
+            titulo: "¿Qué hago si me quedo sin dinero?",
+            contenido: "Si tu presupuesto se acerca a cero, prioriza las acciones esenciales: fabrica solo piezas necesarias, considera vender algunas en el mercado, y asegúrate de enviar pronósticos para tener ingresos por aciertos. También puedes reducir costes no contratando estrategas muy caros temporalmente.",
+            bloque: "🎯 CONSEJOS AVANZADOS"
+        },
+        {
+            titulo: "¿Cómo mejoro mi porcentaje de aciertos?",
+            contenido: "Estudia las estadísticas de carreras anteriores, sigue la actualidad de la F1 real, y aprende de tus errores. Los estrategas especializados también ayudan. Con el tiempo, desarrollarás intuición sobre qué opciones suelen ser más probables.",
+            bloque: "🎯 CONSEJOS AVANZADOS"
+        },
+        {
+            titulo: "¿Las piezas muy caras son siempre mejores?",
+            contenido: "No necesariamente. Una pieza cara pero inadecuada para un circuito concreto puede rendir peor que una pieza básica bien adaptada. La clave está en la combinación adecuada para cada carrera, no en el precio individual.",
+            bloque: "🎯 CONSEJOS AVANZADOS"
+        },
+        {
+            titulo: "¿Puedo cambiar de estrategia durante la temporada?",
+            contenido: "Sí, de hecho es recomendable. Puedes empezar con una estrategia equilibrada y luego especializarte según tus puntos fuertes. También puedes adaptarte a los cambios en el mercado o a las características de los próximos circuitos.",
+            bloque: "🎯 CONSEJOS AVANZADOS"
+        },
+        {
+            titulo: "¿Cómo compito contra mis amigos?",
+            contenido: "Una vez que tengáis amistad en el juego, podéis comparar vuestras estadísticas directamente. También podéis crear grupos informales para competir entre vosotros y ver quién progresa más rápido o acierta más pronósticos.",
+            bloque: "🎯 CONSEJOS AVANZADOS"
+        },
+        {
+            titulo: "¿Cuál es el objetivo final del juego?",
+            contenido: "El objetivo es llevar tu escudería heredada a lo más alto, compitiendo en tres frentes: ser el más rico, tener la vuelta rápida más baja y acertar más pronósticos. Cada lunes, al finalizar la semana de carrera, verás tu progreso hacia la gloria en la clasificación general. La constancia y la estrategia te llevarán a lo más alto del podio.",
+            bloque: "🎯 CONSEJOS AVANZADOS"
+        }
+    ];
     // ========================
     // MOSTRAR PERFIL (público - cualquier usuario puede ver el perfil de otro)
     // ========================
@@ -72,6 +343,156 @@ class PerfilManager {
         // Llamar al método existente mostrarPerfil con el ID
         this.mostrarPerfil(escuderiaId, escuderiaNombre);
     }
+
+    // ========================
+    // MÉTODOS PARA LA AYUDA DESPLEGABLE
+    // ========================
+    
+    /**
+     * Alternar visibilidad del panel de ayuda
+     */
+    toggleAyuda() {
+        const contenido = document.getElementById('ayuda-contenido');
+        const chevron = document.getElementById('ayuda-chevron');
+        
+        if (!contenido) return;
+        
+        if (contenido.style.display === 'none' || contenido.style.display === '') {
+            contenido.style.display = 'block';
+            chevron.style.transform = 'rotate(180deg)';
+            
+            // Cargar preguntas si no se han cargado antes
+            if (contenido.children.length === 1) {
+                this.cargarPreguntasAyuda();
+            }
+        } else {
+            contenido.style.display = 'none';
+            chevron.style.transform = 'rotate(0deg)';
+        }
+    }
+    
+    /**
+     * Cargar las preguntas de ayuda en el acordeón
+     */
+    cargarPreguntasAyuda() {
+        const contenedor = document.getElementById('ayuda-contenido');
+        if (!contenedor) return;
+        
+        // Agrupar por bloque
+        const preguntasPorBloque = {};
+        this.preguntasAyuda.forEach(pregunta => {
+            if (!preguntasPorBloque[pregunta.bloque]) {
+                preguntasPorBloque[pregunta.bloque] = [];
+            }
+            preguntasPorBloque[pregunta.bloque].push(pregunta);
+        });
+        
+        let html = '';
+        
+        // Crear acordeones por bloque
+        Object.keys(preguntasPorBloque).forEach((bloque, indexBloque) => {
+            const bloqueId = `ayuda-bloque-${indexBloque}`;
+            
+            html += `
+                <div style="margin-bottom: 15px; background: rgba(0,0,0,0.3); border-radius: 6px; overflow: hidden;">
+                    <div class="ayuda-bloque-header" 
+                         onclick="window.perfilManager.toggleBloqueAyuda('${bloqueId}')"
+                         style="
+                            padding: 12px 15px;
+                            background: linear-gradient(90deg, rgba(0,210,190,0.2) 0%, rgba(0,210,190,0.05) 100%);
+                            cursor: pointer;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            border-left: 3px solid #00d2be;
+                         ">
+                        <span style="color: #00d2be; font-weight: bold; font-size: 0.9rem;">${bloque}</span>
+                        <i class="fas fa-chevron-down" id="${bloqueId}-chevron" style="color: #00d2be; transition: transform 0.3s;"></i>
+                    </div>
+                    
+                    <div id="${bloqueId}" style="display: none; padding: 5px;">
+            `;
+            
+            // Añadir preguntas del bloque
+            preguntasPorBloque[bloque].forEach((pregunta, indexPregunta) => {
+                const preguntaId = `ayuda-pregunta-${indexBloque}-${indexPregunta}`;
+                
+                html += `
+                    <div style="margin: 5px 0; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                        <div class="ayuda-pregunta-header" 
+                             onclick="window.perfilManager.togglePreguntaAyuda('${preguntaId}')"
+                             style="
+                                padding: 10px 12px;
+                                cursor: pointer;
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                border-bottom: 1px solid rgba(255,255,255,0.05);
+                             ">
+                            <span style="color: #ddd; font-size: 0.85rem; flex: 1;">${pregunta.titulo}</span>
+                            <i class="fas fa-plus" id="${preguntaId}-icon" style="color: #00d2be; font-size: 0.7rem; margin-left: 10px;"></i>
+                        </div>
+                        
+                        <div id="${preguntaId}" style="display: none; padding: 12px;">
+                            <div style="color: #aaa; font-size: 0.8rem; line-height: 1.5; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; border-left: 2px solid #00d2be;">
+                                ${pregunta.contenido}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+            <div style="text-align: right; margin-top: 10px; padding: 5px; color: #666; font-size: 0.65rem;">
+                <i class="fas fa-book"></i> ${this.preguntasAyuda.length} temas de ayuda
+            </div>
+        `;
+        
+        contenedor.innerHTML = html;
+    }
+    
+    /**
+     * Alternar visibilidad de un bloque de ayuda
+     */
+    toggleBloqueAyuda(bloqueId) {
+        const bloque = document.getElementById(bloqueId);
+        const chevron = document.getElementById(`${bloqueId}-chevron`);
+        
+        if (!bloque) return;
+        
+        if (bloque.style.display === 'none' || bloque.style.display === '') {
+            bloque.style.display = 'block';
+            chevron.style.transform = 'rotate(180deg)';
+        } else {
+            bloque.style.display = 'none';
+            chevron.style.transform = 'rotate(0deg)';
+        }
+    }
+    
+    /**
+     * Alternar visibilidad de una pregunta de ayuda
+     */
+    togglePreguntaAyuda(preguntaId) {
+        const pregunta = document.getElementById(preguntaId);
+        const icon = document.getElementById(`${preguntaId}-icon`);
+        
+        if (!pregunta) return;
+        
+        if (pregunta.style.display === 'none' || pregunta.style.display === '') {
+            pregunta.style.display = 'block';
+            icon.className = 'fas fa-minus';
+        } else {
+            pregunta.style.display = 'none';
+            icon.className = 'fas fa-plus';
+        }
+    }
+    
     // ========================
     // CARGAR CLASIFICACIÓN DEL GRUPO
     // ========================
@@ -1733,6 +2154,38 @@ class PerfilManager {
                             </button>
                         </div>
                     ` : ''}
+                    <!-- ========================================= -->
+                    <!-- SECCIÓN DE AYUDA DESPLEGABLE              -->
+                    <!-- ========================================= -->
+                    <div class="perfil-ayuda" style="margin-top: 25px; border-top: 2px solid rgba(0,210,190,0.3); padding-top: 20px;">
+                        <div class="ayuda-header" 
+                             onclick="window.perfilManager.toggleAyuda()"
+                             style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
+                                cursor: pointer;
+                                padding: 10px;
+                                background: rgba(0,210,190,0.1);
+                                border-radius: 8px;
+                                margin-bottom: 10px;
+                             ">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-question-circle" style="color: #00d2be; font-size: 1.2rem;"></i>
+                                <span style="color: #00d2be; font-weight: bold; font-size: 1rem;">TEMAS DE AYUDA</span>
+                            </div>
+                            <i class="fas fa-chevron-down" id="ayuda-chevron" style="color: #00d2be; transition: transform 0.3s;"></i>
+                        </div>
+                        
+                        <div id="ayuda-contenido" style="display: none; max-height: 400px; overflow-y: auto; padding: 5px;">
+                            <!-- El contenido se cargará dinámicamente -->
+                            <div style="text-align: center; padding: 20px;">
+                                <i class="fas fa-spinner fa-spin" style="color: #00d2be;"></i>
+                                <p style="color: #888; margin-top: 10px;">Cargando temas de ayuda...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         `;
@@ -2994,7 +3447,46 @@ const perfilStyles = `
         justify-content: center;
         color: #888;
     }
+    .perfil-ayuda {
+        background: rgba(0,0,0,0.2);
+        border-radius: 10px;
+        margin-top: 25px;
+    }
     
+    .ayuda-header:hover {
+        background: rgba(0,210,190,0.2) !important;
+    }
+    
+    #ayuda-contenido {
+        scrollbar-width: thin;
+        scrollbar-color: #00d2be #1a1a2e;
+    }
+    
+    #ayuda-contenido::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    #ayuda-contenido::-webkit-scrollbar-track {
+        background: #1a1a2e;
+        border-radius: 3px;
+    }
+    
+    #ayuda-contenido::-webkit-scrollbar-thumb {
+        background: #00d2be;
+        border-radius: 3px;
+    }
+    
+    .ayuda-bloque-header:hover {
+        background: linear-gradient(90deg, rgba(0,210,190,0.3) 0%, rgba(0,210,190,0.1) 100%) !important;
+    }
+    
+    .ayuda-pregunta-header:hover {
+        background: rgba(0,210,190,0.05) !important;
+    }
+    
+    .ayuda-pregunta-header:hover span {
+        color: #00d2be !important;
+    }    
     @media (max-width: 768px) {
         .modal-perfil-contenedor {
             padding: 20px;
