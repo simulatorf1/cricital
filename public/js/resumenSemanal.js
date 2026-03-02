@@ -85,6 +85,14 @@ class ResumenSemanalManager {
         }
     }
     async verificarResumenPendiente() {
+        // EVITAR EJECUCIONES DUPLICADAS
+        if (this.verificando) {
+            console.log('⏳ Ya hay una verificación en curso...');
+            return;
+        }
+        
+        this.verificando = true;
+           
         try {
             console.log('📅 Verificando resúmenes pendientes...');
             
