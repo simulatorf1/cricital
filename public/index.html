@@ -3,20 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Solidworks Structures</title>
+    
+    <!-- TÍTULO ACTUALIZADO -->
+    <title>Critical Lap</title>
+    
+    <!-- META DESCRIPTION PARA GOOGLE -->
+    <meta name="description" content="Critical Lap: El simulador de gestión de escuderías de motorsport más realista. Construye tu equipo, gestiona presupuestos, desarrolla componentes y compite por el campeonato.">
+    <meta name="keywords" content="motorsport, manager, simulación, escudería, gestión, juego, estrategia, automovilismo, carreras">
+    <meta name="author" content="Critical Lap">
+    <meta name="robots" content="index, follow">
+    
+    <!-- OPEN GRAPH PARA REDES SOCIALES -->
+    <meta property="og:title" content="Critical Lap - Manager de Escuderías de Motorsport">
+    <meta property="og:description" content="El simulador de gestión de escuderías de motorsport más realista. Construye tu equipo y compite por el campeonato.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Critical Lap">
+    
+    <!-- TWITTER CARD -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Critical Lap - Manager de Escuderías de Motorsport">
+    <meta name="twitter:description" content="El simulador de gestión de escuderías de motorsport más realista. Construye tu equipo y compite por el campeonato.">
+    
+    <!-- GOOGLE ANALYTICS - TU CÓDIGO G-K5G040LYJ5 -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K5G040LYJ5"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-K5G040LYJ5', {
+            'send_page_view': true,
+            'cookie_flags': 'max-age=7200;secure;samesite=none'
+        });
+        
+        // Eventos personalizados para seguimiento de juego
+        document.addEventListener('DOMContentLoaded', function() {
+            // Registrar tiempo de carga
+            gtag('event', 'page_loaded', {
+                'event_category': 'performance',
+                'event_label': 'initial_load'
+            });
+        });
+    </script>
+    
+    <!-- CSS EXTERNO -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="js/styles.css">    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+    <link rel="stylesheet" href="js/styles.css">
+    
+    <!-- FAVICON (recomendado para SEO) -->
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/icon.png">
+    
+    <!-- VERIFICACIÓN DE GOOGLE SEARCH CONSOLE (REEMPLAZA CON TU CÓDIGO) -->
+    <meta name="google-site-verification" content="tu-codigo-de-verificacion-aqui" />
 </head>
 <body>
     <!-- ========================================= -->
     <!-- REPRODUCTOR DE MÚSICA PERMANENTE (NUNCA SE DESTRUYE) -->
     <!-- ========================================= -->
     <div id="reproductor-fijo" style="position: fixed; width: 0; height: 0; overflow: hidden; opacity: 0; pointer-events: none; z-index: -9999;">
-        <iframe src="/player.html" style="width: 100%; height: 100%; border: none;"></iframe>
+        <iframe src="/player.html" style="width: 100%; height: 100%; border: none;" title="Reproductor de música"></iframe>
     </div>
 
     <!-- ========================================= -->
@@ -30,7 +78,25 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
     
     <script>
-        console.log('🔧 Inicializando Manager...');
+        console.log('🔧 Inicializando Critical Lap...');
+        
+        // Función para trackear eventos con Google Analytics
+        function trackEvent(category, action, label = null, value = null) {
+            try {
+                // Google Analytics 4
+                if (typeof gtag === 'function') {
+                    gtag('event', action, {
+                        'event_category': category,
+                        'event_label': label,
+                        'value': value
+                    });
+                }
+                
+                console.log(`📊 Event tracked: ${category} - ${action}`);
+            } catch (e) {
+                console.log('Error tracking event:', e);
+            }
+        }
         
         // Función para inicializar Supabase de forma segura
         function inicializarSupabase() {
@@ -40,16 +106,18 @@
                     'https://xbnbbmhcveyzrvvmdktg.supabase.co',
                     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhibmJibWhjdmV5enJ2dm1ka3RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzY1NDgsImV4cCI6MjA4MTU1MjU0OH0.RaNk5B62P97WB93kKJMR1OLac68lDb9JTVthu8_m3Hg'
                 );
-                console.log('Supabase URL:', supabaseClient.supabaseUrl);
-                console.log('Supabase Key existe:', !!supabaseClient.supabaseKey);
-                console.log('Cliente creado:', supabaseClient);
                 
                 window.supabase = supabaseClient;
                 console.log('✅ Supabase inicializado correctamente');
+                
+                // Trackear éxito de conexión
+                trackEvent('system', 'supabase_connected', 'success');
+                
                 return true;
                 
             } catch (error) {
                 console.error('❌ Error inicializando Supabase:', error);
+                trackEvent('system', 'supabase_error', error.message);
                 return false;
             }
         }
@@ -81,6 +149,7 @@
             function cargarSiguiente() {
                 if (cargados >= total) {
                     console.log('✅ Todos los scripts esenciales cargados');
+                    trackEvent('system', 'all_scripts_loaded', 'success', total);
                     return;
                 }
                 
@@ -93,6 +162,7 @@
                 };
                 script.onerror = (error) => {
                     console.error(`❌ Error cargando ${scripts[cargados]}:`, error);
+                    trackEvent('system', 'script_error', scripts[cargados]);
                     cargados++;
                     cargarSiguiente();
                 };
@@ -100,30 +170,41 @@
                 document.body.appendChild(script);
             }
             
+            // Trackear inicio de carga
+            trackEvent('system', 'scripts_loading_start', 'total_scripts', total);
             cargarSiguiente();
         }
         
         // Inicializar cuando todo esté listo
         async function iniciarJuego() {
-            console.log('🚀 Iniciando juego...');
+            console.log('🚀 Iniciando Critical Lap...');
+            
+            // Trackear inicio
+            trackEvent('game', 'game_start', 'initialization');
             
             // 1. Inicializar Supabase
             if (!inicializarSupabase()) {
                 mostrarError('No se pudo conectar con la base de datos');
+                trackEvent('error', 'connection_failed', 'supabase');
                 return;
             }
             
             // 2. Cargar scripts
             cargarScriptsEsenciales();
             
-            // 3. auth.js se encargará del login automáticamente
+            // 3. Trackear tiempo de carga completo
+            window.addEventListener('load', function() {
+                const loadTime = performance.now();
+                trackEvent('performance', 'full_load_time', 'ms', Math.round(loadTime));
+            });
         }
         
         function mostrarError(mensaje) {
             document.body.innerHTML = `
                 <div class="error-screen">
-                    <h1><i class="fas fa-exclamation-triangle"></i> Error</h1>
+                    <h1><i class="fas fa-exclamation-triangle"></i> Error en Critical Lap</h1>
                     <p>${mensaje}</p>
+                    <p style="font-size: 14px; opacity: 0.7;">Por favor, intenta recargar la página</p>
                     <button onclick="location.reload()">Reintentar</button>
                 </div>
                 <style>
@@ -137,33 +218,50 @@
                         color: white;
                         text-align: center;
                         padding: 20px;
+                        font-family: 'Orbitron', sans-serif;
                     }
                     .error-screen h1 {
                         color: #e10600;
                         margin-bottom: 20px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
                     }
                     .error-screen button {
                         margin-top: 20px;
-                        padding: 10px 30px;
+                        padding: 12px 40px;
                         background: #e10600;
                         color: white;
                         border: none;
                         border-radius: 5px;
                         cursor: pointer;
                         font-weight: bold;
+                        font-family: 'Orbitron', sans-serif;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        transition: all 0.3s;
+                    }
+                    .error-screen button:hover {
+                        background: #ff1e00;
+                        transform: scale(1.05);
                     }
                 </style>
             `;
+            
+            trackEvent('error', 'fatal_error', mensaje);
         }
         
         // Esperar a que el DOM esté listo
         document.addEventListener('DOMContentLoaded', iniciarJuego);
         
-        // Función para ayudar con debugging
-        window.ayudaF1 = {
+        // Función para ayudar con debugging y analytics
+        window.CriticalLap = {
+            trackEvent: trackEvent,
+            
             verificarConexion: async () => {
                 if (!window.supabase) {
                     console.log('❌ Supabase no está disponible');
+                    trackEvent('debug', 'supabase_not_available');
                     return false;
                 }
                 
@@ -174,24 +272,58 @@
                     
                     if (error) {
                         console.log('❌ Error de conexión:', error.message);
+                        trackEvent('debug', 'connection_error', error.message);
                         return false;
                     }
                     
                     console.log('✅ Conexión exitosa a Supabase');
+                    trackEvent('debug', 'connection_success');
                     return true;
                     
                 } catch (error) {
                     console.log('❌ Error verificando conexión:', error);
+                    trackEvent('debug', 'verification_error', error.message);
                     return false;
                 }
             },
             
-            crearTablasSiFaltan: async () => {
-                console.log('🔧 Verificando tablas necesarias...');
-                // Esta función ayudaría si faltan tablas, pero necesita permisos de administrador
-                console.log('⚠️ Para crear tablas, usa el SQL en el editor de Supabase');
+            // Función para trackear progreso del jugador
+            trackPlayerProgress: (action, details) => {
+                trackEvent('player', action, details);
+            },
+            
+            // Función para trackear errores específicos del juego
+            trackGameError: (errorType, errorMessage) => {
+                trackEvent('game_error', errorType, errorMessage);
             }
         };
+        
+        // Registrar tiempo de inicio para métricas de rendimiento
+        window.performanceStart = Date.now();
+    </script>
+    
+    <!-- ESTRUCTURACIÓN DE DATOS PARA GOOGLE (Schema.org) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "Critical Lap",
+        "description": "El simulador de gestión de escuderías de motorsport más realista. Construye tu equipo, gestiona presupuestos, desarrolla componentes y compite por el campeonato.",
+        "genre": ["Simulación", "Estrategia", "Gestión"],
+        "gamePlatform": "Web Browser",
+        "applicationCategory": "Game",
+        "operatingSystem": "Any",
+        "author": {
+            "@type": "Organization",
+            "name": "Critical Lap"
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+        }
+    }
     </script>
     
 </body>
