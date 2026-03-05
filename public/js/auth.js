@@ -656,9 +656,33 @@ class AuthManager {
                 .from('coches_stats')
                 .insert([{ escuderia_id: nuevaEscuderia.id }]);
             
-            this.mostrarMensaje('✅ ¡Cuenta creada! Revisa tu correo para confirmarla.', successDiv);
+
+            // ===============================
+            // AUTO LOGIN TRAS REGISTRO
+            // ===============================
+            console.log('🔑 Iniciando sesión automática tras registro...');
             
-            setTimeout(() => this.mostrarPantallaLogin(), 3000);
+            const { data: loginData, error: loginError } = await this.supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+            
+            if (loginError) {
+                console.error('❌ Error en auto-login:', loginError);
+                this.mostrarMensaje('Cuenta creada, pero no se pudo iniciar sesión automáticamente.', errorDiv);
+                return;
+            }
+            
+            console.log('✅ Auto-login exitoso');
+            
+            // Cargar datos del usuario recién logueado
+            await this.cargarDatosUsuario(loginData.user);
+            
+            // Notificar a main.js
+            this.notificarAutenticacionExitosa(this.user, this.escuderia);
+            
+            // Cargar la aplicación completa
+            location.reload();
             
         } catch (error) {
             console.error('❌ Error en registro completo:', error);
